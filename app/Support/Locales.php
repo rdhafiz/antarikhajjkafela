@@ -16,7 +16,21 @@ class Locales
     /** @var array<string, array{code: string, name: string, native: string, dir: string}>|null */
     private ?array $available = null;
 
-    public function __construct(private readonly Settings $settings) {}
+    /**
+     * The application's base language from config, captured before any
+     * request changes the active locale (setLocale() rewrites app.locale).
+     */
+    private readonly string $base;
+
+    public function __construct(private readonly Settings $settings)
+    {
+        $this->base = config('app.locale');
+    }
+
+    public function base(): string
+    {
+        return $this->base;
+    }
 
     /**
      * @return array<string, array{code: string, name: string, native: string, dir: string}>
@@ -42,7 +56,7 @@ class Locales
         }
 
         // Keep the application's base language first, the rest alphabetically.
-        $base = config('app.locale');
+        $base = $this->base;
         uksort($locales, fn ($a, $b) => [$a !== $base, $a] <=> [$b !== $base, $b]);
 
         return $this->available = $locales;
@@ -65,6 +79,6 @@ class Locales
     {
         $configured = $this->settings->get('localization.default_locale');
 
-        return $this->isSupported($configured) ? $configured : config('app.locale');
+        return $this->isSupported($configured) ? $configured : $this->base;
     }
 }

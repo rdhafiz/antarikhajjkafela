@@ -121,14 +121,33 @@ class Settings
         $groups = config('settings.groups', []);
 
         if ($group === null) {
-            return $groups;
+            return array_map(fn ($definition) => $definition['fields'], $groups);
         }
 
         if (! array_key_exists($group, $groups)) {
             throw new InvalidArgumentException("Unknown settings group [{$group}].");
         }
 
-        return $groups[$group];
+        return $groups[$group]['fields'];
+    }
+
+    public function hasGroup(string $group): bool
+    {
+        return array_key_exists($group, config('settings.groups', []));
+    }
+
+    /**
+     * A group's label, description and fields, as shown in the admin.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(string $group): array
+    {
+        if (! $this->hasGroup($group)) {
+            throw new InvalidArgumentException("Unknown settings group [{$group}].");
+        }
+
+        return config("settings.groups.{$group}");
     }
 
     public function flush(): void

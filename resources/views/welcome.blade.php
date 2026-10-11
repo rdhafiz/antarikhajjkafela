@@ -4,7 +4,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ setting_t('seo.meta_title') }}</title>
+        <x-site.brand-head />
 
         @fonts
 

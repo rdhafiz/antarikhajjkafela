@@ -22,6 +22,11 @@
         }
     </style>
 
+    @inject('branding', App\Support\Branding::class)
+    @if ($favicon = $branding->favicon())
+        <link rel="icon" type="image/webp" href="{{ $favicon->url('32') }}">
+    @endif
+
     @fonts('jakarta')
     @vite('resources/admin/main.ts')
 </head>

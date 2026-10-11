@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Domain\Settings\Settings;
+use App\Support\Branding;
 use App\Support\Locales;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -22,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(Settings::class);
         $this->app->singleton(Locales::class);
+        $this->app->scoped(Branding::class);
     }
 
     /**

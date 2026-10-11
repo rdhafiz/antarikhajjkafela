@@ -45,7 +45,7 @@ watch(() => route.fullPath, () => (mobileOpen.value = false));
                         leave-to-class="opacity-0"
                         leave-active-class="transition duration-100 ease-in"
                     >
-                        <component :is="Component" :key="route.path" />
+                        <component :is="Component" :key="String(route.name)" />
                     </Transition>
                 </RouterView>
             </main>

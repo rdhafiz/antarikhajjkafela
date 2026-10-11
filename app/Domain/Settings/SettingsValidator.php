@@ -55,7 +55,8 @@ class SettingsValidator
         return match ($field['type']) {
             'string', 'phone' => ['string', 'max:255'],
             'text' => ['string', 'max:2000'],
-            'code' => ['string'],
+            'json' => ['string', 'json'],
+            'map' => ['url:https', 'max:2000', 'regex:#^https://(www\.)?google\.com/maps/embed\?#'],
             'secret' => ['string', 'max:500'],
             'email' => ['email', 'max:190'],
             'url' => ['url:http,https', 'max:255'],
