@@ -23,6 +23,8 @@
             @if ($c['image_secondary'])
                 <img
                     src="{{ $c['image_secondary']->url('md') }}"
+                    srcset="{{ $c['image_secondary']->srcset() }}"
+                    sizes="(min-width: 1024px) 18vw, 42vw"
                     alt="{{ $c['image_secondary']->getTranslation('alt', app()->getLocale()) }}"
                     loading="lazy"
                     decoding="async"

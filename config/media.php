@@ -91,6 +91,7 @@ return [
             'label' => 'Gallery photo',
             'variants' => [
                 'lg' => ['width' => 1600, 'height' => 1600, 'fit' => 'scale'],
+                'md' => ['width' => 960, 'height' => 960, 'fit' => 'scale'],
                 'thumb' => ['width' => 480, 'height' => 480, 'fit' => 'cover'],
             ],
         ],

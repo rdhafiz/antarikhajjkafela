@@ -176,7 +176,7 @@ const bookingTone = { open: 'success', upcoming: 'warning', closed: 'danger' } a
 
         <fieldset :disabled="!canEdit" class="card p-6">
             <!-- Details -->
-            <div v-show="tab === 'details'" class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+            <div v-show="tab === 'details'" class="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
                 <div class="space-y-5">
                     <div class="grid gap-4 sm:grid-cols-2">
                         <FormField label="Service" for="pkg-service" :error="errors.service_id?.[0]" required>

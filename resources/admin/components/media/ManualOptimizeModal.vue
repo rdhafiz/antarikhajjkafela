@@ -140,7 +140,7 @@ onBeforeUnmount(destroy);
         persistent
         @update:open="(v) => !v && emit('cancel')"
     >
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
             <div>
                 <div class="flex min-h-[260px] items-center justify-center overflow-hidden rounded-xl bg-[#0f1b2a]">
                     <img v-if="objectUrl" ref="imageEl" :src="objectUrl" alt="" class="block max-h-[56dvh] max-w-full" @load="onImageLoad" />

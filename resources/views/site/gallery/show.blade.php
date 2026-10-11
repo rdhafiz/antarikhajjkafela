@@ -34,7 +34,8 @@
                                 <span class="absolute top-1/2 left-1/2 flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gold text-brand-950 shadow-xl transition-transform group-hover:scale-110"><x-site.icon name="play" class="ml-0.5 size-6 fill-current" /></span>
                             @else
                                 <img
-                                    src="{{ $item->media->url($index === 0 && $items->count() >= 5 ? 'lg' : 'thumb') }}"
+                                    src="{{ $item->media->url($index === 0 && $items->count() >= 5 ? 'md' : 'thumb') }}"
+                                    @if ($index === 0 && $items->count() >= 5) srcset="{{ $item->media->srcset() }}" sizes="(min-width: 1024px) 50vw, (min-width: 640px) 66vw, 100vw" @endif
                                     alt=""
                                     @if ($index > 3) loading="lazy" @endif
                                     decoding="async"

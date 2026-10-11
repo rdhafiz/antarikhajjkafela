@@ -17,7 +17,8 @@
                 <li @class(['col-span-2 row-span-2' => $big]) data-reveal style="--reveal-delay: {{ ($index % 5) * 60 }}ms">
                     <a href="{{ $photo->album->url() }}" class="group relative block aspect-square overflow-hidden rounded-xl bg-brand-950 focus-visible:ring-4 focus-visible:ring-gold/60 focus-visible:outline-none sm:h-full">
                         <img
-                            src="{{ $photo->media->url($big ? 'lg' : 'thumb') }}"
+                            src="{{ $photo->media->url($big ? 'md' : 'thumb') }}"
+                            @if ($big) srcset="{{ $photo->media->srcset() }}" sizes="(min-width: 640px) 50vw, 100vw" @endif
                             alt="{{ $photo->getTranslation('caption', app()->getLocale()) ?: $photo->media->getTranslation('alt', app()->getLocale()) }}"
                             loading="lazy"
                             decoding="async"

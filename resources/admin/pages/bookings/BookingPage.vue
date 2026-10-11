@@ -125,7 +125,7 @@ onMounted(load);
             <AppButton v-if="auth.can('bookings.delete')" variant="ghost" :icon="Trash2" @click="remove">Delete</AppButton>
         </div>
 
-        <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div class="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
             <div class="min-w-0 space-y-6">
                 <!-- Booking -->
                 <section class="card p-6" aria-labelledby="b-package">

@@ -107,6 +107,36 @@ class MediaUploader
      * @param  array<string, mixed>  $spec
      * @return array{path: string, width: int, height: int, size: int}
      */
+    /**
+     * Create the variants an image's usage defines but the image lacks (for
+     * example after a new size is added to config/media.php). Existing
+     * variants, including manually optimized ones, are left untouched.
+     *
+     * @return list<string> the variant names that were created
+     */
+    public function addMissingVariants(Media $media): array
+    {
+        $missing = array_diff_key($this->variantsFor($media->usage), $media->variants ?? []);
+        $original = $media->directory.'/'.$media->filename;
+        $disk = Storage::disk(config('media.originals_disk', 'local'));
+
+        if ($missing === [] || ! $disk->exists($original)) {
+            return [];
+        }
+
+        $image = $this->images->decodePath($disk->path($original));
+        $image->orient();
+        $variants = $media->variants ?? [];
+
+        foreach ($missing as $name => $spec) {
+            $variants[$name] = $this->writeVariant($image, $media->directory, (string) $name, $spec);
+        }
+
+        $media->update(['variants' => $variants]);
+
+        return array_map('strval', array_keys($missing));
+    }
+
     private function writeVariant(ImageInterface $source, string $directory, string $name, array $spec): array
     {
         $image = clone $source;

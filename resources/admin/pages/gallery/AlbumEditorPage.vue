@@ -212,7 +212,7 @@ onMounted(load);
             <AppButton v-if="auth.can('gallery.delete')" variant="ghost" :icon="Trash2" @click="removeAlbum">Delete album</AppButton>
         </div>
 
-        <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div class="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
             <!-- Photos & videos -->
             <section class="card p-5 sm:p-6" aria-labelledby="items-title">
                 <div class="mb-4 flex flex-wrap items-center gap-3">

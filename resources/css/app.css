@@ -27,7 +27,7 @@
 
     --color-gold: var(--brand-secondary);
     --color-gold-soft: color-mix(in oklab, var(--brand-secondary) 18%, white);
-    --color-gold-deep: color-mix(in oklab, var(--brand-secondary) 55%, #4a3600);
+    --color-gold-deep: color-mix(in oklab, var(--brand-secondary) 35%, #4a3600); /* ≥4.5:1 on white and sand */
 
     --color-emerald: var(--brand-accent);
     --color-emerald-soft: color-mix(in oklab, var(--brand-accent) 12%, white);
@@ -265,11 +265,12 @@
     }
 
     .btn-whatsapp {
-        background: #1faa59;
+        /* Deeper than WhatsApp's own green so white text passes WCAG AA. */
+        background: #15803d;
         color: white;
 
         &:hover {
-            background: #178a48;
+            background: #116b33;
         }
     }
 

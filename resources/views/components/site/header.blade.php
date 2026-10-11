@@ -24,7 +24,7 @@
 
 <div x-data="siteHeader" @keydown.escape.window="mobileOpen = false" class="contents">
     {{-- Utility bar --}}
-    <div class="relative z-40 hidden bg-brand-950 text-[13px] text-white/75 lg:block">
+    <aside class="relative z-40 hidden bg-brand-950 text-[13px] text-white/75 lg:block" aria-label="{{ __('Contact and language') }}">
         <div class="container-site flex h-10 items-center justify-between gap-6">
             <div class="flex items-center gap-6">
                 @foreach (array_slice($phones, 0, 1) as $phone)
@@ -52,7 +52,7 @@
                 @endif
             </div>
         </div>
-    </div>
+    </aside>
 
     {{-- Main header --}}
     <header
@@ -196,7 +196,7 @@
             class="absolute inset-y-0 right-0 flex w-full max-w-sm flex-col bg-sand-50 shadow-2xl"
         >
             <div class="flex h-20 items-center justify-between border-b border-line px-5">
-                <img src="{{ $branding->logoUrl() }}" alt="{{ $site->name() }}" class="h-auto w-[140px]" loading="lazy">
+                <img src="{{ $branding->logoUrl() }}" srcset="{{ $branding->logoSrcset() }}" sizes="140px" alt="{{ $site->name() }}" class="h-auto w-[140px]" loading="lazy">
                 <button type="button" class="-mr-2 flex size-11 items-center justify-center rounded-full text-brand hover:bg-sand-100" @click="mobileOpen = false">
                     <span class="sr-only">{{ __('Close menu') }}</span>
                     <x-site.icon name="x" class="size-6" />

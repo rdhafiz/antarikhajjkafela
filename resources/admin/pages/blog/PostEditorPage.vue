@@ -169,7 +169,7 @@ onBeforeUnmount(() => {
             </div>
         </div>
 
-        <fieldset :disabled="!canEdit" class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <fieldset :disabled="!canEdit" class="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
             <div class="min-w-0 space-y-6">
                 <div class="card space-y-5 p-6">
                     <TranslatableInput v-model="data.title" label="Title" required :errors="errors" error-key="title" />

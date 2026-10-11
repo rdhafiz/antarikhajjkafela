@@ -48,7 +48,7 @@ class Branding
     public function logoSrcset(): string
     {
         return $this->logo()?->srcset()
-            ?: asset('images/brand/logo-440.webp').' 440w, '.asset('images/brand/logo-880.webp').' 880w';
+            ?: asset('images/brand/logo-360.webp').' 360w, '.asset('images/brand/logo-440.webp').' 440w, '.asset('images/brand/logo-880.webp').' 880w';
     }
 
     /**

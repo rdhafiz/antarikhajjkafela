@@ -138,7 +138,7 @@ onMounted(load);
 
         <div v-if="loading" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
 
-        <div v-else class="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
             <!-- Role list -->
             <div class="card h-fit p-2">
                 <button

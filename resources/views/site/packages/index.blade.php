@@ -40,6 +40,7 @@
                 <p class="mt-3 max-w-md text-ink-2">{{ __('Call or message us and we will share the latest packages and prices with you.') }}</p>
             </div>
         @else
+            <h2 class="sr-only">{{ __('Packages') }}</h2>
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($packages as $index => $package)
                     <x-site.package-card :package="$package" data-reveal :style="'--reveal-delay: '.(($index % 3) * 80).'ms'" />

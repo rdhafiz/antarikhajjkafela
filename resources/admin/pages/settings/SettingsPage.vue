@@ -184,7 +184,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload));
     <div>
         <PageHeader title="Settings" description="Website details, appearance, integrations and payment." />
 
-        <div class="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <div class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
             <!-- Section navigation -->
             <nav class="h-fit lg:sticky lg:top-24" aria-label="Settings sections">
                 <div class="scroll-thin -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:block lg:space-y-5 lg:overflow-visible lg:px-0">
