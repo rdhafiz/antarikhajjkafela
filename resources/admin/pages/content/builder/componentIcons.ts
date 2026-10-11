@@ -7,6 +7,7 @@ import {
     CirclePlay,
     ClipboardList,
     Columns2,
+    Images,
     Info,
     LayoutGrid,
     List,
@@ -14,6 +15,8 @@ import {
     Mail,
     MapPinned,
     Megaphone,
+    MessageSquareQuote,
+    Newspaper,
     PanelTop,
     Quote,
     RectangleHorizontal,
@@ -45,6 +48,9 @@ const icons: Record<string, Component> = {
     'clipboard-list': ClipboardList,
     timer: Timer,
     list: List,
+    'message-square-quote': MessageSquareQuote,
+    images: Images,
+    newspaper: Newspaper,
 };
 
 export function componentIcon(name: string): Component {

@@ -1,5 +1,5 @@
 import type { Component } from 'vue';
-import { BriefcaseBusiness, FileText, Images, Inbox, LayoutDashboard, ListTree, Megaphone, Package, Settings, ShieldCheck, Users } from 'lucide-vue-next';
+import { BriefcaseBusiness, FileText, GalleryHorizontalEnd, Images, Inbox, LayoutDashboard, ListTree, Megaphone, MessageSquareQuote, Newspaper, Package, Settings, ShieldCheck, Users } from 'lucide-vue-next';
 
 export interface NavItem {
     label: string;
@@ -38,6 +38,9 @@ export const navigation: NavSection[] = [
         items: [
             { label: 'Pages', to: '/admin/pages', icon: FileText, permission: 'pages.view' },
             { label: 'Campaigns', to: '/admin/campaigns', icon: Megaphone, permission: 'campaigns.view' },
+            { label: 'Blog & news', to: '/admin/blog', icon: Newspaper, permission: 'blog.view' },
+            { label: 'Reviews', to: '/admin/reviews', icon: MessageSquareQuote, permission: 'reviews.view' },
+            { label: 'Gallery', to: '/admin/gallery', icon: GalleryHorizontalEnd, permission: 'gallery.view' },
             { label: 'Menus', to: '/admin/menus', icon: ListTree, permission: 'menus.view' },
             { label: 'Media library', to: '/admin/media', icon: Images, permission: 'media.view' },
         ],
