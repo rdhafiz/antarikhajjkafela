@@ -6,6 +6,7 @@ use App\Domain\Access\AccessSynchronizer;
 use App\Models\User;
 use App\Support\SiteContext;
 use Database\Seeders\MenuSeeder;
+use Database\Seeders\PageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -17,7 +18,7 @@ class LayoutTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(MenuSeeder::class);
+        $this->seed([MenuSeeder::class, PageSeeder::class]);
     }
 
     public function test_home_renders_the_header_menu_and_footer(): void

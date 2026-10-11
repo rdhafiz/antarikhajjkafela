@@ -1,3 +1,4 @@
+@props(['cta' => true])
 @inject('site', App\Support\SiteContext::class)
 @inject('branding', App\Support\Branding::class)
 @php
@@ -13,6 +14,7 @@
     <div class="pointer-events-none absolute -top-40 right-[-10%] size-[520px] rounded-full bg-gold/10 blur-3xl" aria-hidden="true"></div>
 
     {{-- Call to action --}}
+    @if ($cta)
     <div class="container-site relative pt-16 sm:pt-20">
         <div class="flex flex-col gap-8 rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-7 sm:p-10 lg:flex-row lg:items-center lg:justify-between">
             <div class="max-w-xl">
@@ -29,6 +31,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- Columns --}}
     <div class="container-site relative grid grid-cols-2 gap-x-6 gap-y-12 py-16 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr] lg:gap-10">

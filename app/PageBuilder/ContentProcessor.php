@@ -1,0 +1,277 @@
+<?php
+
+namespace App\PageBuilder;
+
+use App\Models\Media;
+use App\Support\Icons;
+use App\Support\Locales;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use Mews\Purifier\Facades\Purifier;
+
+/**
+ * Works through component content using the field definitions:
+ * builds validation rules, sanitizes input before saving, collects media
+ * ids, and localizes stored content for rendering.
+ */
+class ContentProcessor
+{
+    /** Link targets allowed in buttons and links. */
+    public const LINK_PATTERN = '#^(https?://|/|mailto:|tel:|\#)#i';
+
+    public const YOUTUBE_PATTERN = '#^https://(www\.)?(youtube\.com/(watch\?v=|embed/|shorts/)|youtu\.be/)[\w-]{6,}#i';
+
+    public function __construct(private readonly Locales $locales) {}
+
+    /**
+     * Validation rules for content stored under $prefix (e.g. "sections.3.content").
+     *
+     * @param  list<Field>  $fields
+     * @return array<string, mixed>
+     */
+    public function rules(array $fields, string $prefix): array
+    {
+        $rules = [$prefix => ['nullable', 'array']];
+        $requiredLocale = $this->locales->default();
+
+        foreach ($fields as $field) {
+            $path = "{$prefix}.{$field->key}";
+            $required = (bool) $field->option('required');
+
+            switch ($field->type) {
+                case Field::TEXT:
+                case Field::TEXTAREA:
+                case Field::RICHTEXT:
+                    $base = ['nullable', 'string', 'max:'.$field->option('max')];
+
+                    if ($field->isTranslatable()) {
+                        $rules[$path] = [$required ? 'required' : 'nullable', 'array'];
+                        foreach ($this->locales->codes() as $locale) {
+                            $rules["{$path}.{$locale}"] = $base;
+                        }
+                        if ($required) {
+                            $rules["{$path}.{$requiredLocale}"] = ['required', ...array_slice($base, 1)];
+                        }
+                    } else {
+                        $rules[$path] = $required ? ['required', ...array_slice($base, 1)] : $base;
+                    }
+                    break;
+
+                case Field::IMAGE:
+                    $rules[$path] = [$required ? 'required' : 'nullable', 'integer', 'exists:media,id'];
+                    break;
+
+                case Field::LINK:
+                    $rules[$path] = ['nullable', 'array'];
+                    $rules["{$path}.url"] = [$required ? 'required' : 'nullable', 'string', 'max:500', 'regex:'.self::LINK_PATTERN];
+                    foreach ($this->locales->codes() as $locale) {
+                        $rules["{$path}.label.{$locale}"] = ['nullable', 'string', 'max:80'];
+                    }
+                    break;
+
+                case Field::SELECT:
+                    $rules[$path] = [$required ? 'required' : 'nullable', 'in:'.implode(',', array_keys($field->option('options', [])))];
+                    break;
+
+                case Field::TOGGLE:
+                    $rules[$path] = ['nullable', 'boolean'];
+                    break;
+
+                case Field::NUMBER:
+                    $rules[$path] = [$required ? 'required' : 'nullable', 'integer', 'min:'.$field->option('min', 0), 'max:'.$field->option('max', 1000000)];
+                    break;
+
+                case Field::COLOR:
+                    $rules[$path] = ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'];
+                    break;
+
+                case Field::ICON:
+                    $rules[$path] = ['nullable', 'in:'.implode(',', Icons::CONTENT)];
+                    break;
+
+                case Field::YOUTUBE:
+                    $rules[$path] = [$required ? 'required' : 'nullable', 'string', 'max:300', 'regex:'.self::YOUTUBE_PATTERN];
+                    break;
+
+                case Field::DATETIME:
+                    $rules[$path] = [$required ? 'required' : 'nullable', 'date'];
+                    break;
+
+                case Field::REPEATER:
+                    $rules[$path] = [$required ? 'required' : 'nullable', 'array', 'max:'.$field->option('max', 12)];
+                    if ($field->option('min')) {
+                        $rules[$path][] = 'min:'.$field->option('min');
+                    }
+                    $rules = [...$rules, ...$this->rules($field->children(), "{$path}.*")];
+                    unset($rules["{$path}.*"]);
+                    $rules["{$path}.*"] = ['array'];
+                    $rules["{$path}.*._id"] = ['nullable', 'string', 'max:40'];
+                    break;
+            }
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Keep only defined fields, normalize their types and purify rich text.
+     *
+     * @param  list<Field>  $fields
+     * @param  array<string, mixed>|null  $data
+     * @return array<string, mixed>
+     */
+    public function sanitize(array $fields, ?array $data): array
+    {
+        $data ??= [];
+        $clean = [];
+
+        foreach ($fields as $field) {
+            $value = $data[$field->key] ?? null;
+
+            $clean[$field->key] = match ($field->type) {
+                Field::TEXT, Field::TEXTAREA, Field::RICHTEXT => $field->isTranslatable()
+                    ? $this->sanitizeTranslations($field, is_array($value) ? $value : [])
+                    : $this->sanitizeString($field, $value),
+                Field::IMAGE, Field::NUMBER => $value === null || $value === '' ? null : (int) $value,
+                Field::TOGGLE => (bool) $value,
+                Field::LINK => [
+                    'label' => $this->sanitizeTranslations(Field::text('label', 'Label'), $value['label'] ?? []),
+                    'url' => filled($value['url'] ?? null) ? trim($value['url']) : null,
+                ],
+                Field::REPEATER => collect(is_array($value) ? $value : [])
+                    ->filter(fn ($item) => is_array($item))
+                    ->map(fn ($item) => ['_id' => $this->itemId($item), ...$this->sanitize($field->children(), $item)])
+                    ->values()
+                    ->all(),
+                default => filled($value) ? $value : null,
+            };
+        }
+
+        return $clean;
+    }
+
+    /**
+     * Media ids referenced by content (to load them in one query).
+     *
+     * @param  list<Field>  $fields
+     * @param  array<string, mixed>|null  $data
+     * @return list<int>
+     */
+    public function mediaIds(array $fields, ?array $data): array
+    {
+        $ids = [];
+
+        foreach ($fields as $field) {
+            $value = $data[$field->key] ?? null;
+
+            if ($field->type === Field::IMAGE && $value) {
+                $ids[] = (int) $value;
+            }
+
+            if ($field->type === Field::REPEATER && is_array($value)) {
+                foreach ($value as $item) {
+                    array_push($ids, ...$this->mediaIds($field->children(), $item));
+                }
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Content in one language, ready for a Blade view: translations resolved,
+     * images replaced by Media models, links by ['label', 'url'].
+     *
+     * @param  list<Field>  $fields
+     * @param  array<string, mixed>|null  $data
+     * @param  Collection<int, Media>  $media
+     * @return array<string, mixed>
+     */
+    public function localize(array $fields, ?array $data, string $locale, Collection $media): array
+    {
+        $data ??= [];
+        $result = [];
+
+        foreach ($fields as $field) {
+            $value = $data[$field->key] ?? $field->option('default');
+
+            $result[$field->key] = match ($field->type) {
+                Field::TEXT, Field::TEXTAREA, Field::RICHTEXT => $field->isTranslatable() ? $this->translate($value, $locale) : $value,
+                Field::IMAGE => $value ? $media->get((int) $value) : null,
+                Field::LINK => filled($value['url'] ?? null) ? [
+                    'label' => $this->translate($value['label'] ?? [], $locale),
+                    'url' => $this->absoluteUrl($value['url']),
+                    'external' => str_starts_with($value['url'], 'http') && ! str_starts_with($value['url'], url('/')),
+                ] : null,
+                Field::REPEATER => array_map(
+                    fn ($item) => $this->localize($field->children(), $item, $locale, $media),
+                    is_array($value) ? $value : [],
+                ),
+                default => $value,
+            };
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param  array<string, mixed>|string|null  $value
+     */
+    public function translate(mixed $value, string $locale): ?string
+    {
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        $fallback = $this->locales->default();
+
+        $text = $value[$locale] ?? null;
+
+        return filled($text) ? $text : (filled($value[$fallback] ?? null) ? $value[$fallback] : collect($value)->first(fn ($v) => filled($v)));
+    }
+
+    /**
+     * @param  array<string, mixed>  $value
+     * @return array<string, string|null>
+     */
+    private function sanitizeTranslations(Field $field, array $value): array
+    {
+        $result = [];
+
+        foreach ($this->locales->codes() as $locale) {
+            $result[$locale] = $this->sanitizeString($field, $value[$locale] ?? null);
+        }
+
+        return $result;
+    }
+
+    private function sanitizeString(Field $field, mixed $value): ?string
+    {
+        if (! is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        if ($field->type === Field::RICHTEXT) {
+            $html = trim(Purifier::clean($value, 'rich_text'));
+
+            return $html === '' || $html === '<p></p>' ? null : $html;
+        }
+
+        return trim($value);
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    private function itemId(array $item): string
+    {
+        $id = $item['_id'] ?? null;
+
+        return is_string($id) && preg_match('/^[A-Za-z0-9_-]{4,40}$/', $id) ? $id : Str::random(10);
+    }
+
+    private function absoluteUrl(string $url): string
+    {
+        return str_starts_with($url, '/') && ! str_starts_with($url, '//') ? url($url) : $url;
+    }
+}

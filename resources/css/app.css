@@ -396,6 +396,92 @@
         }
     }
 
+    /*
+     * Page-builder sections set their own text palette, so every component
+     * reads well on light, dark, custom-color or image backgrounds.
+     */
+    .section-light {
+        --sec-heading: var(--color-brand);
+        --sec-text: var(--color-ink-2);
+        --sec-muted: var(--color-ink-3);
+        --sec-eyebrow: var(--color-gold-deep);
+        --sec-surface: #ffffff;
+        --sec-surface-2: var(--color-sand-100);
+        --sec-border: var(--color-line);
+        --sec-icon-bg: var(--color-brand-50);
+        --sec-icon: var(--color-brand);
+        color: var(--sec-text);
+    }
+
+    .section-dark {
+        --sec-heading: #ffffff;
+        --sec-text: rgb(255 255 255 / 0.78);
+        --sec-muted: rgb(255 255 255 / 0.58);
+        --sec-eyebrow: var(--color-gold);
+        --sec-surface: rgb(255 255 255 / 0.06);
+        --sec-surface-2: rgb(255 255 255 / 0.1);
+        --sec-border: rgb(255 255 255 / 0.14);
+        --sec-icon-bg: rgb(255 255 255 / 0.08);
+        --sec-icon: var(--color-gold);
+        color: var(--sec-text);
+
+        & .eyebrow {
+            color: var(--color-gold);
+        }
+
+        & .prose-site {
+            color: var(--sec-text);
+
+            & :is(h2, h3, h4, strong, blockquote) {
+                color: #ffffff;
+            }
+
+            & a {
+                color: var(--color-gold);
+            }
+
+            & table th {
+                background: rgb(255 255 255 / 0.08);
+                color: #fff;
+            }
+
+            & :is(th, td) {
+                border-color: rgb(255 255 255 / 0.14);
+            }
+        }
+    }
+
+    .sec-heading {
+        color: var(--sec-heading);
+    }
+
+    .sec-text {
+        color: var(--sec-text);
+    }
+
+    .sec-muted {
+        color: var(--sec-muted);
+    }
+
+    .sec-card {
+        border-radius: var(--radius-card);
+        background: var(--sec-surface);
+        border: 1px solid var(--sec-border);
+    }
+
+    .section-light .sec-card {
+        box-shadow: var(--shadow-soft);
+    }
+
+    .sec-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 1rem;
+        background: var(--sec-icon-bg);
+        color: var(--sec-icon);
+    }
+
     /* Scroll reveal (enabled by JS; content stays visible without it). */
     .reveal {
         opacity: 0;

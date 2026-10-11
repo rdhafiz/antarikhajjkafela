@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BootstrapController;
+use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -63,6 +65,23 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('menus', [MenuController::class, 'index'])->middleware('can:menus.view')->name('menus.index');
         Route::get('menus/{location}', [MenuController::class, 'show'])->middleware('can:menus.view')->name('menus.show');
         Route::put('menus/{location}', [MenuController::class, 'update'])->middleware('can:menus.update')->name('menus.update');
+
+        // Pages & campaigns (permissions are checked per page type in the controller)
+        Route::get('page-builder', [PageController::class, 'builder'])->name('page-builder');
+        Route::get('pages', [PageController::class, 'index'])->name('pages.index');
+        Route::post('pages', [PageController::class, 'store'])->name('pages.store');
+        Route::get('pages/{page}', [PageController::class, 'show'])->name('pages.show');
+        Route::put('pages/{page}', [PageController::class, 'update'])->name('pages.update');
+        Route::delete('pages/{page}', [PageController::class, 'destroy'])->name('pages.destroy');
+        Route::post('pages/{page}/duplicate', [PageController::class, 'duplicate'])->name('pages.duplicate');
+        Route::get('pages/{page}/preview-url', [PageController::class, 'previewUrl'])->name('pages.preview-url');
+
+        // Inquiries
+        Route::get('inquiries', [InquiryController::class, 'index'])->middleware('can:inquiries.view')->name('inquiries.index');
+        Route::get('inquiries/export', [InquiryController::class, 'export'])->middleware('can:inquiries.view')->name('inquiries.export');
+        Route::get('inquiries/{inquiry}', [InquiryController::class, 'show'])->middleware('can:inquiries.view')->name('inquiries.show');
+        Route::put('inquiries/{inquiry}', [InquiryController::class, 'update'])->middleware('can:inquiries.update')->name('inquiries.update');
+        Route::delete('inquiries/{inquiry}', [InquiryController::class, 'destroy'])->middleware('can:inquiries.delete')->name('inquiries.destroy');
 
         // Settings
         Route::get('settings', [SettingsController::class, 'index'])->middleware('can:settings.view')->name('settings.index');

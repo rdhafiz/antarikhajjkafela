@@ -77,7 +77,7 @@ class SettingsValidator
     {
         return match ($field['options']) {
             'locales' => [Rule::in($this->locales->codes())],
-            'pages' => ['integer'],
+            'pages' => ['integer', Rule::exists('pages', 'id')],
             default => [Rule::in(array_keys($field['options']))],
         };
     }

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\Setting;
+use Database\Seeders\PageSeeder;
 
 class SettingsTest extends AdminTestCase
 {
@@ -132,6 +133,7 @@ class SettingsTest extends AdminTestCase
 
     public function test_the_site_head_uses_the_saved_brand_colors_and_manifest(): void
     {
+        $this->seed(PageSeeder::class);
         settings()->set('theme', ['primary_color' => '#123456']);
 
         $this->get('/')->assertOk()->assertSee('--brand-primary: #123456', false)->assertSee('site.webmanifest', false);

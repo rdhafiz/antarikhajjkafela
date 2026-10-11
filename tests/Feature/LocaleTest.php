@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Support\Locales;
+use Database\Seeders\PageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -30,6 +31,8 @@ class LocaleTest extends TestCase
 
     public function test_the_language_cookie_is_applied_to_requests(): void
     {
+        $this->seed(PageSeeder::class);
+
         $this->withUnencryptedCookie('locale', 'bn')->get('/')->assertOk();
 
         $this->assertSame('bn', app()->getLocale());

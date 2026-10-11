@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
     {
         $access->sync();
 
-        $this->call(MenuSeeder::class);
+        $this->call([MenuSeeder::class, PageSeeder::class]);
 
         // Local development login. Production admins are created with `php artisan admin:create`.
         if (app()->isLocal()) {

@@ -1,46 +1,10 @@
 @props(['name'])
 @php
-    // Stroke icons (24px grid, 1.75 stroke) and filled brand marks, inlined so the
-    // site needs no icon font or extra requests.
-    $stroke = [
-        'phone' => '<path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
-        'mail' => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
-        'map-pin' => '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
-        'clock' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-        'globe' => '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
-        'menu' => '<path d="M4 7h16M4 12h16M4 17h10"/>',
-        'x' => '<path d="M6 6l12 12M18 6 6 18"/>',
-        'chevron-down' => '<path d="m6 9 6 6 6-6"/>',
-        'chevron-right' => '<path d="m9 6 6 6-6 6"/>',
-        'arrow-right' => '<path d="M5 12h14M13 6l6 6-6 6"/>',
-        'arrow-up-right' => '<path d="M7 17 17 7M8 7h9v9"/>',
-        'check' => '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
-        'star' => '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
-        'calendar' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
-        'plane' => '<path d="M10.5 13.5 3 11l1.5-1.5 7.5 1L16.5 6a2.1 2.1 0 0 1 3 3L15 13.5l1 7.5-1.5 1.5-2.5-7.5L9 18v2.5L7.5 22 6 18l-4-1.5L3.5 15H6z"/>',
-        'building' => '<path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M3 21h18M8 7h4M8 11h4M8 15h4"/>',
-        'users' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',
-        'shield' => '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.6 7.5 9.5 4.3-.9 7.5-4.9 7.5-9.5V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
-        'book' => '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/>',
-        'quote' => '<path d="M10 7H6a2 2 0 0 0-2 2v4h6V9M20 7h-4a2 2 0 0 0-2 2v4h6V9M10 13c0 3-2 4-4 4M20 13c0 3-2 4-4 4"/>',
-        'play' => '<path d="M7 4.5v15l12-7.5z"/>',
-        'external' => '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
-        'home' => '<path d="m3 11 9-7 9 7M5 9.5V20h5v-6h4v6h5V9.5"/>',
-    ];
-
-    $filled = [
-        'whatsapp' => '<path d="M12 2.2A9.8 9.8 0 0 0 3.6 17l-1.4 4.9 5-1.3A9.8 9.8 0 1 0 12 2.2zm0 17.9a8.1 8.1 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.1 8.1 0 1 1 12 20.1zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.4a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 5 5 0 0 0 1 2.6 11.3 11.3 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6a2.6 2.6 0 0 0 1.7-1.2 2.1 2.1 0 0 0 .1-1.2c0-.1-.2-.2-.4-.3z"/>',
-        'facebook' => '<path d="M13.5 21v-7.6h2.6l.4-3h-3V8.5c0-.9.3-1.5 1.5-1.5h1.6V4.3a21 21 0 0 0-2.3-.1c-2.3 0-3.9 1.4-3.9 4v2.2H7.8v3h2.6V21z"/>',
-        'instagram' => '<path d="M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM21 8.2a5.4 5.4 0 0 0-1.5-3.8A5.4 5.4 0 0 0 15.8 3c-1.5-.1-6-.1-7.5 0a5.4 5.4 0 0 0-3.8 1.4A5.4 5.4 0 0 0 3 8.2c-.1 1.5-.1 6 0 7.5a5.4 5.4 0 0 0 1.5 3.8A5.4 5.4 0 0 0 8.2 21c1.5.1 6 .1 7.5 0a5.4 5.4 0 0 0 3.8-1.5 5.4 5.4 0 0 0 1.5-3.8c.1-1.5.1-6 0-7.5zm-2 9.1a3 3 0 0 1-1.7 1.7c-1.2.5-4 .4-5.3.4s-4.1.1-5.3-.4A3 3 0 0 1 5 17.3c-.5-1.2-.4-4-.4-5.3s-.1-4.1.4-5.3A3 3 0 0 1 6.7 5c1.2-.5 4-.4 5.3-.4s4.1-.1 5.3.4A3 3 0 0 1 19 6.7c.5 1.2.4 4 .4 5.3s.1 4.1-.4 5.3z"/>',
-        'youtube' => '<path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3z"/>',
-        'linkedin' => '<path d="M6.9 21H3.4V9.3h3.5zM5.2 7.7a2 2 0 1 1 0-4.1 2 2 0 0 1 0 4.1zM21 21h-3.5v-5.7c0-1.4 0-3.1-1.9-3.1s-2.2 1.5-2.2 3V21H9.9V9.3h3.4v1.6a3.7 3.7 0 0 1 3.3-1.8c3.5 0 4.2 2.3 4.2 5.4z"/>',
-        'twitter' => '<path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L1.8 3h6.3l4.4 5.9zm-1.1 16.2h1.7L7.4 4.7H5.6z"/>',
-        'telegram' => '<path d="M21.4 4.3 2.9 11.4c-1.3.5-1.2 1.2-.2 1.5l4.7 1.5 1.8 5.6c.2.6.4.8.8.8s.6-.2.9-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3.1-14.6c.3-1.3-.5-1.9-1.3-1.5zM9.6 14.1l8.6-7.2-6.9 8.1-.3 3.2z"/>',
-        'tiktok' => '<path d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-1.8-2.5V9.8a5.7 5.7 0 1 0 4.9 5.6V9.1a7.3 7.3 0 0 0 4.3 1.4V7.4a4.3 4.3 0 0 1-3.2-1.6z"/>',
-    ];
+    $filled = isset(App\Support\Icons::FILLED[$name]);
+    $paths = $filled ? App\Support\Icons::FILLED[$name] : (App\Support\Icons::STROKE[$name] ?? '');
 @endphp
-@if (isset($filled[$name]))
-    <svg {{ $attributes->merge(['class' => 'size-5', 'aria-hidden' => 'true']) }} viewBox="0 0 24 24" fill="currentColor">{!! $filled[$name] !!}</svg>
+@if ($filled)
+    <svg {{ $attributes->merge(['class' => 'size-5', 'aria-hidden' => 'true']) }} viewBox="0 0 24 24" fill="currentColor">{!! $paths !!}</svg>
 @else
-    <svg {{ $attributes->merge(['class' => 'size-5', 'aria-hidden' => 'true']) }} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">{!! $stroke[$name] ?? '' !!}</svg>
+    <svg {{ $attributes->merge(['class' => 'size-5', 'aria-hidden' => 'true']) }} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">{!! $paths !!}</svg>
 @endif

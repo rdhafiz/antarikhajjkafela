@@ -2,6 +2,7 @@
 
 namespace App\Domain\Settings;
 
+use App\Models\Page;
 use App\Support\Locales;
 
 /**
@@ -87,7 +88,11 @@ class SettingsPresenter
      */
     private function pageOptions(): array
     {
-        // Filled in once the pages module exists.
-        return [];
+        return Page::query()
+            ->whereIn('type', [Page::TYPE_DEFAULT, Page::TYPE_CUSTOM])
+            ->orderBy('type')
+            ->get()
+            ->map(fn (Page $page) => ['value' => $page->id, 'label' => $page->getTranslation('title', 'en').' ('.($page->isHome() ? '/' : '/'.$page->slug).')'])
+            ->all();
     }
 }

@@ -1,6 +1,12 @@
 @props([
     /** "solid" (default) or "overlay": transparent header on top of a dark hero. */
     'header' => 'solid',
+    /** Focused landing layout for campaigns: slim header and footer, no menus. */
+    'focused' => false,
+    /** Extra tracking IDs for this page (campaigns): gtm_id, facebook_pixel_id. */
+    'tracking' => [],
+    /** Show the footer's call-to-action band (hidden when the page already ends with one). */
+    'footerCta' => true,
 ])
 @php($locale = app()->getLocale())
 <!DOCTYPE html>
@@ -17,23 +23,31 @@
     @endforeach
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <x-site.tracking position="head" />
+    <x-site.tracking position="head" :extra="$tracking" />
     {{ $head ?? '' }}
 </head>
 <body class="min-h-dvh">
-    <x-site.tracking position="body" />
+    <x-site.tracking position="body" :extra="$tracking" />
 
     <a href="#main" class="sr-only z-[100] rounded-full bg-gold px-5 py-2.5 font-semibold text-brand-950 focus:not-sr-only focus:fixed focus:top-3 focus:left-3">
         {{ __('Skip to content') }}
     </a>
 
-    <x-site.header :variant="$header" />
+    @if ($focused)
+        <x-site.focused-header :variant="$header" />
+    @else
+        <x-site.header :variant="$header" />
+    @endif
 
     <main id="main" tabindex="-1" class="outline-none">
         {{ $slot }}
     </main>
 
-    <x-site.footer />
+    @if ($focused)
+        <x-site.focused-footer />
+    @else
+        <x-site.footer :cta="$footerCta" />
+    @endif
     <x-site.whatsapp-button />
 </body>
 </html>

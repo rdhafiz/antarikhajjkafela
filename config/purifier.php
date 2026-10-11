@@ -31,6 +31,16 @@ return [
             'AutoFormat.AutoParagraph' => true,
             'AutoFormat.RemoveEmpty' => true,
         ],
+        // Rich text written in the admin editor (page sections, blog content).
+        'rich_text' => [
+            'HTML.Doctype' => 'HTML 4.01 Transitional',
+            'HTML.Allowed' => 'p,br,strong,b,em,i,u,s,a[href|title|target|rel],ul,ol,li,h2,h3,h4,blockquote,hr,'
+                .'table,thead,tbody,tr,th[colspan|rowspan],td[colspan|rowspan]',
+            'Attr.AllowedFrameTargets' => ['_blank'],
+            'HTML.TargetNoopener' => true,
+            'URI.AllowedSchemes' => ['http' => true, 'https' => true, 'mailto' => true, 'tel' => true],
+            'AutoFormat.RemoveEmpty' => true,
+        ],
         'test' => [
             'Attr.EnableID' => 'true',
         ],
