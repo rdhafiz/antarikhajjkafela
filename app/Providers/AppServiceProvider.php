@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Domain\Settings\Settings;
 use App\Support\Branding;
 use App\Support\Locales;
+use App\Support\Seo\Seo;
+use App\Support\SiteContext;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -24,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(Settings::class);
         $this->app->singleton(Locales::class);
         $this->app->scoped(Branding::class);
+        $this->app->scoped(SiteContext::class);
+        $this->app->scoped(Seo::class);
     }
 
     /**

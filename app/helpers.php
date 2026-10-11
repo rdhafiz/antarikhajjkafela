@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Settings\Settings;
+use App\Support\Seo\Seo;
 
 if (! function_exists('settings')) {
     /**
@@ -21,5 +22,15 @@ if (! function_exists('setting_t')) {
     function setting_t(string $path, ?string $locale = null): ?string
     {
         return app(Settings::class)->translated($path, $locale);
+    }
+}
+
+if (! function_exists('seo')) {
+    /**
+     * SEO details of the current page.
+     */
+    function seo(): Seo
+    {
+        return app(Seo::class);
     }
 }

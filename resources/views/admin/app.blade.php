@@ -27,7 +27,7 @@
         <link rel="icon" type="image/webp" href="{{ $favicon->url('32') }}">
     @endif
 
-    @fonts('jakarta')
+    <link rel="preload" as="font" type="font/woff2" href="{{ Vite::asset('resources/fonts/plus-jakarta-sans-latin-400.woff2') }}" crossorigin>
     @vite('resources/admin/main.ts')
 </head>
 <body class="antialiased">

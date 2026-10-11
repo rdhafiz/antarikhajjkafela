@@ -1,13 +1,15 @@
-@import 'tailwindcss';
+@import 'tailwindcss' source(none);
+@import '../css/fonts.css';
 
 @source '../admin';
+@source '../views/admin';
 
 /*
  * Admin design tokens. Brand colors come from the admin theme settings
  * (injected as CSS variables by the shell); everything else is fixed.
  */
 @theme inline {
-    --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', 'Hind Siliguri', ui-sans-serif, system-ui, sans-serif;
 
     --color-brand: var(--admin-primary);
     --color-brand-soft: color-mix(in oklab, var(--admin-primary) 8%, white);

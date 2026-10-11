@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import { bunny } from 'laravel-vite-plugin/fonts';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import { fileURLToPath, URL } from 'node:url';
@@ -10,13 +9,6 @@ export default defineConfig({
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.js', 'resources/admin/main.ts'],
             refresh: true,
-            fonts: [
-                bunny('Plus Jakarta Sans', {
-                    alias: 'jakarta',
-                    weights: [400, 500, 600, 700],
-                    preload: [{ weight: 400 }, { weight: 600 }],
-                }),
-            ],
         }),
         vue({
             template: {
@@ -36,9 +28,13 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output: {
+                // Keep the public site's dependencies (Alpine) apart from the
+                // admin SPA's, so visitors never download Vue.
                 manualChunks(id) {
-                    if (id.includes('node_modules/cropperjs')) return 'cropper';
-                    if (id.includes('node_modules')) return 'vendor';
+                    if (!id.includes('node_modules')) return undefined;
+                    if (id.includes('alpinejs')) return 'site-vendor';
+                    if (id.includes('cropperjs')) return 'cropper';
+                    return 'admin-vendor';
                 },
             },
         },

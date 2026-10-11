@@ -14,7 +14,6 @@ class ManifestController extends Controller
 {
     public function __invoke(Branding $branding): JsonResponse
     {
-        $icon = $branding->appIcon();
         $colors = $branding->colors();
 
         return response()->json(array_filter([
@@ -25,10 +24,10 @@ class ManifestController extends Controller
             'display' => 'standalone',
             'background_color' => '#ffffff',
             'theme_color' => $colors['primary'],
-            'icons' => $icon ? [
-                ['src' => $icon->url('192'), 'sizes' => '192x192', 'type' => 'image/webp'],
-                ['src' => $icon->url('512'), 'sizes' => '512x512', 'type' => 'image/webp'],
-            ] : null,
+            'icons' => [
+                ['src' => $branding->iconUrl(192), 'sizes' => '192x192', 'type' => 'image/webp'],
+                ['src' => $branding->iconUrl(512), 'sizes' => '512x512', 'type' => 'image/webp'],
+            ],
         ]), 200, ['Content-Type' => 'application/manifest+json'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 }
