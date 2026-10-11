@@ -1,0 +1,95 @@
+<?php
+
+namespace App\Domain\Menus;
+
+use App\Models\Menu;
+use App\Models\MenuItem;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Throwable;
+
+/**
+ * Menus as rendered on the public website: visible items only, labels in
+ * the current language, links resolved to URLs. Cached until a menu is saved.
+ */
+class MenuRepository
+{
+    public function __construct(private readonly MenuLinks $links) {}
+
+    /**
+     * @return list<array{label: string, url: string|null, new_tab: bool, children: list<array<string, mixed>>}>
+     */
+    public function tree(string $location): array
+    {
+        $locale = app()->getLocale();
+
+        try {
+            $items = Cache::rememberForever($this->cacheKey($location), fn () => $this->load($location));
+        } catch (Throwable) {
+            return [];
+        }
+
+        return $this->localize($items, $locale);
+    }
+
+    public function flush(string $location): void
+    {
+        Cache::forget($this->cacheKey($location));
+    }
+
+    /**
+     * Visible items with all translations, cached once for every language.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function load(string $location): array
+    {
+        $menu = Menu::where('location', $location)->first();
+
+        if (! $menu) {
+            return [];
+        }
+
+        $items = $menu->items()->where('is_visible', true)->get();
+
+        return $this->branch($items->groupBy('parent_id'), null);
+    }
+
+    /**
+     * @param  Collection<string|int, Collection<int, MenuItem>>  $byParent
+     * @return list<array<string, mixed>>
+     */
+    private function branch(Collection $byParent, ?int $parentId): array
+    {
+        return $byParent->get($parentId ?? '', collect())
+            ->map(fn (MenuItem $item) => [
+                'label' => $item->getTranslations('label'),
+                'url' => $this->links->resolve($item->link_type, $item->link_target, $item->url),
+                'new_tab' => $item->open_in_new_tab,
+                'children' => $this->branch($byParent, $item->id),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $items
+     * @return list<array<string, mixed>>
+     */
+    private function localize(array $items, string $locale): array
+    {
+        $fallback = config('app.fallback_locale');
+
+        return array_map(fn ($item) => [
+            'label' => $item['label'][$locale] ?? $item['label'][$fallback] ?? collect($item['label'])->first(),
+            'url' => $item['url'],
+            'new_tab' => $item['new_tab'],
+            'children' => $this->localize($item['children'], $locale),
+        ], $items);
+    }
+
+    private function cacheKey(string $location): string
+    {
+        return "menus.{$location}";
+    }
+}

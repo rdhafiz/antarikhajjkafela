@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BootstrapController;
 use App\Http\Controllers\Admin\MediaController;
+use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -58,7 +59,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('media/{media}', [MediaController::class, 'update'])->middleware('can:media.update')->name('media.update');
         Route::delete('media/{media}', [MediaController::class, 'destroy'])->middleware('can:media.delete')->name('media.destroy');
 
+        // Menus
+        Route::get('menus', [MenuController::class, 'index'])->middleware('can:menus.view')->name('menus.index');
+        Route::get('menus/{location}', [MenuController::class, 'show'])->middleware('can:menus.view')->name('menus.show');
+        Route::put('menus/{location}', [MenuController::class, 'update'])->middleware('can:menus.update')->name('menus.update');
+
         // Settings
+        Route::get('settings', [SettingsController::class, 'index'])->middleware('can:settings.view')->name('settings.index');
         Route::get('settings/{group}', [SettingsController::class, 'show'])->middleware('can:settings.view')->name('settings.show');
         Route::put('settings/{group}', [SettingsController::class, 'update'])->middleware('can:settings.update')->name('settings.update');
     });

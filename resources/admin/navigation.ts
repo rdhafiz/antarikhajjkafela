@@ -1,5 +1,5 @@
 import type { Component } from 'vue';
-import { Images, LayoutDashboard, ShieldCheck, Users } from 'lucide-vue-next';
+import { Images, LayoutDashboard, ListTree, Settings, ShieldCheck, Users } from 'lucide-vue-next';
 
 export interface NavItem {
     label: string;
@@ -23,13 +23,17 @@ export const navigation: NavSection[] = [
     },
     {
         label: 'Content',
-        items: [{ label: 'Media library', to: '/admin/media', icon: Images, permission: 'media.view' }],
+        items: [
+            { label: 'Menus', to: '/admin/menus', icon: ListTree, permission: 'menus.view' },
+            { label: 'Media library', to: '/admin/media', icon: Images, permission: 'media.view' },
+        ],
     },
     {
         label: 'Administration',
         items: [
             { label: 'Users', to: '/admin/users', icon: Users, permission: 'users.view' },
             { label: 'Roles & permissions', to: '/admin/roles', icon: ShieldCheck, permission: 'roles.view' },
+            { label: 'Settings', to: '/admin/settings', icon: Settings, permission: 'settings.view' },
         ],
     },
 ];
