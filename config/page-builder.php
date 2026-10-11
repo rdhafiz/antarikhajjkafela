@@ -1,12 +1,14 @@
 <?php
 
+use App\Domain\Blog\BlogListing;
+use App\Domain\Gallery\GalleryListing;
+use App\Domain\Reviews\ReviewListing;
 use App\PageBuilder\Components;
 
 return [
 
     /*
-    | Every section design available in the page builder. Later modules
-    | (packages, reviews, gallery, blog) append their own components here.
+    | Every section design available in the page builder.
     */
     'components' => [
         Components\HeroComponent::class,
@@ -29,6 +31,9 @@ return [
         Components\LeadFormComponent::class,
         Components\CountdownComponent::class,
         Components\PackageShowcaseComponent::class,
+        Components\TestimonialsComponent::class,
+        Components\GalleryPreviewComponent::class,
+        Components\LatestPostsComponent::class,
         Components\PageListingComponent::class,
     ],
 
@@ -48,9 +53,13 @@ return [
 
     /*
     | Listing providers for default pages, keyed by system key. Each provider
-    | has view() and data(Page $page). Added by the gallery, reviews and blog modules.
+    | has view() and data(Page $page).
     */
-    'listings' => [],
+    'listings' => [
+        'blog' => BlogListing::class,
+        'reviews' => ReviewListing::class,
+        'gallery' => GalleryListing::class,
+    ],
 
     /*
     | Slugs pages cannot use because the site already routes them.

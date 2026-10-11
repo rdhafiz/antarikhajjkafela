@@ -2,12 +2,16 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BootstrapController;
+use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\PageController;
+use App\Http\Controllers\Admin\PostCategoryController;
+use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -91,6 +95,36 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('packages/{package}', [PackageController::class, 'update'])->middleware('can:packages.update')->name('packages.update');
         Route::post('packages/{package}/duplicate', [PackageController::class, 'duplicate'])->middleware('can:packages.create')->name('packages.duplicate');
         Route::delete('packages/{package}', [PackageController::class, 'destroy'])->middleware('can:packages.delete')->name('packages.destroy');
+
+        // Blog & news
+        Route::get('posts/meta', [PostController::class, 'meta'])->middleware('can:blog.view')->name('posts.meta');
+        Route::get('posts', [PostController::class, 'index'])->middleware('can:blog.view')->name('posts.index');
+        Route::post('posts', [PostController::class, 'store'])->middleware('can:blog.create')->name('posts.store');
+        Route::get('posts/{post}', [PostController::class, 'show'])->middleware('can:blog.view')->name('posts.show');
+        Route::put('posts/{post}', [PostController::class, 'update'])->middleware('can:blog.update')->name('posts.update');
+        Route::get('posts/{post}/preview-url', [PostController::class, 'previewUrl'])->middleware('can:blog.view')->name('posts.preview-url');
+        Route::delete('posts/{post}', [PostController::class, 'destroy'])->middleware('can:blog.delete')->name('posts.destroy');
+        Route::post('post-categories', [PostCategoryController::class, 'store'])->middleware('can:blog.update')->name('post-categories.store');
+        Route::put('post-categories/reorder', [PostCategoryController::class, 'reorder'])->middleware('can:blog.update')->name('post-categories.reorder');
+        Route::put('post-categories/{category}', [PostCategoryController::class, 'update'])->middleware('can:blog.update')->name('post-categories.update');
+        Route::delete('post-categories/{category}', [PostCategoryController::class, 'destroy'])->middleware('can:blog.update')->name('post-categories.destroy');
+
+        // Reviews
+        Route::get('reviews', [ReviewController::class, 'index'])->middleware('can:reviews.view')->name('reviews.index');
+        Route::post('reviews', [ReviewController::class, 'store'])->middleware('can:reviews.create')->name('reviews.store');
+        Route::put('reviews/reorder', [ReviewController::class, 'reorder'])->middleware('can:reviews.update')->name('reviews.reorder');
+        Route::put('reviews/{review}', [ReviewController::class, 'update'])->middleware('can:reviews.update')->name('reviews.update');
+        Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->middleware('can:reviews.delete')->name('reviews.destroy');
+
+        // Gallery
+        Route::get('gallery', [GalleryController::class, 'index'])->middleware('can:gallery.view')->name('gallery.index');
+        Route::post('gallery', [GalleryController::class, 'store'])->middleware('can:gallery.create')->name('gallery.store');
+        Route::get('gallery/{album}', [GalleryController::class, 'show'])->middleware('can:gallery.view')->name('gallery.show');
+        Route::put('gallery/{album}', [GalleryController::class, 'update'])->middleware('can:gallery.update')->name('gallery.update');
+        Route::delete('gallery/{album}', [GalleryController::class, 'destroy'])->middleware('can:gallery.delete')->name('gallery.destroy');
+        Route::post('gallery/{album}/items', [GalleryController::class, 'addItems'])->middleware('can:gallery.update')->name('gallery.items.store');
+        Route::put('gallery/{album}/items/{item}', [GalleryController::class, 'updateItem'])->middleware('can:gallery.update')->name('gallery.items.update');
+        Route::post('gallery/{album}/items/remove', [GalleryController::class, 'removeItems'])->middleware('can:gallery.update')->name('gallery.items.destroy');
 
         // Inquiries
         Route::get('inquiries', [InquiryController::class, 'index'])->middleware('can:inquiries.view')->name('inquiries.index');

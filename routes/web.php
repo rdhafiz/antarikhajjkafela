@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Admin\SpaController;
+use App\Http\Controllers\Site\BlogController;
 use App\Http\Controllers\Site\FormController;
+use App\Http\Controllers\Site\GalleryController;
 use App\Http\Controllers\Site\LocaleController;
 use App\Http\Controllers\Site\ManifestController;
 use App\Http\Controllers\Site\PackageController;
@@ -23,6 +25,9 @@ Route::post('/forms/{section}', [FormController::class, 'submit'])
 Route::get('/preview/pages/{page}', [PageController::class, 'preview'])
     ->middleware('signed')
     ->name('pages.preview');
+Route::get('/preview/posts/{post}', [BlogController::class, 'preview'])
+    ->middleware('signed')
+    ->name('posts.preview');
 
 // Reference page for the public design system (local development only).
 if (app()->isLocal()) {
@@ -35,6 +40,10 @@ Route::get('/admin/{any?}', SpaController::class)->where('any', '.*')->name('adm
 // Packages
 Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
 Route::get('/packages/{slug}', [PackageController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('packages.show');
+
+// Blog posts and gallery albums. Their listings live on the Blog and Gallery pages.
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('blog.show');
+Route::get('/gallery/{slug}', [GalleryController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('gallery.show');
 
 // Pages built in the admin. Keep these last: the slug route catches everything else.
 Route::get('/', [PageController::class, 'home'])->name('home');

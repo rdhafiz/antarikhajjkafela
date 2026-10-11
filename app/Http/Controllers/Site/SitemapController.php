@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
+use App\Models\GalleryAlbum;
 use App\Models\Package;
 use App\Models\Page;
+use App\Models\Post;
 use App\Models\Service;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
@@ -39,6 +41,16 @@ class SitemapController extends Controller
                 if (! ($package->seo['noindex'] ?? false)) {
                     $urls[] = ['loc' => $package->url(), 'lastmod' => $package->updated_at?->toAtomString()];
                 }
+            }
+
+            foreach (Post::live()->latest('published_at')->get() as $post) {
+                if (! ($post->seo['noindex'] ?? false)) {
+                    $urls[] = ['loc' => $post->url(), 'lastmod' => $post->updated_at?->toAtomString()];
+                }
+            }
+
+            foreach (GalleryAlbum::published()->whereHas('items')->newest()->get() as $album) {
+                $urls[] = ['loc' => $album->url(), 'lastmod' => $album->updated_at?->toAtomString()];
             }
 
             foreach (self::$sources as $source) {

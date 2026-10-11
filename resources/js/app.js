@@ -8,6 +8,72 @@ Alpine.plugin(focus);
 Alpine.plugin(intersect);
 
 /**
+ * Album lightbox: photos and YouTube videos with keyboard, button and swipe
+ * navigation. Neighbouring photos are preloaded for instant paging.
+ */
+Alpine.data('lightbox', (slides = []) => ({
+    slides,
+    current: null,
+    startX: null,
+
+    get slide() {
+        return this.current === null ? null : this.slides[this.current];
+    },
+
+    get position() {
+        return this.current === null ? '' : `${this.current + 1} / ${this.slides.length}`;
+    },
+
+    open(index) {
+        this.current = index;
+        this.preload();
+    },
+
+    close() {
+        this.current = null;
+    },
+
+    go(step) {
+        if (this.current === null || this.slides.length < 2) return;
+        this.current = (this.current + step + this.slides.length) % this.slides.length;
+        this.preload();
+    },
+
+    next() {
+        this.go(document.dir === 'rtl' ? -1 : 1);
+    },
+
+    prev() {
+        this.go(document.dir === 'rtl' ? 1 : -1);
+    },
+
+    preload() {
+        [1, -1].forEach((step) => {
+            const slide = this.slides[(this.current + step + this.slides.length) % this.slides.length];
+            if (slide?.type === 'image') new Image().src = slide.src;
+        });
+    },
+
+    key(event) {
+        if (this.current === null) return;
+        if (event.key === 'Escape') this.close();
+        if (event.key === 'ArrowRight') this.next();
+        if (event.key === 'ArrowLeft') this.prev();
+    },
+
+    touchStart(event) {
+        this.startX = event.changedTouches[0].clientX;
+    },
+
+    touchEnd(event) {
+        if (this.startX === null) return;
+        const distance = event.changedTouches[0].clientX - this.startX;
+        this.startX = null;
+        if (Math.abs(distance) > 50) distance < 0 ? this.next() : this.prev();
+    },
+}));
+
+/**
  * Public forms (contact, campaign leads): submit without reloading the page,
  * show field errors inline, and add a reCAPTCHA v3 token when configured.
  * The script for reCAPTCHA only loads once the visitor starts filling the form.
