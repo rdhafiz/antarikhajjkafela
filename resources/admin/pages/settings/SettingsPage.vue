@@ -78,7 +78,7 @@ function editableValues(values: Record<string, unknown>): Record<string, unknown
     const result: Record<string, unknown> = {};
 
     for (const field of group.value?.fields ?? []) {
-        result[field.key] = field.type === 'secret' ? null : structuredClone(values[field.key] ?? null);
+        result[field.key] = field.type === 'secret' ? null : JSON.parse(JSON.stringify(values[field.key] ?? null));
     }
 
     return result;

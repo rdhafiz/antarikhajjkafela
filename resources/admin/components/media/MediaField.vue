@@ -49,7 +49,7 @@ function select(selected: Media): void {
 
 <template>
     <FormField :label="label" :error="error" :hint="hint">
-        <div v-if="media" class="group relative overflow-hidden rounded-xl ring-1 ring-line">
+        <div v-if="media" class="group relative max-w-md overflow-hidden rounded-xl ring-1 ring-line">
             <div class="flex items-center justify-center bg-[repeating-conic-gradient(#eef1f5_0_25%,#fff_0_50%)] bg-[length:16px_16px]" :style="{ aspectRatio: aspect ?? '16 / 9' }">
                 <img :src="media.thumb_url ?? ''" :alt="media.alt.en ?? ''" class="max-h-full max-w-full object-contain" />
             </div>
@@ -65,7 +65,7 @@ function select(selected: Media): void {
         <button
             v-else
             type="button"
-            class="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#cfd7e2] bg-canvas/50 text-sm font-semibold text-ink-soft transition-colors hover:border-brand/50 hover:text-brand"
+            class="flex max-h-56 w-full max-w-md flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#cfd7e2] bg-canvas/50 text-sm font-semibold text-ink-soft transition-colors hover:border-brand/50 hover:text-brand"
             :style="{ aspectRatio: aspect ?? '16 / 9' }"
             @click="pickerOpen = true"
         >

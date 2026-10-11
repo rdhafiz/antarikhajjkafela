@@ -25,6 +25,7 @@ export const useAppStore = defineStore('app', () => {
     const defaultLocale = ref('en');
     const currency = ref('BDT');
     const mediaMode = ref<'automatic' | 'manual'>('automatic');
+    const inquiriesUnread = ref(0);
 
     async function load(force = false): Promise<void> {
         if (loaded.value && !force) return;
@@ -39,6 +40,7 @@ export const useAppStore = defineStore('app', () => {
         defaultLocale.value = data.default_locale;
         currency.value = data.currency;
         mediaMode.value = data.media_mode;
+        inquiriesUnread.value = data.counts?.inquiries_unread ?? 0;
         applyTheme(data.admin_theme);
 
         loaded.value = true;
@@ -54,5 +56,5 @@ export const useAppStore = defineStore('app', () => {
         }
     }
 
-    return { loaded, name, siteUrl, logo, icon, locales, defaultLocale, currency, mediaMode, load, applyTheme };
+    return { loaded, name, siteUrl, logo, icon, locales, defaultLocale, currency, mediaMode, inquiriesUnread, load, applyTheme };
 });

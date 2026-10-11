@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Inquiry;
 use App\Models\Media;
 use App\Support\Locales;
 use Illuminate\Http\JsonResponse;
@@ -26,6 +27,9 @@ class BootstrapController extends Controller
             'currency' => settings('localization.currency'),
             'admin_theme' => settings()->group('admin_theme'),
             'media_mode' => settings('media.optimization_mode'),
+            'counts' => [
+                'inquiries_unread' => request()->user()?->can('inquiries.view') ? Inquiry::whereNull('read_at')->count() : 0,
+            ],
         ]);
     }
 }

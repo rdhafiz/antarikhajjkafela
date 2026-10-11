@@ -75,7 +75,14 @@ function isActive(item: NavItem): boolean {
                                 class="size-[18px] shrink-0"
                                 :class="isActive(item) ? 'text-sidebar-accent' : 'opacity-80 group-hover:opacity-100'"
                             />
-                            <span v-if="!collapsed" class="truncate">{{ item.label }}</span>
+                            <span v-if="!collapsed" class="flex-1 truncate">{{ item.label }}</span>
+                            <span
+                                v-if="item.badge && app[item.badge] > 0"
+                                class="flex h-5 min-w-5 items-center justify-center rounded-full bg-sidebar-accent px-1.5 text-[11px] font-bold text-sidebar"
+                                :class="collapsed && 'absolute top-1 right-1 h-4 min-w-4 px-1 text-[10px]'"
+                            >
+                                {{ app[item.badge] > 99 ? '99+' : app[item.badge] }}
+                            </span>
                         </RouterLink>
                     </li>
                 </ul>
