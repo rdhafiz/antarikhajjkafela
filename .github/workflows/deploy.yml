@@ -1,0 +1,115 @@
+name: Test and deploy
+
+# Every push and pull request is tested. Pushes to main are then built and
+# deployed to Hostinger over SSH (see docs/DEPLOYMENT.md for the secrets and
+# the DEPLOY_ENABLED variable that switches deploys on).
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PHP_VERSION: '8.4'
+  PHP_EXTENSIONS: bcmath, exif, fileinfo, gd, intl, mbstring, pdo_mysql, pdo_sqlite, zip
+  NODE_VERSION: '22'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: vendor/bin/pint --test
+
+      - name: Type-check the admin portal
+        run: npm run typecheck
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Run tests
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan test
+
+  deploy:
+    needs: test
+    # Turned on by the repository variable DEPLOY_ENABLED=true once the server is set up.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install production dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Build assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Package the release
+        run: |
+          tar --exclude=./.git --exclude=./.github --exclude=./node_modules --exclude=./tests \
+              --exclude=./storage --exclude=./.env --exclude=./docs \
+              -czf /tmp/release.tar.gz .
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Upload and activate
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          APP_DIR: ${{ secrets.APP_DIR }}
+          PHP_BIN: ${{ secrets.PHP_BIN }}
+        run: |
+          SSH="ssh -i ~/.ssh/deploy_key -p ${SSH_PORT:-22} -o StrictHostKeyChecking=yes"
+          RELEASE="$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::7}"
+          $SSH "$SSH_USER@$SSH_HOST" "mkdir -p '$APP_DIR/releases/$RELEASE'"
+          scp -i ~/.ssh/deploy_key -P "${SSH_PORT:-22}" /tmp/release.tar.gz "$SSH_USER@$SSH_HOST:$APP_DIR/releases/$RELEASE/release.tar.gz"
+          $SSH "$SSH_USER@$SSH_HOST" "cd '$APP_DIR/releases/$RELEASE' && tar -xzf release.tar.gz && rm release.tar.gz && PHP_BIN='${PHP_BIN:-php}' bash deploy/activate.sh '$APP_DIR' '$RELEASE'"

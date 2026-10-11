@@ -222,7 +222,7 @@ class PageSeeder extends Seeder
                     ['icon' => 'kaaba', 'title' => $this->t('Prepare and travel', 'প্রস্তুতি ও যাত্রা'), 'text' => $this->t('Attend our workshop, then travel with scholars and guides beside you.', 'আমাদের কর্মশালায় অংশ নিন, তারপর আলেম ও গাইডদের সাথে যাত্রা করুন।')],
                 ],
             ], ['background' => 'sand']],
-            ['faq', $this->faqContent(), ['background' => 'white']],
+            ['faq', $this->faqContent(), ['background' => 'white', 'anchor' => 'faq']],
             $this->cta(),
         ];
     }

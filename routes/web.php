@@ -62,6 +62,11 @@ Route::middleware('throttle:30,1')->group(function () {
 Route::get('/blog/{slug}', [BlogController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('blog.show');
 Route::get('/gallery/{slug}', [GalleryController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('gallery.show');
 
+// Addresses from the previous website (config/redirects.php).
+foreach (config('redirects') as $from => $to) {
+    Route::permanentRedirect($from, $to);
+}
+
 // Pages built in the admin. Keep these last: the slug route catches everything else.
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/{slug}', [PageController::class, 'slug'])
