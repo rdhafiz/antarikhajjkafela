@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UserRequest;
+use App\Http\Resources\Admin\RoleResource;
 use App\Http\Resources\Admin\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -28,6 +30,19 @@ class UserController extends Controller
             ->paginate($request->integer('per_page', 15));
 
         return UserResource::collection($users);
+    }
+
+    /**
+     * Roles that can be assigned in the user form.
+     */
+    public function roleOptions(Request $request): JsonResponse
+    {
+        $roles = Role::query()
+            ->orderBy('id')
+            ->get()
+            ->reject(fn (Role $role) => $role->name === config('access.super_admin_role') && ! $request->user()->isSuperAdmin());
+
+        return response()->json(['data' => RoleResource::collection($roles->values())]);
     }
 
     public function store(UserRequest $request): UserResource

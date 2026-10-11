@@ -17,7 +17,7 @@ class AccessSynchronizer
      */
     public function sync(): array
     {
-        $guard = config('auth.defaults.guard');
+        $guard = config('access.guard');
         $created = ['permissions' => 0, 'roles' => 0];
 
         foreach (self::permissionNames() as $name) {

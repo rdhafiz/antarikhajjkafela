@@ -37,6 +37,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Users
         Route::get('users', [UserController::class, 'index'])->middleware('can:users.view')->name('users.index');
+        Route::get('users/role-options', [UserController::class, 'roleOptions'])->middleware('can:users.view')->name('users.role-options');
         Route::post('users', [UserController::class, 'store'])->middleware('can:users.create')->name('users.store');
         Route::get('users/{user}', [UserController::class, 'show'])->middleware('can:users.view')->name('users.show');
         Route::put('users/{user}', [UserController::class, 'update'])->middleware('can:users.update')->name('users.update');

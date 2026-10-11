@@ -1,0 +1,115 @@
+<?php
+
+namespace Tests\Feature\Admin;
+
+use App\Models\Media;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+
+class MediaTest extends AdminTestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Storage::fake('public');
+        Storage::fake('local');
+    }
+
+    public function test_upload_generates_webp_variants_and_keeps_the_original_private(): void
+    {
+        $admin = $this->superAdmin();
+
+        $response = $this->asAdmin($admin)->post('/api/admin/media', [
+            'file' => UploadedFile::fake()->image('kaaba.jpg', 2400, 1600),
+            'usage' => 'card',
+            'alt' => ['en' => 'The Kaaba', 'bn' => 'কাবা শরীফ'],
+        ])->assertCreated();
+
+        $media = Media::firstOrFail();
+
+        $this->assertSame(['md', 'sm', 'admin'], array_keys($media->variants));
+        $this->assertSame(800, $media->variants['md']['width']);
+        $this->assertSame(600, $media->variants['md']['height']);
+        $this->assertSame(['en' => 'The Kaaba', 'bn' => 'কাবা শরীফ'], $media->getTranslations('alt'));
+
+        Storage::disk('public')->assertExists($media->variants['md']['path']);
+        Storage::disk('public')->assertMissing("{$media->directory}/original.jpg");
+        Storage::disk('local')->assertExists("{$media->directory}/original.jpg");
+
+        $response->assertJsonPath('data.usage', 'card');
+    }
+
+    public function test_images_are_never_upscaled(): void
+    {
+        $this->asAdmin($this->superAdmin())->post('/api/admin/media', [
+            'file' => UploadedFile::fake()->image('small.png', 300, 200),
+            'usage' => 'hero',
+        ])->assertCreated();
+
+        $this->assertSame(300, Media::firstOrFail()->variants['xl']['width']);
+    }
+
+    public function test_manual_mode_applies_the_chosen_sizes_and_crop(): void
+    {
+        settings()->set('media', ['optimization_mode' => 'manual']);
+
+        $this->asAdmin($this->superAdmin())->post('/api/admin/media', [
+            'file' => UploadedFile::fake()->image('team.jpg', 2000, 1000),
+            'usage' => 'avatar',
+            'variants' => json_encode([
+                'md' => ['width' => 200, 'height' => 200, 'fit' => 'cover', 'quality' => 75, 'crop' => ['x' => 100, 'y' => 0, 'width' => 1000, 'height' => 1000]],
+            ]),
+        ])->assertCreated();
+
+        $variants = Media::firstOrFail()->variants;
+        $this->assertSame([200, 200], [$variants['md']['width'], $variants['md']['height']]);
+        $this->assertSame([96, 96], [$variants['sm']['width'], $variants['sm']['height']]);
+    }
+
+    public function test_overrides_are_ignored_in_automatic_mode(): void
+    {
+        $this->asAdmin($this->superAdmin())->post('/api/admin/media', [
+            'file' => UploadedFile::fake()->image('team.jpg', 1000, 1000),
+            'usage' => 'avatar',
+            'variants' => json_encode(['md' => ['width' => 50, 'height' => 50, 'fit' => 'cover', 'quality' => 75]]),
+        ])->assertCreated();
+
+        $this->assertSame(320, Media::firstOrFail()->variants['md']['width']);
+    }
+
+    public function test_non_images_and_unknown_usages_are_rejected(): void
+    {
+        $admin = $this->superAdmin();
+
+        $this->asAdmin($admin)->post('/api/admin/media', [
+            'file' => UploadedFile::fake()->create('script.svg', 2, 'image/svg+xml'),
+            'usage' => 'general',
+        ])->assertJsonValidationErrors('file');
+
+        $this->asAdmin($admin)->post('/api/admin/media', [
+            'file' => UploadedFile::fake()->image('a.jpg'),
+            'usage' => 'nonsense',
+        ])->assertJsonValidationErrors('usage');
+    }
+
+    public function test_deleting_media_removes_its_files(): void
+    {
+        $admin = $this->superAdmin();
+        $this->asAdmin($admin)->post('/api/admin/media', ['file' => UploadedFile::fake()->image('a.jpg', 800, 600), 'usage' => 'general']);
+        $media = Media::firstOrFail();
+
+        $this->asAdmin($admin)->deleteJson("/api/admin/media/{$media->id}")->assertNoContent();
+
+        Storage::disk('public')->assertMissing($media->variants['lg']['path']);
+        Storage::disk('local')->assertMissing("{$media->directory}/original.jpg");
+    }
+
+    public function test_media_permissions_are_enforced(): void
+    {
+        $viewer = $this->adminWith(['media.view']);
+
+        $this->asAdmin($viewer)->getJson('/api/admin/media')->assertOk();
+        $this->asAdmin($viewer)->post('/api/admin/media', ['file' => UploadedFile::fake()->image('a.jpg'), 'usage' => 'general'])->assertForbidden();
+    }
+}

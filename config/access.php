@@ -15,6 +15,10 @@ return [
 
     'super_admin_role' => 'super-admin',
 
+    // Roles and permissions belong to the session guard used by the admin SPA.
+    // (Sanctum switches the default guard during API requests, so it is fixed here.)
+    'guard' => 'web',
+
     'modules' => [
         'dashboard' => ['label' => 'Dashboard', 'actions' => ['view']],
         'users' => ['label' => 'Users', 'actions' => ['view', 'create', 'update', 'delete']],
