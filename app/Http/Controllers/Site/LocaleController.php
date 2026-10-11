@@ -26,6 +26,6 @@ class LocaleController extends Controller
     {
         $previous = url()->previous();
 
-        return str_starts_with($previous, url('/')) ? $previous : url('/');
+        return parse_url($previous, PHP_URL_HOST) === request()->getHost() ? $previous : url('/');
     }
 }

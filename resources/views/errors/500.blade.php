@@ -1,0 +1,1 @@
+@include('errors.minimal-layout', ['code' => 500, 'title' => __('Something went wrong'), 'text' => __('Sorry, we could not load this page. Please try again in a moment, or call us if the problem continues.')])

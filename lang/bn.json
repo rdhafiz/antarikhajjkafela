@@ -241,5 +241,15 @@
     "Your details": "আপনার তথ্য",
     "booking terms and conditions": "বুকিংয়ের শর্তাবলী",
     "needed for online payment": "অনলাইন পেমেন্টের জন্য প্রয়োজন",
-    "optional": "ঐচ্ছিক"
+    "optional": "ঐচ্ছিক",
+    "Contact and language": "যোগাযোগ ও ভাষা",
+    "Please wait a few minutes before trying again.": "অনুগ্রহ করে কয়েক মিনিট পর আবার চেষ্টা করুন।",
+    "Something went wrong": "কিছু একটা সমস্যা হয়েছে",
+    "Sorry, we could not load this page. Please try again in a moment, or call us if the problem continues.": "দুঃখিত, পাতাটি লোড করা যায়নি। কিছুক্ষণ পর আবার চেষ্টা করুন, সমস্যা থাকলে আমাদের ফোন করুন।",
+    "The documents are too large together. Upload up to 15 MB in total.": "ফাইলগুলো একসাথে অনেক বড়। সব মিলিয়ে সর্বোচ্চ ১৫ MB আপলোড করুন।",
+    "The form was open for too long. Please go back, refresh the page and try again.": "ফর্মটি অনেকক্ষণ খোলা ছিল। অনুগ্রহ করে ফিরে গিয়ে পাতাটি রিফ্রেশ করে আবার চেষ্টা করুন।",
+    "The website is being updated. Please check again in a few minutes.": "ওয়েবসাইটটি হালনাগাদ করা হচ্ছে। কয়েক মিনিট পর আবার দেখুন।",
+    "This page has expired": "পাতাটির মেয়াদ শেষ",
+    "Too many attempts": "অনেকবার চেষ্টা করা হয়েছে",
+    "We will be back shortly": "আমরা শিগগিরই ফিরছি"
 }

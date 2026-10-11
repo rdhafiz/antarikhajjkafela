@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
+use App\Support\Csv;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -81,7 +82,7 @@ class InquiryController extends Controller
 
             $this->query($filters)->with('page:id,title')->latest('id')->chunk(500, function ($rows) use ($out) {
                 foreach ($rows as $inquiry) {
-                    fputcsv($out, [
+                    fputcsv($out, Csv::row([
                         $inquiry->created_at?->format('Y-m-d H:i'),
                         $inquiry->source,
                         $inquiry->page?->getTranslation('title', 'en'),
@@ -91,7 +92,7 @@ class InquiryController extends Controller
                         collect($inquiry->data)->except('page')->map(fn ($v, $k) => "{$k}: {$v}")->implode(' | '),
                         $inquiry->status,
                         $inquiry->notes,
-                    ]);
+                    ]));
                 }
             });
 

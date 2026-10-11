@@ -57,10 +57,34 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(20)->by($request->ip()),
         ]);
 
+        // Public booking form: uploads are allowed, so cap volume per visitor.
+        RateLimiter::for('booking', fn (Request $request) => [
+            Limit::perMinute(6)->by($request->ip()),
+            Limit::perHour(20)->by($request->ip()),
+        ]);
+
+        // Booking lookup: references are sequential, so limit guesses per contact as well as per visitor.
+        RateLimiter::for('booking-lookup', fn (Request $request) => [
+            Limit::perMinute(10)->by($request->ip()),
+            Limit::perHour(30)->by($request->ip()),
+            Limit::perHour(5)->by('contact:'.self::lookupKey((string) $request->input('contact'))),
+        ]);
+
         ResetPassword::createUrlUsing(fn ($user, string $token) => url('/admin/reset-password').'?'.http_build_query([
             'token' => $token,
             'email' => $user->getEmailForPasswordReset(),
         ]));
+    }
+
+    /**
+     * One rate-limit key per customer contact: the last 10 digits of a phone
+     * number, or the email address in lower case.
+     */
+    private static function lookupKey(string $contact): string
+    {
+        $contact = strtolower(trim($contact));
+
+        return str_contains($contact, '@') ? $contact : substr(preg_replace('/\D/', '', $contact), -10);
     }
 
     /**

@@ -150,7 +150,7 @@
                 </div>
 
                 {{-- Summary --}}
-                <aside class="lg:sticky lg:top-28">
+                <div class="lg:sticky lg:top-28">
                     <div class="overflow-hidden rounded-[1.5rem] bg-brand-950 text-white shadow-[var(--shadow-lift)]">
                         <div class="relative p-6">
                             <div class="pattern-star absolute inset-0 opacity-[0.05]" aria-hidden="true"></div>
@@ -172,7 +172,7 @@
                             <p class="mt-3 text-center text-[12px] text-white/55">{{ __('Final amounts are confirmed by our team.') }}@if ($recaptcha) {{ __('Protected by reCAPTCHA.') }}@endif</p>
                         </div>
                     </div>
-                </aside>
+                </div>
             </form>
         </div>
     </section>

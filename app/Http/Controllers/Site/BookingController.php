@@ -27,6 +27,8 @@ class BookingController extends Controller
 {
     public const MAX_TRAVELERS = 50;
 
+    public const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+
     public function __construct(
         private readonly BookingService $bookings,
         private readonly OnlinePayments $payments,
@@ -103,8 +105,14 @@ class BookingController extends Controller
             'nid.*' => __('NID copy'),
         ]);
 
-        if (count($data['passport'] ?? []) + count($data['nid'] ?? []) > 10) {
+        $files = [...($data['passport'] ?? []), ...($data['nid'] ?? [])];
+
+        if (count($files) > 10) {
             throw ValidationException::withMessages(['passport' => __('Upload up to 10 documents in total.')]);
+        }
+
+        if (array_sum(array_map(fn ($file) => $file->getSize(), $files)) > self::MAX_UPLOAD_BYTES) {
+            throw ValidationException::withMessages(['passport' => __('The documents are too large together. Upload up to 15 MB in total.')]);
         }
 
         if (! $recaptcha->passes($request->input('recaptcha_token'), $request->ip())) {
@@ -134,10 +142,11 @@ class BookingController extends Controller
 
         seo()->title(__('Booking :reference', ['reference' => $booking->reference]))->noindex();
 
+        // The signed link is the customer's key: never pass it on in a Referer.
         return response()->view('site.bookings.show', [
             'booking' => $booking,
             'canPay' => $this->payments->canPay($booking),
-        ]);
+        ])->header('Referrer-Policy', 'no-referrer');
     }
 
     /**

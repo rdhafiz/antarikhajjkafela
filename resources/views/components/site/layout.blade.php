@@ -5,6 +5,8 @@
     'focused' => false,
     /** Extra tracking IDs for this page (campaigns): gtm_id, facebook_pixel_id. */
     'tracking' => [],
+    /** Load analytics and ad tags. Off on private pages such as a customer's booking. */
+    'analytics' => true,
     /** Show the footer's call-to-action band (hidden when the page already ends with one). */
     'footerCta' => true,
 ])
@@ -23,11 +25,15 @@
     @endforeach
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <x-site.tracking position="head" :extra="$tracking" />
+    @if ($analytics)
+        <x-site.tracking position="head" :extra="$tracking" />
+    @endif
     {{ $head ?? '' }}
 </head>
 <body class="min-h-dvh">
-    <x-site.tracking position="body" :extra="$tracking" />
+    @if ($analytics)
+        <x-site.tracking position="body" :extra="$tracking" />
+    @endif
 
     <a href="#main" class="sr-only z-[100] rounded-full bg-gold px-5 py-2.5 font-semibold text-brand-950 focus:not-sr-only focus:fixed focus:top-3 focus:left-3">
         {{ __('Skip to content') }}

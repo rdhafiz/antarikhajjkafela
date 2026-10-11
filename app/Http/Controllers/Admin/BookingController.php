@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingDocument;
 use App\Models\Payment;
+use App\Support\Csv;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -146,12 +147,12 @@ class BookingController extends Controller
 
             $this->query($filters)->latest('id')->chunk(500, function ($bookings) use ($out) {
                 foreach ($bookings as $b) {
-                    fputcsv($out, [
+                    fputcsv($out, Csv::row([
                         $b->reference, $b->created_at?->format('Y-m-d H:i'), Booking::STATUSES[$b->status] ?? $b->status,
                         $b->snap('package', 'en'), trim($b->snap('type', 'en').' – '.$b->snap('option', 'en'), ' –'),
                         $b->travelers, $b->total, $b->advance_amount, $b->paid_amount, number_format($b->balance(), 2, '.', ''),
                         $b->customer_name, $b->customer_phone, $b->customer_email,
-                    ]);
+                    ]));
                 }
             });
 

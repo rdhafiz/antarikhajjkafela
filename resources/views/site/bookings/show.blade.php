@@ -19,7 +19,7 @@
     };
     $phones = $site->phones();
 @endphp
-<x-site.layout>
+<x-site.layout :analytics="false">
     <section class="section-light bg-sand-50 py-12 sm:py-16">
         <div class="container-site max-w-4xl">
             {{-- Outcome messages --}}
