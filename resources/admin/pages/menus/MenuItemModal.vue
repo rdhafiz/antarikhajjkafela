@@ -53,7 +53,7 @@ function validate(): boolean {
         const language = app.locales.find((l) => l.code === required)?.name ?? required;
         result[`label.${required}`] = [`A label in ${language} is required.`];
     }
-    if (draft.link_type === 'route' && !draft.link_target) result.link_target = ['Choose a page.'];
+    if (currentType.value?.targets && !draft.link_target) result.link_target = ['Choose where this item links to.'];
     if (draft.link_type === 'url' && !/^(https?:\/\/|\/|mailto:|tel:|#)/i.test(draft.url ?? '')) {
         result.url = ['Enter a link starting with https://, /, mailto: or tel:.'];
     }
@@ -68,7 +68,7 @@ function save(): void {
     emit('save', {
         ...props.item,
         ...structuredClone({ ...draft, label: { ...draft.label } }),
-        link_target: draft.link_type === 'route' ? draft.link_target : null,
+        link_target: currentType.value?.targets ? draft.link_target : null,
         url: draft.link_type === 'url' ? draft.url : null,
         children: props.item.children,
     });
@@ -93,9 +93,9 @@ function save(): void {
                 </div>
             </FormField>
 
-            <FormField v-if="currentType?.targets" label="Page" :for="`${id}-target`" :error="errors.link_target?.[0]">
+            <FormField v-if="currentType?.targets" :label="currentType.label" :for="`${id}-target`" :error="errors.link_target?.[0]">
                 <select :id="`${id}-target`" v-model="draft.link_target" class="control" :class="{ 'control-invalid': errors.link_target }">
-                    <option :value="null" disabled>Choose a page…</option>
+                    <option :value="null" disabled>Choose…</option>
                     <option v-for="target in currentType.targets" :key="target.value" :value="target.value">{{ target.label }}</option>
                 </select>
             </FormField>

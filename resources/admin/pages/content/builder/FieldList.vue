@@ -5,6 +5,7 @@ import ColorInput from '@admin/components/ui/ColorInput.vue';
 import FormField from '@admin/components/ui/FormField.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
 import MediaField from '@admin/components/media/MediaField.vue';
+import BlocksEditor from './BlocksEditor.vue';
 import IconPicker from './IconPicker.vue';
 import LinkInput from './LinkInput.vue';
 import RepeaterField from './RepeaterField.vue';
@@ -31,8 +32,13 @@ function set(key: string, value: unknown): void {
     model.value = { ...model.value, [key]: value };
 }
 
+/** Full error path of a field ("sections.2.content.title", or just "types" at the root). */
+function fp(key: string): string {
+    return props.path ? `${props.path}.${key}` : key;
+}
+
 function error(key: string): string | undefined {
-    return props.errors[`${props.path}.${key}`]?.[0];
+    return props.errors[fp(key)]?.[0];
 }
 
 function aspectFor(usage?: string): string {
@@ -60,7 +66,7 @@ function toLocalInput(value: unknown): string {
                     :rows="field.rows"
                     :required="field.required"
                     :errors="errors"
-                    :error-key="`${path}.${field.key}`"
+                    :error-key="fp(field.key)"
                     @update:model-value="set(field.key, $event)"
                 />
 
@@ -71,7 +77,7 @@ function toLocalInput(value: unknown): string {
                     :hint="field.hint"
                     :required="field.required"
                     :errors="errors"
-                    :error-key="`${path}.${field.key}`"
+                    :error-key="fp(field.key)"
                     @update:model-value="set(field.key, $event)"
                 />
 
@@ -144,7 +150,7 @@ function toLocalInput(value: unknown): string {
                     :label="field.label"
                     :hint="field.hint"
                     :errors="errors"
-                    :path="`${path}.${field.key}`"
+                    :path="fp(field.key)"
                     @update:model-value="set(field.key, $event)"
                 />
 
@@ -171,12 +177,22 @@ function toLocalInput(value: unknown): string {
 
                 <IconPicker v-else-if="field.type === 'icon'" :model-value="(model[field.key] as string | null) ?? null" :label="field.label" :icons="icons" @update:model-value="set(field.key, $event)" />
 
+                <BlocksEditor
+                    v-else-if="field.type === 'blocks'"
+                    :model-value="(model[field.key] as never[]) ?? []"
+                    :label="field.label"
+                    :errors="errors"
+                    :path="fp(field.key)"
+                    :max="field.max"
+                    @update:model-value="set(field.key, $event)"
+                />
+
                 <RepeaterField
                     v-else-if="field.type === 'repeater'"
                     :model-value="(model[field.key] as Record<string, unknown>[]) ?? []"
                     :field="field"
                     :errors="errors"
-                    :path="`${path}.${field.key}`"
+                    :path="fp(field.key)"
                     :icons="icons"
                     @update:model-value="set(field.key, $event)"
                 />

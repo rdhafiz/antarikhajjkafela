@@ -1,5 +1,5 @@
 import type { Component } from 'vue';
-import { FileText, Images, Inbox, LayoutDashboard, ListTree, Megaphone, Settings, ShieldCheck, Users } from 'lucide-vue-next';
+import { BriefcaseBusiness, FileText, Images, Inbox, LayoutDashboard, ListTree, Megaphone, Package, Settings, ShieldCheck, Users } from 'lucide-vue-next';
 
 export interface NavItem {
     label: string;
@@ -24,6 +24,13 @@ export const navigation: NavSection[] = [
         items: [
             { label: 'Dashboard', to: '/admin', icon: LayoutDashboard, permission: 'dashboard.view' },
             { label: 'Inquiries', to: '/admin/inquiries', icon: Inbox, permission: 'inquiries.view', badge: 'inquiriesUnread' },
+        ],
+    },
+    {
+        label: 'Travel',
+        items: [
+            { label: 'Packages', to: '/admin/packages', icon: Package, permission: 'packages.view' },
+            { label: 'Services', to: '/admin/services', icon: BriefcaseBusiness, permission: 'services.view' },
         ],
     },
     {

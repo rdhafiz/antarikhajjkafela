@@ -13,7 +13,8 @@ export type FieldType =
     | 'icon'
     | 'youtube'
     | 'datetime'
-    | 'repeater';
+    | 'repeater'
+    | 'blocks';
 
 export interface FieldDef {
     key: string;
@@ -132,6 +133,7 @@ export function emptyValue(field: FieldDef): unknown {
         case 'toggle':
             return false;
         case 'repeater':
+        case 'blocks':
             return [];
         default:
             return null;
