@@ -102,5 +102,5 @@ export interface Bootstrap {
     currency: string;
     admin_theme: AdminTheme;
     media_mode: 'automatic' | 'manual';
-    counts?: { inquiries_unread: number };
+    counts?: { inquiries_unread: number; bookings_unread: number };
 }

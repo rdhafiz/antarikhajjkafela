@@ -1,5 +1,5 @@
 import type { Component } from 'vue';
-import { BriefcaseBusiness, FileText, GalleryHorizontalEnd, Images, Inbox, LayoutDashboard, ListTree, Megaphone, MessageSquareQuote, Newspaper, Package, Settings, ShieldCheck, Users } from 'lucide-vue-next';
+import { BriefcaseBusiness, CalendarCheck, FileText, GalleryHorizontalEnd, Images, Inbox, LayoutDashboard, ListTree, Megaphone, MessageSquareQuote, Newspaper, Package, Settings, ShieldCheck, Users } from 'lucide-vue-next';
 
 export interface NavItem {
     label: string;
@@ -7,7 +7,7 @@ export interface NavItem {
     icon: Component;
     permission?: string;
     /** Key of a counter in the app store shown as a badge. */
-    badge?: 'inquiriesUnread';
+    badge?: 'inquiriesUnread' | 'bookingsUnread';
 }
 
 export interface NavSection {
@@ -23,6 +23,7 @@ export const navigation: NavSection[] = [
     {
         items: [
             { label: 'Dashboard', to: '/admin', icon: LayoutDashboard, permission: 'dashboard.view' },
+            { label: 'Bookings', to: '/admin/bookings', icon: CalendarCheck, permission: 'bookings.view', badge: 'bookingsUnread' },
             { label: 'Inquiries', to: '/admin/inquiries', icon: Inbox, permission: 'inquiries.view', badge: 'inquiriesUnread' },
         ],
     },
