@@ -44,6 +44,29 @@ class PageSeeder extends Seeder
                 ]);
             }
         }
+
+        $this->translatePolicies($processor, $registry);
+    }
+
+    /**
+     * Policy pages created before their Bangla text existed get it now,
+     * unless an admin has already written one.
+     */
+    private function translatePolicies(ContentProcessor $processor, ComponentRegistry $registry): void
+    {
+        $bangla = ['terms-and-conditions' => $this->termsHtmlBn(), 'privacy-policy' => $this->privacyHtmlBn()];
+
+        foreach ($bangla as $slug => $html) {
+            $section = Page::where('slug', $slug)->first()?->sections()->where('component', 'rich_text')->first();
+
+            if (! $section || filled($section->content['body']['bn'] ?? null)) {
+                continue;
+            }
+
+            $content = $section->content;
+            $content['body']['bn'] = $html;
+            $section->update(['content' => $processor->sanitize($registry->get('rich_text')->fields(), $content)]);
+        }
     }
 
     /**
@@ -77,8 +100,8 @@ class PageSeeder extends Seeder
             ];
         }
 
-        $pages[] = $this->policy('terms-and-conditions', $this->t('Terms & conditions', 'শর্তাবলী'), $this->termsHtml());
-        $pages[] = $this->policy('privacy-policy', $this->t('Privacy policy', 'গোপনীয়তা নীতি'), $this->privacyHtml());
+        $pages[] = $this->policy('terms-and-conditions', $this->t('Terms & conditions', 'শর্তাবলী'), $this->t($this->termsHtml(), $this->termsHtmlBn()));
+        $pages[] = $this->policy('privacy-policy', $this->t('Privacy policy', 'গোপনীয়তা নীতি'), $this->t($this->privacyHtml(), $this->privacyHtmlBn()));
         $pages[] = $this->registrationCampaign();
 
         return $pages;
@@ -376,7 +399,7 @@ class PageSeeder extends Seeder
     /**
      * @return array<string, mixed>
      */
-    private function policy(string $slug, array $title, string $html): array
+    private function policy(string $slug, array $title, array $html): array
     {
         return [
             'type' => Page::TYPE_CUSTOM,
@@ -385,7 +408,7 @@ class PageSeeder extends Seeder
             'title' => $title,
             'sections' => [
                 $this->banner($title, $this->t('Last updated '.now()->format('F Y'), 'সর্বশেষ হালনাগাদ '.now()->format('F Y'))),
-                ['rich_text', ['body' => ['en' => $html], 'width' => 'narrow'], ['background' => 'white']],
+                ['rich_text', ['body' => $html, 'width' => 'narrow'], ['background' => 'white']],
             ],
         ];
     }
@@ -452,6 +475,37 @@ class PageSeeder extends Seeder
 <h2>8. Force majeure</h2><p>Antarik Hajj Kafela is not responsible for delays, cancellations or changes caused by natural disasters, political unrest, pandemics or any situation beyond our control.</p>
 <h2>9. Changes to packages</h2><p>We may modify itineraries, accommodation or transport due to unavoidable circumstances while ensuring similar or better service levels.</p>
 <h2>10. Agreement</h2><p>By registering for Hajj or Umrah through Antarik Hajj Kafela, you agree to abide by these terms and conditions.</p>
+HTML;
+    }
+
+    private function termsHtmlBn(): string
+    {
+        return <<<'HTML'
+<h2>১. বুকিং ও নিবন্ধন</h2><p>সকল বুকিং প্রাপ্যতা ও নিশ্চিতকরণ সাপেক্ষে। প্রাক-নিবন্ধনের জন্য বৈধ এনআইডি বা পাসপোর্টের কপি, একটি সচল মোবাইল নম্বর এবং ঘোষিত প্রাথমিক নিবন্ধন ফি প্রয়োজন। আন্তরিক হজ্জ কাফেলা নির্ধারিত সময়সীমার মধ্যে সম্পূর্ণ অর্থ পরিশোধ করতে হবে।</p>
+<h2>২. পেমেন্ট নীতি</h2><p>নগদ, ব্যাংক ট্রান্সফার বা অন্য অনুমোদিত মাধ্যমে অর্থ পরিশোধ করা যাবে। অনিবার্য কারণে আন্তরিক হজ্জ কাফেলা বাতিল না করলে নিবন্ধন ফি ফেরতযোগ্য নয়। ভিসা প্রক্রিয়া ও টিকিট ইস্যুর আগে প্যাকেজের সম্পূর্ণ মূল্য পরিশোধ করতে হবে।</p>
+<h2>৩. বাতিল ও অর্থ ফেরত</h2><p>বাতিলের অনুরোধ ইমেইল বা অফিসিয়াল চিঠির মাধ্যমে লিখিতভাবে করতে হবে। প্রযোজ্য ক্ষেত্রে ভিসা ফি, এয়ারলাইনের জরিমানা বা হোটেলের চার্জের মতো অফেরতযোগ্য খরচ কেটে অর্থ ফেরত দেওয়া হয়। ভিসা ইস্যু বা ফ্লাইট নিশ্চিত হওয়ার পর বাতিল করলে কোনো অর্থ ফেরত দেওয়া হয় না।</p>
+<h2>৪. ভ্রমণের কাগজপত্র</h2><p>যাত্রার আগে হাজিদের অন্তত ছয় মাস মেয়াদি পাসপোর্ট জমা দিতে হবে। ভুল বা মিথ্যা তথ্যের কারণে ভিসা প্রত্যাখ্যাত হলে তার দায় সম্পূর্ণভাবে আবেদনকারীর।</p>
+<h2>৫. আবাসন ও পরিবহন</h2><p>নির্বাচিত প্যাকেজ অনুযায়ী হোটেলের ধরন ও রুম শেয়ারিংয়ের ব্যবস্থা করা হয়। বুকিংয়ের সময় সম্মত প্যাকেজ অনুযায়ী পরিবহন দেওয়া হয়। এয়ারলাইন, স্থানীয় পরিবহন কর্তৃপক্ষ বা অপ্রত্যাশিত পরিস্থিতির কারণে বিলম্ব বা পরিবর্তনের জন্য আন্তরিক হজ্জ কাফেলা দায়ী নয়।</p>
+<h2>৬. স্বাস্থ্য ও নিরাপত্তা</h2><p>যাত্রার আগে হাজিদের স্বাস্থ্য পরীক্ষা করানোর পরামর্শ দেওয়া হয়। সৌদি বিধি অনুযায়ী প্রয়োজনীয় টিকা বাধ্যতামূলক। পূর্ববর্তী শারীরিক অসুস্থতা বা সফরকালীন জরুরি চিকিৎসার জন্য আন্তরিক হজ্জ কাফেলা দায়ী নয়।</p>
+<h2>৭. হাজিদের দায়িত্ব</h2><p>হাজিদের সৌদি আরবের আইন মেনে চলতে হবে, আন্তরিক হজ্জ কাফেলা আয়োজিত হজ বা উমরাহ কর্মশালায় অংশ নিতে হবে, শৃঙ্খলা বজায় রাখতে হবে, দলের সময়সূচি মেনে চলতে হবে এবং দলনেতাদের (মুয়াল্লিম) সাথে সহযোগিতা করতে হবে।</p>
+<h2>৮. অনিবার্য পরিস্থিতি</h2><p>প্রাকৃতিক দুর্যোগ, রাজনৈতিক অস্থিরতা, মহামারি বা আমাদের নিয়ন্ত্রণের বাইরের যেকোনো পরিস্থিতির কারণে বিলম্ব, বাতিল বা পরিবর্তনের জন্য আন্তরিক হজ্জ কাফেলা দায়ী নয়।</p>
+<h2>৯. প্যাকেজে পরিবর্তন</h2><p>অনিবার্য কারণে আমরা সফরসূচি, আবাসন বা পরিবহনে পরিবর্তন আনতে পারি, তবে সমমানের বা আরও ভালো সেবা নিশ্চিত করা হবে।</p>
+<h2>১০. সম্মতি</h2><p>আন্তরিক হজ্জ কাফেলার মাধ্যমে হজ বা উমরাহর জন্য নিবন্ধন করে আপনি এই শর্তাবলী মেনে চলতে সম্মত হচ্ছেন।</p>
+HTML;
+    }
+
+    private function privacyHtmlBn(): string
+    {
+        return <<<'HTML'
+<p>আন্তরিক হজ্জ কাফেলা আপনার গোপনীয়তাকে সম্মান করে এবং আপনার ব্যক্তিগত তথ্য সুরক্ষায় প্রতিশ্রুতিবদ্ধ। আমাদের হজ ও উমরাহ সেবা ব্যবহারের সময় আমরা কীভাবে আপনার তথ্য সংগ্রহ, ব্যবহার, সংরক্ষণ ও সুরক্ষা করি, এই নীতিতে তা ব্যাখ্যা করা হয়েছে।</p>
+<h2>আমরা যে তথ্য সংগ্রহ করি</h2><ul><li>পূর্ণ নাম, জাতীয়তা ও জন্মতারিখ</li><li>পাসপোর্ট ও এনআইডির তথ্য</li><li>যোগাযোগের তথ্য: ফোন নম্বর, ইমেইল ও বাড়ির ঠিকানা</li><li>পেমেন্ট ও বিলিংয়ের তথ্য</li><li>স্বাস্থ্য-সংক্রান্ত তথ্য, শুধু সৌদি বিধি অনুযায়ী প্রয়োজন হলে</li></ul>
+<h2>আমরা আপনার তথ্য যেভাবে ব্যবহার করি</h2><ul><li>আপনার হজ ও উমরাহ নিবন্ধন সম্পন্ন করতে</li><li>ফ্লাইট, ভিসা, আবাসন ও পরিবহনের ব্যবস্থা করতে</li><li>গুরুত্বপূর্ণ হালনাগাদ তথ্য ও বিজ্ঞপ্তি পাঠাতে</li><li>আপনার নিরাপত্তা নিশ্চিত করতে ও আইনগত বাধ্যবাধকতা মানতে</li><li>আপনার মতামতের ভিত্তিতে আমাদের সেবার মান উন্নত করতে</li></ul>
+<h2>তথ্য শেয়ার ও প্রকাশ</h2><p>আপনার হজ বা উমরাহর ব্যবস্থা করতে আমরা প্রয়োজনীয় তথ্য সৌদি কর্তৃপক্ষ, এয়ারলাইন, হোটেল ও ভ্রমণ সহযোগীদের সাথে শেয়ার করি। আমরা কখনো আপনার ব্যক্তিগত তথ্য বিক্রি, ভাড়া বা বিনিময় করি না। আইনগতভাবে প্রয়োজন হলেই কেবল সরকারি বা আইন প্রয়োগকারী সংস্থার কাছে তথ্য প্রকাশ করা হয়।</p>
+<h2>সংরক্ষণ ও নিরাপত্তা</h2><p>ব্যক্তিগত তথ্য নিরাপদে সংরক্ষণ করা হয় এবং অননুমোদিত প্রবেশ, হারানো বা অপব্যবহার থেকে সুরক্ষিত রাখা হয়। কাগজের নথিপত্র নিরাপদ স্থানে রাখা হয়।</p>
+<h2>কুকিজ</h2><p>আপনার অভিজ্ঞতা উন্নত করতে এবং ভাষার মতো পছন্দ মনে রাখতে আমাদের ওয়েবসাইট কুকিজ ব্যবহার করতে পারে। আপনি ব্রাউজারের সেটিংস থেকে কুকিজ বন্ধ করতে পারেন।</p>
+<h2>আপনার অধিকার</h2><p>আইনগত বাধ্যবাধকতা সাপেক্ষে আপনি আপনার ব্যক্তিগত তথ্য দেখতে চাইতে, ভুল তথ্য সংশোধনের অনুরোধ করতে বা সম্মতি প্রত্যাহার করতে পারেন।</p>
+<h2>তথ্য সংরক্ষণের মেয়াদ</h2><p>সেবা প্রদান ও আইনগত প্রয়োজন পূরণে যতদিন দরকার, শুধু ততদিনই আমরা আপনার তথ্য সংরক্ষণ করি।</p>
+<h2>পরিবর্তন ও যোগাযোগ</h2><p>আমরা সময়ে সময়ে এই নীতি হালনাগাদ করতে পারি। গোপনীয়তা নিয়ে যেকোনো প্রশ্নে আমাদের যোগাযোগ পাতায় দেওয়া তথ্য ব্যবহার করে যোগাযোগ করুন।</p>
 HTML;
     }
 

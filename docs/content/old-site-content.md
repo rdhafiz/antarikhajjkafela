@@ -303,3 +303,11 @@ These are candidates for seed images and the gallery. Download them during seedi
 - Old wide logo: antarik-logo-wide_2
 
 URL pattern: `https://media.codexcl.com/images/<name>.original.format-webp.webp`
+
+### Images used for seeding (Phase 7)
+Copied into `database/seeders/images/` and imported by `OldSiteMediaSeeder`:
+- `hajj-workshop-2025-1…5.webp` (Facebook photos 491936254, 491938624, 492110727, 492247184, 492272771): the "Hajj workshop 2025" gallery album, dated 19 April 2025 from the banner in the photos; also used on the About sections.
+- `office-guests.webp` (482809206): the team with guests at the office, the second image in the About sections.
+- `kaaba-prayer.webp` (umrah-rituals-accorhotels): the Umrah service and package banner and the "What is Umrah?" post banner. The file name suggests it came from Accor Hotels; confirm the agency may use it.
+
+Not used: the remaining images are promotional flyers with text baked in (most advertise Hajj 2026, which has passed), and three are too small (under 260 px wide).

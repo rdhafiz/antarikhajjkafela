@@ -20,6 +20,6 @@ class DatabaseSeeder extends Seeder
             )->assignRole(config('access.super_admin_role'));
         }
 
-        $this->call([MenuSeeder::class, PageSeeder::class, TravelSeeder::class, BlogSeeder::class]);
+        $this->call([MenuSeeder::class, PageSeeder::class, TravelSeeder::class, BlogSeeder::class, OldSiteMediaSeeder::class]);
     }
 }
