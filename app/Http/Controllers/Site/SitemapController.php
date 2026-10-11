@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
+use App\Models\Package;
 use App\Models\Page;
+use App\Models\Service;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 
@@ -26,6 +28,18 @@ class SitemapController extends Controller
                 ->map(fn (Page $page) => ['loc' => $page->url(), 'lastmod' => $page->updated_at?->toAtomString()])
                 ->values()
                 ->all();
+
+            foreach (Service::active()->orderBy('sort')->get() as $service) {
+                $urls[] = ['loc' => $service->url(), 'lastmod' => $service->updated_at?->toAtomString()];
+            }
+
+            $urls[] = ['loc' => route('packages.index'), 'lastmod' => null];
+
+            foreach (Package::published()->get() as $package) {
+                if (! ($package->seo['noindex'] ?? false)) {
+                    $urls[] = ['loc' => $package->url(), 'lastmod' => $package->updated_at?->toAtomString()];
+                }
+            }
 
             foreach (self::$sources as $source) {
                 array_push($urls, ...app($source)->urls());

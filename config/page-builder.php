@@ -28,6 +28,7 @@ return [
         Components\ContactFormComponent::class,
         Components\LeadFormComponent::class,
         Components\CountdownComponent::class,
+        Components\PackageShowcaseComponent::class,
         Components\PageListingComponent::class,
     ],
 

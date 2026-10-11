@@ -12,8 +12,6 @@ class DatabaseSeeder extends Seeder
     {
         $access->sync();
 
-        $this->call([MenuSeeder::class, PageSeeder::class]);
-
         // Local development login. Production admins are created with `php artisan admin:create`.
         if (app()->isLocal()) {
             User::firstOrCreate(
@@ -21,5 +19,7 @@ class DatabaseSeeder extends Seeder
                 ['name' => 'Site Admin', 'password' => 'Admin@12345', 'email_verified_at' => now()],
             )->assignRole(config('access.super_admin_role'));
         }
+
+        $this->call([MenuSeeder::class, PageSeeder::class, TravelSeeder::class]);
     }
 }

@@ -21,7 +21,10 @@ class ContentProcessor
 
     public const YOUTUBE_PATTERN = '#^https://(www\.)?(youtube\.com/(watch\?v=|embed/|shorts/)|youtu\.be/)[\w-]{6,}#i';
 
-    public function __construct(private readonly Locales $locales) {}
+    public function __construct(
+        private readonly Locales $locales,
+        private readonly ContentBlocks $blocks,
+    ) {}
 
     /**
      * Validation rules for content stored under $prefix (e.g. "sections.3.content").
@@ -97,6 +100,10 @@ class ContentProcessor
                     $rules[$path] = [$required ? 'required' : 'nullable', 'date'];
                     break;
 
+                case Field::BLOCKS:
+                    $rules = [...$rules, ...$this->blocks->rules($path, $field->option('max', 40))];
+                    break;
+
                 case Field::REPEATER:
                     $rules[$path] = [$required ? 'required' : 'nullable', 'array', 'max:'.$field->option('max', 12)];
                     if ($field->option('min')) {
@@ -143,6 +150,7 @@ class ContentProcessor
                     ->map(fn ($item) => ['_id' => $this->itemId($item), ...$this->sanitize($field->children(), $item)])
                     ->values()
                     ->all(),
+                Field::BLOCKS => $this->blocks->sanitize($value),
                 default => filled($value) ? $value : null,
             };
         }
@@ -172,6 +180,10 @@ class ContentProcessor
                 foreach ($value as $item) {
                     array_push($ids, ...$this->mediaIds($field->children(), $item));
                 }
+            }
+
+            if ($field->type === Field::BLOCKS) {
+                array_push($ids, ...$this->blocks->mediaIds($value));
             }
         }
 
@@ -207,6 +219,7 @@ class ContentProcessor
                     fn ($item) => $this->localize($field->children(), $item, $locale, $media),
                     is_array($value) ? $value : [],
                 ),
+                Field::BLOCKS => $this->blocks->localize($value, $locale, $media, $this),
                 default => $value,
             };
         }

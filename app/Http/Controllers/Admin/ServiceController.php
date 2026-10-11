@@ -1,0 +1,127 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\PageSaveRequest;
+use App\Models\Media;
+use App\Models\Page;
+use App\Models\Service;
+use App\Support\Icons;
+use App\Support\Locales;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+
+class ServiceController extends Controller
+{
+    public function index(): JsonResponse
+    {
+        $services = Service::withCount('packages')->orderBy('sort')->get();
+
+        return response()->json(['data' => $services->map(fn (Service $s) => $this->present($s))]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $service = Service::create($this->validated($request) + ['sort' => (int) Service::max('sort') + 1]);
+
+        return response()->json(['data' => $this->present($service->loadCount('packages'))], 201);
+    }
+
+    public function update(Request $request, Service $service): JsonResponse
+    {
+        $service->update($this->validated($request, $service));
+        Cache::forget('sitemap.xml');
+
+        return response()->json(['data' => $this->present($service->loadCount('packages'))]);
+    }
+
+    public function destroy(Service $service): JsonResponse
+    {
+        if ($service->packages()->exists()) {
+            throw ValidationException::withMessages(['service' => 'Move or delete this service\'s packages first.']);
+        }
+
+        $service->delete();
+
+        return response()->json(status: 204);
+    }
+
+    /**
+     * Save the order shown on the website.
+     */
+    public function reorder(Request $request): JsonResponse
+    {
+        $ids = $request->validate(['ids' => ['required', 'array'], 'ids.*' => ['integer', 'exists:services,id']])['ids'];
+
+        foreach (array_values($ids) as $sort => $id) {
+            Service::whereKey($id)->update(['sort' => $sort]);
+        }
+
+        return response()->json(status: 204);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validated(Request $request, ?Service $service = null): array
+    {
+        $default = app(Locales::class)->default();
+
+        $data = $request->validate([
+            'name' => ['required', 'array'],
+            "name.{$default}" => ['required', 'string', 'max:80'],
+            'name.*' => ['nullable', 'string', 'max:80'],
+            'slug' => [
+                'required', 'string', 'max:120', 'regex:'.PageSaveRequest::SLUG_PATTERN,
+                Rule::unique('services', 'slug')->ignore($service?->id),
+                Rule::notIn(array_diff(config('page-builder.reserved_slugs'), ['hajj', 'umrah'])),
+            ],
+            'summary.*' => ['nullable', 'string', 'max:300'],
+            'description.*' => ['nullable', 'string', 'max:3000'],
+            'icon' => ['nullable', Rule::in(Icons::CONTENT)],
+            'image_id' => ['nullable', 'integer', Rule::exists(Media::class, 'id')],
+            'is_active' => ['boolean'],
+            'seo.title.*' => ['nullable', 'string', 'max:70'],
+            'seo.description.*' => ['nullable', 'string', 'max:200'],
+        ], ['slug.regex' => 'Use lowercase letters, numbers and single hyphens only.']);
+
+        if (Page::where('slug', $data['slug'])->exists()) {
+            throw ValidationException::withMessages(['slug' => 'A page already uses this address.']);
+        }
+
+        return [
+            'name' => array_filter($data['name']),
+            'slug' => $data['slug'],
+            'summary' => array_filter($data['summary'] ?? []),
+            'description' => array_filter($data['description'] ?? []),
+            'icon' => $data['icon'] ?? null,
+            'image_id' => $data['image_id'] ?? null,
+            'is_active' => (bool) ($data['is_active'] ?? true),
+            'seo' => ['title' => array_filter($data['seo']['title'] ?? []), 'description' => array_filter($data['seo']['description'] ?? [])],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function present(Service $service): array
+    {
+        return [
+            'id' => $service->id,
+            'name' => (object) $service->getTranslations('name'),
+            'slug' => $service->slug,
+            'url' => $service->url(),
+            'summary' => (object) $service->getTranslations('summary'),
+            'description' => (object) $service->getTranslations('description'),
+            'icon' => $service->icon,
+            'image_id' => $service->image_id,
+            'is_active' => $service->is_active,
+            'seo' => ['title' => (object) ($service->seo['title'] ?? []), 'description' => (object) ($service->seo['description'] ?? [])],
+            'packages_count' => $service->packages_count ?? 0,
+        ];
+    }
+}

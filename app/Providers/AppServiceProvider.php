@@ -2,7 +2,11 @@
 
 namespace App\Providers;
 
+use App\Domain\Menus\MenuRepository;
 use App\Domain\Settings\Settings;
+use App\Models\Package;
+use App\Models\Page;
+use App\Models\Service;
 use App\Support\Branding;
 use App\Support\Locales;
 use App\Support\Seo\Seo;
@@ -39,6 +43,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Super admins pass every permission check.
         Gate::before(fn ($user) => $user->isSuperAdmin() ? true : null);
+
+        // Menus store resolved links; refresh them when a linked record changes.
+        foreach ([Page::class, Service::class, Package::class] as $model) {
+            $model::saved(fn () => app(MenuRepository::class)->flushAll());
+            $model::deleted(fn () => app(MenuRepository::class)->flushAll());
+        }
 
         Password::defaults(fn () => Password::min(10)->letters()->numbers());
 

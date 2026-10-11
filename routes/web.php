@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\SpaController;
 use App\Http\Controllers\Site\FormController;
 use App\Http\Controllers\Site\LocaleController;
 use App\Http\Controllers\Site\ManifestController;
+use App\Http\Controllers\Site\PackageController;
 use App\Http\Controllers\Site\PageController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Http\Requests\Admin\PageSaveRequest;
@@ -30,6 +31,10 @@ if (app()->isLocal()) {
 
 // Admin portal (Vue SPA). Every /admin URL returns the shell; the client router resolves it.
 Route::get('/admin/{any?}', SpaController::class)->where('any', '.*')->name('admin');
+
+// Packages
+Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
+Route::get('/packages/{slug}', [PackageController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('packages.show');
 
 // Pages built in the admin. Keep these last: the slug route catches everything else.
 Route::get('/', [PageController::class, 'home'])->name('home');

@@ -38,6 +38,16 @@ class MenuRepository
     }
 
     /**
+     * Forget every cached menu, e.g. after a linked page, service or package changed.
+     */
+    public function flushAll(): void
+    {
+        foreach (array_keys(config('menus.locations')) as $location) {
+            $this->flush($location);
+        }
+    }
+
+    /**
      * Visible items with all translations, cached once for every language.
      *
      * @return list<array<string, mixed>>

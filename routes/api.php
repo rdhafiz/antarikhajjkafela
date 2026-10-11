@@ -5,9 +5,11 @@ use App\Http\Controllers\Admin\BootstrapController;
 use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -75,6 +77,20 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('pages/{page}', [PageController::class, 'destroy'])->name('pages.destroy');
         Route::post('pages/{page}/duplicate', [PageController::class, 'duplicate'])->name('pages.duplicate');
         Route::get('pages/{page}/preview-url', [PageController::class, 'previewUrl'])->name('pages.preview-url');
+
+        // Travel: services & packages
+        Route::get('services', [ServiceController::class, 'index'])->middleware('can:services.view')->name('services.index');
+        Route::post('services', [ServiceController::class, 'store'])->middleware('can:services.create')->name('services.store');
+        Route::put('services/reorder', [ServiceController::class, 'reorder'])->middleware('can:services.update')->name('services.reorder');
+        Route::put('services/{service}', [ServiceController::class, 'update'])->middleware('can:services.update')->name('services.update');
+        Route::delete('services/{service}', [ServiceController::class, 'destroy'])->middleware('can:services.delete')->name('services.destroy');
+        Route::get('packages/schema', [PackageController::class, 'schema'])->middleware('can:packages.view')->name('packages.schema');
+        Route::get('packages', [PackageController::class, 'index'])->middleware('can:packages.view')->name('packages.index');
+        Route::post('packages', [PackageController::class, 'store'])->middleware('can:packages.create')->name('packages.store');
+        Route::get('packages/{package}', [PackageController::class, 'show'])->middleware('can:packages.view')->name('packages.show');
+        Route::put('packages/{package}', [PackageController::class, 'update'])->middleware('can:packages.update')->name('packages.update');
+        Route::post('packages/{package}/duplicate', [PackageController::class, 'duplicate'])->middleware('can:packages.create')->name('packages.duplicate');
+        Route::delete('packages/{package}', [PackageController::class, 'destroy'])->middleware('can:packages.delete')->name('packages.destroy');
 
         // Inquiries
         Route::get('inquiries', [InquiryController::class, 'index'])->middleware('can:inquiries.view')->name('inquiries.index');

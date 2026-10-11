@@ -2,10 +2,14 @@
 
 namespace App\Domain\Menus;
 
+use App\Models\Package;
+use App\Models\Page;
+use App\Models\Service;
+
 /**
  * The kinds of destinations a menu item can point to, and how each one
- * becomes a URL. Modules built later (pages, services, packages, blog
- * categories) register their own types here.
+ * becomes a URL. Records (pages, services, packages) are linked by id, so
+ * menu links follow them when their address changes.
  */
 class MenuLinks
 {
@@ -14,6 +18,15 @@ class MenuLinks
     public const URL = 'url';
 
     public const ROUTE = 'route';
+
+    public const PAGE = 'page';
+
+    public const SERVICE = 'service';
+
+    public const PACKAGE = 'package';
+
+    /** Types whose target is a record id or route key (and therefore required). */
+    public const TARGETED = [self::ROUTE, self::PAGE, self::SERVICE, self::PACKAGE];
 
     /**
      * Link types and their selectable targets, for the admin menu builder.
@@ -31,6 +44,27 @@ class MenuLinks
                     ->values()
                     ->all(),
             ],
+            [
+                'type' => self::PAGE,
+                'label' => 'Custom page',
+                'targets' => Page::where('type', Page::TYPE_CUSTOM)->orderBy('id')->get()
+                    ->map(fn (Page $page) => ['value' => (string) $page->id, 'label' => $page->getTranslation('title', 'en').($page->isPublished() ? '' : ' (draft)')])
+                    ->all(),
+            ],
+            [
+                'type' => self::SERVICE,
+                'label' => 'Service',
+                'targets' => Service::orderBy('sort')->get()
+                    ->map(fn (Service $service) => ['value' => (string) $service->id, 'label' => $service->getTranslation('name', 'en')])
+                    ->all(),
+            ],
+            [
+                'type' => self::PACKAGE,
+                'label' => 'Package',
+                'targets' => Package::orderBy('service_id')->orderBy('sort')->get()
+                    ->map(fn (Package $package) => ['value' => (string) $package->id, 'label' => $package->getTranslation('name', 'en').($package->isPublished() ? '' : ' (draft)')])
+                    ->all(),
+            ],
             ['type' => self::URL, 'label' => 'Custom link', 'targets' => null],
             ['type' => self::NONE, 'label' => 'Dropdown heading (no link)', 'targets' => null],
         ];
@@ -41,17 +75,24 @@ class MenuLinks
      */
     public function typeKeys(): array
     {
-        return array_column($this->types(), 'type');
+        return [self::ROUTE, self::PAGE, self::SERVICE, self::PACKAGE, self::URL, self::NONE];
     }
 
-    /**
-     * @return list<string>
-     */
-    public function targetsFor(string $type): array
+    public function isValidTarget(string $type, ?string $target): bool
     {
+        if (! in_array($type, self::TARGETED, true)) {
+            return true;
+        }
+
+        if (blank($target)) {
+            return false;
+        }
+
         return match ($type) {
-            self::ROUTE => array_map('strval', array_keys(config('menus.routes'))),
-            default => [],
+            self::ROUTE => array_key_exists($target, config('menus.routes')),
+            self::PAGE => Page::whereKey((int) $target)->where('type', Page::TYPE_CUSTOM)->exists(),
+            self::SERVICE => Service::whereKey((int) $target)->exists(),
+            self::PACKAGE => Package::whereKey((int) $target)->exists(),
         };
     }
 
@@ -59,6 +100,9 @@ class MenuLinks
     {
         return match ($type) {
             self::ROUTE => isset(config('menus.routes')[$target]) ? url(config("menus.routes.{$target}.path")) : null,
+            self::PAGE => ($page = Page::find((int) $target)) && $page->isVisibleToPublic() ? $page->url() : null,
+            self::SERVICE => ($service = Service::find((int) $target)) && $service->is_active ? $service->url() : null,
+            self::PACKAGE => ($package = Package::find((int) $target)) && $package->isPublished() ? $package->url() : null,
             self::URL => $this->normalizeUrl($url),
             default => null,
         };

@@ -112,6 +112,13 @@
         border-radius: 4px;
     }
 
+    /* The taka sign lives in the Bengali block; use the system font for it. */
+    .currency-symbol {
+        font-family: system-ui, 'Nirmala UI', 'Noto Sans Bengali', 'Bangla Sangam MN', sans-serif;
+        font-weight: 500;
+        margin-right: 0.08em;
+    }
+
     [x-cloak] {
         display: none !important;
     }

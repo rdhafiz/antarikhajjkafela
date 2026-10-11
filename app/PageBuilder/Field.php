@@ -37,6 +37,8 @@ class Field
 
     public const REPEATER = 'repeater';
 
+    public const BLOCKS = 'blocks';
+
     /** @var array<string, mixed> */
     private array $options = [];
 
@@ -109,6 +111,14 @@ class Field
     public static function datetime(string $key, string $label): self
     {
         return new self($key, self::DATETIME, $label);
+    }
+
+    /**
+     * Sortable content blocks (text, table, list, image, video).
+     */
+    public static function blocks(string $key, string $label): self
+    {
+        return (new self($key, self::BLOCKS, $label))->default([])->max(40);
     }
 
     /**

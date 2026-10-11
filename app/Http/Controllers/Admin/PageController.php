@@ -52,7 +52,7 @@ class PageController extends Controller
             'title' => ['required', 'array'],
             "title.{$locale}" => ['required', 'string', 'max:160'],
             'title.*' => ['nullable', 'string', 'max:160'],
-            'slug' => ['required', 'string', 'max:160', 'regex:'.PageSaveRequest::SLUG_PATTERN, Rule::notIn(config('page-builder.reserved_slugs')), 'unique:pages,slug'],
+            'slug' => ['required', 'string', 'max:160', 'regex:'.PageSaveRequest::SLUG_PATTERN, Rule::notIn(config('page-builder.reserved_slugs')), 'unique:pages,slug', 'unique:services,slug'],
         ], ['slug.regex' => 'Use lowercase letters, numbers and single hyphens only.', 'slug.not_in' => 'This address is used by the website. Choose another.']);
 
         $this->authorizeType($data['type'], 'create');

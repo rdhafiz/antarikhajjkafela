@@ -6,6 +6,7 @@ use App\Domain\Pages\PageRenderer;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use App\Models\Page;
+use App\Models\Service;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 
@@ -29,6 +30,11 @@ class PageController extends Controller
         }
 
         $page = Page::where('slug', $slug)->first();
+
+        // Service pages such as /hajj and /umrah share the same address space.
+        if ($page === null && ($service = Service::active()->where('slug', $slug)->first())) {
+            return app(PackageController::class)->service($service);
+        }
 
         abort_if($page === null, 404);
 

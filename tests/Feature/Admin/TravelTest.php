@@ -1,0 +1,216 @@
+<?php
+
+namespace Tests\Feature\Admin;
+
+use App\Domain\Menus\MenuRepository;
+use App\Models\Package;
+use App\Models\PackagePrice;
+use App\Models\Service;
+use Database\Seeders\PageSeeder;
+use Database\Seeders\TravelSeeder;
+
+class TravelTest extends AdminTestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed([PageSeeder::class, TravelSeeder::class]);
+    }
+
+    private function umrah(): Package
+    {
+        return Package::where('slug', 'umrah-package')->firstOrFail();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function payload(Package $package, array $overrides = []): array
+    {
+        $data = $this->asAdmin($this->superAdmin())->getJson("/api/admin/packages/{$package->id}")->json('data');
+
+        return array_replace($data, $overrides);
+    }
+
+    public function test_service_and_package_pages_render(): void
+    {
+        $this->get('/hajj')->assertOk()->assertSeeText('Hajj Regular Package')->assertSeeText('Hajj Premium Package')->assertDontSeeText('Umrah Package');
+        $this->get('/packages')->assertOk()->assertSeeText('Umrah Package');
+
+        $this->get('/packages/umrah-package')
+            ->assertOk()
+            ->assertSee('1,35,000', false)
+            ->assertSeeText('Any five-star hotel')
+            ->assertSeeText('Everything included in the package')
+            ->assertSee('"@type":"Product"', false)
+            ->assertSee('"lowPrice":135000', false);
+    }
+
+    public function test_prices_use_bangla_digits_for_bangla_visitors(): void
+    {
+        $this->withUnencryptedCookie('locale', 'bn')->get('/packages/umrah-package')
+            ->assertOk()
+            ->assertSee('১,৩৫,০০০', false)
+            ->assertSeeText('জনপ্রতি');
+    }
+
+    public function test_drafts_and_hidden_services_are_not_public(): void
+    {
+        $this->umrah()->update(['status' => 'draft']);
+        $this->get('/packages/umrah-package')->assertNotFound();
+
+        Service::where('slug', 'hajj')->update(['is_active' => false]);
+        $this->get('/hajj')->assertNotFound();
+        $this->get('/packages/hajj-regular-package')->assertNotFound();
+    }
+
+    public function test_saving_syncs_types_prices_and_the_starting_price(): void
+    {
+        $package = $this->umrah();
+        $payload = $this->payload($package);
+
+        // Drop type C, change the price of type A, add a new price to type B.
+        $payload['types'] = array_slice($payload['types'], 0, 2);
+        $payload['types'][0]['prices'][0]['price'] = 99000;
+        $payload['types'][1]['prices'][] = ['title' => ['en' => 'Double room'], 'price' => 210000, 'unit' => 'room', 'hotels' => []];
+
+        $keptPriceId = $payload['types'][0]['prices'][0]['id'];
+
+        $this->asAdmin($this->superAdmin())->putJson("/api/admin/packages/{$package->id}", $payload)
+            ->assertOk()
+            ->assertJsonCount(2, 'data.types')
+            ->assertJsonPath('data.min_price', 99000)
+            ->assertJsonPath('data.types.0.prices.0.id', $keptPriceId)
+            ->assertJsonPath('data.types.1.prices.1.unit', 'room');
+
+        $this->assertSame(3, $package->prices()->count());
+        $this->assertSame(99000.0, (float) $package->fresh()->min_price);
+    }
+
+    public function test_slug_follows_the_english_name_and_old_links_redirect(): void
+    {
+        $package = $this->umrah();
+
+        $this->asAdmin($this->superAdmin())
+            ->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['name' => ['en' => 'Umrah 2027 Special', 'bn' => 'উমরাহ ২০২৭']]))
+            ->assertOk()
+            ->assertJsonPath('data.slug', 'umrah-2027-special');
+
+        $this->get('/packages/umrah-package')->assertRedirect(route('packages.show', 'umrah-2027-special'))->assertStatus(301);
+    }
+
+    public function test_package_validation(): void
+    {
+        $admin = $this->superAdmin();
+        $package = $this->umrah();
+
+        $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['advance_type' => 'percentage', 'advance_value' => 150]))
+            ->assertJsonValidationErrors('advance_value');
+
+        $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['booking_starts_on' => '2027-05-01', 'booking_ends_on' => '2027-04-01']))
+            ->assertJsonValidationErrors('booking_ends_on');
+
+        $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['types' => []]))
+            ->assertJsonValidationErrors('types');
+
+        $sections = [['layout' => 'full', 'blocks' => [['type' => 'video', 'url' => 'https://evil.example.com/v']]]];
+        $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['sections' => $sections]))
+            ->assertJsonValidationErrors('sections.0.blocks.0.url');
+    }
+
+    public function test_content_blocks_are_sanitized_and_rendered(): void
+    {
+        $package = $this->umrah();
+        $sections = [[
+            'layout' => 'full',
+            'heading' => ['en' => 'Itinerary'],
+            'blocks' => [
+                ['type' => 'text', 'body' => ['en' => '<p>Day one<script>alert(1)</script></p>']],
+                ['type' => 'table', 'header' => true, 'rows' => [[['en' => 'Day'], ['en' => 'City']], [['en' => '1'], ['en' => 'Makkah']]]],
+                ['type' => 'list', 'style' => 'number', 'items' => [['en' => 'Tawaf'], ['en' => 'Sa\'i']]],
+            ],
+        ]];
+
+        $this->asAdmin($this->superAdmin())->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['sections' => $sections]))->assertOk();
+
+        $this->assertStringNotContainsString('script', json_encode($package->fresh()->sections));
+        $this->get('/packages/umrah-package')->assertSeeText('Itinerary')->assertSee('<th scope="col" class="px-4 py-3 font-semibold">City</th>', false)->assertSeeText('Tawaf');
+    }
+
+    public function test_booking_window_states(): void
+    {
+        $package = $this->umrah();
+
+        $package->update(['booking_starts_on' => now()->addWeek(), 'booking_ends_on' => null]);
+        $this->assertSame('upcoming', $package->fresh()->bookingState());
+
+        $package->update(['booking_starts_on' => null, 'booking_ends_on' => now()->subDay()]);
+        $this->assertSame('closed', $package->fresh()->bookingState());
+        $this->get('/packages/umrah-package')->assertSeeText('Booking closed')->assertDontSeeText('Book this option');
+    }
+
+    public function test_advance_amounts(): void
+    {
+        $package = $this->umrah();
+
+        $package->update(['advance_type' => 'fixed', 'advance_value' => 50000]);
+        $this->assertSame(150000.0, $package->advanceFor(160000, 3));
+
+        $package->update(['advance_type' => 'percentage', 'advance_value' => 20]);
+        $this->assertSame(96000.0, $package->advanceFor(160000, 3));
+    }
+
+    public function test_menus_can_link_to_packages_and_follow_slug_changes(): void
+    {
+        $admin = $this->superAdmin();
+        $package = $this->umrah();
+
+        $this->asAdmin($admin)->putJson('/api/admin/menus/primary', ['items' => [
+            ['label' => ['en' => 'Umrah deal'], 'link_type' => 'package', 'link_target' => (string) $package->id],
+        ]])->assertOk();
+        $this->assertSame(url('/packages/umrah-package'), app(MenuRepository::class)->tree('primary')[0]['url']);
+
+        $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['name' => ['en' => 'Umrah Plus']]))->assertOk();
+        $this->assertSame(url('/packages/umrah-plus'), app(MenuRepository::class)->tree('primary')[0]['url']);
+
+        $this->asAdmin($admin)->putJson('/api/admin/menus/primary', ['items' => [
+            ['label' => ['en' => 'Missing'], 'link_type' => 'package', 'link_target' => '99999'],
+        ]])->assertJsonValidationErrors('items.0.link_target');
+    }
+
+    public function test_home_page_shows_featured_packages(): void
+    {
+        $this->get('/')->assertSee('data-section="package_showcase"', false)->assertSeeText('Hajj Premium Package');
+    }
+
+    public function test_services_admin_and_permissions(): void
+    {
+        $admin = $this->superAdmin();
+
+        $this->asAdmin($admin)->postJson('/api/admin/services', ['name' => ['en' => 'Ziyarah tours'], 'slug' => 'about'])
+            ->assertJsonValidationErrors('slug'); // used by a page
+
+        $this->asAdmin($admin)->postJson('/api/admin/services', ['name' => ['en' => 'Ziyarah tours'], 'slug' => 'ziyarah-tours'])->assertCreated();
+        $this->get('/ziyarah-tours')->assertOk()->assertSeeText('New packages are being prepared');
+
+        $hajj = Service::where('slug', 'hajj')->firstOrFail();
+        $this->asAdmin($admin)->deleteJson("/api/admin/services/{$hajj->id}")->assertJsonValidationErrors('service');
+
+        $viewer = $this->adminWith(['packages.view']);
+        $this->asAdmin($viewer)->getJson('/api/admin/packages')->assertOk();
+        $this->asAdmin($viewer)->putJson("/api/admin/packages/{$this->umrah()->id}", [])->assertForbidden();
+    }
+
+    public function test_duplicating_copies_types_and_prices_as_a_draft(): void
+    {
+        $package = $this->umrah();
+
+        $id = $this->asAdmin($this->superAdmin())->postJson("/api/admin/packages/{$package->id}/duplicate")
+            ->assertCreated()
+            ->assertJsonPath('data.status', 'draft')
+            ->json('data.id');
+
+        $this->assertSame(3, PackagePrice::whereIn('package_type_id', Package::find($id)->types()->pluck('id'))->count());
+    }
+}

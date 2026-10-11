@@ -51,6 +51,7 @@ class PageSaveRequest extends FormRequest
                 'required', 'string', 'max:160', 'regex:'.self::SLUG_PATTERN,
                 Rule::notIn(config('page-builder.reserved_slugs')),
                 Rule::unique('pages', 'slug')->ignore($page->id),
+                Rule::unique('services', 'slug'),
             ];
         }
 

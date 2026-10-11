@@ -11,6 +11,7 @@ use App\Support\Locales;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 
 class MenuController extends Controller
 {
@@ -64,6 +65,7 @@ class MenuController extends Controller
         }
 
         $data = $request->validate($rules, $messages);
+        $this->ensureTargetsExist($data['items'], $links);
 
         $menu = Menu::firstOrCreate(['location' => $location]);
         $saver->save($menu, $data['items']);
@@ -71,6 +73,22 @@ class MenuController extends Controller
         activity('menus')->causedBy($request->user())->event('updated')->log("Updated the {$definition['name']}");
 
         return $this->show($location, $links);
+    }
+
+    /**
+     * Linked pages, services and packages must exist.
+     *
+     * @param  list<array<string, mixed>>  $items
+     */
+    private function ensureTargetsExist(array $items, MenuLinks $links, string $path = 'items'): void
+    {
+        foreach ($items as $index => $item) {
+            if (! $links->isValidTarget($item['link_type'], isset($item['link_target']) ? (string) $item['link_target'] : null)) {
+                throw ValidationException::withMessages(["{$path}.{$index}.link_target" => 'Choose where this item links to.']);
+            }
+
+            $this->ensureTargetsExist($item['children'] ?? [], $links, "{$path}.{$index}.children");
+        }
     }
 
     /**
