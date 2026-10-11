@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\BootstrapController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\InquiryController;
@@ -125,6 +126,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('gallery/{album}/items', [GalleryController::class, 'addItems'])->middleware('can:gallery.update')->name('gallery.items.store');
         Route::put('gallery/{album}/items/{item}', [GalleryController::class, 'updateItem'])->middleware('can:gallery.update')->name('gallery.items.update');
         Route::post('gallery/{album}/items/remove', [GalleryController::class, 'removeItems'])->middleware('can:gallery.update')->name('gallery.items.destroy');
+
+        // Bookings & payments
+        Route::get('bookings', [BookingController::class, 'index'])->middleware('can:bookings.view')->name('bookings.index');
+        Route::get('bookings/export', [BookingController::class, 'export'])->middleware('can:bookings.view')->name('bookings.export');
+        Route::get('bookings/{booking}', [BookingController::class, 'show'])->middleware('can:bookings.view')->name('bookings.show');
+        Route::put('bookings/{booking}', [BookingController::class, 'update'])->middleware('can:bookings.update')->name('bookings.update');
+        Route::delete('bookings/{booking}', [BookingController::class, 'destroy'])->middleware('can:bookings.delete')->name('bookings.destroy');
+        Route::get('bookings/{booking}/documents/{document}', [BookingController::class, 'document'])->middleware('can:bookings.view')->name('bookings.document');
+        Route::post('bookings/{booking}/payments', [BookingController::class, 'storePayment'])->middleware('can:payments.create')->name('bookings.payments.store');
+        Route::delete('bookings/{booking}/payments/{payment}', [BookingController::class, 'destroyPayment'])->middleware('can:payments.create')->name('bookings.payments.destroy');
 
         // Inquiries
         Route::get('inquiries', [InquiryController::class, 'index'])->middleware('can:inquiries.view')->name('inquiries.index');

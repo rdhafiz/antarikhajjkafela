@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\Admin\SpaController;
 use App\Http\Controllers\Site\BlogController;
+use App\Http\Controllers\Site\BookingController;
 use App\Http\Controllers\Site\FormController;
 use App\Http\Controllers\Site\GalleryController;
 use App\Http\Controllers\Site\LocaleController;
 use App\Http\Controllers\Site\ManifestController;
 use App\Http\Controllers\Site\PackageController;
 use App\Http\Controllers\Site\PageController;
+use App\Http\Controllers\Site\PaymentCallbackController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Http\Requests\Admin\PageSaveRequest;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +42,19 @@ Route::get('/admin/{any?}', SpaController::class)->where('any', '.*')->name('adm
 // Packages
 Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
 Route::get('/packages/{slug}', [PackageController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('packages.show');
+
+// Booking: form, the customer's private (signed) booking page, and the status lookup.
+Route::get('/packages/{slug}/book', [BookingController::class, 'create'])->where('slug', '[a-z0-9-]+')->name('bookings.create');
+Route::post('/packages/{slug}/book', [BookingController::class, 'store'])->where('slug', '[a-z0-9-]+')->middleware('throttle:6,1')->name('bookings.store');
+Route::get('/bookings/{booking:reference}', [BookingController::class, 'show'])->middleware('signed')->name('bookings.show');
+Route::post('/bookings/{booking:reference}/pay', [BookingController::class, 'pay'])->middleware(['signed', 'throttle:6,1'])->name('bookings.pay');
+Route::get('/booking/status', [BookingController::class, 'status'])->name('bookings.status');
+Route::post('/booking/status', [BookingController::class, 'lookup'])->middleware('throttle:10,1')->name('bookings.lookup');
+
+// Payment gateway returns and notifications (CSRF-exempt in bootstrap/app.php; verified with the gateway API).
+Route::post('/payments/sslcommerz/ipn', [PaymentCallbackController::class, 'sslcommerzIpn'])->name('payments.sslcommerz.ipn');
+Route::post('/payments/sslcommerz/{result}', [PaymentCallbackController::class, 'sslcommerz'])->whereIn('result', ['success', 'fail', 'cancel'])->name('payments.sslcommerz.callback');
+Route::match(['get', 'post'], '/payments/dgepay/return/{transaction}', [PaymentCallbackController::class, 'dgepay'])->where('transaction', '[A-Za-z0-9-]+')->name('payments.dgepay.return');
 
 // Blog posts and gallery albums. Their listings live on the Blog and Gallery pages.
 Route::get('/blog/{slug}', [BlogController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('blog.show');

@@ -74,6 +74,89 @@ Alpine.data('lightbox', (slides = []) => ({
 }));
 
 /**
+ * reCAPTCHA v3, loaded only once a visitor starts filling a form.
+ */
+function loadRecaptcha(key) {
+    if (!key || window.grecaptcha || document.getElementById('recaptcha-js')) return;
+    const script = document.createElement('script');
+    script.id = 'recaptcha-js';
+    script.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(key)}`;
+    script.async = true;
+    document.head.appendChild(script);
+}
+
+async function recaptchaToken(key) {
+    if (!key) return null;
+    loadRecaptcha(key);
+
+    for (let i = 0; i < 50 && !(window.grecaptcha && window.grecaptcha.execute); i++) {
+        await new Promise((r) => setTimeout(r, 100));
+    }
+    if (!window.grecaptcha) return null;
+
+    return new Promise((resolve) => window.grecaptcha.ready(() => window.grecaptcha.execute(key, { action: 'submit' }).then(resolve, () => resolve(null))));
+}
+
+/**
+ * Booking form: live price summary (the server recalculates everything)
+ * and a reCAPTCHA token before the normal form post.
+ */
+Alpine.data('bookingForm', (config) => ({
+    ...config,
+    busy: false,
+    verified: false,
+
+    get selected() {
+        return this.options.find((o) => o.id === this.option) ?? this.options[0];
+    },
+
+    get quantity() {
+        if (this.selected.unit === 'group') return 1;
+        return Math.max(1, Number(this.selected.unit === 'room' ? this.rooms : this.travelers) || 1);
+    },
+
+    get total() {
+        return Math.round(this.selected.price * this.quantity * 100) / 100;
+    },
+
+    get advanceAmount() {
+        const travelers = Math.max(1, Number(this.travelers) || 1);
+        const amount = this.advance.type === 'fixed'
+            ? this.advance.value * travelers
+            : this.advance.type === 'percentage' ? (this.total * this.advance.value) / 100 : 0;
+        return Math.min(Math.round(amount * 100) / 100, this.total);
+    },
+
+    number() {
+        return new Intl.NumberFormat(this.locale === 'bn' ? 'bn-BD' : 'en-IN', { maximumFractionDigits: 2 });
+    },
+
+    money(value) {
+        return '৳' + this.number().format(value);
+    },
+
+    digits(value) {
+        return this.number().format(value);
+    },
+
+    loadRecaptcha() {
+        loadRecaptcha(this.recaptcha);
+    },
+
+    async submit(event) {
+        if (this.verified) return;
+        event.preventDefault();
+        if (this.busy) return;
+        this.busy = true;
+
+        const token = await recaptchaToken(this.recaptcha);
+        if (token) this.$refs.token.value = token;
+        this.verified = true;
+        event.target.submit();
+    },
+}));
+
+/**
  * Public forms (contact, campaign leads): submit without reloading the page,
  * show field errors inline, and add a reCAPTCHA v3 token when configured.
  * The script for reCAPTCHA only loads once the visitor starts filling the form.
@@ -85,24 +168,11 @@ Alpine.data('siteForm', (recaptchaKey = null) => ({
     message: '',
 
     loadRecaptcha() {
-        if (!recaptchaKey || window.grecaptcha || document.getElementById('recaptcha-js')) return;
-        const script = document.createElement('script');
-        script.id = 'recaptcha-js';
-        script.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(recaptchaKey)}`;
-        script.async = true;
-        document.head.appendChild(script);
+        loadRecaptcha(recaptchaKey);
     },
 
-    async token() {
-        if (!recaptchaKey) return null;
-        this.loadRecaptcha();
-
-        for (let i = 0; i < 50 && !(window.grecaptcha && window.grecaptcha.execute); i++) {
-            await new Promise((r) => setTimeout(r, 100));
-        }
-        if (!window.grecaptcha) return null;
-
-        return new Promise((resolve) => window.grecaptcha.ready(() => window.grecaptcha.execute(recaptchaKey, { action: 'submit' }).then(resolve, () => resolve(null))));
+    token() {
+        return recaptchaToken(recaptchaKey);
     },
 
     async submit(form) {

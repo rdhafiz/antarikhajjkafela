@@ -1,0 +1,266 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Domain\Booking\BookingService;
+use App\Http\Controllers\Controller;
+use App\Models\Booking;
+use App\Models\BookingDocument;
+use App\Models\Payment;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+class BookingController extends Controller
+{
+    public function __construct(private readonly BookingService $bookings) {}
+
+    public function index(Request $request): JsonResponse
+    {
+        $filters = $this->filters($request);
+        $bookings = $this->query($filters)->latest('id')->paginate($filters['per_page'] ?? 20);
+
+        return response()->json([
+            'data' => collect($bookings->items())->map(fn (Booking $b) => $this->summary($b)),
+            'meta' => [
+                'current_page' => $bookings->currentPage(),
+                'last_page' => $bookings->lastPage(),
+                'per_page' => $bookings->perPage(),
+                'total' => $bookings->total(),
+                'from' => $bookings->firstItem(),
+                'to' => $bookings->lastItem(),
+            ],
+            'counts' => Booking::query()->select('status', DB::raw('count(*) as total'))->groupBy('status')->pluck('total', 'status'),
+            'statuses' => Booking::STATUSES,
+        ]);
+    }
+
+    public function show(Booking $booking): JsonResponse
+    {
+        $wasUnread = $booking->read_at === null;
+
+        if ($wasUnread) {
+            $booking->forceFill(['read_at' => now()])->save();
+        }
+
+        return response()->json(['data' => $this->detail($booking), 'was_unread' => $wasUnread]);
+    }
+
+    public function update(Request $request, Booking $booking): JsonResponse
+    {
+        $data = $request->validate([
+            'status' => ['required', Rule::in(array_keys(Booking::STATUSES))],
+            'admin_notes' => ['nullable', 'string', 'max:10000'],
+        ]);
+
+        $booking->update($data);
+
+        return response()->json(['data' => $this->detail($booking)]);
+    }
+
+    public function destroy(Booking $booking): JsonResponse
+    {
+        DB::transaction(function () use ($booking) {
+            // Through the models, so the private files are removed too.
+            $booking->documents->each->delete();
+            $booking->delete();
+        });
+
+        return response()->json(status: 204);
+    }
+
+    /**
+     * Record a payment received at the office (bank, mobile banking, cash).
+     */
+    public function storePayment(Request $request, Booking $booking): JsonResponse
+    {
+        $data = $request->validate([
+            'amount' => ['required', 'numeric', 'min:1', 'max:99999999'],
+            'method' => ['required', Rule::in(array_keys(Payment::OFFLINE_METHODS))],
+            'paid_at' => ['required', 'date', 'before_or_equal:now'],
+            'reference' => ['nullable', 'string', 'max:120'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        DB::transaction(function () use ($booking, $data, $request) {
+            $booking->payments()->create([
+                ...$data,
+                'is_online' => false,
+                'status' => 'paid',
+                'currency' => $booking->currency,
+                'recorded_by' => $request->user()->id,
+            ]);
+
+            $this->bookings->refreshPayments($booking);
+        });
+
+        return response()->json(['data' => $this->detail($booking->refresh())], 201);
+    }
+
+    /**
+     * Remove an office payment recorded by mistake. Online payments stay.
+     */
+    public function destroyPayment(Booking $booking, Payment $payment): JsonResponse
+    {
+        abort_unless($payment->booking_id === $booking->id, 404);
+        abort_if($payment->is_online, 422, 'Online payments cannot be removed.');
+
+        DB::transaction(function () use ($booking, $payment) {
+            $payment->delete();
+            $this->bookings->refreshPayments($booking);
+        });
+
+        return response()->json(['data' => $this->detail($booking->refresh())]);
+    }
+
+    /**
+     * Stream a private booking document to an authorized admin.
+     */
+    public function document(Booking $booking, BookingDocument $document): StreamedResponse
+    {
+        abort_unless($document->booking_id === $booking->id, 404);
+
+        return Storage::disk(BookingDocument::DISK)->response($document->path, $document->original_name, [
+            'Content-Type' => $document->mime_type,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+            'Content-Security-Policy' => 'sandbox',
+        ], 'inline');
+    }
+
+    /**
+     * CSV of the current filter (UTF-8 BOM so Excel shows Bangla correctly).
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        $filters = $this->filters($request);
+
+        return response()->streamDownload(function () use ($filters) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['Reference', 'Date', 'Status', 'Package', 'Option', 'Travelers', 'Total', 'Advance', 'Paid', 'Balance', 'Name', 'Phone', 'Email']);
+
+            $this->query($filters)->latest('id')->chunk(500, function ($bookings) use ($out) {
+                foreach ($bookings as $b) {
+                    fputcsv($out, [
+                        $b->reference, $b->created_at?->format('Y-m-d H:i'), Booking::STATUSES[$b->status] ?? $b->status,
+                        $b->snap('package', 'en'), trim($b->snap('type', 'en').' – '.$b->snap('option', 'en'), ' –'),
+                        $b->travelers, $b->total, $b->advance_amount, $b->paid_amount, number_format($b->balance(), 2, '.', ''),
+                        $b->customer_name, $b->customer_phone, $b->customer_email,
+                    ]);
+                }
+            });
+
+            fclose($out);
+        }, 'bookings-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function filters(Request $request): array
+    {
+        return $request->validate([
+            'status' => ['nullable', Rule::in(array_keys(Booking::STATUSES))],
+            'package_id' => ['nullable', 'integer'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    private function query(array $filters): Builder
+    {
+        return Booking::query()
+            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->when($filters['package_id'] ?? null, fn ($q, $id) => $q->where('package_id', $id))
+            ->when($filters['search'] ?? null, function ($q, $search) {
+                $like = '%'.addcslashes($search, '%_').'%';
+                $q->where(fn ($q) => $q->where('reference', 'like', $like)
+                    ->orWhere('customer_name', 'like', $like)
+                    ->orWhere('customer_phone', 'like', $like)
+                    ->orWhere('customer_email', 'like', $like));
+            });
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function summary(Booking $booking): array
+    {
+        return [
+            'id' => $booking->id,
+            'reference' => $booking->reference,
+            'status' => $booking->status,
+            'package' => $booking->snap('package', 'en'),
+            'option' => trim($booking->snap('type', 'en').' – '.$booking->snap('option', 'en'), ' –'),
+            'travelers' => $booking->travelers,
+            'total' => (float) $booking->total,
+            'paid_amount' => (float) $booking->paid_amount,
+            'balance' => $booking->balance(),
+            'customer_name' => $booking->customer_name,
+            'customer_phone' => $booking->customer_phone,
+            'is_unread' => $booking->read_at === null,
+            'created_at' => $booking->created_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function detail(Booking $booking): array
+    {
+        $booking->load(['payments.recorder:id,name', 'documents', 'package:id,slug,status']);
+
+        return [
+            ...$this->summary($booking),
+            'package_id' => $booking->package_id,
+            'package_url' => $booking->package?->isPublished() ? $booking->package->url() : null,
+            'public_url' => $booking->publicUrl(),
+            'unit' => $booking->snapshot['unit'] ?? 'person',
+            'unit_price' => (float) $booking->unit_price,
+            'quantity' => $booking->quantity,
+            'advance_type' => $booking->advance_type,
+            'advance_value' => $booking->advance_value !== null ? (float) $booking->advance_value : null,
+            'advance_amount' => (float) $booking->advance_amount,
+            'currency' => $booking->currency,
+            'customer_email' => $booking->customer_email,
+            'customer_address' => $booking->customer_address,
+            'customer_note' => $booking->customer_note,
+            'admin_notes' => $booking->admin_notes,
+            'locale' => $booking->locale,
+            'documents' => $booking->documents->map(fn (BookingDocument $d) => [
+                'id' => $d->id,
+                'kind' => $d->kind,
+                'kind_label' => BookingDocument::KINDS[$d->kind] ?? $d->kind,
+                'name' => $d->original_name,
+                'size' => $d->size,
+                'is_image' => str_starts_with($d->mime_type, 'image/'),
+                'url' => "/api/admin/bookings/{$booking->id}/documents/{$d->id}",
+            ]),
+            'payments' => $booking->payments->map(fn (Payment $p) => [
+                'id' => $p->id,
+                'method' => $p->method,
+                'method_label' => $p->methodLabel(),
+                'is_online' => $p->is_online,
+                'status' => $p->status,
+                'amount' => (float) $p->amount,
+                'transaction_id' => $p->transaction_id,
+                'gateway_reference' => $p->gateway_reference,
+                'reference' => $p->reference,
+                'note' => $p->note,
+                'recorded_by' => $p->recorder?->name,
+                'paid_at' => $p->paid_at?->toIso8601String(),
+                'created_at' => $p->created_at?->toIso8601String(),
+                'log' => $p->log ?? [],
+            ]),
+            'offline_methods' => Payment::OFFLINE_METHODS,
+        ];
+    }
+}

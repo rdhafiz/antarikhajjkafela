@@ -20,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->encryptCookies(except: [SetLocale::COOKIE]);
 
+        // Payment gateways post the customer back from their own domain.
+        $middleware->validateCsrfTokens(except: ['payments/sslcommerz/*', 'payments/dgepay/*']);
+
         $middleware->web(append: [
             SetLocale::class,
         ]);

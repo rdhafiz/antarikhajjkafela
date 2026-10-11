@@ -67,7 +67,7 @@ return [
     'reserved_slugs' => [
         'admin', 'api', 'build', 'storage', 'images', 'language', 'sanctum', 'up', 'styleguide',
         'sitemap.xml', 'robots.txt', 'site.webmanifest', 'forms', 'preview',
-        'hajj', 'umrah', 'packages', 'package', 'booking', 'bookings', 'blog', 'gallery', 'reviews', 'services',
+        'hajj', 'umrah', 'packages', 'package', 'booking', 'bookings', 'payments', 'blog', 'gallery', 'reviews', 'services',
     ],
 
 ];

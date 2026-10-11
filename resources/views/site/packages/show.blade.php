@@ -132,9 +132,9 @@
                                     @endif
 
                                     <footer class="flex flex-col gap-2.5 p-6 pt-4 sm:flex-row">
-                                        @if ($bookable && ($link = $enquire($type['name'].' – '.$price['title'])))
-                                            <x-site.button :href="$link" variant="primary" icon="whatsapp" external class="flex-1">{{ __('Book this option') }}</x-site.button>
-                                        @elseif (! $bookable)
+                                        @if ($bookable)
+                                            <x-site.button :href="route('bookings.create', ['slug' => $package->slug, 'option' => $price['id']])" variant="primary" icon-right="arrow-right" class="flex-1">{{ __('Book this option') }}</x-site.button>
+                                        @else
                                             <span class="flex-1 rounded-full bg-sand-100 px-5 py-3 text-center text-[14px] font-semibold text-ink-3">{{ $booking['label'] }}</span>
                                         @endif
                                         @if ($phones)

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Inquiry;
 use App\Models\Media;
 use App\Support\Locales;
@@ -29,6 +30,7 @@ class BootstrapController extends Controller
             'media_mode' => settings('media.optimization_mode'),
             'counts' => [
                 'inquiries_unread' => request()->user()?->can('inquiries.view') ? Inquiry::whereNull('read_at')->count() : 0,
+                'bookings_unread' => request()->user()?->can('bookings.view') ? Booking::whereNull('read_at')->count() : 0,
             ],
         ]);
     }
