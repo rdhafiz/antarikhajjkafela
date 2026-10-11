@@ -2,24 +2,22 @@
 
 namespace Database\Seeders;
 
+use App\Domain\Access\AccessSynchronizer;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
-    public function run(): void
+    public function run(AccessSynchronizer $access): void
     {
-        // User::factory(10)->create();
+        $access->sync();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Local development login. Production admins are created with `php artisan admin:create`.
+        if (app()->isLocal()) {
+            User::firstOrCreate(
+                ['email' => 'admin@antarikhajjkafela.test'],
+                ['name' => 'Site Admin', 'password' => 'Admin@12345', 'email_verified_at' => now()],
+            )->assignRole(config('access.super_admin_role'));
+        }
     }
 }

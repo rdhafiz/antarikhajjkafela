@@ -1,0 +1,99 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Domain\Media\MediaUploader;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\MediaUploadRequest;
+use App\Http\Resources\Admin\MediaResource;
+use App\Models\Media;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\Rule;
+
+class MediaController extends Controller
+{
+    public function index(Request $request): AnonymousResourceCollection
+    {
+        $request->validate([
+            'usage' => ['nullable', Rule::in(array_keys(config('media.usages')))],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $media = Media::query()
+            ->when($request->string('search')->trim()->value(), fn ($q, string $search) => $q->where('original_name', 'like', "%{$search}%"))
+            ->when($request->input('usage'), fn ($q, string $usage) => $q->where('usage', $usage))
+            ->latest('id')
+            ->paginate($request->integer('per_page', 24));
+
+        return MediaResource::collection($media);
+    }
+
+    public function store(MediaUploadRequest $request, MediaUploader $uploader): MediaResource
+    {
+        $manual = settings('media.optimization_mode') === 'manual';
+
+        $media = $uploader->upload(
+            $request->file('file'),
+            $request->input('usage'),
+            $manual ? $request->input('variants') : null,
+            $request->user(),
+        );
+
+        if ($request->filled('alt')) {
+            $media->setTranslations('alt', array_filter($request->input('alt')))->save();
+        }
+
+        return new MediaResource($media);
+    }
+
+    public function show(Media $media): MediaResource
+    {
+        return new MediaResource($media);
+    }
+
+    public function update(Request $request, Media $media): MediaResource
+    {
+        $data = $request->validate([
+            'alt' => ['nullable', 'array'],
+            'alt.*' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $media->setTranslations('alt', array_filter($data['alt'] ?? []))->save();
+
+        return new MediaResource($media);
+    }
+
+    public function destroy(Media $media): JsonResponse
+    {
+        $media->delete();
+
+        return response()->json(status: 204);
+    }
+
+    /**
+     * The usages and their variant presets, used by the upload and manual optimization UI.
+     */
+    public function usages(): JsonResponse
+    {
+        $usages = collect(config('media.usages'))->map(fn ($usage, $key) => [
+            'key' => $key,
+            'label' => $usage['label'],
+            'variants' => collect($usage['variants'])->map(fn ($v, $name) => [
+                'name' => (string) $name,
+                'width' => $v['width'],
+                'height' => $v['height'],
+                'fit' => $v['fit'],
+                'quality' => $v['quality'] ?? config('media.default_quality'),
+            ])->values(),
+        ])->values();
+
+        return response()->json([
+            'data' => $usages,
+            'mode' => settings('media.optimization_mode'),
+            'max_upload_kb' => config('media.max_upload_kb'),
+            'mimes' => config('media.mimes'),
+        ]);
+    }
+}
