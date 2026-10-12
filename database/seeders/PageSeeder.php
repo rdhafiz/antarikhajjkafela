@@ -340,18 +340,19 @@ class PageSeeder extends Seeder
     private function contact(): array
     {
         return [
-            // No banner: the page opens with the contact options, whose title is the page heading.
-            ['contact_info', [
+            // No banner: the page opens with the concierge panel (ways to reach us beside the form).
+            ['contact_form', [
                 'eyebrow' => $this->t('Get in touch', 'যোগাযোগ'),
                 'title' => $this->t('Talk to our team', 'আমাদের টিমের সাথে কথা বলুন'),
                 'intro' => $this->t('For packages, pre-registration, visa or any question about your pilgrimage.', 'প্যাকেজ, প্রাক-নিবন্ধন, ভিসা বা আপনার সফর সম্পর্কিত যেকোনো প্রশ্নে।'),
-                'show_map' => true,
-            ], ['background' => 'white']],
-            ['contact_form', [
-                'eyebrow' => $this->t('Send a message', 'বার্তা পাঠান'),
-                'title' => $this->t('We will get back to you soon', 'আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব'),
-                'intro' => $this->t('Leave your details and our team will call you, In Sha Allah.', 'আপনার তথ্য দিন, ইনশাআল্লাহ আমাদের টিম আপনাকে কল করবে।'),
+                'layout' => 'concierge',
             ], ['background' => 'sand']],
+            ['faq', array_replace($this->faqContent(), [
+                'eyebrow' => $this->t('Quick answers', 'সংক্ষিপ্ত উত্তর'),
+                'intro' => $this->t('Many questions are answered here before you call.', 'কল করার আগেই অনেক প্রশ্নের উত্তর এখানে পেয়ে যাবেন।'),
+                'layout' => 'stacked',
+                'cta' => null,
+            ]), ['background' => 'white']],
         ];
     }
 

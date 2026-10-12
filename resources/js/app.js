@@ -512,6 +512,28 @@ function countUp() {
     });
 }
 
+/**
+ * Live local time in Dhaka (Asia/Dhaka), in the page language, refreshed every 15 seconds.
+ */
+Alpine.data('dhakaClock', (locale = 'en-GB') => ({
+    time: '',
+    day: '',
+    iso: '',
+
+    init() {
+        const time = new Intl.DateTimeFormat(locale, { timeZone: 'Asia/Dhaka', hour: 'numeric', minute: '2-digit', hour12: true });
+        const day = new Intl.DateTimeFormat(locale, { timeZone: 'Asia/Dhaka', weekday: 'long', day: 'numeric', month: 'long' });
+        const tick = () => {
+            const now = new Date();
+            this.time = time.format(now);
+            this.day = day.format(now);
+            this.iso = now.toISOString();
+        };
+        tick();
+        setInterval(tick, 15000);
+    },
+}));
+
 window.Alpine = Alpine;
 Alpine.start();
 

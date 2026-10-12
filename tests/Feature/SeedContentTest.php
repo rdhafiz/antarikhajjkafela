@@ -63,7 +63,7 @@ class SeedContentTest extends AdminTestCase
         }
 
         $this->assertSame('about', Page::where('system_key', 'about')->first()->sections()->orderBy('sort')->first()->component);
-        $this->assertSame('contact_info', Page::where('system_key', 'contact')->first()->sections()->orderBy('sort')->first()->component);
+        $this->assertSame('contact_form', Page::where('system_key', 'contact')->first()->sections()->orderBy('sort')->first()->component);
         foreach (['gallery', 'blog'] as $key) {
             $this->assertSame('page_listing', Page::where('system_key', $key)->first()->sections()->orderBy('sort')->first()->component);
         }

@@ -38,6 +38,7 @@ class ContactFormComponent extends Component
     {
         return [
             ...$this->headingFields(),
+            Field::select('layout', 'Style', ['split' => 'Heading beside the form', 'concierge' => 'Contact panel beside the form (phone, WhatsApp, email, office and a live Dhaka clock)'])->default('split'),
             Field::text('submit_label', 'Button text')->max(40)->placeholder('Send message'),
             Field::textarea('success', 'Thank-you message')->max(300)->rows(2)->placeholder('Thank you! We will contact you shortly.'),
         ];

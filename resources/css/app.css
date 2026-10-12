@@ -1482,6 +1482,133 @@
         }
     }
 
+    /* Contact concierge panel: rows fill with gold from the start edge on hover; topic chips. */
+    .concierge-row {
+        transition: border-color 500ms var(--ease-out-soft), translate 600ms var(--ease-out-soft);
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: var(--color-gold);
+            transform-origin: left;
+            scale: 0 1;
+            transition: scale 650ms var(--ease-out-soft);
+        }
+
+        .concierge-icon,
+        .concierge-label,
+        .concierge-value {
+            transition: color 500ms var(--ease-out-soft), background-color 500ms var(--ease-out-soft);
+        }
+
+        /* Base colors live here (not in utilities) so the hover state can change them. */
+        .concierge-icon {
+            background: rgb(255 255 255 / 0.1);
+            color: var(--color-gold);
+        }
+
+        .concierge-label {
+            color: var(--color-gold);
+        }
+
+        .concierge-value {
+            color: #fff;
+        }
+
+        .concierge-arrow {
+            color: rgb(255 255 255 / 0.4);
+            translate: -0.25rem 0;
+            transition: translate 600ms var(--ease-out-soft), color 500ms var(--ease-out-soft);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 3px;
+        }
+    }
+
+    [dir='rtl'] .concierge-row::before {
+        transform-origin: right;
+    }
+
+    @media (hover: hover) {
+        .concierge-row:hover {
+            border-color: var(--color-gold);
+            translate: 0.25rem 0;
+
+            &::before {
+                scale: 1 1;
+            }
+
+            .concierge-icon {
+                background: var(--color-brand-950);
+                color: var(--color-gold);
+            }
+
+            .concierge-label,
+            .concierge-value,
+            .concierge-arrow {
+                color: var(--color-brand-950);
+            }
+
+            .concierge-arrow {
+                translate: 0 0;
+            }
+        }
+
+        [dir='rtl'] .concierge-row:hover {
+            translate: -0.25rem 0;
+        }
+    }
+
+    .concierge-chip {
+        border: 1.5px solid var(--color-line);
+        background: #fff;
+        color: var(--color-ink-2);
+        transition: background-color 400ms var(--ease-out-soft), border-color 400ms var(--ease-out-soft), color 400ms var(--ease-out-soft), scale 300ms var(--ease-out-soft);
+
+        &:hover {
+            border-color: var(--color-gold);
+            color: var(--color-brand);
+        }
+
+        &:active {
+            scale: 0.96;
+        }
+
+        &.is-active {
+            border-color: var(--color-brand);
+            background: var(--color-brand);
+            color: #fff;
+        }
+    }
+
+    /* Live clock dot, and a slowly turning ring behind the panel. */
+    .concierge-ping {
+        animation: concierge-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes concierge-ping {
+        75%,
+        100% {
+            scale: 2.4;
+            opacity: 0;
+        }
+    }
+
+    .concierge-orbit {
+        animation: concierge-orbit 40s linear infinite;
+        border-style: dashed;
+    }
+
+    @keyframes concierge-orbit {
+        to {
+            rotate: 1turn;
+        }
+    }
+
     /*
      * Page heroes. The home hero fills the screen, other page tops take at
      * least half of it (svh: the height with phone browser bars showing).
