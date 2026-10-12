@@ -4,7 +4,8 @@
     $state = $package->bookingState();
     $name = $package->getTranslation('name', $locale);
 @endphp
-<article {{ $attributes->class('group relative flex flex-col overflow-hidden rounded-[1.5rem] border border-line bg-white shadow-[var(--shadow-soft)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]') }}>
+<div {{ $attributes->class('h-full') }}>
+<article class="group relative flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-line bg-white shadow-[var(--shadow-soft)] transition-[translate,box-shadow] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[var(--shadow-lift)]">
     <div class="relative aspect-[16/10] overflow-hidden bg-brand">
         @if ($package->banner)
             <img
@@ -14,7 +15,7 @@
                 alt=""
                 loading="lazy"
                 decoding="async"
-                class="size-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                class="size-full object-cover transition-[scale] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
             >
         @else
             <div class="pattern-star absolute inset-0 opacity-[0.08]" aria-hidden="true"></div>
@@ -59,3 +60,4 @@
         </div>
     </div>
 </article>
+</div>

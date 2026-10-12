@@ -24,7 +24,7 @@
                             aria-controls="faq-{{ $section->id }}-{{ $index }}"
                         >
                             <span class="sec-heading font-sans text-[1.05rem] leading-snug font-semibold">{{ $item['question'] }}</span>
-                            <span class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border border-[var(--sec-border)] transition-[transform,background-color] duration-300"
+                            <span class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border border-[var(--sec-border)] transition-[rotate,background-color,border-color] duration-300"
                                   :class="open === {{ $index }} ? 'rotate-45 bg-gold border-gold text-brand-950' : 'sec-heading'">
                                 <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
                             </span>

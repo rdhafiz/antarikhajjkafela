@@ -5,7 +5,7 @@
         href="{{ $url }}"
         target="_blank"
         rel="noopener"
-        class="group fixed right-4 bottom-4 z-40 flex items-center rounded-full bg-[#15803d] p-3.5 text-white shadow-[0_12px_30px_-8px_rgb(21_128_61/0.6)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 sm:right-6 sm:bottom-6"
+        class="group fixed right-4 bottom-4 z-40 flex items-center rounded-full bg-[#15803d] p-3.5 text-white shadow-[0_12px_30px_-8px_rgb(21_128_61/0.6)] transition-[translate,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 sm:right-6 sm:bottom-6"
         style="margin-bottom: env(safe-area-inset-bottom)"
         aria-label="{{ __('Chat with us on WhatsApp') }}"
     >

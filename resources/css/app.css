@@ -544,8 +544,7 @@
         transform: translate3d(0, var(--reveal-shift), 0);
         transition:
             opacity 900ms var(--ease-out-soft),
-            transform 1100ms var(--ease-out-soft),
-            clip-path 1200ms var(--ease-out-soft);
+            transform 1100ms var(--ease-out-soft);
         transition-delay: var(--reveal-delay, 0ms);
     }
 
@@ -565,23 +564,37 @@
         transform: translate3d(0, calc(var(--reveal-shift) / 2), 0) scale(0.92);
     }
 
+    /*
+     * Wipe: the children are uncovered, not the element itself. A fully clipped
+     * element would never count as visible, so it would never be revealed.
+     */
     .reveal[data-reveal='wipe'] {
         opacity: 1;
         transform: none;
-        clip-path: inset(0 0 100% 0);
     }
 
-    .reveal[data-reveal='wipe'][data-from='above'] {
+    .reveal[data-reveal='wipe'] > * {
+        clip-path: inset(0 0 100% 0);
+        transition: clip-path 1200ms var(--ease-out-soft);
+        transition-delay: var(--reveal-delay, 0ms);
+    }
+
+    .reveal[data-reveal='wipe'][data-from='above'] > * {
         clip-path: inset(100% 0 0 0);
+    }
+
+    .reveal[data-reveal='wipe'].is-revealed > * {
+        clip-path: inset(-10%);
+    }
+
+    .reveal[data-reveal='wipe']:not(.is-revealed) > * {
+        transition-duration: 450ms;
+        transition-delay: 0ms;
     }
 
     .reveal.is-revealed {
         opacity: 1;
         transform: none;
-    }
-
-    .reveal[data-reveal='wipe'].is-revealed {
-        clip-path: inset(-10%);
     }
 
     /* Leaving the screen is quicker than arriving, with no stagger. */

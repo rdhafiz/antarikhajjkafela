@@ -8,11 +8,12 @@
     $excerpt = $post->getTranslation('excerpt', $locale);
     $minutes = app(PostPresenter::class)->minutes($post);
 @endphp
-<article {{ $attributes->class([
-    'group relative flex overflow-hidden rounded-[1.5rem] border border-line bg-white shadow-[var(--shadow-soft)] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]',
+<div {{ $attributes->class('h-full') }}>
+<article @class([
+    'group relative flex h-full overflow-hidden rounded-[1.5rem] border border-line bg-white shadow-[var(--shadow-soft)] transition-[translate,box-shadow] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[var(--shadow-lift)]',
     'flex-col lg:grid lg:grid-cols-[1.15fr_1fr]' => $lead,
     'flex-col' => ! $lead,
-]) }}>
+])>
     <div @class(['relative overflow-hidden bg-brand', 'aspect-[16/10] lg:aspect-auto lg:min-h-[420px]' => $lead, 'aspect-[16/10]' => ! $lead])>
         @if ($post->banner)
             <img
@@ -22,7 +23,7 @@
                 alt=""
                 @if (! $lead) loading="lazy" @endif
                 decoding="async"
-                class="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                class="absolute inset-0 size-full object-cover transition-[scale] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
             >
         @else
             <div class="pattern-star absolute inset-0 opacity-[0.08]" aria-hidden="true"></div>
@@ -51,3 +52,4 @@
         </span>
     </div>
 </article>
+</div>
