@@ -1057,25 +1057,6 @@
         }
     }
 
-    .faq-contact {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.6rem 1rem;
-        border-radius: 999px;
-        border: 1px solid rgb(255 255 255 / 0.2);
-        font-size: 14px;
-        font-weight: 600;
-        color: #fff;
-        transition: background-color 400ms var(--ease-out-soft), border-color 400ms var(--ease-out-soft), color 400ms var(--ease-out-soft);
-    }
-
-    .faq-contact:hover {
-        background: var(--color-gold);
-        border-color: var(--color-gold);
-        color: var(--color-brand-950);
-    }
-
     /* News (latest posts, magazine): slow photo zoom and a growing underline. */
     .news-lead-img,
     .news-row-img {

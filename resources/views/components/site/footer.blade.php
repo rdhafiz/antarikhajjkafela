@@ -26,7 +26,7 @@
                     <a href="{{ $phones[0]['href'] }}" class="btn btn-gold btn-lg"><x-site.icon name="phone" /> {{ $phones[0]['display'] }}</a>
                 @endif
                 @if ($whatsapp)
-                    <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="btn btn-outline-light btn-lg"><x-site.icon name="whatsapp" /> WhatsApp</a>
+                    <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-lg"><x-site.icon name="whatsapp" /> WhatsApp</a>
                 @endif
             </div>
         </div>

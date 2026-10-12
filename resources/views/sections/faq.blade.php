@@ -27,14 +27,14 @@
                     <p class="mt-2 text-[15px] leading-relaxed text-white/70">{{ __('Talk to our team by phone or WhatsApp.') }}</p>
                     <div class="mt-6 flex flex-wrap gap-3">
                         @if ($phone)
-                            <a href="{{ $phone['href'] }}" class="faq-contact">
-                                <x-site.icon name="phone" class="size-4" />
+                            <a href="{{ $phone['href'] }}" class="btn btn-outline-light">
+                                <x-site.icon name="phone" />
                                 <span dir="ltr">{{ $phone['display'] }}</span>
                             </a>
                         @endif
                         @if ($whatsapp)
-                            <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="faq-contact">
-                                <x-site.icon name="whatsapp" class="size-4" />
+                            <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="btn btn-whatsapp">
+                                <x-site.icon name="whatsapp" />
                                 WhatsApp
                             </a>
                         @endif

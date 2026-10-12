@@ -38,7 +38,7 @@
                         <x-site.button href="#packages" variant="gold" size="lg" icon-right="chevron-down">{{ __('View packages') }}</x-site.button>
                     @endif
                     @if ($whatsapp)
-                        <x-site.button :href="$whatsapp" external variant="outline-light" size="lg" icon="whatsapp">{{ __('Ask on WhatsApp') }}</x-site.button>
+                        <x-site.button :href="$whatsapp" external variant="whatsapp" size="lg" icon="whatsapp">{{ __('Ask on WhatsApp') }}</x-site.button>
                     @else
                         <x-site.button :href="url('/contact')" variant="outline-light" size="lg">{{ __('Contact us') }}</x-site.button>
                     @endif
@@ -103,25 +103,6 @@
             @endif
         </div>
     </section>
-    {{-- About: the description's plain paragraphs, centered and set large. --}}
-    @if ($about['paragraphs'])
-        <section class="relative isolate overflow-hidden bg-white py-20 sm:py-24 lg:py-28">
-            <div class="pattern-star-ink pointer-events-none absolute -inset-y-[25%] inset-x-0 -z-10 opacity-[0.015]" data-parallax="0.2" aria-hidden="true"></div>
-            <div class="container-site">
-                <div class="mx-auto max-w-3xl text-center" data-reveal>
-                    <h2 class="eyebrow justify-center">{{ __('About :name', ['name' => $name]) }}</h2>
-                    @foreach ($about['paragraphs'] as $index => $paragraph)
-                        <p @class([
-                            'text-brand',
-                            'mt-6 font-display text-[1.5rem] leading-[1.55] sm:text-[1.875rem]' => $index === 0,
-                            'mt-5 text-[1.0625rem] leading-relaxed text-ink-2' => $index > 0,
-                        ])>{{ $paragraph }}</p>
-                    @endforeach
-                </div>
-            </div>
-        </section>
-    @endif
-
     {{-- Quoted verses or hadith from the description, in the home page's verse style. --}}
     @foreach ($about['quotes'] as $quote)
         <section class="relative isolate overflow-hidden bg-brand py-20 text-white sm:py-24">
@@ -144,5 +125,24 @@
             </div>
         </section>
     @endforeach
+
+    {{-- About: the description's plain paragraphs, centered and set large. --}}
+    @if ($about['paragraphs'])
+        <section class="relative isolate overflow-hidden bg-white py-20 sm:py-24 lg:py-28">
+            <div class="pattern-star-ink pointer-events-none absolute -inset-y-[25%] inset-x-0 -z-10 opacity-[0.015]" data-parallax="0.2" aria-hidden="true"></div>
+            <div class="container-site">
+                <div class="mx-auto max-w-3xl text-center" data-reveal>
+                    <h2 class="eyebrow justify-center">{{ __('About :name', ['name' => $name]) }}</h2>
+                    @foreach ($about['paragraphs'] as $index => $paragraph)
+                        <p @class([
+                            'text-brand',
+                            'mt-6 font-display text-[1.5rem] leading-[1.55] sm:text-[1.875rem]' => $index === 0,
+                            'mt-5 text-[1.0625rem] leading-relaxed text-ink-2' => $index > 0,
+                        ])>{{ $paragraph }}</p>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
 
 </x-site.layout>

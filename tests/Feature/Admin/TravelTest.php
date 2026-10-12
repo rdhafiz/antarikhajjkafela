@@ -42,7 +42,7 @@ class TravelTest extends AdminTestCase
             ->assertSeeText('with scholars beside you.')
             ->assertSeeText('35–40 days')
             ->assertSeeText('About Hajj')
-            ->assertSeeTextInOrder(['with scholars beside you.', 'Choose your Hajj package', 'About Hajj', 'Surah Al-Hajj 22:27'])
+            ->assertSeeTextInOrder(['with scholars beside you.', 'Choose your Hajj package', 'Surah Al-Hajj 22:27', 'About Hajj'])
             ->assertSeeText('Surah Al-Hajj 22:27')
             ->assertSee('<blockquote', false)
             ->assertDontSee('aria-label="Filter packages"', false);

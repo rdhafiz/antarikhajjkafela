@@ -36,7 +36,7 @@
                 <div class="mt-8 flex flex-col gap-3 sm:flex-row">
                     <x-site.button href="#prices" variant="gold" size="lg" icon-right="arrow-right">{{ __('See prices & hotels') }}</x-site.button>
                     @if ($whatsapp = $enquire())
-                        <x-site.button :href="$whatsapp" variant="outline-light" size="lg" icon="whatsapp" external>{{ __('Ask on WhatsApp') }}</x-site.button>
+                        <x-site.button :href="$whatsapp" variant="whatsapp" size="lg" icon="whatsapp" external>{{ __('Ask on WhatsApp') }}</x-site.button>
                     @endif
                 </div>
             </div>
