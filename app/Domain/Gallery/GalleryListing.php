@@ -36,7 +36,14 @@ class GalleryListing
 
         self::loadCovers($albums->getCollection());
 
-        return ['albums' => $albums];
+        // Photos of the newest album, shown under it on the first page.
+        $featured = $albums->onFirstPage() ? $albums->first() : null;
+        $previews = $featured
+            ? GalleryItem::with('media')->where('album_id', $featured->id)->where('type', 'image')->whereHas('media')
+                ->latest('created_at')->latest('id')->limit(6)->get()
+            : collect();
+
+        return ['albums' => $albums, 'featured' => $featured, 'previews' => $previews];
     }
 
     /**

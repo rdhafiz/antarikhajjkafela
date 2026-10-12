@@ -13,6 +13,8 @@ use App\PageBuilder\Component;
  */
 class PageListingComponent extends Component
 {
+    use HasHeading;
+
     public function key(): string
     {
         return 'page_listing';
@@ -43,9 +45,13 @@ class PageListingComponent extends Component
         return false;
     }
 
+    /**
+     * Optional heading. When the listing opens the page (no banner above it),
+     * it is the page's main heading, with the page title as the fallback.
+     */
     public function fields(): array
     {
-        return [];
+        return $this->headingFields();
     }
 
     public function data(array $content, PageSection $section, Page $page): array

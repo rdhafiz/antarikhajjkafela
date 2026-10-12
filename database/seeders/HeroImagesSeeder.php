@@ -27,7 +27,6 @@ class HeroImagesSeeder extends Seeder
         'about' => ['madinah-golden.webp', 'The Prophet\'s Mosque in Madinah at sunset', 'সূর্যাস্তে মদিনার মসজিদে নববী'],
         'services' => ['makkah-hotels.webp', 'Hotels around the Haram in Makkah', 'মক্কায় হারামের আশপাশের হোটেল'],
         'contact' => ['madinah-umbrellas.webp', 'The courtyard umbrellas of the Prophet\'s Mosque in Madinah', 'মসজিদে নববীর আঙিনার ছাতা'],
-        'gallery' => ['haram-courtyard.webp', 'Pilgrims around the Kaaba in Masjid al-Haram', 'মসজিদুল হারামে কাবার চারপাশে হাজিগণ'],
         'reviews' => ['green-dome.webp', 'The Green Dome of the Prophet\'s Mosque', 'মসজিদে নববীর সবুজ গম্বুজ'],
         'blog' => ['quran.webp', 'The Holy Quran on a wooden stand', 'কাঠের রেহালে পবিত্র কুরআন'],
         'terms-and-conditions' => ['nabawi-colonnade.webp', 'A colonnade of the Prophet\'s Mosque in Madinah', 'মসজিদে নববীর স্তম্ভসারি'],

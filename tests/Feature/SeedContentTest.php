@@ -53,8 +53,17 @@ class SeedContentTest extends AdminTestCase
 
         foreach (Page::with('sections')->get() as $page) {
             $first = $page->sections->sortBy('sort')->first();
+
+            // The gallery opens with its own centered heading instead of a banner.
+            if (! in_array($first->component, ['page_banner', 'hero'], true)) {
+                continue;
+            }
+
             $this->assertNotEmpty($first->content['image'] ?? null, "{$page->slug} has no top image");
         }
+
+        $gallery = Page::where('system_key', 'gallery')->first()->sections()->orderBy('sort')->first();
+        $this->assertSame('page_listing', $gallery->component);
 
         $home = Page::where('system_key', 'home')->first()->sections()->orderBy('sort')->first();
         $this->assertSame('centered', $home->content['variant']);

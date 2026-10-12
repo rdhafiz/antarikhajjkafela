@@ -6,7 +6,8 @@
     $images = $album->images_count ?? null;
     $videos = $album->videos_count ?? null;
 @endphp
-<article {{ $attributes->class('group relative overflow-hidden rounded-[1.5rem] bg-brand-950 shadow-[var(--shadow-soft)] transition-shadow duration-300 hover:shadow-[var(--shadow-lift)]') }}>
+<div {{ $attributes }}>
+<article class="group relative overflow-hidden rounded-[1.5rem] bg-brand-950 shadow-[var(--shadow-soft)] transition-[translate,box-shadow] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[var(--shadow-lift)]">
     <div class="relative aspect-[4/3]">
         @if ($album->cover)
             <img
@@ -16,14 +17,14 @@
                 alt=""
                 loading="lazy"
                 decoding="async"
-                class="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+                class="absolute inset-0 size-full object-cover transition-[scale] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
             >
         @else
             <div class="pattern-star absolute inset-0 opacity-[0.08]" aria-hidden="true"></div>
         @endif
         <div class="absolute inset-0 bg-gradient-to-t from-brand-950/90 via-brand-950/25 to-transparent" aria-hidden="true"></div>
 
-        <div class="absolute inset-x-0 bottom-0 p-6">
+        <div class="absolute inset-x-0 bottom-0 p-6 text-center">
             @if ($album->event_date)
                 <p class="text-[12px] font-semibold tracking-wider text-gold uppercase">{{ App\Support\Dates::format($album->event_date, 'F Y', $locale) }}</p>
             @endif
@@ -31,7 +32,7 @@
                 <a href="{{ $album->url() }}" class="after:absolute after:inset-0 focus-visible:outline-none">{{ $album->getTranslation('title', $locale) }}</a>
             </h3>
             @if ($images !== null)
-                <p class="mt-2.5 flex items-center gap-4 text-[13px] font-medium text-white/75">
+                <p class="mt-2.5 flex items-center justify-center gap-4 text-[13px] font-medium text-white/75">
                     @if ($images)
                         <span class="inline-flex items-center gap-1.5"><x-site.icon name="image" class="size-4" />{{ trans_choice(':count photo|:count photos', $images, ['count' => Money::digits($images)]) }}</span>
                     @endif
@@ -43,3 +44,4 @@
         </div>
     </div>
 </article>
+</div>
