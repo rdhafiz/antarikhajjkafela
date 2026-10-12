@@ -21,7 +21,7 @@
     $overlay = $variant === 'overlay';
 @endphp
 
-<div x-data="siteHeader" @keydown.escape.window="mobileOpen = false" class="contents">
+<div x-data="siteHeader" @keydown.escape.window="closeMenu()" class="contents">
     {{-- Main header --}}
     <header
         data-transparent="{{ $overlay ? 'true' : 'false' }}"
@@ -138,7 +138,8 @@
                     type="button"
                     class="-mr-2 flex size-11 items-center justify-center rounded-full transition-colors lg:hidden"
                     :class="!scrolled && {{ $overlay ? 'true' : 'false' }} ? 'text-white hover:bg-white/10' : 'text-brand hover:bg-sand-100'"
-                    @click="mobileOpen = true"
+                    x-ref="menuButton"
+                    @click="openMenu($el)"
                     aria-controls="mobile-menu"
                     :aria-expanded="mobileOpen.toString()"
                 >
@@ -149,83 +150,113 @@
         </div>
     </header>
 
-    {{-- Mobile menu --}}
-    <div x-cloak x-show="mobileOpen" class="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="{{ __('Menu') }}">
-        <div
-            x-show="mobileOpen"
-            x-transition.opacity.duration.250ms
-            class="absolute inset-0 bg-brand-950/55 backdrop-blur-sm"
-            @click="mobileOpen = false"
-        ></div>
+    {{--
+        Mobile menu: an arch "portal" that opens from the menu button. Three
+        layers (gold, blue, navy) sweep open one after another for depth, the
+        pattern and emblem drift in more slowly, and the links rise in one by
+        one. Closing plays it in reverse. Styles: .mm-* in resources/css/app.css.
+    --}}
+    <div
+        id="mobile-menu"
+        class="mm lg:hidden"
+        :class="mobileOpen && 'is-open'"
+        :style="`--mm-origin: ${origin}`"
+        role="dialog"
+        aria-modal="true"
+        aria-label="{{ __('Menu') }}"
+        inert
+        :inert="!mobileOpen"
+    >
+        <div class="mm-layer mm-layer-gold" aria-hidden="true"></div>
+        <div class="mm-layer mm-layer-blue" aria-hidden="true"></div>
 
-        <div
-            id="mobile-menu"
-            x-show="mobileOpen"
-            x-trap.noscroll="mobileOpen"
-            x-transition:enter="transition duration-300 ease-out"
-            x-transition:enter-start="translate-x-full"
-            x-transition:leave="transition duration-200 ease-in"
-            x-transition:leave-end="translate-x-full"
-            class="absolute inset-y-0 right-0 flex w-full max-w-sm flex-col bg-sand-50 shadow-2xl"
-        >
-            <div class="flex h-20 items-center justify-between border-b border-line px-5">
-                <img src="{{ $branding->logoUrl() }}" srcset="{{ $branding->logoSrcset() }}" sizes="140px" alt="{{ $site->name() }}" class="h-auto w-[140px]" loading="lazy">
-                <button type="button" class="-mr-2 flex size-11 items-center justify-center rounded-full text-brand hover:bg-sand-100" @click="mobileOpen = false">
-                    <span class="sr-only">{{ __('Close menu') }}</span>
-                    <x-site.icon name="x" class="size-6" />
-                </button>
-            </div>
+        <div class="mm-layer mm-layer-main" x-trap.noscroll="mobileOpen">
+            <div class="mm-pattern pattern-star" aria-hidden="true"></div>
+            <img src="{{ $branding->iconUrl(512) }}" alt="" class="mm-emblem" width="512" height="512" loading="lazy" aria-hidden="true">
+            <div class="mm-glow" aria-hidden="true"></div>
 
-            <nav class="flex-1 overflow-y-auto px-3 py-4" aria-label="{{ __('Main') }}">
-                <ul class="space-y-0.5">
-                    @foreach ($menu as $item)
-                        <li @if ($item['children']) x-data="{ open: {{ $isActive($item) ? 'true' : 'false' }} }" @endif>
-                            @if ($item['children'])
-                                <button type="button" @click="open = !open" :aria-expanded="open.toString()"
-                                        @class(['flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-left text-[17px] font-medium', 'text-brand' => $isActive($item), 'text-ink' => ! $isActive($item)])>
-                                    {{ $item['label'] }}
-                                    <x-site.icon name="chevron-down" class="size-5 text-ink-3 transition-transform" ::class="open && 'rotate-180'" />
-                                </button>
-                                <ul x-show="open" x-collapse class="mb-2 ml-4 border-l-2 border-gold/60 pl-2">
-                                    @foreach ($item['children'] as $child)
-                                        <li>
-                                            <a href="{{ $child['url'] ?? '#' }}" @if ($child['new_tab']) target="_blank" rel="noopener" @endif
-                                               @class(['block rounded-lg px-4 py-2.5 text-[16px]', 'font-semibold text-brand' => $isActive($child), 'text-ink-2' => ! $isActive($child)])>
-                                                {{ $child['label'] }}
-                                            </a>
-                                            @foreach ($child['children'] as $grandchild)
-                                                <a href="{{ $grandchild['url'] ?? '#' }}" class="block rounded-lg py-2 pr-4 pl-8 text-[15px] text-ink-3">{{ $grandchild['label'] }}</a>
-                                            @endforeach
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            @else
-                                <a href="{{ $item['url'] ?? '#' }}" @if ($item['new_tab']) target="_blank" rel="noopener" @endif
-                                   @if ($isActive($item)) aria-current="page" @endif
-                                   @class(['flex items-center justify-between rounded-xl px-4 py-3.5 text-[17px] font-medium', 'bg-white text-brand shadow-[var(--shadow-soft)]' => $isActive($item), 'text-ink' => ! $isActive($item)])>
-                                    {{ $item['label'] }}
-                                </a>
-                            @endif
-                        </li>
-                    @endforeach
-                </ul>
-            </nav>
-
-            <div class="space-y-3 border-t border-line bg-white px-5 py-5">
-                <div class="grid grid-cols-2 gap-2.5">
-                    @if ($phones)
-                        <a href="{{ $phones[0]['href'] }}" class="btn btn-primary"><x-site.icon name="phone" /> {{ __('Call') }}</a>
-                    @endif
-                    @if ($whatsapp = $site->whatsappUrl())
-                        <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="btn btn-whatsapp"><x-site.icon name="whatsapp" /> WhatsApp</a>
-                    @endif
+            <div class="relative flex h-full flex-col">
+                {{-- Top bar --}}
+                <div class="mm-fade container-site flex h-20 shrink-0 items-center justify-between" style="--d: 380ms">
+                    <a href="{{ url('/') }}" aria-label="{{ $site->name() }} – {{ __('Home') }}">
+                        <img src="{{ $branding->logoUrl() }}" srcset="{{ $branding->logoSrcset() }}" sizes="150px" alt="{{ $site->name() }}" class="h-auto w-[150px]" loading="lazy">
+                    </a>
+                    <button type="button" class="mm-close" @click="closeMenu()">
+                        <span class="sr-only">{{ __('Close menu') }}</span>
+                        <x-site.icon name="x" class="size-6" />
+                    </button>
                 </div>
-                @if (count($languages) > 1)
-                    <div class="flex items-center justify-between pt-1">
-                        <span class="text-[13px] font-semibold text-ink-3">{{ __('Language') }}</span>
-                        <x-site.language-switcher :languages="$languages" tone="light" />
+
+                {{-- Links --}}
+                <nav class="container-site flex-1 overflow-y-auto overscroll-contain pt-6 pb-8" aria-label="{{ __('Main') }}">
+                    <p class="mm-fade mb-5 text-[12px] font-semibold tracking-[0.2em] text-gold/80 uppercase" style="--d: 420ms">{{ __('Menu') }}</p>
+                    <ol class="space-y-1">
+                        @foreach ($menu as $index => $item)
+                            @php($active = $isActive($item))
+                            <li class="mm-item" style="--i: {{ $index }}" @if ($item['children']) x-data="{ open: {{ $active ? 'true' : 'false' }} }" @endif>
+                                <div class="mm-mask">
+                                    @if ($item['children'])
+                                        <button type="button" @click="open = !open" :aria-expanded="open.toString()" @class(['mm-link mm-rise w-full', 'is-active' => $active])>
+                                            <span class="mm-index" aria-hidden="true">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
+                                            <span class="flex-1 text-left">{{ $item['label'] }}</span>
+                                            <span class="mm-toggle" :class="open && 'is-open'" aria-hidden="true"></span>
+                                        </button>
+                                    @else
+                                        <a href="{{ $item['url'] ?? '#' }}" @if ($item['new_tab']) target="_blank" rel="noopener" @endif @if ($active) aria-current="page" @endif
+                                           @class(['mm-link mm-rise', 'is-active' => $active])>
+                                            <span class="mm-index" aria-hidden="true">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
+                                            <span>{{ $item['label'] }}</span>
+                                        </a>
+                                    @endif
+                                </div>
+                                @if ($item['children'])
+                                    <ul x-show="open" x-collapse @unless ($active) x-cloak @endunless class="mt-1 mb-3 ml-[2.6rem] space-y-0.5 border-l border-gold/30 pl-4">
+                                        @foreach ($item['children'] as $child)
+                                            <li>
+                                                <a href="{{ $child['url'] ?? '#' }}" @if ($child['new_tab']) target="_blank" rel="noopener" @endif
+                                                   @class(['block py-2 text-[17px] transition-colors', 'font-semibold text-gold' => $isActive($child), 'text-white/75 hover:text-white' => ! $isActive($child)])>
+                                                    {{ $child['label'] }}
+                                                </a>
+                                                @foreach ($child['children'] as $grandchild)
+                                                    <a href="{{ $grandchild['url'] ?? '#' }}" class="block py-1.5 pl-4 text-[15px] text-white/55 hover:text-white">{{ $grandchild['label'] }}</a>
+                                                @endforeach
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ol>
+                </nav>
+
+                {{-- Dock --}}
+                <div class="mm-fade shrink-0 border-t border-white/10 bg-brand-950/60 backdrop-blur-md" style="--d: 560ms">
+                    <div class="container-site space-y-4 py-5" style="padding-bottom: max(1.25rem, env(safe-area-inset-bottom))">
+                        <div class="grid grid-cols-2 gap-3">
+                            @if ($phones)
+                                <a href="{{ $phones[0]['href'] }}" class="btn btn-gold"><x-site.icon name="phone" /> {{ __('Call') }}</a>
+                            @endif
+                            @if ($whatsapp = $site->whatsappUrl())
+                                <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="btn btn-whatsapp"><x-site.icon name="whatsapp" /> WhatsApp</a>
+                            @endif
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            @if (count($languages) > 1)
+                                <x-site.language-switcher :languages="$languages" tone="dark" />
+                            @endif
+                            <div class="flex items-center gap-1">
+                                @foreach ($site->socials() as $social)
+                                    <a href="{{ $social['url'] }}" target="_blank" rel="noopener" class="flex size-10 items-center justify-center rounded-full text-white/70 ring-1 ring-white/15 transition-colors hover:text-gold" aria-label="{{ $social['label'] }}">
+                                        <x-site.icon :name="$social['key']" class="size-4" />
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                        @if ($address = $site->address())
+                            <p class="flex gap-2 text-[13px] leading-relaxed text-white/55"><x-site.icon name="map-pin" class="mt-0.5 size-4 shrink-0 text-gold/80" /> {{ $address }}</p>
+                        @endif
                     </div>
-                @endif
+                </div>
             </div>
         </div>
     </div>

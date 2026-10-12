@@ -274,6 +274,8 @@ Alpine.data('siteForm', (recaptchaKey = null) => ({
 Alpine.data('siteHeader', () => ({
     scrolled: false,
     mobileOpen: false,
+    // Where the menu portal grows from: the centre of the button that opened it.
+    origin: '100% 0%',
 
     init() {
         const update = () => (this.scrolled = window.scrollY > 24);
@@ -281,6 +283,18 @@ Alpine.data('siteHeader', () => ({
         window.addEventListener('scroll', update, { passive: true });
 
         this.$watch('mobileOpen', (open) => document.documentElement.classList.toggle('overflow-hidden', open));
+    },
+
+    openMenu(button) {
+        const r = button.getBoundingClientRect();
+        this.origin = `${r.left + r.width / 2}px ${r.top + r.height / 2}px`;
+        this.mobileOpen = true;
+    },
+
+    closeMenu() {
+        if (!this.mobileOpen) return;
+        this.mobileOpen = false;
+        this.$refs.menuButton?.focus({ preventScroll: true });
     },
 }));
 
