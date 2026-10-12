@@ -87,24 +87,15 @@ function isActive(item: NavItem): boolean {
             </div>
         </div>
 
-        <!-- Signed-in user -->
-        <RouterLink
-            v-if="auth.user"
-            to="/admin/profile"
-            class="sb-in sb-user m-3 mt-0 flex items-center gap-3 rounded-2xl p-2.5"
-            :class="{ 'justify-center': collapsed }"
-            :style="{ '--i': order.size + 2 }"
-            :title="collapsed ? auth.user.name : undefined"
-            @click="emit('navigate')"
-        >
-            <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-[13px] font-bold text-sidebar">
-                {{ auth.user.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase() }}
-            </span>
-            <span v-if="!collapsed" class="min-w-0 leading-tight">
-                <span class="block truncate text-[13px] font-semibold text-white">{{ auth.user.name }}</span>
-                <span class="block truncate text-[12px] text-sidebar-text/80">{{ auth.user.is_super_admin ? 'Super admin' : auth.user.roles[0] ?? 'Admin' }}</span>
-            </span>
-            <span v-else class="sr-only">{{ auth.user.name }}</span>
-        </RouterLink>
+        <!-- Credit -->
+        <div class="sb-in sb-credit m-3 mt-0 shrink-0 rounded-2xl px-3 py-3 text-center" :class="{ 'px-0': collapsed }" :style="{ '--i': order.size + 2 }">
+            <a v-if="collapsed" href="https://codevioso.com/" target="_blank" rel="noopener" class="mx-auto flex size-9 items-center justify-center rounded-xl text-[13px] font-bold text-sidebar-accent hover:bg-white/10" title="Designed and Developed by Codevioso">
+                CV<span class="sr-only">Designed and Developed by Codevioso (opens in a new tab)</span>
+            </a>
+            <p v-else class="text-[12px] leading-relaxed text-sidebar-text/80">
+                Designed and Developed by
+                <a href="https://codevioso.com/" target="_blank" rel="noopener" class="font-semibold text-sidebar-accent underline-offset-2 hover:underline">Codevioso</a>
+            </p>
+        </div>
     </nav>
 </template>

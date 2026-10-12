@@ -465,14 +465,9 @@
         box-shadow: 0 0 0 3px color-mix(in oklab, var(--admin-sidebar-accent) 25%, transparent);
     }
 
-    .sb-user {
+    .sb-credit {
         background: rgb(255 255 255 / 0.05);
         box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
-        transition: background-color 300ms ease;
-
-        &:hover {
-            background: rgb(255 255 255 / 0.09);
-        }
     }
 
     /* Start-up reveal: items rise in one after another. */

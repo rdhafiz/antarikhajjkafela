@@ -5,13 +5,10 @@ import { useLocalStorage } from '@vueuse/core';
 import { DialogContent, DialogOverlay, DialogPortal, DialogRoot, DialogTitle, VisuallyHidden } from 'reka-ui';
 import AppSidebar from '@admin/components/layout/AppSidebar.vue';
 import AppTopbar from '@admin/components/layout/AppTopbar.vue';
-import { useAppStore } from '@admin/stores/app';
 
 const collapsed = useLocalStorage('admin.sidebar.collapsed', false);
 const mobileOpen = ref(false);
 const route = useRoute();
-const app = useAppStore();
-const year = new Date().getFullYear();
 
 watch(() => route.fullPath, () => (mobileOpen.value = false));
 </script>
@@ -49,14 +46,6 @@ watch(() => route.fullPath, () => (mobileOpen.value = false));
                     </Transition>
                 </RouterView>
             </main>
-
-            <footer class="mx-auto flex w-full max-w-[1400px] flex-col items-center justify-between gap-1.5 px-4 pt-2 pb-6 text-[12.5px] text-ink-soft sm:flex-row sm:px-6 lg:px-8">
-                <p>© {{ year }} {{ app.name }}</p>
-                <p>
-                    Designed and Developed by
-                    <a href="https://codevioso.com/" target="_blank" rel="noopener" class="font-semibold text-brand underline-offset-2 hover:underline">Codevioso</a>
-                </p>
-            </footer>
         </div>
     </div>
 </template>
