@@ -52,6 +52,23 @@ class PageBuilderTest extends AdminTestCase
         $this->get('/terms-and-conditions')->assertOk()->assertSeeText('Booking and registration');
     }
 
+    public function test_inner_page_banners_use_the_shared_centered_hero(): void
+    {
+        $about = $this->page('about');
+        $banner = $about->sections()->where('component', 'page_banner')->firstOrFail();
+        $banner->update([
+            'content' => array_replace($banner->content, ['highlight' => ['en' => 'since 2016.']]),
+            'style' => array_replace($banner->style ?? [], ['background' => 'white']),
+        ]);
+
+        $this->get('/about')
+            ->assertOk()
+            ->assertSee('hero-75', false)
+            ->assertSee('data-section="page_banner"', false)
+            ->assertSee('<span class="hero-line text-gold italic">since 2016.</span>', false)
+            ->assertSee('data-transparent="true"', false);
+    }
+
     public function test_drafts_are_hidden_but_signed_previews_show_them(): void
     {
         $campaign = Page::where('slug', 'hajj-pre-registration')->firstOrFail();

@@ -19,7 +19,7 @@ class PageBannerComponent extends Component
 
     public function description(): string
     {
-        return 'Title band for inner pages with breadcrumbs and an optional background image.';
+        return 'Centered hero for inner pages: eyebrow, title with an optional gold highlight line, introduction and background image.';
     }
 
     public function category(): string
@@ -42,9 +42,9 @@ class PageBannerComponent extends Component
         return [
             Field::text('eyebrow', 'Eyebrow')->max(60),
             Field::text('title', 'Title')->max(120)->hint('Leave empty to use the page title.'),
+            Field::text('highlight', 'Highlight line')->max(90)->hint('Optional second line in gold italics under the title.'),
             Field::textarea('intro', 'Introduction')->max(400)->rows(3),
-            Field::image('image', 'Background image', 'banner'),
-            Field::toggle('breadcrumbs', 'Show breadcrumbs')->default(true),
+            Field::image('image', 'Background image', 'banner')->hint('Leave empty to use the default banner from the settings.'),
         ];
     }
 

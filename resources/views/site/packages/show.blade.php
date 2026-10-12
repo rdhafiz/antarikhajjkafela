@@ -11,68 +11,26 @@
     $enquire = fn (?string $option = null) => $site->whatsappUrl(trim(__('Assalamu alaikum, I am interested in the ":package" package', ['package' => $p['name']]).($option ? ' – '.$option : '').'.'));
 @endphp
 <x-site.layout header="overlay">
-    {{-- Hero --}}
-    <section class="hero-half relative isolate flex flex-col overflow-hidden bg-brand-950 pt-20 text-white" data-hero>
-        @if ($p['banner'])
-            <div class="hero-media" data-parallax-bg aria-hidden="true">
-                <img src="{{ $p['banner']->url('lg') }}" srcset="{{ $p['banner']->srcset() }}" sizes="100vw" alt="" fetchpriority="high">
-            </div>
-            <div class="absolute inset-0 -z-10 bg-gradient-to-r from-brand-950/95 via-brand-950/80 to-brand-950/35" aria-hidden="true"></div>
-        @else
-            <div class="absolute inset-0 -z-20 bg-gradient-to-br from-brand via-brand-900 to-brand-950" aria-hidden="true"></div>
-            <div class="pattern-star absolute inset-0 -z-10 opacity-[0.06]" aria-hidden="true"></div>
-        @endif
-
-        <div class="container-site flex flex-1 flex-col justify-center py-14 sm:py-20">
-            <div class="hero-reveal max-w-3xl" data-parallax-content>
-                <x-site.breadcrumbs light class="mb-7" />
-                <a href="{{ $p['service']->url() }}" class="inline-flex rounded-full bg-white/10 px-3.5 py-1 text-[13px] font-semibold text-gold ring-1 ring-white/15 hover:bg-white/15">
-                    {{ $p['service']->getTranslation('name', $locale) }}
-                </a>
-                <h1 class="mt-5 text-display-xl text-white">{{ $p['name'] }}</h1>
-                @if ($p['summary'])
-                    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-white/80">{{ $p['summary'] }}</p>
-                @endif
-                <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                    <x-site.button href="#prices" variant="gold" size="lg" icon-right="arrow-right">{{ __('See prices & hotels') }}</x-site.button>
-                    @if ($whatsapp = $enquire())
-                        <x-site.button :href="$whatsapp" variant="whatsapp" size="lg" icon="whatsapp" external>{{ __('Ask on WhatsApp') }}</x-site.button>
-                    @endif
-                </div>
-            </div>
+    {{-- Hero, with the key facts in the strip at the bottom --}}
+    <x-site.hero
+        :eyebrow="$p['service']->getTranslation('name', $locale)"
+        :title="$p['name']"
+        :intro="$p['summary']"
+        :image="$p['banner']"
+        :stats="[
+            ['value' => $p['from'] ? Money::html($p['from']) : null, 'label' => __('Starting from')],
+            ['value' => $p['duration'] ? trans_choice(':count day|:count days', $p['duration'], ['count' => Money::digits($p['duration'])]) : null, 'label' => __('Duration')],
+            ['value' => new Illuminate\Support\HtmlString('<span class=\'size-2.5 shrink-0 rounded-full '.($bookable ? 'bg-emerald' : ($booking['state'] === 'upcoming' ? 'bg-gold' : 'bg-red-400')).'\'></span>'.e($booking['label'])), 'label' => __('Booking'), 'small' => true],
+            ['value' => $airlines ?: null, 'label' => __('Airline'), 'small' => true],
+        ]"
+    >
+        <div class="flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
+            <x-site.button href="#prices" variant="gold" size="lg" icon-right="arrow-right">{{ __('See prices & hotels') }}</x-site.button>
+            @if ($whatsapp = $enquire())
+                <x-site.button :href="$whatsapp" variant="whatsapp" size="lg" icon="whatsapp" external>{{ __('Ask on WhatsApp') }}</x-site.button>
+            @endif
         </div>
-
-        {{-- Key facts --}}
-        <div class="relative z-10 border-t border-white/10 bg-brand-950/80 backdrop-blur-md">
-            <dl class="container-site grid grid-cols-2 gap-x-6 gap-y-5 py-6 lg:grid-cols-4">
-                @if ($p['from'])
-                    <div>
-                        <dt class="text-[12px] font-semibold tracking-wider text-white/55 uppercase">{{ __('Starting from') }}</dt>
-                        <dd class="mt-1 font-display text-2xl font-semibold text-gold">{{ Money::html($p['from']) }}</dd>
-                    </div>
-                @endif
-                @if ($p['duration'])
-                    <div>
-                        <dt class="text-[12px] font-semibold tracking-wider text-white/55 uppercase">{{ __('Duration') }}</dt>
-                        <dd class="mt-1 font-display text-2xl font-semibold text-white">{{ trans_choice(':count day|:count days', $p['duration'], ['count' => Money::digits($p['duration'])]) }}</dd>
-                    </div>
-                @endif
-                <div>
-                    <dt class="text-[12px] font-semibold tracking-wider text-white/55 uppercase">{{ __('Booking') }}</dt>
-                    <dd class="mt-1.5 flex items-center gap-2 text-[15px] font-semibold text-white">
-                        <span @class(['size-2.5 rounded-full', 'bg-emerald' => $bookable, 'bg-gold' => $booking['state'] === 'upcoming', 'bg-red-400' => $booking['state'] === 'closed'])></span>
-                        {{ $booking['label'] }}
-                    </dd>
-                </div>
-                @if ($airlines)
-                    <div>
-                        <dt class="text-[12px] font-semibold tracking-wider text-white/55 uppercase">{{ __('Airline') }}</dt>
-                        <dd class="mt-1.5 text-[15px] font-semibold text-white">{{ $airlines }}</dd>
-                    </div>
-                @endif
-            </dl>
-        </div>
-    </section>
+    </x-site.hero>
 
     {{-- Prices: package types → pricing options → hotels --}}
     @if ($p['types'])

@@ -10,16 +10,16 @@
     $videoCount = $items->where('type', 'video')->count();
 @endphp
 <x-site.layout header="overlay">
-    <x-site.page-header :title="$title" :image="$cover" :intro="$album->getTranslation('description', $locale)" :eyebrow="App\Support\Dates::format($album->event_date, 'j F Y', $locale)">
-        <p class="mt-6 flex flex-wrap gap-5 text-[14px] font-medium text-white/75">
-            @if ($photoCount)
-                <span class="inline-flex items-center gap-1.5"><x-site.icon name="image" class="size-4 text-gold" />{{ trans_choice(':count photo|:count photos', $photoCount, ['count' => Money::digits($photoCount)]) }}</span>
-            @endif
-            @if ($videoCount)
-                <span class="inline-flex items-center gap-1.5"><x-site.icon name="play" class="size-4 text-gold" />{{ trans_choice(':count video|:count videos', $videoCount, ['count' => Money::digits($videoCount)]) }}</span>
-            @endif
-        </p>
-    </x-site.page-header>
+    <x-site.page-header
+        :title="$title"
+        :image="$cover"
+        :intro="$album->getTranslation('description', $locale)"
+        :eyebrow="App\Support\Dates::format($album->event_date, 'j F Y', $locale)"
+        :stats="[
+            ['value' => $photoCount ? Money::digits($photoCount) : null, 'label' => __('Photos')],
+            ['value' => $videoCount ? Money::digits($videoCount) : null, 'label' => __('Videos')],
+        ]"
+    />
 
     <section class="section-light bg-sand-50 py-12 sm:py-16" x-data="lightbox(@js($slides))" @keydown.window="key($event)">
         <div class="container-site">

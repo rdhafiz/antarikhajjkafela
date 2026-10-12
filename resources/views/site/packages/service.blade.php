@@ -7,70 +7,33 @@
     $summary = $service->getTranslation('summary', $locale);
     $headline = $service->getTranslation('headline', $locale) ?: $name;
     $highlight = $service->getTranslation('highlight', $locale);
-    $image = $service->image ?? app(App\Support\Branding::class)->defaultBanner();
     $whatsapp = $site->whatsappUrl(__('Assalamu alaikum, I would like to know about your :name packages.', ['name' => $name]));
     [$minDays, $maxDays] = $stats['days'] ?? [null, null];
 @endphp
 <x-site.layout header="overlay">
-    {{-- Hero: the home page's centered hero at three quarters of the screen, the photo moving behind the text. --}}
-    <section class="hero-75 relative isolate flex flex-col overflow-hidden bg-brand-950 pt-20 text-white" data-hero>
-        @if ($image)
-            <div class="hero-media" data-parallax-bg aria-hidden="true">
-                <img src="{{ $image->url('lg') }}" srcset="{{ $image->srcset() }}" sizes="100vw" alt="" fetchpriority="high">
-            </div>
-            <div class="absolute inset-0 -z-10 bg-gradient-to-b from-brand-950/80 via-brand-950/65 to-brand-950/90" aria-hidden="true"></div>
-        @else
-            <div class="pattern-star absolute inset-0 -z-10 opacity-[0.06]" aria-hidden="true"></div>
-        @endif
-
-        <div class="container-site flex flex-1 flex-col items-center justify-center py-12 text-center sm:py-14">
-            <div class="hero-reveal flex max-w-4xl flex-col items-center" data-parallax-content>
-                <p class="eyebrow eyebrow-light justify-center">{{ $name }} · {{ __('Packages from Bangladesh') }}</p>
-                <h1 class="mt-5 text-display-xl text-white">
-                    {{ $headline }}
-                    @if (filled($highlight))<span class="hero-line text-gold italic">{{ $highlight }}</span>@endif
-                </h1>
-                @if (filled($summary))
-                    <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/80">{{ $summary }}</p>
-                @endif
-                <div class="mt-9 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
-                    @if ($packages->isNotEmpty())
-                        <x-site.button href="#packages" variant="gold" size="lg" icon-right="chevron-down">{{ __('View packages') }}</x-site.button>
-                    @endif
-                    @if ($whatsapp)
-                        <x-site.button :href="$whatsapp" external variant="whatsapp" size="lg" icon="whatsapp">{{ __('Ask on WhatsApp') }}</x-site.button>
-                    @else
-                        <x-site.button :href="url('/contact')" variant="outline-light" size="lg">{{ __('Contact us') }}</x-site.button>
-                    @endif
-                </div>
-            </div>
+    <x-site.hero
+        :eyebrow="$name.' · '.__('Packages from Bangladesh')"
+        :title="$headline"
+        :highlight="$highlight"
+        :intro="$summary"
+        :image="$service->image"
+        :stats="[
+            ['value' => $stats['count'] ? Money::digits($stats['count']) : null, 'label' => __('Packages')],
+            ['value' => $stats['from'] ? Money::html($stats['from']) : null, 'label' => __('Starting from')],
+            ['value' => $minDays ? trans_choice(':count day|:count days', $maxDays, ['count' => Money::digits($minDays === $maxDays ? $minDays : $minDays.'–'.$maxDays)]) : null, 'label' => __('Duration')],
+        ]"
+    >
+        <div class="flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
+            @if ($packages->isNotEmpty())
+                <x-site.button href="#packages" variant="gold" size="lg" icon-right="chevron-down">{{ __('View packages') }}</x-site.button>
+            @endif
+            @if ($whatsapp)
+                <x-site.button :href="$whatsapp" external variant="whatsapp" size="lg" icon="whatsapp">{{ __('Ask on WhatsApp') }}</x-site.button>
+            @else
+                <x-site.button :href="url('/contact')" variant="outline-light" size="lg">{{ __('Contact us') }}</x-site.button>
+            @endif
         </div>
-
-        @if ($stats['count'])
-            <div class="relative z-10 border-t border-white/10 bg-brand-950/85 backdrop-blur-md">
-                <dl @class(['container-site grid gap-y-6 py-5 sm:py-6', 'grid-cols-3' => $stats['from'] && $minDays, 'grid-cols-2' => ! ($stats['from'] && $minDays)])>
-                    <div class="flex flex-col-reverse items-center text-center">
-                        <dt class="mt-1 text-[12px] tracking-wide text-white/60 sm:text-[13px]">{{ __('Packages') }}</dt>
-                        <dd class="font-display text-xl font-semibold text-gold sm:text-3xl">{{ Money::digits($stats['count']) }}</dd>
-                    </div>
-                    @if ($stats['from'])
-                        <div class="flex flex-col-reverse items-center border-l border-white/10 text-center">
-                            <dt class="mt-1 text-[12px] tracking-wide text-white/60 sm:text-[13px]">{{ __('Starting from') }}</dt>
-                            <dd class="font-display text-xl font-semibold text-gold sm:text-3xl">{{ Money::html($stats['from']) }}</dd>
-                        </div>
-                    @endif
-                    @if ($minDays)
-                        <div class="flex flex-col-reverse items-center border-l border-white/10 text-center">
-                            <dt class="mt-1 text-[12px] tracking-wide text-white/60 sm:text-[13px]">{{ __('Duration') }}</dt>
-                            <dd class="font-display text-xl font-semibold text-gold sm:text-3xl">
-                                {{ trans_choice(':count day|:count days', $maxDays, ['count' => Money::digits($minDays === $maxDays ? $minDays : $minDays.'–'.$maxDays)]) }}
-                            </dd>
-                        </div>
-                    @endif
-                </dl>
-            </div>
-        @endif
-    </section>
+    </x-site.hero>
 
     {{-- Packages: a centered grid over a slowly moving pattern. --}}
     <section id="packages" class="relative isolate scroll-mt-20 overflow-hidden bg-sand-50 py-20 sm:py-24 lg:py-28">

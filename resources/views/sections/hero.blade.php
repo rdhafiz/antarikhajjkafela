@@ -3,8 +3,8 @@
     $dark = $style['tone'] === 'dark';
     $slides = array_values(array_filter($c['slides'] ?? [], fn ($s) => $s['image']));
     $highlights = array_values(array_filter($c['highlights'] ?? [], fn ($h) => filled($h['value'])));
-    // At the top of a page the hero fills the screen (home) or half of it, with parallax.
-    $height = $first ? ($page->isHome() ? 'hero-full' : 'hero-half') : null;
+    // At the top of a page the hero fills the screen (home) or three quarters of it (like other pages), with parallax.
+    $height = $first ? ($page->isHome() ? 'hero-full' : 'hero-75') : null;
 @endphp
 
 <x-site.block :style="$style" :section="$section" :container="false" :data-hero="$first ? true : null" @class([$first ? 'pt-20' : '', $height, 'flex flex-col' => $height, 'bg-gradient-to-br from-brand via-brand-900 to-brand-950' => ! $style['image'] && str_contains($style['class'], 'bg-brand-950')])>

@@ -45,7 +45,7 @@ class PageRenderer
             $style = SectionStyle::resolve($section->style ?? [], $component->defaultStyle(), $media);
 
             if ($index === 0) {
-                $darkTop = $style['tone'] === 'dark';
+                $darkTop = $style['tone'] === 'dark' || $section->component === 'page_banner';
             }
 
             try {

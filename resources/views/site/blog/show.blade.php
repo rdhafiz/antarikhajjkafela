@@ -14,50 +14,25 @@
     @endif
 
     <article>
-        {{-- Header --}}
-        <header @class(['hero-half relative isolate flex flex-col overflow-hidden bg-brand-950 pt-20 text-white', 'pb-28 sm:pb-40' => $post->banner, 'pb-4' => ! $post->banner]) data-hero>
-            <div class="pattern-star absolute inset-0 -z-10 opacity-[0.05]" data-parallax-bg aria-hidden="true"></div>
-            <div class="absolute -top-40 right-[-10%] -z-10 size-[520px] rounded-full bg-gold/10 blur-3xl" aria-hidden="true"></div>
-
-            <div class="container-site flex flex-1 flex-col justify-center py-12 sm:py-16" data-parallax-content>
-                <x-site.breadcrumbs light class="mb-8" />
-                <div class="hero-reveal mx-auto max-w-3xl text-center">
-                    @if ($post->category)
-                        <a href="{{ $post->category->url() }}" class="inline-flex rounded-full bg-white/10 px-3.5 py-1 text-[13px] font-semibold text-gold ring-1 ring-white/15 hover:bg-white/15">
-                            {{ $post->category->getTranslation('name', $locale) }}
-                        </a>
-                    @endif
-                    <h1 class="mt-5 text-display-xl text-white">{{ $p['title'] }}</h1>
-                    @if ($p['excerpt'])
-                        <p class="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-white/75">{{ $p['excerpt'] }}</p>
-                    @endif
-
-                    <div class="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-[14px] text-white/70">
-                        <span class="flex items-center gap-2.5">
-                            <img src="{{ PostPresenter::authorImage($post) }}" alt="" width="36" height="36" class="size-9 rounded-full bg-white object-cover ring-2 ring-gold/50">
-                            <span class="font-semibold text-white">{{ $p['author'] }}</span>
-                        </span>
-                        @if ($p['date'])
-                            <span class="flex items-center gap-1.5"><x-site.icon name="calendar" class="size-4 text-gold" /><time datetime="{{ $post->published_at->toDateString() }}">{{ $p['date'] }}</time></span>
-                        @endif
-                        <span class="flex items-center gap-1.5"><x-site.icon name="clock" class="size-4 text-gold" />{{ trans_choice(':count min read|:count min read', $p['minutes'], ['count' => Money::digits($p['minutes'])]) }}</span>
-                    </div>
-                </div>
+        {{-- Header: the shared hero over the post's banner --}}
+        <x-site.hero
+            tag="header"
+            :eyebrow="$post->category?->getTranslation('name', $locale)"
+            :title="$p['title']"
+            :intro="$p['excerpt']"
+            :image="$post->banner"
+        >
+            <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-[14px] text-white/75">
+                <span class="flex items-center gap-2.5">
+                    <img src="{{ PostPresenter::authorImage($post) }}" alt="" width="36" height="36" class="size-9 rounded-full bg-white object-cover ring-2 ring-gold/50">
+                    <span class="font-semibold text-white">{{ $p['author'] }}</span>
+                </span>
+                @if ($p['date'])
+                    <span class="flex items-center gap-1.5"><x-site.icon name="calendar" class="size-4 text-gold" /><time datetime="{{ $post->published_at->toDateString() }}">{{ $p['date'] }}</time></span>
+                @endif
+                <span class="flex items-center gap-1.5"><x-site.icon name="clock" class="size-4 text-gold" />{{ trans_choice(':count min read|:count min read', $p['minutes'], ['count' => Money::digits($p['minutes'])]) }}</span>
             </div>
-        </header>
-
-        @if ($post->banner)
-            <div class="container-site relative z-10 -mt-24 sm:-mt-36">
-                <img
-                    src="{{ $post->banner->url('lg') }}"
-                    srcset="{{ $post->banner->srcset() }}"
-                    sizes="(min-width: 1100px) 1040px, 100vw"
-                    alt="{{ $post->banner->getTranslation('alt', $locale) }}"
-                    fetchpriority="high"
-                    class="mx-auto aspect-[16/9] w-full max-w-5xl rounded-[1.75rem] object-cover shadow-[var(--shadow-lift)]"
-                >
-            </div>
-        @endif
+        </x-site.hero>
 
         {{-- Body --}}
         <div class="section-light">
