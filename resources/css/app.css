@@ -1153,6 +1153,103 @@
         }
     }
 
+    /* Package page: sticky section bar. */
+    .no-scrollbar {
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .section-nav-link {
+        color: var(--color-ink-2);
+        transition: background-color 400ms var(--ease-out-soft), color 400ms var(--ease-out-soft);
+
+        &:hover {
+            color: var(--color-brand);
+            background: var(--color-sand-100);
+        }
+
+        &.is-active {
+            color: #fff;
+            background: var(--color-brand);
+        }
+    }
+
+    /* Package page: package types as selectable cards. */
+    .type-tab {
+        border-color: var(--color-line);
+        background: #fff;
+        color: var(--color-brand);
+        transition:
+            background-color 500ms var(--ease-out-soft),
+            border-color 500ms var(--ease-out-soft),
+            box-shadow 500ms var(--ease-out-soft),
+            color 500ms var(--ease-out-soft);
+
+        .type-tab-num {
+            background: var(--color-sand-100);
+            color: var(--color-gold-deep);
+            transition: background-color 500ms var(--ease-out-soft), color 500ms var(--ease-out-soft);
+        }
+
+        .type-tab-code,
+        .type-tab-from {
+            color: var(--color-ink-3);
+        }
+
+        &:hover {
+            border-color: color-mix(in srgb, var(--color-gold) 50%, var(--color-line));
+        }
+
+        &.is-active {
+            border-color: var(--color-brand);
+            background: var(--color-brand);
+            color: #fff;
+            box-shadow: var(--shadow-lift);
+
+            .type-tab-num {
+                background: var(--color-gold);
+                color: var(--color-brand-950);
+            }
+
+            .type-tab-code,
+            .type-tab-from {
+                color: rgb(255 255 255 / 0.6);
+            }
+
+            .type-tab-price {
+                color: var(--color-gold);
+            }
+        }
+    }
+
+    /* Package page: the plane crosses its route once the flight card is revealed. */
+    .flight-plane {
+        inset-inline-start: 0;
+        transition: inset-inline-start 1600ms var(--ease-out-soft) 300ms;
+    }
+
+    .is-revealed .flight-plane {
+        inset-inline-start: calc(100% - 1.25rem);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .flight-plane {
+            inset-inline-start: calc(100% - 1.25rem);
+        }
+    }
+
+    /* Package page: checklists in custom sections as tiles. */
+    .pkg-blocks ul > li {
+        align-items: flex-start;
+        padding: 1rem 1.125rem;
+        border: 1px solid var(--sec-border, var(--color-line));
+        border-radius: 1rem;
+        background: var(--sec-surface, #fff);
+    }
+
     /*
      * Page heroes. The home hero fills the screen, other page tops take at
      * least half of it (svh: the height with phone browser bars showing).

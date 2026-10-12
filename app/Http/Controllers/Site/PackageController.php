@@ -144,6 +144,7 @@ class PackageController extends Controller
             'package' => $package,
             'p' => $data,
             'related' => $related,
+            'relatedCards' => $this->cards($related),
         ]);
     }
 

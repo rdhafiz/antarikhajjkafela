@@ -66,6 +66,23 @@ class TravelTest extends AdminTestCase
             ->assertSeeText('Package C · Basic');
     }
 
+    public function test_package_page_has_a_section_bar_option_tabs_and_anchored_sections(): void
+    {
+        $package = Package::where('slug', 'hajj-regular-package')->firstOrFail();
+        $option = $package->types()->with('prices')->get()->first()->prices->first();
+
+        $this->get('/packages/hajj-regular-package')
+            ->assertOk()
+            ->assertSee('x-data="sectionNav"', false)
+            ->assertSee('href="#prices"', false)
+            ->assertSee('href="#flights"', false)
+            ->assertSee('id="details-1"', false)
+            ->assertSee('role="tablist"', false)
+            ->assertSee('/packages/hajj-regular-package/book?option='.$option->id, false)
+            ->assertSeeText('You may also like')
+            ->assertSee('pkg-feature', false);
+    }
+
     public function test_service_and_package_pages_render(): void
     {
         $this->get('/hajj')->assertOk()->assertSeeText('Hajj Regular Package')->assertSeeText('Hajj Premium Package')->assertDontSeeText('Umrah Package');

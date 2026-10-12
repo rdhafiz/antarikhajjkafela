@@ -386,6 +386,36 @@ Alpine.data('journey', (count, duration = 6500) => ({
     },
 }));
 
+/**
+ * Sticky in-page section bar: marks the section in the middle of the screen
+ * and keeps its link scrolled into view in the (sideways scrolling) bar.
+ */
+Alpine.data('sectionNav', () => ({
+    active: null,
+
+    init() {
+        const links = [...this.$refs.links.querySelectorAll('[data-target]')];
+        const sections = links.map((link) => document.getElementById(link.dataset.target)).filter(Boolean);
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (entry.isIntersecting) {
+                        this.active = entry.target.id;
+                        const link = links.find((l) => l.dataset.target === entry.target.id);
+                        const bar = this.$refs.links;
+                        if (link && bar.scrollWidth > bar.clientWidth) {
+                            bar.scrollTo({ left: link.offsetLeft - bar.clientWidth / 2 + link.offsetWidth / 2, behavior: 'smooth' });
+                        }
+                    }
+                }
+            },
+            { rootMargin: '-45% 0px -50% 0px' },
+        );
+        sections.forEach((section) => observer.observe(section));
+    },
+}));
+
 window.Alpine = Alpine;
 Alpine.start();
 

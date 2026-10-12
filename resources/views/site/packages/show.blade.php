@@ -32,124 +32,227 @@
         </div>
     </x-site.hero>
 
-    {{-- Prices: package types → pricing options → hotels --}}
+    @php
+        // In-page sections for the sticky bar: options, flights, then each custom section that has a heading.
+        $nav = collect([
+            $p['types'] ? ['id' => 'prices', 'label' => __('Options & hotels')] : null,
+            $p['flights'] ? ['id' => 'flights', 'label' => __('Flights')] : null,
+        ])->filter()->merge(
+            collect($p['sections'])->map(fn ($s, $i) => filled($s['heading']) ? ['id' => 'details-'.($i + 1), 'label' => $s['badge'] ?: $s['heading']] : null)->filter()
+        )->values();
+    @endphp
+
+    {{-- Sticky section bar: where you are on the page, with booking always in reach. --}}
+    @if ($nav->count() > 1)
+        <div x-data="sectionNav" class="sticky top-20 z-20 border-b border-line bg-white/95 backdrop-blur-md">
+            <div class="container-site flex items-center gap-4">
+                <nav class="no-scrollbar -mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto py-2.5" aria-label="{{ __('On this page') }}" x-ref="links">
+                    @foreach ($nav as $item)
+                        <a href="#{{ $item['id'] }}" data-target="{{ $item['id'] }}"
+                           class="section-nav-link shrink-0 rounded-full px-4 py-2 text-[14px] font-semibold whitespace-nowrap"
+                           :class="active === '{{ $item['id'] }}' && 'is-active'"
+                           :aria-current="active === '{{ $item['id'] }}' ? 'true' : null">{{ $item['label'] }}</a>
+                    @endforeach
+                </nav>
+                <div class="hidden shrink-0 items-center gap-4 sm:flex">
+                    @if ($p['from'])
+                        <p class="text-end leading-tight">
+                            <span class="block text-[11px] font-semibold tracking-[0.12em] text-ink-3 uppercase">{{ __('Starting from') }}</span>
+                            <span class="font-display text-[1.25rem] font-semibold text-brand">{{ Money::html($p['from']) }}</span>
+                        </p>
+                    @endif
+                    @if ($bookable)
+                        <x-site.button :href="route('bookings.create', $package->slug)" variant="gold" size="sm" icon-right="arrow-right">{{ __('Book now') }}</x-site.button>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Options & hotels: package types on one side, the chosen type's options and hotels on the other. --}}
     @if ($p['types'])
-        <section id="prices" class="section-light scroll-mt-24 bg-sand-50 py-16 sm:py-20" x-data="{ tab: 0 }">
+        <section id="prices" class="section-light relative isolate scroll-mt-36 overflow-clip bg-sand-50 py-16 sm:py-20 lg:py-24" x-data="{ tab: 0 }">
+            <div class="pattern-star-ink pointer-events-none absolute -inset-y-[20%] inset-x-0 -z-10 opacity-[0.025]" data-parallax="0.15" aria-hidden="true"></div>
             <div class="container-site">
-                <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                    <div class="max-w-2xl">
-                        <p class="eyebrow">{{ __('Prices & hotels') }}</p>
-                        <h2 class="sec-heading mt-4 text-display-lg">{{ __('Choose the option that suits you') }}</h2>
-                    </div>
+                <div class="mx-auto mb-12 max-w-2xl text-center" data-reveal>
+                    <p class="eyebrow justify-center">{{ __('Prices & hotels') }}</p>
+                    <h2 class="mt-4 text-display-lg text-brand">{{ __('Choose the option that suits you') }}</h2>
+                </div>
+
+                <div @class(['grid gap-6 lg:gap-8', 'lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]' => count($p['types']) > 1])>
                     @if (count($p['types']) > 1)
-                        <div class="flex flex-wrap gap-2" role="tablist" aria-label="{{ __('Package types') }}">
+                        <div role="tablist" aria-label="{{ __('Package types') }}" aria-orientation="vertical" class="flex flex-col gap-3 lg:sticky lg:top-40 lg:self-start" data-reveal
+                             @keydown.down.prevent="tab = (tab + 1) % {{ count($p['types']) }}; $nextTick(() => $el.querySelectorAll('[role=tab]')[tab].focus())"
+                             @keydown.up.prevent="tab = (tab + {{ count($p['types']) - 1 }}) % {{ count($p['types']) }}; $nextTick(() => $el.querySelectorAll('[role=tab]')[tab].focus())">
                             @foreach ($p['types'] as $i => $type)
-                                <button type="button" role="tab" :aria-selected="(tab === {{ $i }}).toString()" @click="tab = {{ $i }}"
-                                        class="rounded-full px-5 py-2.5 text-[15px] font-semibold transition-colors"
-                                        :class="tab === {{ $i }} ? 'bg-brand text-white shadow-[var(--shadow-soft)]' : 'bg-white text-ink-2 ring-1 ring-line hover:text-brand'">
-                                    {{ $type['name'] }}
+                                @php
+                                    $typeFrom = collect($type['prices'])->min('price');
+                                @endphp
+                                <button type="button" role="tab" id="type-tab-{{ $i }}" aria-controls="type-panel-{{ $i }}"
+                                        @if ($i === 0) aria-selected="true" @else aria-selected="false" tabindex="-1" @endif
+                                        :aria-selected="(tab === {{ $i }}).toString()" :tabindex="tab === {{ $i }} ? 0 : -1"
+                                        @click="tab = {{ $i }}; if (window.innerWidth < 1024) window.scrollTo({ top: $el.closest('[role=tablist]').getBoundingClientRect().bottom + window.scrollY + 24 - 156, behavior: 'smooth' })"
+                                        @class(['type-tab group/tab relative flex items-center gap-4 rounded-2xl border p-4 text-start sm:p-5', 'is-active' => $i === 0])
+                                        :class="{ 'is-active': tab === {{ $i }} }">
+                                    <span class="type-tab-num flex size-10 shrink-0 items-center justify-center rounded-full font-display text-[15px] font-semibold tabular-nums">{{ Money::digits(str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT)) }}</span>
+                                    <span class="min-w-0 flex-1">
+                                        @if ($type['code'])<span class="type-tab-code block text-[11px] font-bold tracking-[0.14em] uppercase">{{ $type['code'] }}</span>@endif
+                                        <span class="type-tab-name block font-display text-[1.125rem] leading-snug font-semibold">{{ $type['name'] }}</span>
+                                    </span>
+                                    @if ($typeFrom)
+                                        <span class="shrink-0 text-end">
+                                            <span class="type-tab-from block text-[11px] font-semibold uppercase">{{ __('From') }}</span>
+                                            <span class="type-tab-price block font-display text-[1.125rem] leading-tight font-semibold">{{ Money::html($typeFrom) }}</span>
+                                        </span>
+                                    @endif
                                 </button>
                             @endforeach
                         </div>
                     @endif
+
+                    <div class="min-w-0">
+                        @foreach ($p['types'] as $i => $type)
+                            <div role="tabpanel" id="type-panel-{{ $i }}" aria-labelledby="type-tab-{{ $i }}" x-show="tab === {{ $i }}" @if ($i > 0) x-cloak @endif
+                                 x-transition:enter="transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" x-transition:enter-start="opacity-0 translate-y-3"
+                                 class="space-y-6" data-reveal>
+                                @if (count($p['types']) === 1 || $type['description'])
+                                    <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+                                        @if (count($p['types']) === 1)<h3 class="font-display text-display-sm text-brand">{{ $type['name'] }}</h3>@endif
+                                        @if ($type['description'])<p class="text-[1.0625rem] leading-relaxed text-ink-2">{{ $type['description'] }}</p>@endif
+                                    </div>
+                                @endif
+
+                                @foreach ($type['prices'] as $price)
+                                    <article class="option-card overflow-hidden rounded-[1.75rem] border border-line bg-white shadow-[var(--shadow-soft)]">
+                                        <header class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-line bg-gradient-to-br from-white to-sand-50 p-6 sm:p-8">
+                                            <div class="min-w-0">
+                                                <p class="text-[12px] font-semibold tracking-[0.14em] text-gold-deep uppercase">{{ $type['name'] }}</p>
+                                                <h3 class="mt-1.5 font-display text-display-sm text-brand">{{ $price['title'] }}</h3>
+                                                @if ($price['description'])<p class="mt-2 text-[15px] text-ink-2">{{ $price['description'] }}</p>@endif
+                                            </div>
+                                            <p class="text-end">
+                                                <span class="block font-display text-[2.25rem] leading-none font-semibold text-brand">{{ Money::html($price['price']) }}</span>
+                                                <span class="mt-1 block text-[13px] text-ink-3">{{ PackagePresenter::unitLabel($price['unit']) }}</span>
+                                            </p>
+                                        </header>
+
+                                        @if ($price['hotels'])
+                                            <div class="grid gap-px bg-line sm:grid-cols-2">
+                                                @foreach ($price['hotels'] as $hotel)
+                                                    <div class="flex gap-4 bg-white p-6 sm:p-7">
+                                                        <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-brand text-gold"><x-site.icon name="hotel" class="size-6" /></span>
+                                                        <div class="min-w-0">
+                                                            <p class="text-[12px] font-semibold tracking-[0.14em] text-ink-3 uppercase">{{ $hotel['heading'] }}</p>
+                                                            @if ($hotel['subheading'])<p class="mt-1 font-display text-[1.1875rem] leading-snug font-semibold text-brand">{{ $hotel['subheading'] }}</p>@endif
+                                                            @if ($hotel['description'])
+                                                                <p class="mt-2 flex gap-1.5 text-[14px] leading-relaxed text-ink-2">
+                                                                    <x-site.icon name="map-pin" class="mt-1 size-3.5 shrink-0 text-gold-deep" />
+                                                                    <span>{{ $hotel['description'] }}</span>
+                                                                </p>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+
+                                        <footer class="flex flex-col gap-3 border-t border-line p-6 sm:flex-row sm:items-center sm:p-7">
+                                            @if ($bookable)
+                                                <x-site.button :href="route('bookings.create', ['slug' => $package->slug, 'option' => $price['id']])" variant="primary" icon-right="arrow-right">{{ __('Book this option') }}</x-site.button>
+                                            @else
+                                                <span class="rounded-full bg-sand-100 px-5 py-3 text-center text-[14px] font-semibold text-ink-3">{{ $booking['label'] }}</span>
+                                            @endif
+                                            @if ($phones)
+                                                <x-site.button :href="$phones[0]['href']" variant="outline" icon="phone">{{ __('Call') }}</x-site.button>
+                                            @endif
+                                            @if ($whatsapp = $enquire($type['name'].' · '.$price['title']))
+                                                <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#15803d] hover:underline sm:ms-auto">
+                                                    <x-site.icon name="whatsapp" class="size-4" />{{ __('Ask about this option') }}
+                                                </a>
+                                            @endif
+                                        </footer>
+                                    </article>
+                                @endforeach
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
 
-                @foreach ($p['types'] as $i => $type)
-                    <div role="tabpanel" x-show="tab === {{ $i }}" @if ($i > 0) x-cloak @endif class="mt-10">
-                        @if ($type['description'])
-                            <p class="mb-8 max-w-3xl text-[1.0625rem] leading-relaxed text-ink-2">{{ $type['description'] }}</p>
-                        @endif
-                        <div @class(['grid gap-6', 'lg:grid-cols-2' => count($type['prices']) > 1, 'max-w-3xl' => count($type['prices']) === 1, 'xl:grid-cols-3' => count($type['prices']) >= 3])>
-                            @foreach ($type['prices'] as $price)
-                                <article class="flex flex-col overflow-hidden rounded-[1.5rem] border border-line bg-white shadow-[var(--shadow-soft)]">
-                                    <header class="border-b border-line bg-gradient-to-br from-white to-sand-100 p-6">
-                                        <div class="flex flex-wrap items-start justify-between gap-4">
-                                            <div>
-                                                @if ($type['code'])<p class="text-[11px] font-bold tracking-[0.14em] text-ink-3 uppercase">{{ $type['code'] }}</p>@endif
-                                                <h3 class="mt-1 font-display text-display-sm text-brand">{{ $price['title'] }}</h3>
-                                            </div>
-                                            <p class="text-right">
-                                                <span class="block font-display text-[1.75rem] leading-tight font-semibold text-brand">{{ Money::html($price['price']) }}</span>
-                                                <span class="text-[13px] text-ink-3">{{ PackagePresenter::unitLabel($price['unit']) }}</span>
-                                            </p>
-                                        </div>
-                                        @if ($price['description'])<p class="mt-3 text-[15px] text-ink-2">{{ $price['description'] }}</p>@endif
-                                    </header>
-
-                                    @if ($price['hotels'])
-                                        <ul class="flex-1 divide-y divide-line px-6">
-                                            @foreach ($price['hotels'] as $hotel)
-                                                <li class="flex gap-4 py-4">
-                                                    <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand"><x-site.icon name="hotel" class="size-5" /></span>
-                                                    <div>
-                                                        <p class="font-semibold text-ink">{{ $hotel['heading'] }}</p>
-                                                        @if ($hotel['subheading'])<p class="text-[14px] font-medium text-gold-deep">{{ $hotel['subheading'] }}</p>@endif
-                                                        @if ($hotel['description'])<p class="mt-1 text-[14px] leading-relaxed text-ink-2">{{ $hotel['description'] }}</p>@endif
-                                                    </div>
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    @endif
-
-                                    <footer class="flex flex-col gap-2.5 p-6 pt-4 sm:flex-row">
-                                        @if ($bookable)
-                                            <x-site.button :href="route('bookings.create', ['slug' => $package->slug, 'option' => $price['id']])" variant="primary" icon-right="arrow-right" class="flex-1">{{ __('Book this option') }}</x-site.button>
-                                        @else
-                                            <span class="flex-1 rounded-full bg-sand-100 px-5 py-3 text-center text-[14px] font-semibold text-ink-3">{{ $booking['label'] }}</span>
-                                        @endif
-                                        @if ($phones)
-                                            <x-site.button :href="$phones[0]['href']" variant="outline" icon="phone">{{ __('Call') }}</x-site.button>
-                                        @endif
-                                    </footer>
-                                </article>
-                            @endforeach
-                        </div>
-                    </div>
-                @endforeach
-                <p class="mt-8 text-[13px] text-ink-3">{{ __('Prices may change if the Saudi government, airlines or exchange rates change their fees. Please pay only through our official channels.') }}</p>
+                <p class="mx-auto mt-10 max-w-3xl text-center text-[13px] leading-relaxed text-ink-3">{{ __('Prices may change if the Saudi government, airlines or exchange rates change their fees. Please pay only through our official channels.') }}</p>
             </div>
         </section>
     @endif
 
-    {{-- Flights --}}
+    {{-- Flights: a navy travel band. --}}
     @if ($p['flights'])
-        <section id="flights" class="section-light scroll-mt-24 bg-white py-16 sm:py-20">
-            <div class="container-site">
-                <p class="eyebrow">{{ __('Travel') }}</p>
-                <h2 class="sec-heading mt-4 text-display-lg">{{ __('Flights') }}</h2>
-                <div class="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                    @foreach ($p['flights'] as $flight)
-                        <div class="sec-card flex gap-4 p-6">
-                            <span class="sec-icon size-12 shrink-0"><x-site.icon name="plane" class="size-6" /></span>
-                            <div>
-                                <p class="sec-heading font-display text-[1.2rem] font-semibold">{{ $flight['airline'] }}</p>
-                                @if ($flight['schedule'])<p class="mt-1 text-[14px] font-semibold text-gold-deep">{{ $flight['schedule'] }}</p>@endif
-                                @if ($flight['description'])<p class="sec-text mt-2 text-[15px] leading-relaxed whitespace-pre-line">{{ $flight['description'] }}</p>@endif
+        <section id="flights" class="section-dark relative isolate scroll-mt-36 overflow-hidden bg-brand-950 py-16 text-white sm:py-20 lg:py-24">
+            <div class="pattern-star pointer-events-none absolute -inset-y-[25%] inset-x-0 -z-10 opacity-[0.05]" data-parallax="0.25" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute -top-32 -right-32 -z-10 size-[460px] rounded-full bg-gold/10 blur-3xl" data-parallax="-0.15" aria-hidden="true"></div>
+            <div class="container-site grid items-center gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
+                <div data-reveal>
+                    <p class="eyebrow eyebrow-light">{{ __('Travel') }}</p>
+                    <h2 class="mt-4 text-display-lg text-white">{{ __('Flights') }}</h2>
+                    <dl class="mt-8 grid grid-cols-2 gap-4">
+                        @if ($p['duration'])
+                            <div class="rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                                <dt class="text-[12px] font-semibold tracking-[0.14em] text-white/55 uppercase">{{ __('Duration') }}</dt>
+                                <dd class="mt-1 font-display text-2xl font-semibold text-gold">{{ trans_choice(':count day|:count days', $p['duration'], ['count' => Money::digits($p['duration'])]) }}</dd>
                             </div>
+                        @endif
+                        <div class="rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                            <dt class="text-[12px] font-semibold tracking-[0.14em] text-white/55 uppercase">{{ __('Booking') }}</dt>
+                            <dd class="mt-2 flex items-center gap-2 text-[15px] font-semibold text-white">
+                                <span @class(['size-2.5 shrink-0 rounded-full', 'bg-emerald' => $bookable, 'bg-gold' => $booking['state'] === 'upcoming', 'bg-red-400' => $booking['state'] === 'closed'])></span>
+                                {{ $booking['label'] }}
+                            </dd>
                         </div>
+                    </dl>
+                </div>
+
+                <div class="grid gap-5" data-reveal style="--reveal-delay: 120ms">
+                    @foreach ($p['flights'] as $flight)
+                        <article class="flight-card relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-7 sm:p-9">
+                            <div class="flex items-start gap-5">
+                                <span class="flex size-14 shrink-0 items-center justify-center rounded-full bg-gold text-brand-950"><x-site.icon name="plane" class="size-7" /></span>
+                                <div class="min-w-0">
+                                    <h3 class="font-display text-display-sm text-white">{{ $flight['airline'] }}</h3>
+                                    @if ($flight['schedule'])<p class="mt-1.5 text-[15px] font-semibold text-gold">{{ $flight['schedule'] }}</p>@endif
+                                </div>
+                            </div>
+                            {{-- A route line the plane travels along when the card comes into view. --}}
+                            <div class="flight-route relative mt-7 h-px bg-white/15" aria-hidden="true">
+                                <span class="absolute -top-1 left-0 size-2 rounded-full bg-gold"></span>
+                                <span class="absolute -top-1 right-0 size-2 rounded-full bg-gold"></span>
+                                <x-site.icon name="plane" class="flight-plane absolute -top-2.5 size-5 text-gold rtl:-scale-x-100" />
+                            </div>
+                            @if ($flight['description'])<p class="mt-6 text-[15px] leading-relaxed whitespace-pre-line text-white/75">{{ $flight['description'] }}</p>@endif
+                        </article>
                     @endforeach
                 </div>
             </div>
         </section>
     @endif
 
-    {{-- Custom sections --}}
+    {{-- Custom sections (included, notes, gifts…) --}}
     @foreach ($p['sections'] as $index => $s)
         @include('site.packages.section', ['s' => $s, 'index' => $index])
     @endforeach
 
-    {{-- Related --}}
+    {{-- Related: the same wide cards as the package lists. --}}
     @if ($related->isNotEmpty())
-        <section class="bg-sand-100 py-16 sm:py-20">
+        <section class="relative isolate overflow-hidden bg-sand-100 py-16 sm:py-20 lg:py-24">
             <div class="container-site">
-                <div class="mb-10 flex flex-wrap items-end justify-between gap-4">
-                    <h2 class="text-display-md text-brand">{{ __('You may also like') }}</h2>
-                    <a href="{{ $p['service']->url() }}" class="link-underline font-semibold text-brand">{{ __('All :service packages', ['service' => $p['service']->getTranslation('name', $locale)]) }}</a>
+                <div class="mx-auto mb-12 max-w-2xl text-center" data-reveal>
+                    <p class="eyebrow justify-center">{{ $p['service']->getTranslation('name', $locale) }}</p>
+                    <h2 class="mt-4 text-display-lg text-brand">{{ __('You may also like') }}</h2>
                 </div>
-                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="mx-auto grid max-w-6xl gap-8">
                     @foreach ($related as $item)
-                        <x-site.package-card :package="$item" />
+                        <x-site.package-feature :package="$item" :card="$relatedCards[$item->id]" data-reveal />
                     @endforeach
+                </div>
+                <div class="mt-10 text-center" data-reveal>
+                    <x-site.button :href="$p['service']->url()" variant="outline" icon-right="arrow-right">{{ __('All :service packages', ['service' => $p['service']->getTranslation('name', $locale)]) }}</x-site.button>
                 </div>
             </div>
         </section>
