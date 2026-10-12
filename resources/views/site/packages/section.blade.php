@@ -49,22 +49,24 @@
                         <x-site.link-button :link="$s['cta']" :variant="$isDark ? 'gold' : 'primary'" icon-right="arrow-right" class="mt-8" />
                     @endif
                 </div>
-                <div class="pkg-blocks min-w-0" data-reveal style="--reveal-delay: 100ms">
+                <div class="pkg-blocks min-w-0" data-reveal-items="li, .prose-site > *, figure, iframe">
                     @include('partials.content-blocks', ['blocks' => $s['blocks']])
                 </div>
             @else
-            <div @class(['lg:order-2' => $twoColumn && ($s['image_position'] ?? 'right') === 'left']) data-reveal>
-                @if (filled($s['badge']))
-                    <span class="inline-flex rounded-full bg-gold px-3.5 py-1 text-[12px] font-bold tracking-wide text-brand-950 uppercase">{{ $s['badge'] }}</span>
-                @endif
-                @if (filled($s['heading']))
-                    <h2 @class(['sec-heading text-display-md', 'mt-4' => filled($s['badge'])])>{{ $s['heading'] }}</h2>
-                @endif
-                @if (filled($s['subheading']))
-                    <p class="sec-text mt-3 text-[1.0625rem] leading-relaxed">{{ $s['subheading'] }}</p>
-                @endif
+            <div @class(['lg:order-2' => $twoColumn && ($s['image_position'] ?? 'right') === 'left'])>
+                <div data-reveal>
+                    @if (filled($s['badge']))
+                        <span class="inline-flex rounded-full bg-gold px-3.5 py-1 text-[12px] font-bold tracking-wide text-brand-950 uppercase">{{ $s['badge'] }}</span>
+                    @endif
+                    @if (filled($s['heading']))
+                        <h2 @class(['sec-heading text-display-md', 'mt-4' => filled($s['badge'])])>{{ $s['heading'] }}</h2>
+                    @endif
+                    @if (filled($s['subheading']))
+                        <p class="sec-text mt-3 text-[1.0625rem] leading-relaxed">{{ $s['subheading'] }}</p>
+                    @endif
+                </div>
                 @if ($s['blocks'])
-                    <div @class(['mt-8' => filled($s['heading']) || filled($s['subheading'])])>
+                    <div @class(['mt-8' => filled($s['heading']) || filled($s['subheading'])]) data-reveal-items="li, .prose-site > *, figure, iframe">
                         @include('partials.content-blocks', ['blocks' => $s['blocks']])
                     </div>
                 @endif
@@ -76,7 +78,7 @@
             @endif
 
             @if ($twoColumn && $image)
-                <div @class(['lg:order-1' => ($s['image_position'] ?? 'right') === 'left']) data-reveal style="--reveal-delay: 100ms">
+                <div @class(['lg:order-1' => ($s['image_position'] ?? 'right') === 'left'])>
                     <img
                         src="{{ $image->url('md') }}"
                         srcset="{{ $image->srcset() }}"

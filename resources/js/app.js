@@ -441,6 +441,16 @@ function scrollMotion() {
         [...parent.children].forEach((child) => child.setAttribute('data-reveal', parent.dataset.revealChildren || ''));
     });
 
+    // Content blocks (package sections): each list item, paragraph, table or image matching the
+    // selector reveals on its own, a beat after its siblings.
+    document.querySelectorAll('[data-reveal-items]').forEach((root) => {
+        root.querySelectorAll(root.dataset.revealItems || 'li').forEach((item) => {
+            const index = [...item.parentElement.children].indexOf(item);
+            item.setAttribute('data-reveal', '');
+            item.style.setProperty('--reveal-delay', `${(index % 4) * 80}ms`);
+        });
+    });
+
     const reveals = document.querySelectorAll('[data-reveal]');
     const revealer = new IntersectionObserver(
         (entries) => {

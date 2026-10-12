@@ -81,31 +81,33 @@
 
                 <div @class(['grid gap-6 lg:gap-8', 'lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]' => count($p['types']) > 1])>
                     @if (count($p['types']) > 1)
-                        <div role="tablist" aria-label="{{ __('Package types') }}" aria-orientation="vertical" class="flex flex-col gap-3 lg:sticky lg:top-40 lg:self-start" data-reveal
+                        <div role="tablist" aria-label="{{ __('Package types') }}" aria-orientation="vertical" class="flex flex-col gap-3 lg:sticky lg:top-40 lg:self-start"
                              @keydown.down.prevent="tab = (tab + 1) % {{ count($p['types']) }}; $nextTick(() => $el.querySelectorAll('[role=tab]')[tab].focus())"
                              @keydown.up.prevent="tab = (tab + {{ count($p['types']) - 1 }}) % {{ count($p['types']) }}; $nextTick(() => $el.querySelectorAll('[role=tab]')[tab].focus())">
                             @foreach ($p['types'] as $i => $type)
                                 @php
                                     $typeFrom = collect($type['prices'])->min('price');
                                 @endphp
-                                <button type="button" role="tab" id="type-tab-{{ $i }}" aria-controls="type-panel-{{ $i }}"
-                                        @if ($i === 0) aria-selected="true" @else aria-selected="false" tabindex="-1" @endif
-                                        :aria-selected="(tab === {{ $i }}).toString()" :tabindex="tab === {{ $i }} ? 0 : -1"
-                                        @click="tab = {{ $i }}; if (window.innerWidth < 1024) window.scrollTo({ top: $el.closest('[role=tablist]').getBoundingClientRect().bottom + window.scrollY + 24 - 156, behavior: 'smooth' })"
-                                        @class(['type-tab group/tab relative flex items-center gap-4 rounded-2xl border p-4 text-start sm:p-5', 'is-active' => $i === 0])
-                                        :class="{ 'is-active': tab === {{ $i }} }">
-                                    <span class="type-tab-num flex size-10 shrink-0 items-center justify-center rounded-full font-display text-[15px] font-semibold tabular-nums">{{ Money::digits(str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT)) }}</span>
-                                    <span class="min-w-0 flex-1">
-                                        @if ($type['code'])<span class="type-tab-code block text-[11px] font-bold tracking-[0.14em] uppercase">{{ $type['code'] }}</span>@endif
-                                        <span class="type-tab-name block font-display text-[1.125rem] leading-snug font-semibold">{{ $type['name'] }}</span>
-                                    </span>
-                                    @if ($typeFrom)
-                                        <span class="shrink-0 text-end">
-                                            <span class="type-tab-from block text-[11px] font-semibold uppercase">{{ __('From') }}</span>
-                                            <span class="type-tab-price block font-display text-[1.125rem] leading-tight font-semibold">{{ Money::html($typeFrom) }}</span>
+                                <div class="flex flex-col" data-reveal style="--reveal-delay: {{ $i * 100 }}ms">
+                                    <button type="button" role="tab" id="type-tab-{{ $i }}" aria-controls="type-panel-{{ $i }}"
+                                            @if ($i === 0) aria-selected="true" @else aria-selected="false" tabindex="-1" @endif
+                                            :aria-selected="(tab === {{ $i }}).toString()" :tabindex="tab === {{ $i }} ? 0 : -1"
+                                            @click="tab = {{ $i }}; if (window.innerWidth < 1024) window.scrollTo({ top: $el.closest('[role=tablist]').getBoundingClientRect().bottom + window.scrollY + 24 - 156, behavior: 'smooth' })"
+                                            @class(['type-tab group/tab relative flex items-center gap-4 rounded-2xl border p-4 text-start sm:p-5', 'is-active' => $i === 0])
+                                            :class="{ 'is-active': tab === {{ $i }} }">
+                                        <span class="type-tab-num flex size-10 shrink-0 items-center justify-center rounded-full font-display text-[15px] font-semibold tabular-nums">{{ Money::digits(str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT)) }}</span>
+                                        <span class="min-w-0 flex-1">
+                                            @if ($type['code'])<span class="type-tab-code block text-[11px] font-bold tracking-[0.14em] uppercase">{{ $type['code'] }}</span>@endif
+                                            <span class="type-tab-name block font-display text-[1.125rem] leading-snug font-semibold">{{ $type['name'] }}</span>
                                         </span>
-                                    @endif
-                                </button>
+                                        @if ($typeFrom)
+                                            <span class="shrink-0 text-end">
+                                                <span class="type-tab-from block text-[11px] font-semibold uppercase">{{ __('From') }}</span>
+                                                <span class="type-tab-price block font-display text-[1.125rem] leading-tight font-semibold">{{ Money::html($typeFrom) }}</span>
+                                            </span>
+                                        @endif
+                                    </button>
+                                </div>
                             @endforeach
                         </div>
                     @endif
@@ -114,9 +116,9 @@
                         @foreach ($p['types'] as $i => $type)
                             <div role="tabpanel" id="type-panel-{{ $i }}" aria-labelledby="type-tab-{{ $i }}" x-show="tab === {{ $i }}" @if ($i > 0) x-cloak @endif
                                  x-transition:enter="transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" x-transition:enter-start="opacity-0 translate-y-3"
-                                 class="space-y-6" data-reveal>
+                                 class="space-y-6">
                                 @if (count($p['types']) === 1 || $type['description'])
-                                    <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+                                    <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2" data-reveal>
                                         @if (count($p['types']) === 1)<h3 class="font-display text-display-sm text-brand">{{ $type['name'] }}</h3>@endif
                                         @if ($type['description'])<p class="text-[1.0625rem] leading-relaxed text-ink-2">{{ $type['description'] }}</p>@endif
                                     </div>
@@ -124,7 +126,7 @@
 
                                 @foreach ($type['prices'] as $price)
                                     <article class="option-card overflow-hidden rounded-[1.75rem] border border-line bg-white shadow-[var(--shadow-soft)]">
-                                        <header class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-line bg-gradient-to-br from-white to-sand-50 p-6 sm:p-8">
+                                        <header class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-line bg-gradient-to-br from-white to-sand-50 p-6 sm:p-8" data-reveal>
                                             <div class="min-w-0">
                                                 <p class="text-[12px] font-semibold tracking-[0.14em] text-gold-deep uppercase">{{ $type['name'] }}</p>
                                                 <h3 class="mt-1.5 font-display text-display-sm text-brand">{{ $price['title'] }}</h3>
@@ -137,9 +139,9 @@
                                         </header>
 
                                         @if ($price['hotels'])
-                                            <div class="grid gap-px bg-line sm:grid-cols-2">
-                                                @foreach ($price['hotels'] as $hotel)
-                                                    <div class="flex gap-4 bg-white p-6 sm:p-7">
+                                            <div class="grid divide-y divide-line sm:grid-cols-2 sm:divide-x sm:divide-y-0 rtl:sm:divide-x-reverse">
+                                                @foreach ($price['hotels'] as $h => $hotel)
+                                                    <div class="flex gap-4 bg-white p-6 sm:p-7" data-reveal style="--reveal-delay: {{ 80 + $h * 120 }}ms">
                                                         <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-brand text-gold"><x-site.icon name="hotel" class="size-6" /></span>
                                                         <div class="min-w-0">
                                                             <p class="text-[12px] font-semibold tracking-[0.14em] text-ink-3 uppercase">{{ $hotel['heading'] }}</p>
@@ -156,7 +158,7 @@
                                             </div>
                                         @endif
 
-                                        <footer class="flex flex-col gap-3 border-t border-line p-6 sm:flex-row sm:items-center sm:p-7">
+                                        <footer class="flex flex-col gap-3 border-t border-line p-6 sm:flex-row sm:items-center sm:p-7" data-reveal style="--reveal-delay: 150ms">
                                             @if ($bookable)
                                                 <x-site.button :href="route('bookings.create', ['slug' => $package->slug, 'option' => $price['id']])" variant="primary" icon-right="arrow-right">{{ __('Book this option') }}</x-site.button>
                                             @else
@@ -189,17 +191,19 @@
             <div class="pattern-star pointer-events-none absolute -inset-y-[25%] inset-x-0 -z-10 opacity-[0.05]" data-parallax="0.25" aria-hidden="true"></div>
             <div class="pointer-events-none absolute -top-32 -right-32 -z-10 size-[460px] rounded-full bg-gold/10 blur-3xl" data-parallax="-0.15" aria-hidden="true"></div>
             <div class="container-site grid items-center gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
-                <div data-reveal>
-                    <p class="eyebrow eyebrow-light">{{ __('Travel') }}</p>
-                    <h2 class="mt-4 text-display-lg text-white">{{ __('Flights') }}</h2>
+                <div>
+                    <div data-reveal>
+                        <p class="eyebrow eyebrow-light">{{ __('Travel') }}</p>
+                        <h2 class="mt-4 text-display-lg text-white">{{ __('Flights') }}</h2>
+                    </div>
                     <dl class="mt-8 grid grid-cols-2 gap-4">
                         @if ($p['duration'])
-                            <div class="rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                            <div class="rounded-2xl border border-white/10 bg-white/[0.05] p-5" data-reveal style="--reveal-delay: 80ms">
                                 <dt class="text-[12px] font-semibold tracking-[0.14em] text-white/55 uppercase">{{ __('Duration') }}</dt>
                                 <dd class="mt-1 font-display text-2xl font-semibold text-gold">{{ trans_choice(':count day|:count days', $p['duration'], ['count' => Money::digits($p['duration'])]) }}</dd>
                             </div>
                         @endif
-                        <div class="rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                        <div class="rounded-2xl border border-white/10 bg-white/[0.05] p-5" data-reveal style="--reveal-delay: 180ms">
                             <dt class="text-[12px] font-semibold tracking-[0.14em] text-white/55 uppercase">{{ __('Booking') }}</dt>
                             <dd class="mt-2 flex items-center gap-2 text-[15px] font-semibold text-white">
                                 <span @class(['size-2.5 shrink-0 rounded-full', 'bg-emerald' => $bookable, 'bg-gold' => $booking['state'] === 'upcoming', 'bg-red-400' => $booking['state'] === 'closed'])></span>
@@ -209,10 +213,10 @@
                     </dl>
                 </div>
 
-                <div class="grid gap-5" data-reveal style="--reveal-delay: 120ms">
+                <div class="grid gap-5">
                     @foreach ($p['flights'] as $flight)
                         <article class="flight-card relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-7 sm:p-9">
-                            <div class="flex items-start gap-5">
+                            <div class="flex items-start gap-5" data-reveal>
                                 <span class="flex size-14 shrink-0 items-center justify-center rounded-full bg-gold text-brand-950"><x-site.icon name="plane" class="size-7" /></span>
                                 <div class="min-w-0">
                                     <h3 class="font-display text-display-sm text-white">{{ $flight['airline'] }}</h3>
@@ -220,12 +224,12 @@
                                 </div>
                             </div>
                             {{-- A route line the plane travels along when the card comes into view. --}}
-                            <div class="flight-route relative mt-7 h-px bg-white/15" aria-hidden="true">
+                            <div class="flight-route relative mt-7 h-px bg-white/15" aria-hidden="true" data-reveal style="--reveal-delay: 120ms">
                                 <span class="absolute -top-1 left-0 size-2 rounded-full bg-gold"></span>
                                 <span class="absolute -top-1 right-0 size-2 rounded-full bg-gold"></span>
                                 <x-site.icon name="plane" class="flight-plane absolute -top-2.5 size-5 text-gold rtl:-scale-x-100" />
                             </div>
-                            @if ($flight['description'])<p class="mt-6 text-[15px] leading-relaxed whitespace-pre-line text-white/75">{{ $flight['description'] }}</p>@endif
+                            @if ($flight['description'])<p class="mt-6 text-[15px] leading-relaxed whitespace-pre-line text-white/75" data-reveal style="--reveal-delay: 200ms">{{ $flight['description'] }}</p>@endif
                         </article>
                     @endforeach
                 </div>
