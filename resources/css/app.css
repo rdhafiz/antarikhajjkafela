@@ -14,8 +14,8 @@
  * Tints are mixed from those colors; neutrals are a warm "sand" scale.
  */
 @theme inline {
-    --font-sans: 'Plus Jakarta Sans', 'Hind Siliguri', ui-sans-serif, system-ui, sans-serif;
-    --font-display: 'Fraunces', 'Tiro Bangla', ui-serif, Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Fraunces', 'Noto Sans Bengali', ui-serif, Georgia, serif;
 
     --color-brand: var(--brand-primary);
     --color-brand-950: color-mix(in oklab, var(--brand-primary) 74%, black);
@@ -77,6 +77,16 @@
         -webkit-font-smoothing: antialiased;
     }
 
+    /*
+     * Bangla pages: Noto Sans Bengali for all Bangla text. Headings use it too
+     * (with the sans for any Latin digits or punctuation), so a Bangla heading
+     * never mixes in the English serif. (Italics are switched off for Bangla
+     * in the utilities layer at the end of this file.)
+     */
+    :root:lang(bn) {
+        --font-display: 'Noto Sans Bengali', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    }
+
     /* Bangla script needs a little more room between lines. */
     :lang(bn) body,
     body:lang(bn) {
@@ -93,8 +103,12 @@
 
     :lang(bn) :is(h1, h2, h3, h4) {
         letter-spacing: 0;
-        line-height: 1.3;
-        font-weight: 400;
+        line-height: 1.35;
+    }
+
+    /* Large Bangla headings read better a step lighter. */
+    :lang(bn) :is(h1, h2) {
+        font-weight: 500;
     }
 
     p {
@@ -1436,5 +1450,15 @@
 
     to {
         transform: scale(1.04);
+    }
+}
+
+/*
+ * Bangla has no italic: keep it upright instead of slanting it artificially.
+ * In the utilities layer so it also wins over the italic utility class.
+ */
+@layer utilities {
+    :lang(bn) :is(.italic, em, i, blockquote) {
+        font-style: normal;
     }
 }

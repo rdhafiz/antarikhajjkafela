@@ -142,7 +142,7 @@
                 @foreach ($highlights as $item)
                     <div class="flex flex-col-reverse items-center text-center sm:border-l sm:border-white/10 sm:first:border-l-0">
                         <dt class="mt-1 text-[13px] tracking-wide text-white/60">{{ $item['label'] }}</dt>
-                        <dd class="font-display text-3xl font-semibold text-gold">{{ $item['value'] }}</dd>
+                        <dd class="font-display text-3xl font-semibold text-gold">{{ App\Support\Money::digits($item['value']) }}</dd>
                     </div>
                 @endforeach
             </dl>

@@ -150,8 +150,8 @@ Cross-cutting rules:
   - A premium, calm Islamic-modern design: navy (#012a51) as the anchor, gold (#fdc802) used sparingly for CTAs and highlights (never as text on white), and green (#01914d) as the accent.
   - Subtle geometric patterns derived from the logo's star knot.
 - **Typography** (self-hosted via Bunny Fonts, subset):
-  - Headings: **Fraunces** (EN) + **Tiro Bangla** (BN).
-  - Body: **Plus Jakarta Sans** (EN) + **Hind Siliguri** (BN).
+  - Headings: **Fraunces** (EN) + **Noto Sans Bengali** (BN).
+  - Body: **Plus Jakarta Sans** (EN) + **Noto Sans Bengali** (BN).
   - The font stack switches automatically with the active language.
 - **Logo:** the full logo on light surfaces; the transparent icon plus the name in text on dark surfaces.
 - **Motion:** purposeful only (section reveals, hover states, counter animation), all respecting `prefers-reduced-motion`.
