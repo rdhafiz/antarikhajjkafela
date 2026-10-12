@@ -3,6 +3,8 @@
     A package as a wide card on its service page: the banner (at its own 16:6 shape) with the
     name and starting price, then the summary and flight beside every package option (tier)
     with its hotels and price, each option linking to booking.
+    The frame stays in place while its parts reveal in turn as they scroll into view:
+    the banner wipes open, then the summary, the flight, each option and the buttons.
 --}}
 @php
     use App\Support\Money;
@@ -13,15 +15,18 @@
     $open = $card['state'] === 'open';
 @endphp
 <article {{ $attributes->class(['pkg-feature relative overflow-hidden rounded-[2rem] border border-line bg-white shadow-[var(--shadow-soft)]']) }}>
-    <div class="relative isolate flex aspect-[4/3] flex-col justify-between overflow-hidden bg-brand p-6 text-white sm:aspect-[16/7] sm:p-8 lg:aspect-[16/6] lg:p-10">
+    <div class="relative isolate flex aspect-[4/3] flex-col justify-between overflow-hidden bg-brand p-6 text-white sm:aspect-[16/7] sm:p-8 lg:aspect-[16/6] lg:p-10" data-reveal="wipe">
         @if ($package->banner)
-            <img
-                src="{{ $package->banner->url('lg') }}"
-                srcset="{{ $package->banner->srcset() }}"
-                sizes="(min-width: 1200px) 1150px, 100vw"
-                alt="" loading="lazy" decoding="async"
-                class="pkg-feature-img absolute inset-0 -z-20 size-full object-cover"
-            >
+            {{-- Own layer, so the wipe clips this wrapper and the photo keeps its slow hover zoom. --}}
+            <div class="absolute inset-0 -z-20 overflow-hidden">
+                <img
+                    src="{{ $package->banner->url('lg') }}"
+                    srcset="{{ $package->banner->srcset() }}"
+                    sizes="(min-width: 1200px) 1150px, 100vw"
+                    alt="" loading="lazy" decoding="async"
+                    class="pkg-feature-img size-full object-cover"
+                >
+            </div>
         @else
             <div class="pattern-star absolute inset-0 -z-20 opacity-[0.08]" aria-hidden="true"></div>
         @endif
@@ -61,11 +66,11 @@
     <div class="grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:grid-rows-[auto_1fr] lg:gap-x-12 lg:p-10">
         <div class="lg:col-start-1 lg:row-start-1">
             @if (filled($summary))
-                <p class="text-[1.0625rem] leading-relaxed text-ink-2">{{ $summary }}</p>
+                <p class="text-[1.0625rem] leading-relaxed text-ink-2" data-reveal>{{ $summary }}</p>
             @endif
 
             @if ($card['flight'])
-                <p class="mt-5 flex items-start gap-2.5 text-[14.5px] leading-snug text-ink-2">
+                <p class="mt-5 flex items-start gap-2.5 text-[14.5px] leading-snug text-ink-2" data-reveal style="--reveal-delay: 100ms">
                     <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-sand-100"><x-site.icon name="plane" class="size-4 text-gold-deep" /></span>
                     <span class="pt-1.5">
                         <span class="font-semibold text-brand">{{ $card['flight']['airline'] }}</span>
@@ -77,10 +82,10 @@
 
         @if ($card['tiers'])
             <div class="lg:col-start-2 lg:row-span-2 lg:row-start-1">
-                <p class="text-[12px] font-semibold tracking-[0.14em] text-ink-3 uppercase">{{ __('Package options') }}</p>
+                <p class="text-[12px] font-semibold tracking-[0.14em] text-ink-3 uppercase" data-reveal>{{ __('Package options') }}</p>
                 <ul class="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line">
-                    @foreach ($card['tiers'] as $tier)
-                        <li>
+                    @foreach ($card['tiers'] as $index => $tier)
+                        <li data-reveal="left" style="--reveal-delay: {{ 80 + $index * 110 }}ms">
                             <a
                                 href="{{ $open ? route('bookings.create', ['slug' => $package->slug, 'option' => $tier['option']]) : $package->url().'#prices' }}"
                                 class="pkg-tier block px-4 py-3.5 sm:px-5"
@@ -112,7 +117,7 @@
             </div>
         @endif
 
-        <div class="flex flex-col gap-3 sm:flex-row lg:col-start-1 lg:row-start-2 lg:flex-col lg:self-end xl:flex-row">
+        <div class="flex flex-col gap-3 sm:flex-row lg:col-start-1 lg:row-start-2 lg:flex-col lg:self-end xl:flex-row" data-reveal style="--reveal-delay: 150ms">
             @if ($open)
                 <x-site.button :href="route('bookings.create', $package->slug)" variant="gold" icon-right="arrow-right">{{ __('Book now') }}</x-site.button>
             @endif

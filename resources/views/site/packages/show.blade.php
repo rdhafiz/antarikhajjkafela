@@ -248,7 +248,7 @@
                 </div>
                 <div class="mx-auto grid max-w-6xl gap-8">
                     @foreach ($related as $item)
-                        <x-site.package-feature :package="$item" :card="$relatedCards[$item->id]" data-reveal />
+                        <x-site.package-feature :package="$item" :card="$relatedCards[$item->id]" />
                     @endforeach
                 </div>
                 <div class="mt-10 text-center" data-reveal>

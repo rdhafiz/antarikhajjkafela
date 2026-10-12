@@ -43,7 +43,7 @@
             <h2 class="sr-only">{{ __('Packages') }}</h2>
             <div class="mx-auto grid max-w-6xl gap-8">
                 @foreach ($packages as $package)
-                    <x-site.package-feature :package="$package" :card="$cards[$package->id]" show-service data-reveal />
+                    <x-site.package-feature :package="$package" :card="$cards[$package->id]" show-service />
                 @endforeach
             </div>
         @endif

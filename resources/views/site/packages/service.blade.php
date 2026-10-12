@@ -55,7 +55,7 @@
             @else
                 <div class="mx-auto grid max-w-6xl gap-8">
                     @foreach ($packages as $index => $package)
-                        <x-site.package-feature :package="$package" :card="$cards[$package->id]" data-reveal />
+                        <x-site.package-feature :package="$package" :card="$cards[$package->id]" />
                     @endforeach
                 </div>
             @endif
@@ -89,10 +89,10 @@
         <section class="relative isolate overflow-hidden bg-white py-20 sm:py-24 lg:py-28">
             <div class="pattern-star-ink pointer-events-none absolute -inset-y-[25%] inset-x-0 -z-10 opacity-[0.015]" data-parallax="0.2" aria-hidden="true"></div>
             <div class="container-site">
-                <div class="mx-auto max-w-3xl text-center" data-reveal>
-                    <h2 class="eyebrow justify-center">{{ __('About :name', ['name' => $name]) }}</h2>
+                <div class="mx-auto max-w-3xl text-center">
+                    <h2 class="eyebrow justify-center" data-reveal>{{ __('About :name', ['name' => $name]) }}</h2>
                     @foreach ($about['paragraphs'] as $index => $paragraph)
-                        <p @class([
+                        <p data-reveal style="--reveal-delay: 80ms" @class([
                             'text-brand',
                             'mt-6 font-display text-[1.5rem] leading-[1.55] sm:text-[1.875rem]' => $index === 0,
                             'mt-5 text-[1.0625rem] leading-relaxed text-ink-2' => $index > 0,
