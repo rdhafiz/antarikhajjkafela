@@ -16,6 +16,12 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     /*
+    | The admin portal lives at /{admin_prefix}/admin (not the guessable /admin).
+    */
+
+    'admin_prefix' => env('ADMIN_PREFIX', 'ahk'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

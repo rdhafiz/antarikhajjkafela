@@ -2,10 +2,6 @@
 
 namespace Tests\Feature\Admin;
 
-use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Password;
-
 class AuthTest extends AdminTestCase
 {
     public function test_admin_can_sign_in_and_load_their_profile(): void
@@ -65,45 +61,20 @@ class AuthTest extends AdminTestCase
         $this->getJson('/api/admin/users')->assertUnauthorized();
     }
 
-    public function test_forgot_password_does_not_reveal_whether_the_account_exists(): void
+    public function test_there_is_no_password_reset(): void
     {
-        Notification::fake();
-        $user = $this->superAdmin(['email' => 'owner@example.com']);
+        $this->superAdmin(['email' => 'owner@example.com']);
 
-        $known = $this->postJson('/api/admin/auth/forgot-password', ['email' => 'owner@example.com'])->assertOk()->json('message');
-        $unknown = $this->postJson('/api/admin/auth/forgot-password', ['email' => 'nobody@example.com'])->assertOk()->json('message');
-
-        $this->assertSame($known, $unknown);
-        Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user) {
-            $url = $notification->toMail($user)->actionUrl;
-
-            return str_contains($url, '/admin/reset-password?token=');
-        });
-    }
-
-    public function test_password_can_be_reset_with_a_valid_token(): void
-    {
-        $user = $this->superAdmin(['email' => 'owner@example.com']);
-        $token = Password::createToken($user);
-
-        $this->postJson('/api/admin/auth/reset-password', [
-            'token' => $token,
-            'email' => 'owner@example.com',
-            'password' => 'BrandNew12345',
-            'password_confirmation' => 'BrandNew12345',
-        ])->assertOk();
-
-        $this->assertTrue(auth('web')->validate(['email' => 'owner@example.com', 'password' => 'BrandNew12345']));
+        $this->postJson('/api/admin/auth/forgot-password', ['email' => 'owner@example.com'])->assertNotFound();
+        $this->postJson('/api/admin/auth/reset-password', ['email' => 'owner@example.com'])->assertNotFound();
     }
 
     public function test_weak_passwords_are_rejected(): void
     {
-        $user = $this->superAdmin();
-        $token = Password::createToken($user);
+        $user = $this->superAdmin(['password' => 'Secret12345']);
 
-        $this->postJson('/api/admin/auth/reset-password', [
-            'token' => $token,
-            'email' => $user->email,
+        $this->asAdmin($user)->putJson('/api/admin/profile/password', [
+            'current_password' => 'Secret12345',
             'password' => 'short',
             'password_confirmation' => 'short',
         ])->assertJsonValidationErrors('password');
@@ -128,7 +99,13 @@ class AuthTest extends AdminTestCase
 
     public function test_the_admin_spa_shell_is_served_for_any_admin_path(): void
     {
-        $this->get('/admin')->assertOk()->assertSee('id="admin"', false)->assertSee('--admin-primary: #012a51', false);
-        $this->get('/admin/users/anything')->assertOk();
+        $this->get('/ahk/admin/login')->assertOk()->assertSee('id="admin"', false)->assertSee('--admin-primary: #012a51', false)
+            ->assertSee("window.adminBase = '\\/ahk\\/'", false);
+        $this->get('/ahk/admin/users/anything')->assertOk();
+        $this->assertSame(url('/ahk/admin/bookings/12'), admin_url('bookings/12'));
+
+        // The old, guessable address is gone.
+        $this->get('/admin')->assertNotFound();
+        $this->get('/admin/login')->assertNotFound();
     }
 }

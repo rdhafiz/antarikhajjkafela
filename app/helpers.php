@@ -25,6 +25,16 @@ if (! function_exists('setting_t')) {
     }
 }
 
+if (! function_exists('admin_url')) {
+    /**
+     * Absolute URL of an admin portal page, e.g. admin_url('bookings/12').
+     */
+    function admin_url(string $path = ''): string
+    {
+        return url(trim(config('app.admin_prefix'), '/').'/admin'.($path !== '' ? '/'.ltrim($path, '/') : ''));
+    }
+}
+
 if (! function_exists('seo')) {
     /**
      * SEO details of the current page.

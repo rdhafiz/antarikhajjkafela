@@ -65,7 +65,7 @@ return [
     | Slugs pages cannot use because the site already routes them.
     */
     'reserved_slugs' => [
-        'admin', 'api', 'build', 'storage', 'images', 'language', 'sanctum', 'up', 'styleguide',
+        'admin', 'ahk', 'api', 'build', 'storage', 'images', 'language', 'sanctum', 'up', 'styleguide',
         'sitemap.xml', 'robots.txt', 'site.webmanifest', 'forms', 'preview',
         'hajj', 'umrah', 'packages', 'package', 'booking', 'bookings', 'payments', 'blog', 'gallery', 'reviews', 'services',
     ],

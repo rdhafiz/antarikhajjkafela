@@ -11,7 +11,6 @@ use App\Support\Branding;
 use App\Support\Locales;
 use App\Support\Seo\Seo;
 use App\Support\SiteContext;
-use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -69,11 +68,6 @@ class AppServiceProvider extends ServiceProvider
             Limit::perHour(30)->by($request->ip()),
             Limit::perHour(5)->by('contact:'.self::lookupKey((string) $request->input('contact'))),
         ]);
-
-        ResetPassword::createUrlUsing(fn ($user, string $token) => url('/admin/reset-password').'?'.http_build_query([
-            'token' => $token,
-            'email' => $user->getEmailForPasswordReset(),
-        ]));
     }
 
     /**

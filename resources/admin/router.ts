@@ -19,8 +19,6 @@ const routes: RouteRecordRaw[] = [
         meta: { guest: true },
         children: [
             { path: 'login', name: 'login', component: () => import('@admin/pages/auth/LoginPage.vue'), meta: { guest: true, title: 'Sign in' } },
-            { path: 'forgot-password', name: 'forgot-password', component: () => import('@admin/pages/auth/ForgotPasswordPage.vue'), meta: { guest: true, title: 'Forgot password' } },
-            { path: 'reset-password', name: 'reset-password', component: () => import('@admin/pages/auth/ResetPasswordPage.vue'), meta: { guest: true, title: 'Reset password' } },
         ],
     },
     {
@@ -54,7 +52,7 @@ const routes: RouteRecordRaw[] = [
 ];
 
 export const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHistory((window as Window & { adminBase?: string }).adminBase ?? '/ahk/'),
     routes,
     scrollBehavior: (_to, _from, saved) => saved ?? { top: 0 },
 });

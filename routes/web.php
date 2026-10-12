@@ -36,8 +36,8 @@ if (app()->isLocal()) {
     Route::view('/styleguide', 'site.styleguide')->name('styleguide');
 }
 
-// Admin portal (Vue SPA). Every /admin URL returns the shell; the client router resolves it.
-Route::get('/admin/{any?}', SpaController::class)->where('any', '.*')->name('admin');
+// Admin portal (Vue SPA) at /{admin_prefix}/admin. Every admin URL returns the shell; the client router resolves it.
+Route::get(trim(config('app.admin_prefix'), '/').'/admin/{any?}', SpaController::class)->where('any', '.*')->name('admin');
 
 // Packages
 Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');

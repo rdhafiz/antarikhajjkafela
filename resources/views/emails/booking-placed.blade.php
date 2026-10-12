@@ -13,6 +13,6 @@
     </table>
 
     <p style="margin:26px 0 0;">
-        <a href="{{ url('/admin/bookings/'.$booking->id) }}" style="display:inline-block;background:#012a51;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:bold;font-size:14px;">Open the booking</a>
+        <a href="{{ admin_url('bookings/'.$booking->id) }}" style="display:inline-block;background:#012a51;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:bold;font-size:14px;">Open the booking</a>
     </p>
 @endsection

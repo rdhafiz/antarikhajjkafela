@@ -28,6 +28,8 @@
     @endif
 
     <link rel="preload" as="font" type="font/woff2" href="{{ Vite::asset('resources/fonts/plus-jakarta-sans-latin-400.woff2') }}" crossorigin>
+    {{-- Base of the client router: the admin portal sits under /{admin_prefix}/. --}}
+    <script>window.adminBase = @js('/'.trim(config('app.admin_prefix'), '/').'/');</script>
     @vite('resources/admin/main.ts')
 </head>
 <body class="antialiased">

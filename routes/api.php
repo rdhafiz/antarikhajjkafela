@@ -32,8 +32,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::controller(AuthController::class)->prefix('auth')->group(function () {
         Route::post('login', 'login')->middleware('throttle:admin-login')->name('login');
-        Route::post('forgot-password', 'forgotPassword')->middleware('throttle:5,1')->name('password.email');
-        Route::post('reset-password', 'resetPassword')->middleware('throttle:5,1')->name('password.update');
     });
 
     Route::middleware(['auth:sanctum', 'active'])->group(function () {

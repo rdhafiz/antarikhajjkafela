@@ -132,7 +132,7 @@ php artisan up
 ## 4. After the first deploy
 
 - **HTTPS.** Turn on SSL in hPanel → Security → SSL and force HTTPS.
-- **Admin.** Sign in at `https://<domain>/admin`, then in Settings:
+- **Admin.** Sign in at `https://<domain>/ahk/admin/login` (the `ahk` part comes from `ADMIN_PREFIX` in `.env`), then in Settings:
   - check the branding, contact details, social links and SEO
   - add the Google Tag Manager, Analytics and Pixel IDs, and the reCAPTCHA v3 keys
   - add the payment gateway credentials (sandbox first, then live)

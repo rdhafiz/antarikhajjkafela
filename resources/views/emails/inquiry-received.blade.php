@@ -19,7 +19,7 @@
                         @endforeach
                     </table>
                     <p style="margin:26px 0 0;">
-                        <a href="{{ url('/admin/inquiries') }}" style="display:inline-block;background:#012a51;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:bold;font-size:14px;">Open the inquiry inbox</a>
+                        <a href="{{ admin_url('inquiries') }}" style="display:inline-block;background:#012a51;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:bold;font-size:14px;">Open the inquiry inbox</a>
                     </p>
                 </td></tr>
             </table>

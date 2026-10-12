@@ -142,7 +142,7 @@ Cross-cutting rules:
 
 ### 4.11 Users, roles and permissions
 - Multiple admins. Default roles: **Super Admin**, **Admin**, **Content Editor**, **Booking Manager**. Each module has fine-grained permissions (view, create, edit, delete), and the Super Admin can edit roles.
-- Login is rate-limited, with password reset by email and an **activity log** of admin actions.
+- Login is rate-limited (no self-service password reset: a super admin sets passwords in Users) with an **activity log** of admin actions.
 
 ## 5. Public site and design
 
