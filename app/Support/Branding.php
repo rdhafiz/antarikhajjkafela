@@ -30,6 +30,14 @@ class Branding
         return $this->media('branding.logo');
     }
 
+    /**
+     * Background image for page headers that have none of their own.
+     */
+    public function defaultBanner(): ?Media
+    {
+        return $this->media('branding.default_banner');
+    }
+
     public function appIcon(): ?Media
     {
         return $this->media('branding.app_icon');

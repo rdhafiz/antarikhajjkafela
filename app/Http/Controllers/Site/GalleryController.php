@@ -38,6 +38,7 @@ class GalleryController extends Controller
             'album' => $album,
             'title' => $title,
             'items' => $items,
+            'cover' => $cover,
             'more' => $more,
             'galleryUrl' => $gallery?->url() ?? url('gallery'),
         ]);

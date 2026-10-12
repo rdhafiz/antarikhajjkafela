@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\GalleryAlbum;
 use App\Models\Media;
+use App\Models\Package;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Service;
 use Database\Seeders\BlogSeeder;
+use Database\Seeders\HeroImagesSeeder;
 use Database\Seeders\OldSiteMediaSeeder;
 use Database\Seeders\PageSeeder;
 use Database\Seeders\TravelSeeder;
@@ -40,6 +42,31 @@ class SeedContentTest extends AdminTestCase
         $this->assertSame(999, $about->fresh()->content['image']);
 
         $this->get('/gallery/hajj-workshop-2025')->assertOk()->assertSee('Hajj workshop 2025');
+    }
+
+    public function test_every_page_top_gets_a_background_photo(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+
+        $this->seed([PageSeeder::class, TravelSeeder::class, HeroImagesSeeder::class]);
+
+        foreach (Page::with('sections')->get() as $page) {
+            $first = $page->sections->sortBy('sort')->first();
+            $this->assertNotEmpty($first->content['image'] ?? null, "{$page->slug} has no top image");
+        }
+
+        $home = Page::where('system_key', 'home')->first()->sections()->orderBy('sort')->first();
+        $this->assertSame('centered', $home->content['variant']);
+        $this->assertNotNull(settings('branding.default_banner'));
+        $this->assertSame(0, Package::whereNull('banner_id')->count());
+
+        // Running again imports nothing new.
+        $count = Media::count();
+        $this->seed(HeroImagesSeeder::class);
+        $this->assertSame($count, Media::count());
+
+        $this->get('/packages')->assertOk()->assertSee(Media::find(settings('branding.default_banner'))->url('lg'), false);
     }
 
     public function test_policy_pages_have_bangla_text(): void

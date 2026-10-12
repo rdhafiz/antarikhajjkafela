@@ -4,7 +4,8 @@
     'eyebrow' => null,
     'image' => null,        // optional App\Models\Media background
 ])
-{{-- Banner at the top of inner pages: title, intro and breadcrumbs. --}}
+{{-- Banner at the top of inner pages: title, intro and breadcrumbs. Without an image, the default banner from the settings is used. --}}
+@php($image ??= app(App\Support\Branding::class)->defaultBanner())
 <section class="relative isolate overflow-hidden bg-brand-950 text-white">
     @if ($image)
         <img

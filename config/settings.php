@@ -58,6 +58,7 @@ return [
                 'logo' => ['type' => 'media', 'usage' => 'logo', 'label' => 'Website logo', 'hint' => 'Shown in the header. A wide logo on a transparent or white background works best.', 'default' => null],
                 'app_icon' => ['type' => 'media', 'usage' => 'icon', 'label' => 'App icon', 'hint' => 'Square image, at least 512×512. Used when the site is added to a phone home screen.', 'default' => null],
                 'favicon' => ['type' => 'media', 'usage' => 'icon', 'label' => 'Favicon', 'hint' => 'Square image shown in browser tabs.', 'default' => null],
+                'default_banner' => ['type' => 'media', 'usage' => 'banner', 'label' => 'Default page banner', 'hint' => 'Background for page tops that have no image of their own, such as the package list and booking pages.', 'default' => null],
             ],
         ],
 
