@@ -21,14 +21,9 @@ class MenuSeeder extends Seeder
             $this->route('services', 'Services', 'সেবাসমূহ'),
             $this->route('gallery', 'Gallery', 'গ্যালারি'),
             $this->route('blog', 'Blog', 'ব্লগ'),
-            [
-                ...$this->route('about', 'About', 'আমাদের সম্পর্কে'),
-                'children' => [
-                    $this->route('about', 'About us', 'আমাদের সম্পর্কে'),
-                    // Hidden until the Reviews page is published.
-                    [...$this->route('reviews', 'Reviews', 'রিভিউ'), 'is_visible' => false],
-                ],
-            ],
+            $this->route('about', 'About', 'আমাদের সম্পর্কে'),
+            // Hidden until the Reviews page is published.
+            [...$this->route('reviews', 'Reviews', 'রিভিউ'), 'is_visible' => false],
             $this->route('contact', 'Contact', 'যোগাযোগ'),
         ]);
 
