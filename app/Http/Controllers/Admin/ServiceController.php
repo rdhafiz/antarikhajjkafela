@@ -89,6 +89,7 @@ class ServiceController extends Controller
             'is_active' => ['boolean'],
             'seo.title.*' => ['nullable', 'string', 'max:70'],
             'seo.description.*' => ['nullable', 'string', 'max:200'],
+            'seo.image' => ['nullable', 'integer', Rule::exists(Media::class, 'id')],
         ], ['slug.regex' => 'Use lowercase letters, numbers and single hyphens only.']);
 
         if (Page::where('slug', $data['slug'])->exists()) {
@@ -105,7 +106,7 @@ class ServiceController extends Controller
             'icon' => $data['icon'] ?? null,
             'image_id' => $data['image_id'] ?? null,
             'is_active' => (bool) ($data['is_active'] ?? true),
-            'seo' => ['title' => array_filter($data['seo']['title'] ?? []), 'description' => array_filter($data['seo']['description'] ?? [])],
+            'seo' => ['title' => array_filter($data['seo']['title'] ?? []), 'description' => array_filter($data['seo']['description'] ?? []), 'image' => $data['seo']['image'] ?? null],
         ];
     }
 
@@ -126,7 +127,7 @@ class ServiceController extends Controller
             'icon' => $service->icon,
             'image_id' => $service->image_id,
             'is_active' => $service->is_active,
-            'seo' => ['title' => (object) ($service->seo['title'] ?? []), 'description' => (object) ($service->seo['description'] ?? [])],
+            'seo' => ['title' => (object) ($service->seo['title'] ?? []), 'description' => (object) ($service->seo['description'] ?? []), 'image' => $service->seo['image'] ?? null],
             'packages_count' => $service->packages_count ?? 0,
         ];
     }

@@ -8,6 +8,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Interfaces\ImageInterface;
@@ -97,6 +98,7 @@ class MediaUploader
                 'fit' => $override['fit'] ?? $spec['fit'],
                 'quality' => $override['quality'] ?? $spec['quality'] ?? config('media.default_quality'),
                 'crop' => $override['crop'] ?? null,
+                'format' => $spec['format'] ?? 'webp',
             ];
         }
 
@@ -155,12 +157,12 @@ class MediaUploader
             $image->scaleDown($width, $height);
         }
 
-        $encoded = $image->encode(new WebpEncoder(
-            quality: (int) ($spec['quality'] ?? config('media.default_quality')),
-            strip: true,
-        ));
+        // WebP by default; 'format' => 'jpg' for images other sites read (social share previews).
+        $quality = (int) ($spec['quality'] ?? config('media.default_quality'));
+        $jpeg = ($spec['format'] ?? 'webp') === 'jpg';
+        $encoded = $image->encode($jpeg ? new JpegEncoder(quality: $quality, progressive: true, strip: true) : new WebpEncoder(quality: $quality, strip: true));
 
-        $path = "{$directory}/{$name}.webp";
+        $path = "{$directory}/{$name}.".($jpeg ? 'jpg' : 'webp');
         $contents = $encoded->toString();
 
         Storage::disk(config('media.disk'))->put($path, $contents, 'public');

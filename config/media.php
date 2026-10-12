@@ -124,7 +124,8 @@ return [
         'og' => [
             'label' => 'Social share (Open Graph)',
             'variants' => [
-                'og' => ['width' => 1200, 'height' => 630, 'fit' => 'cover', 'quality' => 85],
+                // JPEG: Facebook, WhatsApp and LinkedIn previews all read it reliably.
+                'og' => ['width' => 1200, 'height' => 630, 'fit' => 'cover', 'quality' => 84, 'format' => 'jpg'],
             ],
         ],
 

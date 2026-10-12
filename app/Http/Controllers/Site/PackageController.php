@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Site;
 
 use App\Domain\Travel\PackagePresenter;
 use App\Http\Controllers\Controller;
+use App\Models\Media;
 use App\Models\Package;
 use App\Models\Service;
 use App\Models\SlugRedirect;
@@ -32,6 +33,8 @@ class PackageController extends Controller
 
         $packages = $this->listing($current?->id)->load('types.prices');
 
+        seo()->pageType('CollectionPage')->schema($this->itemList($packages));
+
         return response()->view('site.packages.index', [
             'service' => null,
             'services' => $services,
@@ -48,15 +51,19 @@ class PackageController extends Controller
     {
         $locale = app()->getLocale();
 
+        $shareImage = ! empty($service->seo['image']) ? Media::find($service->seo['image']) : null;
+
         seo()->title($service->seo['title'][$locale] ?? $service->getTranslation('name', $locale))
             ->description($service->seo['description'][$locale] ?? $service->getTranslation('summary', $locale))
             ->canonical($service->url())
-            ->image($service->image?->url('og'))
+            ->image($shareImage?->url('og') ?? $service->image?->url('lg'))
             ->breadcrumb(__('Home'), url('/'))
             ->breadcrumb($service->getTranslation('name', $locale), $service->url());
 
         $packages = $this->listing($service->id)->load('types.prices');
         $durations = $packages->pluck('duration_days')->filter();
+
+        seo()->schema($this->serviceSchema($service, $packages))->schema($this->itemList($packages));
 
         return response()->view('site.packages.service', [
             'service' => $service,
@@ -123,8 +130,9 @@ class PackageController extends Controller
         seo()->title($package->seo['title'][$locale] ?? $data['name'])
             ->description($package->seo['description'][$locale] ?? $data['summary'])
             ->canonical($package->url())
-            ->image($package->banner?->url('og') ?? $package->banner?->url('lg'))
+            ->image((! empty($package->seo['image']) ? Media::find($package->seo['image'])?->url('og') : null) ?? $package->banner?->url('lg'))
             ->type('product')
+            ->pageType('ItemPage')
             ->noindex((bool) ($package->seo['noindex'] ?? false))
             ->breadcrumb(__('Home'), url('/'))
             ->breadcrumb($package->service->getTranslation('name', $locale), $package->service->url())
@@ -146,6 +154,57 @@ class PackageController extends Controller
             'related' => $related,
             'relatedCards' => $this->cards($related),
         ]);
+    }
+
+    /**
+     * A service (Hajj, Umrah) as schema.org Service, with the price range of its packages.
+     *
+     * @param  Collection<int, Package>  $packages
+     * @return array<string, mixed>
+     */
+    private function serviceSchema(Service $service, Collection $packages): array
+    {
+        $locale = app()->getLocale();
+        $prices = $packages->pluck('min_price')->filter(fn ($price) => $price > 0);
+
+        return array_filter([
+            '@type' => 'Service',
+            '@id' => $service->url().'#service',
+            'name' => $service->getTranslation('name', $locale),
+            'serviceType' => $service->getTranslation('name', 'en'),
+            'description' => $service->getTranslation('summary', $locale),
+            'url' => $service->url(),
+            'provider' => ['@id' => url('/#organization')],
+            'areaServed' => ['@type' => 'Country', 'name' => 'Bangladesh'],
+            'offers' => $prices->isEmpty() ? null : [
+                '@type' => 'AggregateOffer',
+                'priceCurrency' => settings('localization.currency') ?: 'BDT',
+                'lowPrice' => (float) $prices->min(),
+                'highPrice' => (float) $prices->max(),
+                'offerCount' => $packages->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * The packages shown on a page, as a schema.org ItemList.
+     *
+     * @param  Collection<int, Package>  $packages
+     * @return array<string, mixed>
+     */
+    private function itemList(Collection $packages): array
+    {
+        $locale = app()->getLocale();
+
+        return [
+            '@type' => 'ItemList',
+            'itemListElement' => $packages->values()->map(fn (Package $package, int $i) => [
+                '@type' => 'ListItem',
+                'position' => $i + 1,
+                'url' => $package->url(),
+                'name' => $package->getTranslation('name', $locale),
+            ])->all(),
+        ];
     }
 
     /**

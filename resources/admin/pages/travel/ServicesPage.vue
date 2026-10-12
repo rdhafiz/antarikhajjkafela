@@ -33,7 +33,7 @@ interface ServiceRow {
     icon: string | null;
     image_id: number | null;
     is_active: boolean;
-    seo: { title: Translations; description: Translations };
+    seo: { title: Translations; description: Translations; image: number | null };
     packages_count: number;
 }
 
@@ -49,7 +49,7 @@ const editing = ref<ServiceRow | null>(null);
 const open = ref(false);
 let slugTouched = false;
 
-const blank = { name: {} as Translations, slug: '', summary: {} as Translations, headline: {} as Translations, highlight: {} as Translations, description: {} as Translations, icon: null as string | null, image_id: null as number | null, is_active: true, seo: { title: {} as Translations, description: {} as Translations } };
+const blank = { name: {} as Translations, slug: '', summary: {} as Translations, headline: {} as Translations, highlight: {} as Translations, description: {} as Translations, icon: null as string | null, image_id: null as number | null, is_active: true, seo: { title: {} as Translations, description: {} as Translations, image: null as number | null } };
 const form = useForm({ ...blank });
 
 async function load(): Promise<void> {
@@ -170,6 +170,7 @@ onMounted(load);
                 <div class="grid gap-4 sm:grid-cols-2">
                     <TranslatableInput v-model="form.data.seo.title" label="SEO title" :errors="form.errors" error-key="seo.title" />
                     <TranslatableInput v-model="form.data.seo.description" label="SEO description" :errors="form.errors" error-key="seo.description" />
+                    <MediaField v-model="form.data.seo.image" label="Social share image" usage="og" aspect="1200 / 630" hint="Shown when the page is shared on Facebook or WhatsApp. Defaults to the banner." />
                 </div>
             </form>
             <template #footer>

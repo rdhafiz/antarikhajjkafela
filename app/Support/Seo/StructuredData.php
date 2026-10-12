@@ -19,8 +19,11 @@ class StructuredData
     {
         $graph = [$this->organization(), $this->website()];
 
-        if (count($seo->breadcrumbs) > 1) {
-            $graph[] = $this->breadcrumbs($seo->breadcrumbs);
+        $hasBreadcrumbs = count($seo->breadcrumbs) > 1;
+        $graph[] = $this->webPage($seo, $hasBreadcrumbs);
+
+        if ($hasBreadcrumbs) {
+            $graph[] = $this->breadcrumbs($seo->breadcrumbs, $seo->resolvedCanonical());
         }
 
         foreach ($seo->schema as $schema) {
@@ -98,13 +101,38 @@ class StructuredData
     }
 
     /**
+     * The page itself, typed by the controller (WebPage, AboutPage, ContactPage, CollectionPage…).
+     *
+     * @return array<string, mixed>
+     */
+    private function webPage(Seo $seo, bool $hasBreadcrumbs): array
+    {
+        $url = $seo->resolvedCanonical();
+        $image = $seo->resolvedImage();
+
+        return array_filter([
+            '@type' => $seo->pageType,
+            '@id' => $url.'#webpage',
+            'url' => $url,
+            'name' => $seo->resolvedTitle(),
+            'description' => $seo->resolvedDescription(),
+            'inLanguage' => str_replace('_', '-', app()->getLocale()),
+            'isPartOf' => ['@id' => url('/#website')],
+            'about' => ['@id' => url('/#organization')],
+            'primaryImageOfPage' => $image ? ['@type' => 'ImageObject', 'url' => $image] : null,
+            'breadcrumb' => $hasBreadcrumbs ? ['@id' => $url.'#breadcrumb'] : null,
+        ]);
+    }
+
+    /**
      * @param  list<array{label: string, url: string|null}>  $items
      * @return array<string, mixed>
      */
-    private function breadcrumbs(array $items): array
+    private function breadcrumbs(array $items, string $url): array
     {
         return [
             '@type' => 'BreadcrumbList',
+            '@id' => $url.'#breadcrumb',
             'itemListElement' => collect($items)->values()->map(fn ($item, $i) => array_filter([
                 '@type' => 'ListItem',
                 'position' => $i + 1,

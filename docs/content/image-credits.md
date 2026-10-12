@@ -20,6 +20,28 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | quran.webp | Blog & news | Abdullah Arif | https://unsplash.com/photos/Dxi6KbpvUgA |
 | nabawi-colonnade.webp | Terms & conditions, Privacy policy | djonk creative | https://unsplash.com/photos/XqO6H6ikj1w |
 
+## Social share images
+
+`SeoSeeder` crops the same Unsplash photos to 1200×630 JPEG (media usage `og`) as the share image of each page, service, package and post, and sets the home photo as the default share image in the SEO settings:
+
+| Photo | Share image for |
+| --- | --- |
+| home-haram.webp | Home, and the default for pages without their own |
+| madinah-golden.webp | About; post "Umrah 2025: November group" |
+| makkah-hotels.webp | Services; post "Important information for Hajj pilgrims" |
+| madinah-umbrellas.webp | Contact |
+| haram-courtyard.webp | Gallery |
+| quran.webp | Blog & news |
+| green-dome.webp | Reviews; Umrah Package |
+| nabawi-colonnade.webp | Terms & conditions, Privacy policy |
+| hajj-campaign.webp | Hajj pre-registration campaign |
+| hajj-crowd.webp | Hajj |
+| haram-wide.webp | Umrah; post "What is Umrah?" |
+| hajj-regular.webp | Hajj Regular Package; post "How to perform Umrah" |
+| hajj-premium.webp | Hajj Premium Package |
+
+Gallery albums share their own cover photo.
+
 ## From the previous website
 
 See "Images used for seeding" in `old-site-content.md`.

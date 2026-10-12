@@ -2,6 +2,9 @@
 
 namespace App\Support\Seo;
 
+use App\Models\Media;
+use App\Support\Branding;
+
 /**
  * SEO details of the page being rendered. Controllers fill what they know;
  * anything left empty falls back to the default SEO settings.
@@ -17,6 +20,9 @@ class Seo
     public ?string $canonical = null;
 
     public string $type = 'website';
+
+    /** schema.org type of the page itself (WebPage, AboutPage, ContactPage, CollectionPage…). */
+    public string $pageType = 'WebPage';
 
     public bool $noindex = false;
 
@@ -61,6 +67,13 @@ class Seo
     public function type(string $type): static
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function pageType(string $type): static
+    {
+        $this->pageType = $type;
 
         return $this;
     }
@@ -110,5 +123,15 @@ class Seo
     public function resolvedCanonical(): string
     {
         return $this->canonical ?? url()->current();
+    }
+
+    /**
+     * The share image: the page's own, then the default from the settings, then the logo.
+     */
+    public function resolvedImage(): ?string
+    {
+        return $this->image
+            ?? (($og = settings('seo.og_image')) ? Media::find($og)?->url('og') : null)
+            ?? app(Branding::class)->logoUrl();
     }
 }

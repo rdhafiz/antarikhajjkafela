@@ -65,6 +65,13 @@ class PageController extends Controller
             ->title($seoData['title'][$locale] ?? ($page->isHome() ? null : $title), appendSiteName: ! $page->isHome() || filled($seoData['title'][$locale] ?? null))
             ->description($seoData['description'][$locale] ?? null)
             ->canonical($page->url())
+            ->pageType(match ($page->system_key) {
+                'about' => 'AboutPage',
+                'contact' => 'ContactPage',
+                'gallery' => 'ImageGallery',
+                'blog', 'reviews' => 'CollectionPage',
+                default => 'WebPage',
+            })
             ->noindex($preview || ($seoData['noindex'] ?? false));
 
         if (! empty($seoData['image']) && ($image = Media::find($seoData['image']))) {

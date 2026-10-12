@@ -26,6 +26,7 @@ class GalleryController extends Controller
         seo()->title($title)
             ->description($album->getTranslation('description', $locale) ?: null)
             ->canonical($album->url())
+            ->pageType('ImageGallery')
             ->image($cover?->url('lg'))
             ->breadcrumb(__('Home'), url('/'))
             ->breadcrumb($gallery?->getTranslation('title', $locale) ?? __('Gallery'), $gallery?->url() ?? url('gallery'))

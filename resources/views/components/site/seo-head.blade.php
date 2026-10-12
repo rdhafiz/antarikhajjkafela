@@ -4,9 +4,7 @@
     $seo = seo();
     $title = $seo->resolvedTitle();
     $description = $seo->resolvedDescription();
-    $image = $seo->image
-        ?? (($og = settings('seo.og_image')) ? App\Models\Media::find($og)?->url('og') : null)
-        ?? $branding->logoUrl();
+    $image = $seo->resolvedImage();
     $locale = app()->getLocale();
     $ogLocale = ['en' => 'en_US', 'bn' => 'bn_BD'][$locale] ?? $locale;
 @endphp
@@ -28,7 +26,17 @@
 @endif
 <meta property="og:url" content="{{ $seo->resolvedCanonical() }}">
 <meta property="og:image" content="{{ $image }}">
+@if ($image && str_contains($image, '/og.'))
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+@endif
+<meta property="og:image:alt" content="{{ $title }}">
 <meta property="og:locale" content="{{ $ogLocale }}">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $title }}">
+@if ($description)
+    <meta name="twitter:description" content="{{ $description }}">
+@endif
+<meta name="twitter:image" content="{{ $image }}">
 
 <script type="application/ld+json">{!! $structuredData->toJson($seo) !!}</script>
