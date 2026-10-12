@@ -1606,4 +1606,17 @@
     :lang(bn) :is(.italic, em, i, blockquote) {
         font-style: normal;
     }
+
+    /*
+     * Small labels are set in spaced-out capitals for English. Bangla has no
+     * capitals, and extra letter spacing pulls its letters apart, so Bangla
+     * labels keep normal spacing and are never smaller than 13px.
+     */
+    :lang(bn) :is(.uppercase, [class*='tracking-']) {
+        letter-spacing: 0;
+    }
+
+    :lang(bn) :is(.text-\[11px\], .text-\[12px\], .text-\[12\.5px\]) {
+        font-size: 13px;
+    }
 }
