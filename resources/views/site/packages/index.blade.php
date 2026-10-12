@@ -3,7 +3,7 @@
     $title = $service?->getTranslation('name', $locale) ?? __('Hajj & Umrah packages');
     $intro = $service?->getTranslation('summary', $locale) ?? __('Compare our packages: hotels near the Haram, flights, durations and prices, all guided by experienced scholars.');
 @endphp
-<x-site.layout>
+<x-site.layout header="overlay">
     <x-site.page-header
         :eyebrow="$service ? __('Packages') : __('Our packages')"
         :title="$title"

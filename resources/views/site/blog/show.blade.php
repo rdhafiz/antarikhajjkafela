@@ -15,13 +15,13 @@
 
     <article>
         {{-- Header --}}
-        <header @class(['relative isolate overflow-hidden bg-brand-950 pt-20 text-white', 'pb-28 sm:pb-40' => $post->banner, 'pb-4' => ! $post->banner])>
-            <div class="pattern-star absolute inset-0 -z-10 opacity-[0.05]" aria-hidden="true"></div>
+        <header @class(['hero-half relative isolate flex flex-col overflow-hidden bg-brand-950 pt-20 text-white', 'pb-28 sm:pb-40' => $post->banner, 'pb-4' => ! $post->banner]) data-hero>
+            <div class="pattern-star absolute inset-0 -z-10 opacity-[0.05]" data-parallax-bg aria-hidden="true"></div>
             <div class="absolute -top-40 right-[-10%] -z-10 size-[520px] rounded-full bg-gold/10 blur-3xl" aria-hidden="true"></div>
 
-            <div class="container-site py-12 sm:py-16">
+            <div class="container-site flex flex-1 flex-col justify-center py-12 sm:py-16" data-parallax-content>
                 <x-site.breadcrumbs light class="mb-8" />
-                <div class="mx-auto max-w-3xl text-center" data-reveal>
+                <div class="hero-reveal mx-auto max-w-3xl text-center">
                     @if ($post->category)
                         <a href="{{ $post->category->url() }}" class="inline-flex rounded-full bg-white/10 px-3.5 py-1 text-[13px] font-semibold text-gold ring-1 ring-white/15 hover:bg-white/15">
                             {{ $post->category->getTranslation('name', $locale) }}

@@ -4,7 +4,7 @@
         ->breadcrumb(__('Home'), url('/'))
         ->breadcrumb('Design system');
 @endphp
-<x-site.layout>
+<x-site.layout header="overlay">
     <x-site.page-header
         eyebrow="Design system"
         title="Components & tokens"

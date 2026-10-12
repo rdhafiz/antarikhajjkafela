@@ -8,6 +8,59 @@ Alpine.plugin(focus);
 Alpine.plugin(intersect);
 
 /**
+ * Hero parallax: as the page scrolls, the background photo ([data-parallax-bg])
+ * moves at half speed and slowly zooms, while the text ([data-parallax-content])
+ * drifts down and fades out. Transform and opacity only, one rAF per frame,
+ * softer on phones and off for visitors who prefer reduced motion.
+ */
+function heroParallax() {
+    const heroes = [...document.querySelectorAll('[data-hero]')];
+    if (!heroes.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const phone = window.matchMedia('(max-width: 767px)');
+    const parts = heroes.map((hero) => ({
+        hero,
+        bg: hero.querySelectorAll('[data-parallax-bg]'),
+        content: hero.querySelectorAll('[data-parallax-content]'),
+    }));
+    let queued = false;
+
+    const update = () => {
+        queued = false;
+        const scrolled = window.scrollY;
+        const strength = phone.matches ? 0.6 : 1;
+
+        for (const { hero, bg, content } of parts) {
+            const height = hero.offsetHeight;
+            // Heroes open the page, so scroll distance equals progress through them.
+            if (scrolled > hero.offsetTop + height) continue;
+
+            const progress = Math.min(1, scrolled / height);
+            bg.forEach((el) => {
+                el.style.transform = `translate3d(0, ${(scrolled * 0.5 * strength).toFixed(1)}px, 0) scale(${(1 + progress * 0.12).toFixed(3)})`;
+            });
+            content.forEach((el) => {
+                el.style.transform = `translate3d(0, ${(scrolled * 0.32 * strength).toFixed(1)}px, 0)`;
+                el.style.opacity = Math.max(0, 1 - progress * 1.8).toFixed(3);
+            });
+        }
+    };
+
+    const queue = () => {
+        if (!queued) {
+            queued = true;
+            requestAnimationFrame(update);
+        }
+    };
+
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue, { passive: true });
+    update();
+}
+
+heroParallax();
+
+/**
  * Album lightbox: photos and YouTube videos with keyboard, button and swipe
  * navigation. Neighbouring photos are preloaded for instant paging.
  */

@@ -1,4 +1,4 @@
-<x-site.layout>
+<x-site.layout header="overlay">
     <x-site.page-header :title="__('Check booking status')" :intro="__('Enter your booking reference and the phone number or email you booked with.')" />
 
     <section class="section-light bg-sand-50 py-12 sm:py-16">

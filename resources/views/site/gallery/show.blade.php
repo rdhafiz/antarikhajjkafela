@@ -9,7 +9,7 @@
     $photoCount = $items->where('type', 'image')->count();
     $videoCount = $items->where('type', 'video')->count();
 @endphp
-<x-site.layout>
+<x-site.layout header="overlay">
     <x-site.page-header :title="$title" :image="$cover" :intro="$album->getTranslation('description', $locale)" :eyebrow="$album->event_date?->copy()->locale($locale)->translatedFormat('j F Y')">
         <p class="mt-6 flex flex-wrap gap-5 text-[14px] font-medium text-white/75">
             @if ($photoCount)

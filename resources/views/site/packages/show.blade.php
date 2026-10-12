@@ -12,18 +12,20 @@
 @endphp
 <x-site.layout header="overlay">
     {{-- Hero --}}
-    <section class="relative isolate overflow-hidden bg-brand-950 pt-20 text-white">
+    <section class="hero-half relative isolate flex flex-col overflow-hidden bg-brand-950 pt-20 text-white" data-hero>
         @if ($p['banner'])
-            <img src="{{ $p['banner']->url('lg') }}" srcset="{{ $p['banner']->srcset() }}" sizes="100vw" alt="" fetchpriority="high" class="absolute inset-0 -z-20 size-full object-cover">
+            <div class="hero-media" data-parallax-bg aria-hidden="true">
+                <img src="{{ $p['banner']->url('lg') }}" srcset="{{ $p['banner']->srcset() }}" sizes="100vw" alt="" fetchpriority="high">
+            </div>
             <div class="absolute inset-0 -z-10 bg-gradient-to-r from-brand-950/95 via-brand-950/80 to-brand-950/35" aria-hidden="true"></div>
         @else
             <div class="absolute inset-0 -z-20 bg-gradient-to-br from-brand via-brand-900 to-brand-950" aria-hidden="true"></div>
             <div class="pattern-star absolute inset-0 -z-10 opacity-[0.06]" aria-hidden="true"></div>
         @endif
 
-        <div class="container-site py-14 sm:py-20">
-            <x-site.breadcrumbs light class="mb-7" />
-            <div class="max-w-3xl" data-reveal>
+        <div class="container-site flex flex-1 flex-col justify-center py-14 sm:py-20">
+            <div class="hero-reveal max-w-3xl" data-parallax-content>
+                <x-site.breadcrumbs light class="mb-7" />
                 <a href="{{ $p['service']->url() }}" class="inline-flex rounded-full bg-white/10 px-3.5 py-1 text-[13px] font-semibold text-gold ring-1 ring-white/15 hover:bg-white/15">
                     {{ $p['service']->getTranslation('name', $locale) }}
                 </a>
@@ -41,7 +43,7 @@
         </div>
 
         {{-- Key facts --}}
-        <div class="relative border-t border-white/10 bg-brand-950/60 backdrop-blur-sm">
+        <div class="relative z-10 border-t border-white/10 bg-brand-950/80 backdrop-blur-md">
             <dl class="container-site grid grid-cols-2 gap-x-6 gap-y-5 py-6 lg:grid-cols-4">
                 @if ($p['from'])
                     <div>

@@ -16,7 +16,7 @@
     ];
     $invalid = fn (string $name) => $errors->has($name) ? 'aria-invalid="true" aria-describedby="'.e($name).'-error"' : '';
 @endphp
-<x-site.layout>
+<x-site.layout header="overlay">
     <x-site.page-header :title="__('Book your journey')" :intro="$name" :image="$package->banner" />
 
     <section class="section-light bg-sand-50 py-12 sm:py-16">
