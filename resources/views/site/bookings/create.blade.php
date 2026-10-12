@@ -16,11 +16,21 @@
     ];
     $invalid = fn (string $name) => $errors->has($name) ? 'aria-invalid="true" aria-describedby="'.e($name).'-error"' : '';
 @endphp
-<x-site.layout header="overlay">
-    <x-site.page-header :title="__('Book your journey')" :intro="$name" :image="$package->banner" />
-
-    <section class="section-light bg-sand-50 py-12 sm:py-16">
+<x-site.layout>
+    <section class="section-light bg-sand-50 py-10 sm:py-14">
         <div class="container-site">
+            {{-- No hero here: a compact title so the form starts near the top. --}}
+            <div class="mb-8 flex flex-col gap-3 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="eyebrow">{{ __('Book your journey') }}</p>
+                    <h1 class="mt-3 font-display text-display-md text-brand">{{ $name }}</h1>
+                </div>
+                <a href="{{ $package->url() }}" class="inline-flex items-center gap-1.5 text-[14px] font-semibold text-brand hover:text-gold-deep">
+                    <x-site.icon name="chevron-left" class="size-4 rtl:rotate-180" />
+                    {{ __('Back to the package') }}
+                </a>
+            </div>
+
             <form method="POST" action="{{ route('bookings.store', $package->slug) }}" enctype="multipart/form-data" novalidate
                   x-data="bookingForm(@js($config))" @submit="submit($event)" @focusin.once="loadRecaptcha()"
                   class="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
