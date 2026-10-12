@@ -1,4 +1,4 @@
-@props(['post', 'lead' => false, 'headingTag' => 'h3'])
+@props(['post', 'lead' => false, 'headingTag' => 'h3', 'center' => false])
 @php
     use App\Domain\Blog\PostPresenter;
     use App\Support\Money;
@@ -34,8 +34,8 @@
         @endif
     </div>
 
-    <div @class(['flex flex-1 flex-col', 'p-7 sm:p-9 lg:p-11 lg:justify-center' => $lead, 'p-6' => ! $lead])>
-        <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-medium text-ink-3">
+    <div @class(['flex flex-1 flex-col', 'p-7 sm:p-9 lg:p-11 lg:justify-center' => $lead, 'p-6' => ! $lead, 'items-center text-center' => $center])>
+        <p @class(['flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-medium text-ink-3', 'justify-center' => $center])>
             <time datetime="{{ $post->published_at?->toDateString() }}">{{ PostPresenter::date($post->published_at) }}</time>
             <span class="size-1 rounded-full bg-gold" aria-hidden="true"></span>
             <span>{{ trans_choice(':count min read|:count min read', $minutes, ['count' => Money::digits($minutes)]) }}</span>

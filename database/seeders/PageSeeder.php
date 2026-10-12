@@ -87,11 +87,18 @@ class PageSeeder extends Seeder
                     'about' => $this->about(),
                     'services' => $this->services(),
                     'contact' => $this->contact(),
-                    // No banner: the gallery opens with its own centered heading.
+                    // No banner: the gallery and blog open with their own centered heading.
                     'gallery' => [
                         ['page_listing', [
                             'eyebrow' => $this->t('Our gallery', 'আমাদের গ্যালারি'),
                             'intro' => $this->t('Moments from our Hajj and Umrah journeys, workshops and gatherings.', 'আমাদের হজ ও উমরাহ সফর, কর্মশালা ও আয়োজনের কিছু মুহূর্ত।'),
+                        ], []],
+                        $this->cta(),
+                    ],
+                    'blog' => [
+                        ['page_listing', [
+                            'eyebrow' => $this->t('Guides & news', 'গাইড ও সংবাদ'),
+                            'intro' => $this->t('Guidance, news and updates for Hajj and Umrah pilgrims.', 'হজ ও উমরাহ যাত্রীদের জন্য দিকনির্দেশনা, সংবাদ ও আপডেট।'),
                         ], []],
                         $this->cta(),
                     ],
