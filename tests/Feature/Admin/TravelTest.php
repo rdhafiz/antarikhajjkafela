@@ -47,6 +47,16 @@ class TravelTest extends AdminTestCase
             ->assertSee('<blockquote', false)
             ->assertDontSee('aria-label="Filter packages"', false);
 
+        // Each package card lists its options (cheapest price per type, most expensive first) with hotels.
+        $umrah = $this->umrah()->load('types.prices');
+        $basic = $umrah->types->firstWhere('code', 'UM-C')->prices->sortBy('price')->first();
+        $this->get('/umrah')
+            ->assertOk()
+            ->assertSeeTextInOrder(['Package A · Standard', 'Package B · Regular', 'Package C · Basic'])
+            ->assertSeeText('Any five-star hotel')
+            ->assertSeeText('Direct / transit flights')
+            ->assertSee('/packages/umrah-package/book?option='.$basic->id, false);
+
         // The hadith keeps its lead-in above the quote.
         $this->get('/umrah')->assertOk()->assertSeeText('The Prophet Muhammad (peace be upon him) said')->assertSeeText('Sahih Bukhari & Muslim');
 

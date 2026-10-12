@@ -77,6 +77,49 @@ class PackagePresenter
         return ['state' => $state, 'label' => $label, 'starts' => $package->booking_starts_on, 'ends' => $package->booking_ends_on];
     }
 
+    /**
+     * A package as a listing card: each type's cheapest option with its hotels,
+     * and the first flight.
+     *
+     * @return array<string, mixed>
+     */
+    public function card(Package $package): array
+    {
+        $locale = app()->getLocale();
+        $package->loadMissing('types.prices');
+
+        $hotelFields = collect(PackageSchema::types()[0]->children())->firstWhere('key', 'prices')->children();
+        $hotelFields = collect($hotelFields)->firstWhere('key', 'hotels')->children();
+        $flightFields = PackageSchema::flights();
+
+        $tiers = $package->types->map(function ($type) use ($locale, $hotelFields) {
+            $price = $type->prices->sortBy('price')->first();
+
+            if (! $price) {
+                return null;
+            }
+
+            return [
+                'name' => $type->getTranslation('name', $locale),
+                'option' => $price->id,
+                'price' => (float) $price->price,
+                'unit' => self::unitLabel($price->unit),
+                'hotels' => array_map(
+                    fn ($hotel) => $this->content->localize($hotelFields, $hotel, $locale, collect()),
+                    array_slice($price->hotels ?? [], 0, 2),
+                ),
+            ];
+        })->filter()->sortByDesc('price')->values()->all();
+
+        $flight = $this->content->localize($flightFields, ['flights' => array_slice($package->flights ?? [], 0, 1)], $locale, collect())['flights'][0] ?? null;
+
+        return [
+            'tiers' => $tiers,
+            'flight' => $flight,
+            'state' => $package->bookingState(),
+        ];
+    }
+
     public static function unitLabel(string $unit): string
     {
         return match ($unit) {

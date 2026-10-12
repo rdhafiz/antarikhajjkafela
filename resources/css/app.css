@@ -1105,6 +1105,54 @@
         outline-offset: 3px;
     }
 
+    /* Service page package cards: slow photo zoom, tier rows that warm and point on hover. */
+    .pkg-feature {
+        transition: box-shadow 700ms var(--ease-out-soft);
+    }
+
+    .pkg-feature-img {
+        transition: scale 1400ms var(--ease-out-soft);
+    }
+
+    .pkg-feature-title {
+        background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0 2px;
+        transition: background-size 700ms var(--ease-out-soft);
+    }
+
+    .pkg-tier {
+        transition: background-color 400ms var(--ease-out-soft);
+    }
+
+    .pkg-tier-arrow {
+        transition: translate 500ms var(--ease-out-soft);
+    }
+
+    @media (hover: hover) {
+        .pkg-feature:hover {
+            box-shadow: var(--shadow-lift);
+        }
+
+        .pkg-feature:hover .pkg-feature-img {
+            scale: 1.05;
+        }
+
+        .pkg-feature-title:hover {
+            background-size: 100% 2px;
+        }
+
+        .pkg-tier:hover {
+            background: var(--color-sand-50);
+        }
+
+        .pkg-tier:hover .pkg-tier-arrow {
+            translate: 0.25rem 0;
+        }
+
+        [dir='rtl'] .pkg-tier:hover .pkg-tier-arrow {
+            translate: -0.25rem 0;
+        }
+    }
+
     /*
      * Page heroes. The home hero fills the screen, other page tops take at
      * least half of it (svh: the height with phone browser bars showing).

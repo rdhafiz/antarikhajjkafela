@@ -52,12 +52,13 @@ class PackageController extends Controller
             ->breadcrumb(__('Home'), url('/'))
             ->breadcrumb($service->getTranslation('name', $locale), $service->url());
 
-        $packages = $this->listing($service->id);
+        $packages = $this->listing($service->id)->load('types.prices');
         $durations = $packages->pluck('duration_days')->filter();
 
         return response()->view('site.packages.service', [
             'service' => $service,
             'packages' => $packages,
+            'cards' => $packages->mapWithKeys(fn (Package $package) => [$package->id => $this->presenter->card($package)]),
             'about' => $this->splitDescription($service->getTranslation('description', $locale)),
             'stats' => [
                 'count' => $packages->count(),

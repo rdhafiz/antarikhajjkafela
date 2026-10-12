@@ -90,14 +90,9 @@
                     <p class="mt-3 max-w-md text-ink-2">{{ __('Call or message us and we will share the latest packages and prices with you.') }}</p>
                 </div>
             @else
-                <div @class([
-                    'grid gap-6',
-                    'mx-auto max-w-md' => $packages->count() === 1,
-                    'mx-auto max-w-4xl sm:grid-cols-2' => $packages->count() === 2,
-                    'sm:grid-cols-2 lg:grid-cols-3' => $packages->count() >= 3,
-                ])>
+                <div class="mx-auto grid max-w-6xl gap-8">
                     @foreach ($packages as $index => $package)
-                        <x-site.package-card :package="$package" data-reveal :style="'--reveal-delay: '.(($index % 3) * 100).'ms'" />
+                        <x-site.package-feature :package="$package" :card="$cards[$package->id]" data-reveal />
                     @endforeach
                 </div>
             @endif
