@@ -24,7 +24,7 @@
     <section class="section-light bg-sand-50 py-12 sm:py-16" x-data="lightbox(@js($slides))" @keydown.window="key($event)">
         <div class="container-site">
             <h2 class="sr-only">{{ __('Photos and videos') }}</h2>
-            <ul class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
+            <ul class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4" data-reveal>
                 @foreach ($items as $index => $item)
                     <li @class(['sm:col-span-2 sm:row-span-2' => $index === 0 && $items->count() >= 5])>
                         <button type="button" class="group relative block aspect-square w-full overflow-hidden rounded-xl bg-brand-950 focus-visible:ring-4 focus-visible:ring-gold/60 focus-visible:outline-none" @click="open({{ $index }})"

@@ -26,7 +26,7 @@
             'sm:grid-cols-3' => $count <= 3,
             'sm:grid-cols-4' => $count > 3 && $count !== 10,
             'sm:grid-cols-5' => $count === 10,
-        ])>
+        ]) data-reveal="scale">
             @foreach ($photos as $index => $photo)
                 @php($big = $mosaic && $index === 0)
                 <li @class(['col-span-2 row-span-2' => $big])>

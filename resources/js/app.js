@@ -436,11 +436,17 @@ Alpine.start();
 function scrollMotion() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
 
+    // Long rich text (policies, articles): each paragraph, list or image reveals on its own.
+    document.querySelectorAll('[data-reveal-children]').forEach((parent) => {
+        [...parent.children].forEach((child) => child.setAttribute('data-reveal', parent.dataset.revealChildren || ''));
+    });
+
     const reveals = document.querySelectorAll('[data-reveal]');
     const revealer = new IntersectionObserver(
         (entries) => {
-            for (const { target, isIntersecting, intersectionRatio, boundingClientRect } of entries) {
-                if (isIntersecting && intersectionRatio >= 0.12) {
+            for (const { target, isIntersecting, intersectionRatio, intersectionRect, boundingClientRect } of entries) {
+                // 12% in view, or (for elements taller than the screen) a fifth of the screen filled.
+                if (isIntersecting && (intersectionRatio >= 0.12 || intersectionRect.height >= window.innerHeight * 0.2)) {
                     target.classList.add('is-revealed');
                 } else if (!isIntersecting) {
                     // Remember which side it left from, so it re-enters from there.
@@ -449,7 +455,7 @@ function scrollMotion() {
                 }
             }
         },
-        { threshold: [0, 0.12] },
+        { threshold: [0, 0.02, 0.05, 0.12] },
     );
 
     reveals.forEach((el) => {

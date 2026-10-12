@@ -9,7 +9,7 @@
     <div @class(['grid gap-12', 'lg:grid-cols-[0.9fr_1.1fr] lg:gap-16' => $map])>
         <div>
             <x-site.block-heading :c="$c" align="left" />
-            <ul class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <ul class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2" data-reveal style="--reveal-delay: 100ms">
                 @if ($address = $site->address())
                     <li class="sec-card flex gap-4 p-5 sm:col-span-2 lg:col-span-1 xl:col-span-2">
                         <span class="sec-icon size-12 shrink-0"><x-site.icon name="map-pin" class="size-5" /></span>

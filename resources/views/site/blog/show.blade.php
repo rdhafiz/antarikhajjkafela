@@ -38,9 +38,11 @@
         <div class="section-light">
             <div class="container-site py-14 sm:py-20">
                 <div class="mx-auto max-w-[760px] text-[1.0625rem]">
-                    @include('partials.content-blocks', ['blocks' => $p['blocks']])
+                    <div data-reveal-children>
+                        @include('partials.content-blocks', ['blocks' => $p['blocks']])
+                    </div>
 
-                    <footer class="mt-14 space-y-6 border-t border-line pt-8">
+                    <footer class="mt-14 space-y-6 border-t border-line pt-8" data-reveal>
                         @if ($post->tags)
                             <div class="flex flex-wrap items-center gap-2">
                                 <x-site.icon name="tag" class="size-4.5 text-gold-deep" />
@@ -71,7 +73,7 @@
     @if ($related->isNotEmpty())
         <section class="section-light bg-sand-50 py-16 sm:py-24" aria-labelledby="related-title">
             <div class="container-site">
-                <div class="mb-10 flex flex-wrap items-end justify-between gap-4">
+                <div class="mb-10 flex flex-wrap items-end justify-between gap-4" data-reveal>
                     <div>
                         <p class="eyebrow">{{ __('Keep reading') }}</p>
                         <h2 id="related-title" class="sec-heading mt-3 text-display-lg">{{ __('Related articles') }}</h2>

@@ -5,7 +5,7 @@
     The fields go in the slot.
 --}}
 @php($recaptcha = settings('tracking.recaptcha_site_key') && settings('tracking.recaptcha_secret_key') ? settings('tracking.recaptcha_site_key') : null)
-<div class="rounded-[1.75rem] bg-white p-6 text-ink shadow-[var(--shadow-lift)] ring-1 ring-line sm:p-9" id="form-{{ $section->id }}">
+<div {{ $attributes->merge(['data-reveal' => '']) }} class="rounded-[1.75rem] bg-white p-6 text-ink shadow-[var(--shadow-lift)] ring-1 ring-line sm:p-9" id="form-{{ $section->id }}">
     @if (session('form_success') === $section->id)
         <div class="flex flex-col items-center py-10 text-center" role="status">
             <span class="flex size-14 items-center justify-center rounded-full bg-emerald text-white"><x-site.icon name="check" class="size-7" /></span>

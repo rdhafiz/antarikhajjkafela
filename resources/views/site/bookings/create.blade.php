@@ -20,7 +20,7 @@
     <section class="section-light bg-sand-50 py-10 sm:py-14">
         <div class="container-site">
             {{-- No hero here: a compact title so the form starts near the top. --}}
-            <div class="mb-8 flex flex-col gap-3 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
+            <div class="mb-8 flex flex-col gap-3 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between" data-reveal>
                 <div>
                     <p class="eyebrow">{{ __('Book your journey') }}</p>
                     <h1 class="mt-3 font-display text-display-md text-brand">{{ $name }}</h1>
@@ -52,7 +52,7 @@
                     @endif
 
                     {{-- 1. Option --}}
-                    <fieldset class="card-site p-6 sm:p-8">
+                    <fieldset class="card-site p-6 sm:p-8" data-reveal>
                         <legend class="sr-only">{{ __('Choose your package option') }}</legend>
                         <p class="flex items-center gap-3 font-display text-display-sm text-brand" aria-hidden="true"><span class="flex size-8 items-center justify-center rounded-full bg-gold text-[15px] font-bold text-brand-950">{{ Money::digits(1) }}</span>{{ __('Choose your package option') }}</p>
                         <div class="mt-6 grid gap-3 sm:grid-cols-2">
@@ -88,7 +88,7 @@
                     </fieldset>
 
                     {{-- 2. Contact --}}
-                    <fieldset class="card-site p-6 sm:p-8">
+                    <fieldset class="card-site p-6 sm:p-8" data-reveal>
                         <legend class="sr-only">{{ __('Your details') }}</legend>
                         <p class="flex items-center gap-3 font-display text-display-sm text-brand" aria-hidden="true"><span class="flex size-8 items-center justify-center rounded-full bg-gold text-[15px] font-bold text-brand-950">{{ Money::digits(2) }}</span>{{ __('Your details') }}</p>
                         <div class="mt-6 grid gap-5 sm:grid-cols-2">
@@ -115,7 +115,7 @@
                     </fieldset>
 
                     {{-- 3. Documents --}}
-                    <fieldset class="card-site p-6 sm:p-8">
+                    <fieldset class="card-site p-6 sm:p-8" data-reveal>
                         <legend class="sr-only">{{ __('Documents') }}</legend>
                         <p class="flex items-center gap-3 font-display text-display-sm text-brand" aria-hidden="true"><span class="flex size-8 items-center justify-center rounded-full bg-gold text-[15px] font-bold text-brand-950">{{ Money::digits(3) }}</span>{{ __('Documents') }} <span class="font-sans text-[14px] font-normal text-ink-3">({{ __('optional') }})</span></p>
                         <p class="mt-2 text-[14px] text-ink-2">{{ __('You can upload passport and NID copies now or give them to us later. JPG, PNG or PDF, up to 5 MB each. Only our staff can see them.') }}</p>
@@ -132,7 +132,7 @@
                     </fieldset>
 
                     {{-- 4. Payment --}}
-                    <fieldset class="card-site p-6 sm:p-8">
+                    <fieldset class="card-site p-6 sm:p-8" data-reveal>
                         <legend class="sr-only">{{ __('Payment') }}</legend>
                         <p class="flex items-center gap-3 font-display text-display-sm text-brand" aria-hidden="true"><span class="flex size-8 items-center justify-center rounded-full bg-gold text-[15px] font-bold text-brand-950">{{ Money::digits(4) }}</span>{{ __('Payment') }}</p>
                         <div class="mt-6 grid gap-3 sm:grid-cols-2">
@@ -160,7 +160,7 @@
                 </div>
 
                 {{-- Summary --}}
-                <div class="lg:sticky lg:top-28">
+                <div class="lg:sticky lg:top-28" data-reveal style="--reveal-delay: 120ms">
                     <div class="overflow-hidden rounded-[1.5rem] bg-brand-950 text-white shadow-[var(--shadow-lift)]">
                         <div class="relative p-6">
                             <div class="pattern-star absolute inset-0 opacity-[0.05]" aria-hidden="true"></div>

@@ -2,7 +2,7 @@
 @php use App\Support\Money; @endphp
 <x-site.block :style="$style" :section="$section">
     @if ($reviews->isEmpty())
-        <div class="mx-auto max-w-md py-10 text-center">
+        <div class="mx-auto max-w-md py-10 text-center" data-reveal>
             <span class="sec-icon mx-auto"><x-site.icon name="quote" class="size-6" /></span>
             <p class="sec-heading mt-5 font-display text-display-sm">{{ __('Reviews coming soon') }}</p>
         </div>
