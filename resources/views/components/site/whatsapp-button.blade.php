@@ -5,13 +5,13 @@
         href="{{ $url }}"
         target="_blank"
         rel="noopener"
-        class="group fixed right-4 bottom-4 z-40 flex items-center gap-2 rounded-full bg-[#15803d] p-3.5 text-white shadow-[0_12px_30px_-8px_rgb(21_128_61/0.6)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 sm:right-6 sm:bottom-6"
+        class="group fixed right-4 bottom-4 z-40 flex items-center rounded-full bg-[#15803d] p-3.5 text-white shadow-[0_12px_30px_-8px_rgb(21_128_61/0.6)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 sm:right-6 sm:bottom-6"
         style="margin-bottom: env(safe-area-inset-bottom)"
         aria-label="{{ __('Chat with us on WhatsApp') }}"
     >
         <span class="absolute inset-0 animate-[wa-ping_2.4s_ease-out_infinite] rounded-full bg-[#15803d] motion-reduce:hidden" aria-hidden="true"></span>
         <x-site.icon name="whatsapp" class="relative size-7" />
-        <span class="relative hidden max-w-0 overflow-hidden pr-0 text-[15px] font-semibold whitespace-nowrap transition-[max-width,padding] duration-300 group-hover:max-w-40 group-hover:pr-1.5 sm:block">
+        <span class="relative hidden max-w-0 overflow-hidden text-[15px] font-semibold whitespace-nowrap transition-[max-width,padding] duration-300 group-hover:max-w-40 group-hover:pr-1.5 group-hover:pl-2 group-focus-visible:max-w-40 group-focus-visible:pr-1.5 group-focus-visible:pl-2 sm:block">
             {{ __('Chat with us') }}
         </span>
     </a>
