@@ -37,7 +37,8 @@ let insertInto: MenuItemNode[] | null = null;
 
 const location = computed(() => String(route.params.location || 'primary'));
 const readonly = computed(() => !auth.can('menus.update'));
-const dirty = computed(() => JSON.stringify(toServer(items.value)) !== saved.value);
+// Nothing loaded yet (saved is empty) is never "unsaved".
+const dirty = computed(() => saved.value !== '' && JSON.stringify(toServer(items.value)) !== saved.value);
 
 async function load(key: string): Promise<void> {
     loading.value = true;

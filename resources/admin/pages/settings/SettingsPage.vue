@@ -58,7 +58,8 @@ const saved = ref('');
 
 const groupKey = computed(() => String(route.params.group ?? ''));
 const canEdit = computed(() => auth.can('settings.update'));
-const dirty = computed(() => JSON.stringify(form.data.values) !== saved.value);
+// Nothing loaded yet (saved is empty) is never "unsaved": opening /settings switches to the first section before it loads.
+const dirty = computed(() => saved.value !== '' && JSON.stringify(form.data.values) !== saved.value);
 
 /** Fields grouped under their optional section heading, keeping order. */
 const sections = computed(() => {
