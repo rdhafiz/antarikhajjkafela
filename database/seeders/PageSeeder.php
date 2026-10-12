@@ -247,11 +247,7 @@ class PageSeeder extends Seeder
     private function about(): array
     {
         return [
-            $this->banner(
-                $this->t('About Antarik Hajj Kafela', 'আন্তরিক হজ্জ কাফেলা সম্পর্কে'),
-                $this->t('Affordable, well-guided Hajj and Umrah from Bangladesh since 2016.', '২০১৬ সাল থেকে বাংলাদেশ থেকে সাশ্রয়ী ও সঠিক দিকনির্দেশনায় হজ ও উমরাহ।'),
-                $this->t('Our story', 'আমাদের গল্প'),
-            ),
+            // No banner: the page opens with the "Who we are" section, whose title is the page heading.
             ['about', [
                 'eyebrow' => $this->t('Who we are', 'আমরা কারা'),
                 'title' => $this->t('Comfort, convenience and value, with sincerity', 'আন্তরিকতার সাথে আরাম, সুবিধা ও মূল্য'),
@@ -267,7 +263,7 @@ class PageSeeder extends Seeder
             ['features', [
                 'eyebrow' => $this->t('Our purpose', 'আমাদের লক্ষ্য'),
                 'title' => $this->t('Vision & mission', 'ভিশন ও মিশন'),
-                'layout' => 'cards',
+                'layout' => 'tiles',
                 'columns' => '2',
                 'items' => [
                     ['icon' => 'star', 'title' => $this->t('Vision', 'ভিশন'), 'text' => $this->t('To be the most trusted Hajj travel agency in Bangladesh, making every pilgrim\'s journey comfortable, affordable and spiritually fulfilling.', 'বাংলাদেশের সবচেয়ে বিশ্বস্ত হজ ট্রাভেল এজেন্সি হওয়া—প্রত্যেক হাজীর সফরকে আরামদায়ক, সাশ্রয়ী ও আত্মিকভাবে পরিপূর্ণ করে।'), 'link' => null],

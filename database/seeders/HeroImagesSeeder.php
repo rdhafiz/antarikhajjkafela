@@ -24,7 +24,6 @@ class HeroImagesSeeder extends Seeder
      * @var array<string, array{0: string, 1: string, 2: string}>
      */
     private const BANNERS = [
-        'about' => ['madinah-golden.webp', 'The Prophet\'s Mosque in Madinah at sunset', 'সূর্যাস্তে মদিনার মসজিদে নববী'],
         'services' => ['makkah-hotels.webp', 'Hotels around the Haram in Makkah', 'মক্কায় হারামের আশপাশের হোটেল'],
         'contact' => ['madinah-umbrellas.webp', 'The courtyard umbrellas of the Prophet\'s Mosque in Madinah', 'মসজিদে নববীর আঙিনার ছাতা'],
         'reviews' => ['green-dome.webp', 'The Green Dome of the Prophet\'s Mosque', 'মসজিদে নববীর সবুজ গম্বুজ'],

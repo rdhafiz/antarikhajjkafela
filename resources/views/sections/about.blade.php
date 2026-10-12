@@ -42,7 +42,8 @@
         </div>
 
         <div data-reveal="right" style="--reveal-delay: 120ms">
-            <x-site.block-heading :c="$c" align="left" />
+            {{-- The page's main heading when this section opens the page (no banner above). --}}
+            <x-site.block-heading :c="$c" align="left" :as="$first ? 'h1' : 'h2'" />
             @if (filled($c['body']))
                 <div class="prose-site mt-6">{!! $c['body'] !!}</div>
             @endif
