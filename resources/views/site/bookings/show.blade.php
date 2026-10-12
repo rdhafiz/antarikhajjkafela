@@ -58,7 +58,7 @@
                         <div>
                             <p class="text-[12px] font-semibold tracking-wider text-gold uppercase">{{ __('Booking reference') }}</p>
                             <h1 class="mt-2 font-display text-[2rem] leading-none font-semibold tracking-wide">{{ $booking->reference }}</h1>
-                            <p class="mt-3 text-[14px] text-white/65">{{ __('Booked on :date', ['date' => $booking->created_at->copy()->locale(app()->getLocale())->translatedFormat('j F Y')]) }}</p>
+                            <p class="mt-3 text-[14px] text-white/65">{{ __('Booked on :date', ['date' => App\Support\Dates::format($booking->created_at)]) }}</p>
                         </div>
                         <span class="rounded-full px-4 py-1.5 text-[14px] font-semibold {{ $tone }}">{{ $statusLabels[$booking->status] ?? $booking->status }}</span>
                     </div>
@@ -111,7 +111,7 @@
                         <ul class="mt-3 divide-y divide-line">
                             @foreach ($booking->payments as $payment)
                                 <li class="flex flex-wrap justify-between gap-3 py-3 text-[15px]">
-                                    <span class="text-ink-2">{{ $payment->paid_at?->copy()->locale(app()->getLocale())->translatedFormat('j F Y') }} · {{ $payment->is_online ? $payment->methodLabel() : __('Office payment') }}</span>
+                                    <span class="text-ink-2">{{ App\Support\Dates::format($payment->paid_at) }} · {{ $payment->is_online ? $payment->methodLabel() : __('Office payment') }}</span>
                                     <span class="font-semibold text-ink">{{ Money::html($payment->amount) }}</span>
                                 </li>
                             @endforeach

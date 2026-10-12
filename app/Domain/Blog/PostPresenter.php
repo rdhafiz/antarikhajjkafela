@@ -7,7 +7,7 @@ use App\Models\Post;
 use App\PageBuilder\ContentBlocks;
 use App\PageBuilder\ContentProcessor;
 use App\Support\Branding;
-use App\Support\Money;
+use App\Support\Dates;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -70,13 +70,7 @@ class PostPresenter
 
     public static function date(?Carbon $date): ?string
     {
-        if (! $date) {
-            return null;
-        }
-
-        $locale = app()->getLocale();
-
-        return Money::digits($date->copy()->locale($locale)->translatedFormat('j F Y'), $locale);
+        return Dates::format($date);
     }
 
     /**

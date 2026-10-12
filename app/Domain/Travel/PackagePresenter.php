@@ -6,6 +6,7 @@ use App\Models\Media;
 use App\Models\Package;
 use App\Models\PackagePrice;
 use App\PageBuilder\ContentProcessor;
+use App\Support\Dates;
 use App\Support\Money;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -65,7 +66,7 @@ class PackagePresenter
     public function booking(Package $package): array
     {
         $state = $package->bookingState();
-        $date = fn (?Carbon $d) => $d?->locale(app()->getLocale())->translatedFormat('j F Y');
+        $date = fn (?Carbon $d) => Dates::format($d);
 
         $label = match ($state) {
             'upcoming' => __('Booking opens :date', ['date' => $date($package->booking_starts_on)]),

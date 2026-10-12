@@ -10,7 +10,7 @@
     $videoCount = $items->where('type', 'video')->count();
 @endphp
 <x-site.layout header="overlay">
-    <x-site.page-header :title="$title" :image="$cover" :intro="$album->getTranslation('description', $locale)" :eyebrow="$album->event_date?->copy()->locale($locale)->translatedFormat('j F Y')">
+    <x-site.page-header :title="$title" :image="$cover" :intro="$album->getTranslation('description', $locale)" :eyebrow="App\Support\Dates::format($album->event_date, 'j F Y', $locale)">
         <p class="mt-6 flex flex-wrap gap-5 text-[14px] font-medium text-white/75">
             @if ($photoCount)
                 <span class="inline-flex items-center gap-1.5"><x-site.icon name="image" class="size-4 text-gold" />{{ trans_choice(':count photo|:count photos', $photoCount, ['count' => Money::digits($photoCount)]) }}</span>

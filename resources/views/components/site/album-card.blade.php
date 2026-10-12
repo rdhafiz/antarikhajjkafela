@@ -25,7 +25,7 @@
 
         <div class="absolute inset-x-0 bottom-0 p-6">
             @if ($album->event_date)
-                <p class="text-[12px] font-semibold tracking-wider text-gold uppercase">{{ $album->event_date->copy()->locale($locale)->translatedFormat('F Y') }}</p>
+                <p class="text-[12px] font-semibold tracking-wider text-gold uppercase">{{ App\Support\Dates::format($album->event_date, 'F Y', $locale) }}</p>
             @endif
             <h3 class="mt-1.5 font-display text-display-sm text-white">
                 <a href="{{ $album->url() }}" class="after:absolute after:inset-0 focus-visible:outline-none">{{ $album->getTranslation('title', $locale) }}</a>
