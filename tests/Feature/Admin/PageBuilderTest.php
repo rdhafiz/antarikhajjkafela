@@ -54,14 +54,14 @@ class PageBuilderTest extends AdminTestCase
 
     public function test_inner_page_banners_use_the_shared_centered_hero(): void
     {
-        $contact = $this->page('contact');
-        $banner = $contact->sections()->where('component', 'page_banner')->firstOrFail();
+        $reviews = $this->page('reviews');
+        $banner = $reviews->sections()->where('component', 'page_banner')->firstOrFail();
         $banner->update([
             'content' => array_replace($banner->content, ['highlight' => ['en' => 'since 2016.']]),
             'style' => array_replace($banner->style ?? [], ['background' => 'white']),
         ]);
 
-        $this->get('/contact')
+        $this->get('/reviews')
             ->assertOk()
             ->assertSee('hero-75', false)
             ->assertSee('data-section="page_banner"', false)
@@ -103,11 +103,13 @@ class PageBuilderTest extends AdminTestCase
     {
         $page = $this->page('contact');
         $payload = $this->payload($page);
+        $video = count($payload['sections']);
+        $cta = $video + 1;
         $payload['sections'][] = ['component' => 'video', 'content' => ['url' => 'https://evil.example.com/video'], 'style' => []];
         $payload['sections'][] = ['component' => 'cta', 'content' => ['title' => ['en' => 'Go'], 'primary' => ['url' => 'javascript:alert(1)', 'label' => ['en' => 'x']]], 'style' => ['background_color' => 'red']];
 
         $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $payload)
-            ->assertJsonValidationErrors(['sections.3.content.url', 'sections.4.content.primary.url', 'sections.4.style.background_color']);
+            ->assertJsonValidationErrors(["sections.{$video}.content.url", "sections.{$cta}.content.primary.url", "sections.{$cta}.style.background_color"]);
     }
 
     public function test_rich_text_is_sanitized(): void
@@ -137,12 +139,12 @@ class PageBuilderTest extends AdminTestCase
         $this->asAdmin($admin)->putJson("/api/admin/pages/{$gallery->id}", [...$payload, 'sections' => $withoutListing])
             ->assertJsonValidationErrors('sections');
 
-        $contact = $this->page('contact');
-        $payload = $this->payload($contact);
+        $reviews = $this->page('reviews');
+        $payload = $this->payload($reviews);
         $payload['sections'][] = $payload['sections'][0]; // a second page banner
         unset($payload['sections'][count($payload['sections']) - 1]['id']);
 
-        $this->asAdmin($admin)->putJson("/api/admin/pages/{$contact->id}", $payload)->assertJsonValidationErrors('sections');
+        $this->asAdmin($admin)->putJson("/api/admin/pages/{$reviews->id}", $payload)->assertJsonValidationErrors('sections');
     }
 
     public function test_custom_pages_can_be_created_with_safe_slugs(): void

@@ -340,11 +340,7 @@ class PageSeeder extends Seeder
     private function contact(): array
     {
         return [
-            $this->banner(
-                $this->t('Contact us', 'যোগাযোগ করুন'),
-                $this->t('Visit our office, call or send us a message. We are happy to help you plan your journey.', 'আমাদের অফিসে আসুন, কল করুন বা বার্তা পাঠান। আপনার সফর পরিকল্পনায় সাহায্য করতে পেরে আমরা আনন্দিত।'),
-                $this->t('We are here for you', 'আমরা আছি আপনার পাশে'),
-            ),
+            // No banner: the page opens with the contact options, whose title is the page heading.
             ['contact_info', [
                 'eyebrow' => $this->t('Get in touch', 'যোগাযোগ'),
                 'title' => $this->t('Talk to our team', 'আমাদের টিমের সাথে কথা বলুন'),

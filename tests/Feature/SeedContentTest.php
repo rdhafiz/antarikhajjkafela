@@ -54,7 +54,7 @@ class SeedContentTest extends AdminTestCase
         foreach (Page::with('sections')->get() as $page) {
             $first = $page->sections->sortBy('sort')->first();
 
-            // About, gallery and blog open with their own heading instead of a banner.
+            // About, contact, gallery and blog open with their own heading instead of a banner.
             if (! in_array($first->component, ['page_banner', 'hero'], true)) {
                 continue;
             }
@@ -63,6 +63,7 @@ class SeedContentTest extends AdminTestCase
         }
 
         $this->assertSame('about', Page::where('system_key', 'about')->first()->sections()->orderBy('sort')->first()->component);
+        $this->assertSame('contact_info', Page::where('system_key', 'contact')->first()->sections()->orderBy('sort')->first()->component);
         foreach (['gallery', 'blog'] as $key) {
             $this->assertSame('page_listing', Page::where('system_key', $key)->first()->sections()->orderBy('sort')->first()->component);
         }

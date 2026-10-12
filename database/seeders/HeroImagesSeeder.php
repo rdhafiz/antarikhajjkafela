@@ -25,7 +25,6 @@ class HeroImagesSeeder extends Seeder
      */
     private const BANNERS = [
         'services' => ['makkah-hotels.webp', 'Hotels around the Haram in Makkah', 'মক্কায় হারামের আশপাশের হোটেল'],
-        'contact' => ['madinah-umbrellas.webp', 'The courtyard umbrellas of the Prophet\'s Mosque in Madinah', 'মসজিদে নববীর আঙিনার ছাতা'],
         'reviews' => ['green-dome.webp', 'The Green Dome of the Prophet\'s Mosque', 'মসজিদে নববীর সবুজ গম্বুজ'],
         'terms-and-conditions' => ['nabawi-colonnade.webp', 'A colonnade of the Prophet\'s Mosque in Madinah', 'মসজিদে নববীর স্তম্ভসারি'],
         'privacy-policy' => ['nabawi-colonnade.webp', 'A colonnade of the Prophet\'s Mosque in Madinah', 'মসজিদে নববীর স্তম্ভসারি'],
