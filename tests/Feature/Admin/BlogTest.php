@@ -60,6 +60,19 @@ class BlogTest extends AdminTestCase
             ->assertSeeText('মিনিটে পড়ুন');
     }
 
+    public function test_post_dates_use_bangla_digits_in_bangla(): void
+    {
+        $post = Post::where('slug', 'what-is-umrah')->firstOrFail();
+        $post->update(['published_at' => '2025-08-10 09:00:00']);
+
+        $this->get('/blog/what-is-umrah')->assertOk()->assertSeeText('10 August 2025');
+
+        $this->withUnencryptedCookie('locale', 'bn')->get('/blog/what-is-umrah')
+            ->assertOk()
+            ->assertSeeText('১০ আগস্ট ২০২৫')
+            ->assertDontSeeText('10 আগস্ট 2025');
+    }
+
     public function test_drafts_and_scheduled_posts_are_hidden_but_previewable(): void
     {
         $post = Post::where('slug', 'what-is-umrah')->firstOrFail();
