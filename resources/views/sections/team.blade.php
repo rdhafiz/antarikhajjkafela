@@ -28,8 +28,9 @@
                             class="mx-auto aspect-square w-full max-w-52 rounded-t-[999px] object-cover transition-[scale] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
                         >
                     @else
-                        <div class="mx-auto flex aspect-square w-full max-w-52 items-center justify-center rounded-t-[999px] bg-brand-100 font-display text-5xl text-brand" aria-hidden="true">
-                            {{ mb_substr($member['name'], 0, 1) }}
+                        {{-- No photo yet: a vector portrait, a different look for each card. --}}
+                        <div class="mx-auto aspect-square w-full max-w-52 overflow-hidden rounded-t-[999px]">
+                            <x-site.avatar-illustration :variant="$index" class="block size-full transition-[scale] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]" />
                         </div>
                     @endif
                 </div>
