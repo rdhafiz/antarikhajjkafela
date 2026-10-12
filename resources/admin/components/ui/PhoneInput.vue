@@ -29,6 +29,21 @@ const input = ref<HTMLInputElement | null>(null);
 const touched = ref(false);
 const state = ref<'empty' | 'valid' | 'invalid'>('empty');
 let iti: ReturnType<typeof intlTelInput> | null = null;
+// setNumber() fires input/countrychange events; those are not user edits.
+let settingNumber = false;
+
+function show(value: string): void {
+    settingNumber = true;
+    try {
+        iti?.setNumber(value);
+    } finally {
+        settingNumber = false;
+    }
+}
+
+function onEdit(): void {
+    if (!settingNumber) sync();
+}
 
 const reasons: Record<string, string> = {
     INVALID_COUNTRY_CODE: 'That country code is not valid.',
@@ -39,32 +54,37 @@ const reasons: Record<string, string> = {
 const reason = ref('Enter a valid phone number for the selected country.');
 const message = computed(() => props.error || (touched.value && state.value === 'invalid' ? reason.value : null));
 
-function sync(): void {
+/**
+ * Checks the number and, when `write` is set (the user typed or picked a country), saves it.
+ * Loading and leaving the field only check it: rewriting a stored number into another
+ * format would look like an unsaved change.
+ */
+function sync(write = true): void {
     if (!iti || !input.value) return;
     const raw = input.value.value.trim();
 
     if (!raw) {
         state.value = 'empty';
-        model.value = null;
+        if (write) model.value = null;
         emit('valid', true);
         return;
     }
 
     // Before the validation rules load, keep the typed text so nothing is lost.
     if (!intlTelInput.utils) {
-        model.value = raw;
+        if (write) model.value = raw;
         return;
     }
 
     if (iti.isValidNumber()) {
         state.value = 'valid';
-        model.value = iti.getNumber('INTERNATIONAL');
+        if (write) model.value = iti.getNumber('INTERNATIONAL');
         emit('valid', true);
     } else {
         state.value = 'invalid';
         const code = iti.getValidationError();
         reason.value = (code && reasons[code]) || 'Enter a valid phone number for the selected country.';
-        model.value = raw;
+        if (write) model.value = raw;
         emit('valid', false);
     }
 }
@@ -83,17 +103,21 @@ onMounted(() => {
         loadUtils: () => import('intl-tel-input/utils'),
     });
 
-    if (model.value) iti.setNumber(model.value);
+    if (model.value) show(model.value);
     iti.promise.then(() => {
-        if (model.value) iti?.setNumber(model.value);
-        sync();
+        if (model.value) show(model.value);
+        sync(false);
     });
 });
 
 watch(model, (value) => {
     if (!iti || !input.value) return;
     const shown = intlTelInput.utils && iti.isValidNumber() ? iti.getNumber('INTERNATIONAL') : input.value.value.trim();
-    if ((value ?? '') !== (shown ?? '')) iti.setNumber(value ?? '');
+    if ((value ?? '') !== (shown ?? '') && (value ?? '') !== input.value.value.trim()) {
+        // Changed from outside (e.g. "Undo"): show it and re-check it without saving.
+        show(value ?? '');
+        sync(false);
+    }
 });
 
 onBeforeUnmount(() => iti?.destroy());
@@ -112,9 +136,9 @@ onBeforeUnmount(() => iti?.destroy());
                 :disabled="disabled"
                 :aria-invalid="message ? 'true' : undefined"
                 :aria-describedby="message && id ? `${id}-phone-error` : undefined"
-                @input="sync"
-                @countrychange="sync"
-                @blur="touched = true; sync()"
+                @input="onEdit"
+                @countrychange="onEdit"
+                @blur="touched = true; sync(false)"
             />
             <CircleCheck v-if="state === 'valid'" class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-emerald-600" aria-hidden="true" />
             <CircleAlert v-else-if="message" class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-red-600" aria-hidden="true" />
