@@ -3,8 +3,8 @@
     A package as a wide card on its service page: the banner (at its own 16:6 shape) with the
     name and starting price, then the summary and flight beside every package option (tier)
     with its hotels and price, each option linking to booking.
-    The frame stays in place while its parts reveal in turn as they scroll into view:
-    the banner wipes open, then the summary, the flight, each option and the buttons.
+    The frame and the banner photo stay in place while the parts reveal in turn as they scroll
+    into view: the text over the photo, then the summary, the flight, each option and the buttons.
 --}}
 @php
     use App\Support\Money;
@@ -15,9 +15,8 @@
     $open = $card['state'] === 'open';
 @endphp
 <article {{ $attributes->class(['pkg-feature relative overflow-hidden rounded-[2rem] border border-line bg-white shadow-[var(--shadow-soft)]']) }}>
-    <div class="relative isolate flex aspect-[4/3] flex-col justify-between overflow-hidden bg-brand p-6 text-white sm:aspect-[16/7] sm:p-8 lg:aspect-[16/6] lg:p-10" data-reveal="wipe">
+    <div class="relative isolate flex aspect-[4/3] flex-col justify-between overflow-hidden bg-brand p-6 text-white sm:aspect-[16/7] sm:p-8 lg:aspect-[16/6] lg:p-10">
         @if ($package->banner)
-            {{-- Own layer, so the wipe clips this wrapper and the photo keeps its slow hover zoom. --}}
             <div class="absolute inset-0 -z-20 overflow-hidden">
                 <img
                     src="{{ $package->banner->url('lg') }}"
@@ -32,7 +31,7 @@
         @endif
         <div class="absolute inset-0 -z-10 bg-gradient-to-t from-brand-950/90 via-brand-950/30 to-brand-950/10" aria-hidden="true"></div>
 
-        <div class="flex flex-wrap items-start gap-2">
+        <div class="flex flex-wrap items-start gap-2" data-reveal>
             @if ($showService && $package->service)
                 <span class="rounded-full bg-white/95 px-3 py-1 text-[12px] font-semibold text-brand">{{ $package->service->getTranslation('name', $locale) }}</span>
             @endif
@@ -50,7 +49,7 @@
             @endunless
         </div>
 
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" data-reveal style="--reveal-delay: 100ms">
             <h3 class="max-w-xl font-display text-display-md text-white">
                 <a href="{{ $package->url() }}" class="pkg-feature-title">{{ $name }}</a>
             </h3>
