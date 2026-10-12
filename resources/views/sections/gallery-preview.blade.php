@@ -4,13 +4,23 @@
     $mosaic = $count === 5;
     $dark = $style['tone'] === 'dark';
 @endphp
-@if ($count)
+@if ($count || $albums->isNotEmpty())
     <x-site.block :style="$style" :section="$section">
         @if ($dark && ! $style['image'])
             <div class="pattern-star pointer-events-none absolute -inset-y-[25%] inset-x-0 -z-10 opacity-[0.05]" data-parallax="0.2" aria-hidden="true"></div>
             <div class="pointer-events-none absolute -right-40 -bottom-40 -z-10 size-[520px] rounded-full bg-gold/10 blur-3xl" data-parallax="-0.15" aria-hidden="true"></div>
         @endif
         <x-site.block-heading :c="$c" class="mb-14" />
+        @if ($albums->isNotEmpty())
+            {{-- Several albums: the newest albums as cards. --}}
+            <div @class(['grid gap-6 sm:grid-cols-2', 'lg:grid-cols-3' => $albums->count() !== 2 && $albums->count() !== 4, 'mx-auto max-w-4xl' => $albums->count() === 2])>
+                @foreach ($albums as $index => $album)
+                    <div data-reveal="scale" style="--reveal-delay: {{ ($index % 3) * 100 }}ms">
+                        <x-site.album-card :album="$album" />
+                    </div>
+                @endforeach
+            </div>
+        @else
         <ul @class([
             'grid grid-cols-2 gap-2.5 sm:gap-3',
             'sm:grid-cols-3' => $count <= 3,
@@ -38,6 +48,7 @@
                 </li>
             @endforeach
         </ul>
+        @endif
         @if ($c['cta'])
             <div class="mt-12 text-center">
                 <x-site.link-button :link="$c['cta']" :variant="$style['tone'] === 'dark' ? 'gold' : 'primary'" icon-right="arrow-right" />

@@ -103,6 +103,29 @@ class ReviewsGalleryTest extends AdminTestCase
         $this->assertNotNull(Media::find($media), 'Photos stay in the media library.');
     }
 
+    public function test_home_gallery_shows_photos_for_one_album_and_cards_for_several(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        $admin = $this->superAdmin();
+        $upload = fn () => $this->asAdmin($admin)->post('/api/admin/media', ['file' => UploadedFile::fake()->image('p.jpg', 900, 700), 'usage' => 'gallery'])->json('data.id');
+
+        $first = GalleryAlbum::create(['title' => ['en' => 'Arafat day'], 'slug' => 'arafat-day', 'event_date' => '2025-06-05']);
+        $first->items()->create(['type' => 'image', 'media_id' => $upload()]);
+
+        // One album: its photos fill the section.
+        $this->get('/')->assertOk()->assertSee('href="'.url('/gallery/arafat-day').'"', false)->assertDontSee('Madinah ziyarah');
+
+        $second = GalleryAlbum::create(['title' => ['en' => 'Madinah ziyarah'], 'slug' => 'madinah-ziyarah', 'event_date' => '2025-07-01']);
+        $second->items()->create(['type' => 'image', 'media_id' => $upload()]);
+
+        // Several albums: the albums are shown, newest first.
+        $html = $this->get('/')->assertOk()->getContent();
+        $this->assertStringContainsString('Madinah ziyarah', $html);
+        $this->assertStringContainsString('Arafat day', $html);
+        $this->assertLessThan(strpos($html, 'Arafat day'), strpos($html, 'Madinah ziyarah'));
+    }
+
     public function test_listing_pages_keep_their_listing_section(): void
     {
         foreach (['blog', 'reviews', 'gallery'] as $key) {
