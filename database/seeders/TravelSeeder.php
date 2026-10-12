@@ -66,6 +66,8 @@ class TravelSeeder extends Seeder
             'slug' => 'hajj',
             'icon' => 'kaaba',
             'sort' => 0,
+            'headline' => $this->t('Answer the call of Hajj,', 'হজের ডাকে সাড়া দিন,'),
+            'highlight' => $this->t('with scholars beside you.', 'আলেমদের সান্নিধ্যে।'),
             'summary' => $this->t(
                 'Hajj packages from Bangladesh with hotels near the Haram, Bangladeshi meals and scholars beside you throughout the journey.',
                 'হারামের কাছে হোটেল, বাংলাদেশি খাবার এবং পুরো সফরে আলেমদের সান্নিধ্যসহ বাংলাদেশ থেকে হজ প্যাকেজ।'
@@ -81,6 +83,8 @@ class TravelSeeder extends Seeder
             'slug' => 'umrah',
             'icon' => 'mosque',
             'sort' => 1,
+            'headline' => $this->t('Umrah, any time of the year,', 'যেকোনো সময় উমরাহ,'),
+            'highlight' => $this->t('guided at every step.', 'প্রতিটি ধাপে দিকনির্দেশনা।'),
             'summary' => $this->t(
                 'Umrah packages for every budget, with guidance from an experienced scholar and Ziyarah in Makkah and Madinah.',
                 'সব বাজেটের উমরাহ প্যাকেজ—অভিজ্ঞ আলেমের দিকনির্দেশনা এবং মক্কা ও মদিনায় যিয়ারাহসহ।'

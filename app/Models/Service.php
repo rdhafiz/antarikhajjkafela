@@ -11,13 +11,13 @@ use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Translatable\HasTranslations;
 
-#[Fillable(['name', 'slug', 'summary', 'description', 'icon', 'image_id', 'is_active', 'sort', 'seo'])]
+#[Fillable(['name', 'slug', 'summary', 'headline', 'highlight', 'description', 'icon', 'image_id', 'is_active', 'sort', 'seo'])]
 class Service extends Model
 {
     use HasTranslations, LogsActivity;
 
     /** @var list<string> */
-    public array $translatable = ['name', 'summary', 'description'];
+    public array $translatable = ['name', 'summary', 'headline', 'highlight', 'description'];
 
     protected function casts(): array
     {

@@ -27,6 +27,8 @@ interface ServiceRow {
     slug: string;
     url: string;
     summary: Translations;
+    headline: Translations;
+    highlight: Translations;
     description: Translations;
     icon: string | null;
     image_id: number | null;
@@ -47,7 +49,7 @@ const editing = ref<ServiceRow | null>(null);
 const open = ref(false);
 let slugTouched = false;
 
-const blank = { name: {} as Translations, slug: '', summary: {} as Translations, description: {} as Translations, icon: null as string | null, image_id: null as number | null, is_active: true, seo: { title: {} as Translations, description: {} as Translations } };
+const blank = { name: {} as Translations, slug: '', summary: {} as Translations, headline: {} as Translations, highlight: {} as Translations, description: {} as Translations, icon: null as string | null, image_id: null as number | null, is_active: true, seo: { title: {} as Translations, description: {} as Translations } };
 const form = useForm({ ...blank });
 
 async function load(): Promise<void> {
@@ -152,7 +154,11 @@ onMounted(load);
                         </div>
                     </FormField>
                 </div>
-                <TranslatableInput v-model="form.data.summary" label="Short summary" multiline :rows="2" :errors="form.errors" error-key="summary" hint="Shown under the title on the service page." />
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <TranslatableInput v-model="form.data.headline" label="Hero headline" :errors="form.errors" error-key="headline" hint="Large title at the top of the service page. Empty: the service name." />
+                    <TranslatableInput v-model="form.data.highlight" label="Highlight line" :errors="form.errors" error-key="highlight" hint="Shown in gold italics under the headline." />
+                </div>
+                <TranslatableInput v-model="form.data.summary" label="Short summary" multiline :rows="2" :errors="form.errors" error-key="summary" hint="Shown under the headline on the service page." />
                 <TranslatableInput v-model="form.data.description" label="Description" multiline :rows="5" :errors="form.errors" error-key="description" />
                 <div class="grid gap-4 sm:grid-cols-2">
                     <IconPicker v-model="form.data.icon" label="Icon" :icons="icons" />

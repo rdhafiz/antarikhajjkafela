@@ -5,13 +5,15 @@
     $locale = app()->getLocale();
     $name = $service->getTranslation('name', $locale);
     $summary = $service->getTranslation('summary', $locale);
+    $headline = $service->getTranslation('headline', $locale) ?: $name;
+    $highlight = $service->getTranslation('highlight', $locale);
     $image = $service->image ?? app(App\Support\Branding::class)->defaultBanner();
     $whatsapp = $site->whatsappUrl(__('Assalamu alaikum, I would like to know about your :name packages.', ['name' => $name]));
     [$minDays, $maxDays] = $stats['days'] ?? [null, null];
 @endphp
 <x-site.layout header="overlay">
-    {{-- Hero: the service photo moves behind centered content, as on the home page. --}}
-    <section class="hero-60 relative isolate flex flex-col overflow-hidden bg-brand-950 pt-20 text-white" data-hero>
+    {{-- Hero: the home page's centered hero at three quarters of the screen, the photo moving behind the text. --}}
+    <section class="hero-75 relative isolate flex flex-col overflow-hidden bg-brand-950 pt-20 text-white" data-hero>
         @if ($image)
             <div class="hero-media" data-parallax-bg aria-hidden="true">
                 <img src="{{ $image->url('lg') }}" srcset="{{ $image->srcset() }}" sizes="100vw" alt="" fetchpriority="high">
@@ -21,11 +23,13 @@
             <div class="pattern-star absolute inset-0 -z-10 opacity-[0.06]" aria-hidden="true"></div>
         @endif
 
-        <div class="container-site flex flex-1 flex-col items-center justify-center py-10 text-center sm:py-12">
-            <div class="hero-reveal flex max-w-3xl flex-col items-center" data-parallax-content>
-                <x-site.breadcrumbs light class="mb-6 [&_ol]:justify-center" />
-                <p class="eyebrow eyebrow-light justify-center">{{ __('Packages from Bangladesh') }}</p>
-                <h1 class="mt-5 text-display-xl text-white">{{ $name }}</h1>
+        <div class="container-site flex flex-1 flex-col items-center justify-center py-12 text-center sm:py-14">
+            <div class="hero-reveal flex max-w-4xl flex-col items-center" data-parallax-content>
+                <p class="eyebrow eyebrow-light justify-center">{{ $name }} · {{ __('Packages from Bangladesh') }}</p>
+                <h1 class="mt-5 text-display-xl text-white">
+                    {{ $headline }}
+                    @if (filled($highlight))<span class="hero-line text-gold italic">{{ $highlight }}</span>@endif
+                </h1>
                 @if (filled($summary))
                     <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/80">{{ $summary }}</p>
                 @endif
@@ -68,6 +72,37 @@
         @endif
     </section>
 
+    {{-- Packages: a centered grid over a slowly moving pattern. --}}
+    <section id="packages" class="relative isolate scroll-mt-20 overflow-hidden bg-sand-50 py-20 sm:py-24 lg:py-28">
+        <div class="pattern-star-ink pointer-events-none absolute -inset-y-[20%] inset-x-0 -z-10 opacity-[0.025]" data-parallax="0.2" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute -top-40 -right-40 -z-10 size-[520px] rounded-full bg-gold/10 blur-3xl" data-parallax="-0.15" aria-hidden="true"></div>
+        <div class="container-site">
+            <div class="mx-auto mb-14 max-w-2xl text-center" data-reveal>
+                <p class="eyebrow justify-center">{{ __('Packages') }}</p>
+                <h2 class="mt-4 text-display-lg text-brand">{{ __('Choose your :name package', ['name' => $name]) }}</h2>
+                <p class="mt-5 text-[1.0625rem] leading-relaxed text-ink-2">{{ __('Hotels near the Haram, flights and scholars beside you. Compare the packages and book online.') }}</p>
+            </div>
+
+            @if ($packages->isEmpty())
+                <div class="card-site mx-auto flex max-w-xl flex-col items-center px-6 py-16 text-center" data-reveal>
+                    <x-site.icon name="calendar" class="size-10 text-gold-deep" />
+                    <h3 class="mt-5 font-display text-display-sm text-brand">{{ __('New packages are being prepared') }}</h3>
+                    <p class="mt-3 max-w-md text-ink-2">{{ __('Call or message us and we will share the latest packages and prices with you.') }}</p>
+                </div>
+            @else
+                <div @class([
+                    'grid gap-6',
+                    'mx-auto max-w-md' => $packages->count() === 1,
+                    'mx-auto max-w-4xl sm:grid-cols-2' => $packages->count() === 2,
+                    'sm:grid-cols-2 lg:grid-cols-3' => $packages->count() >= 3,
+                ])>
+                    @foreach ($packages as $index => $package)
+                        <x-site.package-card :package="$package" data-reveal :style="'--reveal-delay: '.(($index % 3) * 100).'ms'" />
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </section>
     {{-- About: the description's plain paragraphs, centered and set large. --}}
     @if ($about['paragraphs'])
         <section class="relative isolate overflow-hidden bg-white py-20 sm:py-24 lg:py-28">
@@ -110,35 +145,4 @@
         </section>
     @endforeach
 
-    {{-- Packages: a centered grid over a slowly moving pattern. --}}
-    <section id="packages" class="relative isolate scroll-mt-20 overflow-hidden bg-sand-50 py-20 sm:py-24 lg:py-28">
-        <div class="pattern-star-ink pointer-events-none absolute -inset-y-[20%] inset-x-0 -z-10 opacity-[0.025]" data-parallax="0.2" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -top-40 -right-40 -z-10 size-[520px] rounded-full bg-gold/10 blur-3xl" data-parallax="-0.15" aria-hidden="true"></div>
-        <div class="container-site">
-            <div class="mx-auto mb-14 max-w-2xl text-center" data-reveal>
-                <p class="eyebrow justify-center">{{ __('Packages') }}</p>
-                <h2 class="mt-4 text-display-lg text-brand">{{ __('Choose your :name package', ['name' => $name]) }}</h2>
-                <p class="mt-5 text-[1.0625rem] leading-relaxed text-ink-2">{{ __('Hotels near the Haram, flights and scholars beside you. Compare the packages and book online.') }}</p>
-            </div>
-
-            @if ($packages->isEmpty())
-                <div class="card-site mx-auto flex max-w-xl flex-col items-center px-6 py-16 text-center" data-reveal>
-                    <x-site.icon name="calendar" class="size-10 text-gold-deep" />
-                    <h3 class="mt-5 font-display text-display-sm text-brand">{{ __('New packages are being prepared') }}</h3>
-                    <p class="mt-3 max-w-md text-ink-2">{{ __('Call or message us and we will share the latest packages and prices with you.') }}</p>
-                </div>
-            @else
-                <div @class([
-                    'grid gap-6',
-                    'mx-auto max-w-md' => $packages->count() === 1,
-                    'mx-auto max-w-4xl sm:grid-cols-2' => $packages->count() === 2,
-                    'sm:grid-cols-2 lg:grid-cols-3' => $packages->count() >= 3,
-                ])>
-                    @foreach ($packages as $index => $package)
-                        <x-site.package-card :package="$package" data-reveal :style="'--reveal-delay: '.(($index % 3) * 100).'ms'" />
-                    @endforeach
-                </div>
-            @endif
-        </div>
-    </section>
 </x-site.layout>

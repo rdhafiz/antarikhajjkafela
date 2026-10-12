@@ -37,9 +37,12 @@ class TravelTest extends AdminTestCase
     {
         $this->get('/hajj')
             ->assertOk()
-            ->assertSee('hero-60', false)
+            ->assertSee('hero-75', false)
+            ->assertSeeText('Answer the call of Hajj,')
+            ->assertSeeText('with scholars beside you.')
             ->assertSeeText('35–40 days')
             ->assertSeeText('About Hajj')
+            ->assertSeeTextInOrder(['with scholars beside you.', 'Choose your Hajj package', 'About Hajj', 'Surah Al-Hajj 22:27'])
             ->assertSeeText('Surah Al-Hajj 22:27')
             ->assertSee('<blockquote', false)
             ->assertDontSee('aria-label="Filter packages"', false);
@@ -211,6 +214,15 @@ class TravelTest extends AdminTestCase
 
         $this->asAdmin($admin)->postJson('/api/admin/services', ['name' => ['en' => 'Ziyarah tours'], 'slug' => 'ziyarah-tours'])->assertCreated();
         $this->get('/ziyarah-tours')->assertOk()->assertSeeText('New packages are being prepared');
+
+        $ziyarah = Service::where('slug', 'ziyarah-tours')->firstOrFail();
+        $this->asAdmin($admin)->putJson("/api/admin/services/{$ziyarah->id}", [
+            'name' => ['en' => 'Ziyarah tours'],
+            'slug' => 'ziyarah-tours',
+            'headline' => ['en' => 'Walk where the Prophet walked,'],
+            'highlight' => ['en' => 'in Makkah and Madinah.'],
+        ])->assertOk()->assertJsonPath('data.headline.en', 'Walk where the Prophet walked,');
+        $this->get('/ziyarah-tours')->assertOk()->assertSeeTextInOrder(['Walk where the Prophet walked,', 'in Makkah and Madinah.']);
 
         $hajj = Service::where('slug', 'hajj')->firstOrFail();
         $this->asAdmin($admin)->deleteJson("/api/admin/services/{$hajj->id}")->assertJsonValidationErrors('service');
