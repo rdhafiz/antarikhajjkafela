@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { Images, Search, Upload } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
+import { Images, Upload } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
 import AppPagination from '@admin/components/ui/AppPagination.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
+import FilterBar from '@admin/components/ui/FilterBar.vue';
 import PageHeader from '@admin/components/ui/PageHeader.vue';
 import MediaDetailsModal from '@admin/components/media/MediaDetailsModal.vue';
 import MediaDropzone from '@admin/components/media/MediaDropzone.vue';
@@ -26,6 +27,15 @@ const uploadUsage = ref('general');
 const showUploader = ref(false);
 const detailsOpen = ref(false);
 const current = ref<Media | null>(null);
+
+const active = computed(() => (list.filters.usage ? 1 : 0));
+const filtered = computed(() => !!list.filters.search || active.value > 0);
+const summary = computed(() => (list.meta.value ? `${list.meta.value.total} ${list.meta.value.total === 1 ? 'image' : 'images'}` : ''));
+
+function clearAll(): void {
+    list.filters.usage = '';
+    list.filters.search = '';
+}
 
 function open(media: Media): void {
     current.value = media;
@@ -79,35 +89,30 @@ onMounted(async () => {
             </div>
         </Transition>
 
-        <div class="card p-4">
-            <div class="mb-4 flex flex-col gap-3 sm:flex-row">
-                <label class="relative flex-1">
-                    <span class="sr-only">Search images</span>
-                    <Search class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-muted" />
-                    <input v-model="list.filters.search" type="search" placeholder="Search by file name" class="control pl-9" />
-                </label>
-                <label class="sm:w-56">
-                    <span class="sr-only">Filter by usage</span>
-                    <select v-model="list.filters.usage" class="control">
-                        <option value="">All usages</option>
-                        <option v-for="usage in usages" :key="usage.key" :value="usage.key">{{ usage.label }}</option>
-                    </select>
-                </label>
-            </div>
+        <FilterBar v-model:search="list.filters.search" placeholder="Search by file name" :active="active" :summary="summary" @clear="list.filters.usage = ''">
+            <select v-model="list.filters.usage" class="control" aria-label="Filter by usage">
+                <option value="">All usages</option>
+                <option v-for="usage in usages" :key="usage.key" :value="usage.key">{{ usage.label }}</option>
+            </select>
+        </FilterBar>
 
+        <div class="card p-4">
             <div v-if="list.loading.value && !list.items.value.length" class="flex justify-center py-16 text-brand">
                 <AppSpinner class="size-6" />
             </div>
             <EmptyState
                 v-else-if="!list.items.value.length"
                 :icon="Images"
-                title="No images yet"
-                :description="list.filters.search || list.filters.usage ? 'Nothing matches your search.' : 'Upload images to use them across the website.'"
-            />
+                :title="filtered ? 'No images match' : 'No images yet'"
+                :description="filtered ? 'Try another search or clear the filters.' : 'Upload images to use them across the website.'"
+            >
+                <AppButton v-if="filtered" variant="secondary" @click="clearAll">Clear filters</AppButton>
+                <AppButton v-else-if="auth.can('media.create')" :icon="Upload" @click="showUploader = true">Upload images</AppButton>
+            </EmptyState>
             <MediaGrid v-else :items="list.items.value" :class="{ 'opacity-60': list.loading.value }" @select="open" />
         </div>
 
-        <AppPagination v-if="list.meta.value" :meta="list.meta.value" @change="list.goTo" />
+        <AppPagination v-if="list.meta.value" :meta="list.meta.value" label="images" :per-page-options="[24, 48, 96]" @change="list.goTo" @per-page="list.setPerPage" />
 
         <MediaDetailsModal v-model:open="detailsOpen" :media="current" @updated="list.replace" @deleted="list.remove" />
     </div>

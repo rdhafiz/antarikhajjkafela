@@ -8,7 +8,7 @@ defineProps<{ label?: string; disabled?: boolean }>();
 </script>
 
 <template>
-    <label class="inline-flex cursor-pointer items-center gap-2.5 text-sm text-ink select-none" :class="{ 'cursor-not-allowed opacity-50': disabled }">
+    <label class="inline-flex cursor-pointer items-center gap-2.5 text-sm text-ink select-none" :class="{ 'cursor-not-allowed opacity-70': disabled }">
         <CheckboxRoot
             v-model="model"
             :disabled="disabled"

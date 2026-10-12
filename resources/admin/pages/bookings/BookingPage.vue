@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ArrowLeft, ChevronDown, Copy, ExternalLink, FileText, Image as ImageIcon, Mail, Phone, Plus, Trash2 } from 'lucide-vue-next';
+import { ArrowLeft, ChevronDown, Copy, ExternalLink, FileText, Files, Image as ImageIcon, Mail, MessageCircle, Package as PackageIcon, Phone, Plus, Trash2, UserRound, Wallet } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
+import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
 import AppModal from '@admin/components/ui/AppModal.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import FormField from '@admin/components/ui/FormField.vue';
@@ -129,8 +130,8 @@ onMounted(load);
             <div class="min-w-0 space-y-6">
                 <!-- Booking -->
                 <section class="card p-6" aria-labelledby="b-package">
-                    <h2 id="b-package" class="text-[12px] font-semibold tracking-wide text-ink-muted uppercase">Package</h2>
-                    <p class="mt-1.5 flex items-center gap-2 text-[16px] font-semibold text-ink">
+                    <h2 id="b-package" class="flex items-center gap-2 text-[12px] font-semibold tracking-wide text-ink-muted uppercase"><PackageIcon class="size-4 text-violet-600" aria-hidden="true" />Package</h2>
+                    <p class="mt-1.5 flex items-center gap-2 text-[16px] font-semibold [overflow-wrap:anywhere] text-ink">
                         {{ booking.package }}
                         <a v-if="booking.package_url" :href="booking.package_url" target="_blank" rel="noopener" class="text-ink-muted hover:text-brand" aria-label="Open package page"><ExternalLink class="size-3.5" /></a>
                     </p>
@@ -145,20 +146,20 @@ onMounted(load);
 
                 <!-- Customer -->
                 <section class="card p-6" aria-labelledby="b-customer">
-                    <h2 id="b-customer" class="text-[12px] font-semibold tracking-wide text-ink-muted uppercase">Customer</h2>
+                    <h2 id="b-customer" class="flex items-center gap-2 text-[12px] font-semibold tracking-wide text-ink-muted uppercase"><UserRound class="size-4 text-sky-600" aria-hidden="true" />Customer</h2>
                     <p class="mt-1.5 text-[16px] font-semibold text-ink">{{ booking.customer_name }}</p>
                     <div class="mt-3 flex flex-wrap gap-2">
-                        <a :href="`tel:${booking.customer_phone}`" class="inline-flex items-center gap-1.5 rounded-lg bg-canvas px-3 py-1.5 text-sm font-medium text-ink hover:text-brand"><Phone class="size-4" />{{ booking.customer_phone }}</a>
-                        <a v-if="whatsapp" :href="whatsapp" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg bg-canvas px-3 py-1.5 text-sm font-medium text-ink hover:text-brand">WhatsApp</a>
-                        <a v-if="booking.customer_email" :href="`mailto:${booking.customer_email}`" class="inline-flex items-center gap-1.5 rounded-lg bg-canvas px-3 py-1.5 text-sm font-medium text-ink hover:text-brand"><Mail class="size-4" />{{ booking.customer_email }}</a>
+                        <a :href="`tel:${booking.customer_phone}`" class="inline-flex items-center gap-1.5 rounded-lg bg-canvas px-3 py-1.5 text-sm font-medium text-ink hover:text-brand"><Phone class="size-4 shrink-0 text-sky-600" />{{ booking.customer_phone }}</a>
+                        <a v-if="whatsapp" :href="whatsapp" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg bg-canvas px-3 py-1.5 text-sm font-medium text-ink hover:text-brand"><MessageCircle class="size-4 shrink-0 text-emerald-600" />WhatsApp</a>
+                        <a v-if="booking.customer_email" :href="`mailto:${booking.customer_email}`" class="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-lg bg-canvas px-3 py-1.5 text-sm font-medium text-ink hover:text-brand"><Mail class="size-4 shrink-0 text-pink-600" /><span class="min-w-0 [overflow-wrap:anywhere]">{{ booking.customer_email }}</span></a>
                     </div>
-                    <p v-if="booking.customer_address" class="mt-3 text-sm text-ink-soft">{{ booking.customer_address }}</p>
-                    <p v-if="booking.customer_note" class="mt-3 rounded-lg bg-canvas px-4 py-3 text-sm whitespace-pre-line text-ink">{{ booking.customer_note }}</p>
+                    <p v-if="booking.customer_address" class="mt-3 text-sm [overflow-wrap:anywhere] text-ink-soft">{{ booking.customer_address }}</p>
+                    <p v-if="booking.customer_note" class="mt-3 rounded-lg bg-canvas px-4 py-3 text-sm [overflow-wrap:anywhere] whitespace-pre-line text-ink">{{ booking.customer_note }}</p>
                 </section>
 
                 <!-- Documents -->
                 <section class="card p-6" aria-labelledby="b-docs">
-                    <h2 id="b-docs" class="text-[12px] font-semibold tracking-wide text-ink-muted uppercase">Documents</h2>
+                    <h2 id="b-docs" class="flex items-center gap-2 text-[12px] font-semibold tracking-wide text-ink-muted uppercase"><Files class="size-4 text-amber-600" aria-hidden="true" />Documents</h2>
                     <p v-if="!booking.documents.length" class="mt-2 text-sm text-ink-muted">No documents were uploaded.</p>
                     <ul v-else class="mt-3 grid gap-2 sm:grid-cols-2">
                         <li v-for="doc in booking.documents" :key="doc.id">
@@ -176,7 +177,7 @@ onMounted(load);
                 <!-- Payments -->
                 <section class="card p-6" aria-labelledby="b-payments">
                     <div class="flex items-center justify-between gap-3">
-                        <h2 id="b-payments" class="text-[12px] font-semibold tracking-wide text-ink-muted uppercase">Payments</h2>
+                        <h2 id="b-payments" class="flex items-center gap-2 text-[12px] font-semibold tracking-wide text-ink-muted uppercase"><Wallet class="size-4 text-emerald-600" aria-hidden="true" />Payments</h2>
                         <AppButton v-if="auth.can('payments.create')" size="sm" :icon="Plus" @click="openPayment">Record payment</AppButton>
                     </div>
                     <p v-if="!booking.payments.length" class="mt-2 text-sm text-ink-muted">No payments yet.</p>
@@ -189,21 +190,21 @@ onMounted(load);
                                         <AppBadge :tone="paymentTone[payment.status]">{{ payment.status }}</AppBadge>
                                         <span class="font-normal text-ink-soft">{{ payment.method_label }}</span>
                                     </p>
-                                    <p class="text-[12px] text-ink-muted">
+                                    <p class="text-[12px] [overflow-wrap:anywhere] text-ink-muted">
                                         {{ formatDate(payment.paid_at ?? payment.created_at, true) }}
                                         <template v-if="payment.reference"> · Ref {{ payment.reference }}</template>
                                         <template v-if="payment.gateway_reference"> · Gateway ref {{ payment.gateway_reference }}</template>
                                         <template v-if="payment.transaction_id"> · {{ payment.transaction_id }}</template>
                                         <template v-if="payment.recorded_by"> · recorded by {{ payment.recorded_by }}</template>
                                     </p>
-                                    <p v-if="payment.note" class="mt-1 text-[13px] text-ink-soft">{{ payment.note }}</p>
+                                    <p v-if="payment.note" class="mt-1 text-[13px] [overflow-wrap:anywhere] text-ink-soft">{{ payment.note }}</p>
                                 </div>
                                 <button v-if="payment.is_online && payment.log.length" type="button" class="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-semibold text-ink-muted hover:bg-canvas hover:text-ink" :aria-expanded="openLog === payment.id" @click="openLog = openLog === payment.id ? null : payment.id">
                                     Gateway log <ChevronDown class="size-3.5 transition-transform" :class="{ 'rotate-180': openLog === payment.id }" />
                                 </button>
                                 <button v-if="!payment.is_online && auth.can('payments.create')" type="button" class="rounded-lg p-2 text-ink-muted hover:bg-red-50 hover:text-red-600" aria-label="Remove payment" @click="removePayment(payment.id)"><Trash2 class="size-4" /></button>
                             </div>
-                            <pre v-if="openLog === payment.id" class="mt-3 max-h-80 overflow-auto rounded-lg bg-ink p-3 text-[11px] leading-relaxed text-white/85">{{ JSON.stringify(payment.log, null, 2) }}</pre>
+                            <pre v-if="openLog === payment.id" class="mt-3 max-h-80 overflow-x-hidden overflow-y-auto rounded-lg bg-ink p-3 text-[11px] leading-relaxed [overflow-wrap:anywhere] whitespace-pre-wrap text-white/85">{{ JSON.stringify(payment.log, null, 2) }}</pre>
                         </li>
                     </ul>
                 </section>
@@ -250,7 +251,7 @@ onMounted(load);
                         </select>
                     </FormField>
                     <FormField label="Received on" for="p-date" :error="paymentForm.error('paid_at')" required>
-                        <input id="p-date" v-model="paymentForm.data.paid_at" type="datetime-local" class="control" />
+                        <AppDatePicker id="p-date" v-model="paymentForm.data.paid_at" mode="datetime" :clearable="false" :invalid="Boolean(paymentForm.error('paid_at'))" />
                     </FormField>
                     <FormField label="Reference" for="p-ref" :error="paymentForm.error('reference')" hint="Bank slip, transaction ID…">
                         <input id="p-ref" v-model="paymentForm.data.reference" class="control" />

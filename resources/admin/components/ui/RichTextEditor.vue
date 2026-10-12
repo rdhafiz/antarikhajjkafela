@@ -22,7 +22,7 @@ import {
  * sanitizes the HTML again before saving.
  */
 const model = defineModel<string | null>({ default: null });
-const props = defineProps<{ invalid?: boolean; dir?: string; lang?: string; minHeight?: string }>();
+const props = defineProps<{ invalid?: boolean; dir?: string; lang?: string; minHeight?: string; label?: string }>();
 
 const editor = useEditor({
     content: model.value ?? '',
@@ -33,6 +33,9 @@ const editor = useEditor({
     editorProps: {
         attributes: {
             class: 'rte-content',
+            role: 'textbox',
+            'aria-multiline': 'true',
+            'aria-label': props.label ?? 'Text',
             ...(props.dir ? { dir: props.dir } : {}),
             ...(props.lang ? { lang: props.lang } : {}),
         },

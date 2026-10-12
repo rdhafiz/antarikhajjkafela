@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Pages\PageEditor;
+use App\Http\Controllers\Admin\Concerns\PaginatedList;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\PageSaveRequest;
 use App\Models\Page;
@@ -22,25 +23,41 @@ use Illuminate\Validation\Rule;
  */
 class PageController extends Controller
 {
+    use PaginatedList;
+
     public function __construct(private readonly PageEditor $editor) {}
 
     public function index(Request $request): JsonResponse
     {
-        $type = $request->validate(['type' => ['required', Rule::in([Page::TYPE_DEFAULT, Page::TYPE_CUSTOM, Page::TYPE_CAMPAIGN])]])['type'];
+        $filters = $request->validate([
+            'type' => ['required', Rule::in([Page::TYPE_DEFAULT, Page::TYPE_CUSTOM, Page::TYPE_CAMPAIGN])],
+            'status' => ['nullable', Rule::in([Page::STATUS_DRAFT, Page::STATUS_PUBLISHED])],
+            'search' => ['nullable', 'string', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $type = $filters['type'];
         $this->authorizeType($type, 'view');
 
         $pages = Page::query()
             ->where('type', $type)
             ->withCount('sections')
+            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q
+                ->where('slug', 'like', $this->likeTerm($search))
+                ->orWhere('title', 'like', $this->likeTerm($search))))
             ->latest('updated_at')
             ->get();
 
+        // Built-in pages keep the order of the site menu.
         if ($type === Page::TYPE_DEFAULT) {
             $order = array_flip(array_keys(config('page-builder.default_pages')));
             $pages = $pages->sortBy(fn (Page $page) => $order[$page->system_key] ?? 99)->values();
         }
 
-        return response()->json(['data' => $pages->map(fn (Page $page) => $this->summary($page))]);
+        $page = $this->paginateCollection($pages, (int) ($filters['per_page'] ?? 20), (int) ($filters['page'] ?? 1));
+
+        return $this->listResponse($page, fn (Page $page) => $this->summary($page));
     }
 
     public function store(Request $request): JsonResponse

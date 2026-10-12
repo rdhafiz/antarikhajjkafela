@@ -3,6 +3,8 @@
 namespace App\Support;
 
 use App\Domain\Menus\MenuRepository;
+use Propaganistas\LaravelPhone\PhoneNumber;
+use Throwable;
 
 /**
  * Data shared by the public layout: menus, contact details, social links
@@ -45,7 +47,7 @@ class SiteContext
     {
         return collect([settings('contact.primary_phone'), settings('contact.secondary_phone')])
             ->filter()
-            ->map(fn ($phone) => ['display' => $phone, 'href' => 'tel:'.$this->international($phone)])
+            ->map(fn ($phone) => ['display' => $this->localDisplay($phone), 'href' => 'tel:'.$this->international($phone)])
             ->values()
             ->all();
     }
@@ -111,8 +113,28 @@ class SiteContext
     /**
      * Bangladeshi numbers like 01711-381901 become +8801711381901.
      */
+    /**
+     * Bangladeshi numbers in their familiar local form ("01711-381901"); others as saved.
+     */
+    private function localDisplay(string $phone): string
+    {
+        try {
+            $number = new PhoneNumber($phone, 'BD');
+
+            return $number->isOfCountry('BD') ? $number->formatNational() : $number->formatInternational();
+        } catch (Throwable) {
+            return $phone;
+        }
+    }
+
     private function international(string $phone): string
     {
+        try {
+            return (new PhoneNumber($phone, 'BD'))->formatE164();
+        } catch (Throwable) {
+            // Fall back to the digit rules below.
+        }
+
         $digits = preg_replace('/\D+/', '', $phone);
 
         return match (true) {

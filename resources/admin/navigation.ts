@@ -57,3 +57,19 @@ export const navigation: NavSection[] = [
         ],
     },
 ];
+
+/**
+ * The sidebar module a path belongs to (with its section), e.g. "/admin/bookings/12" → Bookings.
+ */
+export function findNavItem(path: string): { section: string; item: NavItem } | null {
+    let best: { section: string; item: NavItem } | null = null;
+
+    for (const section of navigation) {
+        for (const item of section.items) {
+            const match = item.to === '/admin' ? path === '/admin' : path === item.to || path.startsWith(`${item.to}/`);
+            if (match && (!best || item.to.length > best.item.to.length)) best = { section: section.label ?? 'Overview', item };
+        }
+    }
+
+    return best;
+}

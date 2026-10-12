@@ -14,7 +14,10 @@ import {
     Search,
     Share2,
     Settings2,
+    Check,
+    ChevronDown,
 } from 'lucide-vue-next';
+import AppDrawer from '@admin/components/ui/AppDrawer.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import PageHeader from '@admin/components/ui/PageHeader.vue';
@@ -43,6 +46,23 @@ const icons: Record<string, unknown> = {
     'credit-card': CreditCard,
 };
 
+/** A colour per settings section, by what it is about. */
+const tones: Record<string, string> = {
+    badge: '#fbbf24',
+    palette: '#f472b6',
+    languages: '#38bdf8',
+    phone: '#34d399',
+    share: '#60a5fa',
+    search: '#a78bfa',
+    activity: '#fb7185',
+    megaphone: '#fb923c',
+    paintbrush: '#2dd4bf',
+    image: '#22d3ee',
+    'credit-card': '#a3e635',
+};
+const sectionsOpen = ref(false);
+
+
 const route = useRoute();
 const router = useRouter();
 const app = useAppStore();
@@ -57,6 +77,11 @@ const form = useForm({ values: {} as Record<string, unknown> });
 const saved = ref('');
 
 const groupKey = computed(() => String(route.params.group ?? ''));
+const allGroups = computed(() => navigation.value.flatMap((section) => section.groups));
+const currentItem = computed(() => allGroups.value.find((item) => item.key === groupKey.value) ?? null);
+function toneOf(key: string): string {
+    return tones[allGroups.value.find((item) => item.key === key)?.icon ?? ''] ?? '#818cf8';
+}
 const canEdit = computed(() => auth.can('settings.update'));
 // Nothing loaded yet (saved is empty) is never "unsaved": opening /settings switches to the first section before it loads.
 const dirty = computed(() => saved.value !== '' && JSON.stringify(form.data.values) !== saved.value);
@@ -186,23 +211,56 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload));
         <PageHeader title="Settings" description="Website details, appearance, integrations and payment." />
 
         <div class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-            <!-- Section navigation -->
+            <!-- Section navigation: a list on wide screens, a drawer on phones (never scrolls sideways). -->
             <nav class="h-fit lg:sticky lg:top-24" aria-label="Settings sections">
-                <div class="scroll-thin -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:block lg:space-y-5 lg:overflow-visible lg:px-0">
-                    <div v-for="section in navigation" :key="section.label" class="contents lg:block">
-                        <p class="mb-1.5 hidden px-3 text-[11px] font-bold tracking-[0.08em] text-ink-muted uppercase lg:block">{{ section.label }}</p>
+                <button type="button" class="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-white px-3.5 text-left lg:hidden" @click="sectionsOpen = true">
+                    <span v-if="currentItem" class="st-icon flex size-8 shrink-0 items-center justify-center rounded-lg" :style="{ '--tone': toneOf(currentItem.key) }">
+                        <component :is="icons[currentItem.icon] ?? Settings2" class="size-4" />
+                    </span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">Section</span>
+                        <span class="block truncate text-[14.5px] font-semibold text-ink">{{ currentItem?.label ?? 'Choose a section' }}</span>
+                    </span>
+                    <ChevronDown class="size-4 text-ink-muted" aria-hidden="true" />
+                </button>
+
+                <div class="hidden space-y-5 lg:block">
+                    <div v-for="section in navigation" :key="section.label">
+                        <p class="mb-1.5 px-3 text-[11px] font-bold tracking-[0.1em] text-ink-muted uppercase">{{ section.label }}</p>
                         <RouterLink
                             v-for="item in section.groups"
                             :key="item.key"
                             :to="{ name: 'settings', params: { group: item.key } }"
-                            class="flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-[14px] font-medium whitespace-nowrap transition-colors"
-                            :class="groupKey === item.key ? 'bg-white text-brand shadow-[var(--shadow-card)] ring-1 ring-line' : 'text-ink-soft hover:bg-white/70 hover:text-ink'"
+                            class="st-link flex items-center gap-3 rounded-xl px-2.5 py-2 text-[14px] font-medium transition-colors"
+                            :class="groupKey === item.key ? 'is-active bg-white text-ink shadow-[var(--shadow-card)] ring-1 ring-line' : 'text-ink-soft hover:bg-white/70 hover:text-ink'"
+                            :style="{ '--tone': toneOf(item.key) }"
                         >
-                            <component :is="icons[item.icon] ?? Settings2" class="size-4 shrink-0" :class="groupKey === item.key ? 'text-brand' : 'text-ink-muted'" />
+                            <span class="st-icon flex size-8 shrink-0 items-center justify-center rounded-lg"><component :is="icons[item.icon] ?? Settings2" class="size-4" /></span>
                             {{ item.label }}
                         </RouterLink>
                     </div>
                 </div>
+
+                <AppDrawer v-model:open="sectionsOpen" title="Settings sections" :icon="Settings2">
+                    <div class="space-y-5">
+                        <div v-for="section in navigation" :key="section.label">
+                            <p class="mb-1.5 px-1 text-[11px] font-bold tracking-[0.1em] text-ink-muted uppercase">{{ section.label }}</p>
+                            <RouterLink
+                                v-for="item in section.groups"
+                                :key="item.key"
+                                :to="{ name: 'settings', params: { group: item.key } }"
+                                class="st-link flex items-center gap-3 rounded-xl px-2 py-2.5 text-[14.5px] font-semibold text-ink hover:bg-canvas"
+                                :class="{ 'is-active bg-canvas': groupKey === item.key }"
+                                :style="{ '--tone': toneOf(item.key) }"
+                                @click="sectionsOpen = false"
+                            >
+                                <span class="st-icon flex size-9 shrink-0 items-center justify-center rounded-lg"><component :is="icons[item.icon] ?? Settings2" class="size-[18px]" /></span>
+                                <span class="flex-1">{{ item.label }}</span>
+                                <Check v-if="groupKey === item.key" class="size-4 text-brand" aria-hidden="true" />
+                            </RouterLink>
+                        </div>
+                    </div>
+                </AppDrawer>
             </nav>
 
             <!-- Group form -->

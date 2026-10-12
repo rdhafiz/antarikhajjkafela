@@ -27,6 +27,7 @@ export interface BookingRow {
     balance: number;
     customer_name: string;
     customer_phone: string;
+    customer_email?: string | null;
     is_unread: boolean;
     created_at: string;
 }

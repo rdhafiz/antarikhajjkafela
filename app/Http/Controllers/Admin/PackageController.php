@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\Travel\PackageEditor;
 use App\Domain\Travel\PackageSchema;
+use App\Http\Controllers\Admin\Concerns\PaginatedList;
 use App\Http\Controllers\Controller;
 use App\Models\Package;
 use App\Models\Service;
@@ -17,6 +18,8 @@ use Illuminate\Validation\Rule;
 
 class PackageController extends Controller
 {
+    use PaginatedList;
+
     public function __construct(private readonly PackageEditor $editor) {}
 
     public function index(Request $request): JsonResponse
@@ -25,6 +28,8 @@ class PackageController extends Controller
             'service_id' => ['nullable', 'integer'],
             'status' => ['nullable', Rule::in([Package::STATUS_DRAFT, Package::STATUS_PUBLISHED])],
             'search' => ['nullable', 'string', 'max:100'],
+            'featured' => ['nullable', Rule::in(['yes', 'no'])],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $packages = Package::query()
@@ -32,12 +37,15 @@ class PackageController extends Controller
             ->withCount('types')
             ->when($filters['service_id'] ?? null, fn ($q, $id) => $q->where('service_id', $id))
             ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
-            ->when($filters['search'] ?? null, fn ($q, $search) => $q->where('slug', 'like', '%'.Str::slug($search).'%'))
+            ->when($filters['featured'] ?? null, fn ($q, $featured) => $q->where('is_featured', $featured === 'yes'))
+            ->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q
+                ->where('slug', 'like', '%'.Str::slug($search).'%')
+                ->orWhere('name', 'like', $this->likeTerm($search))))
             ->orderByDesc('is_featured')
             ->latest('updated_at')
-            ->get();
+            ->paginate($filters['per_page'] ?? 20);
 
-        return response()->json(['data' => $packages->map(fn (Package $p) => [
+        return $this->listResponse($packages, fn (Package $p) => [
             'id' => $p->id,
             'name' => (object) $p->getTranslations('name'),
             'slug' => $p->slug,
@@ -52,7 +60,7 @@ class PackageController extends Controller
             'types_count' => $p->types_count,
             'banner_id' => $p->banner_id,
             'updated_at' => $p->updated_at?->toIso8601String(),
-        ])]);
+        ]);
     }
 
     public function store(Request $request): JsonResponse

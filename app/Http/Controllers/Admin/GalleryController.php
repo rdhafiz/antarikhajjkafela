@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\PaginatedList;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\PageSaveRequest;
 use App\Models\GalleryAlbum;
@@ -20,12 +21,27 @@ use Illuminate\Validation\Rule;
  */
 class GalleryController extends Controller
 {
-    public function index(): JsonResponse
+    use PaginatedList;
+
+    public function index(Request $request): JsonResponse
     {
-        $albums = GalleryAlbum::withCount([
+        $filters = $request->validate([
+            'status' => ['nullable', Rule::in(['published', 'draft'])],
+            'search' => ['nullable', 'string', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $page = GalleryAlbum::withCount([
             'items as images_count' => fn ($q) => $q->where('type', 'image'),
             'items as videos_count' => fn ($q) => $q->where('type', 'video'),
-        ])->newest()->get();
+        ])
+            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('is_published', $status === 'published'))
+            ->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q
+                ->where('slug', 'like', $this->likeTerm($search))
+                ->orWhere('title', 'like', $this->likeTerm($search))))
+            ->newest()
+            ->paginate($filters['per_page'] ?? 12);
+        $albums = collect($page->items());
 
         // Cover fallback: the newest photo of each album, in one query.
         $firstImages = GalleryItem::where('type', 'image')
@@ -38,12 +54,12 @@ class GalleryController extends Controller
         $coverIds = $albums->mapWithKeys(fn (GalleryAlbum $a) => [$a->id => $a->cover_id ?? $firstImages[$a->id] ?? null]);
         $covers = Media::whereIn('id', $coverIds->filter())->get()->keyBy('id');
 
-        return response()->json(['data' => $albums->map(fn (GalleryAlbum $a) => [
+        return $this->listResponse($page, fn (GalleryAlbum $a) => [
             ...$this->presentAlbum($a),
             'cover_thumb' => $covers->get((int) $coverIds[$a->id])?->url('thumb'),
             'images_count' => $a->images_count,
             'videos_count' => $a->videos_count,
-        ])]);
+        ]);
     }
 
     public function store(Request $request): JsonResponse

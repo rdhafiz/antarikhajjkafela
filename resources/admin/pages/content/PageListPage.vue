@@ -1,23 +1,31 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { CalendarClock, Copy, ExternalLink, FileText, Lock, Megaphone, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { CalendarClock, ChevronRight, Copy, ExternalLink, Eye, FileText, Layers, Link2, Lock, Megaphone, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
+import AppDrawer from '@admin/components/ui/AppDrawer.vue';
+import AppPagination from '@admin/components/ui/AppPagination.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
+import FilterBar from '@admin/components/ui/FilterBar.vue';
 import PageHeader from '@admin/components/ui/PageHeader.vue';
+import TabSwitcher from '@admin/components/ui/TabSwitcher.vue';
 import CreatePageModal from './CreatePageModal.vue';
 import { pickText, type PageSummary } from './builder/types';
 import { useConfirm } from '@admin/composables/useConfirm';
+import { useListQuery } from '@admin/composables/useListQuery';
 import { errorMessage, http } from '@admin/lib/http';
 import { formatDate } from '@admin/lib/format';
 import { useAppStore } from '@admin/stores/app';
 import { useAuthStore } from '@admin/stores/auth';
 import { useToastStore } from '@admin/stores/toast';
 
+type PageType = PageSummary['type'];
+
 /**
- * Lists pages. On /admin/pages: built-in and custom pages; on /admin/campaigns: campaign pages.
+ * Lists pages. On /admin/pages: built-in and custom pages (one tab each); on /admin/campaigns: campaign pages.
+ * The page type is a fixed part of the query, not a filter the visitor can clear.
  */
 const route = useRoute();
 const app = useAppStore();
@@ -27,33 +35,82 @@ const { confirm } = useConfirm();
 
 const isCampaigns = computed(() => route.name === 'campaigns');
 const scope = computed(() => (isCampaigns.value ? 'campaigns' : 'pages'));
-const builtIn = ref<PageSummary[]>([]);
-const custom = ref<PageSummary[]>([]);
-const loading = ref(true);
+
+/** The type this route starts on (and the only one allowed on campaigns). */
+function routeType(): PageType {
+    return isCampaigns.value ? 'campaign' : 'default';
+}
+
+const list = useListQuery<PageSummary>('/pages', { type: routeType(), status: '' });
+
+// The address bar may carry a type from the other route (or a bad one): keep it within this route.
+function normalizeType(): boolean {
+    const allowed: PageType[] = isCampaigns.value ? ['campaign'] : ['default', 'custom'];
+    if (allowed.includes(list.filters.type as PageType)) return false;
+    list.filters.type = routeType();
+    return true;
+}
+const normalized = normalizeType();
+
+const type = computed(() => list.filters.type as PageType);
+const isBuiltIn = computed(() => type.value === 'default');
+/** Only the status counts as a filter; the type is fixed by the route or the tab. */
+const activeFilters = computed(() => (list.filters.status !== '' ? 1 : 0));
+const filtered = computed(() => Boolean(list.filters.search || activeFilters.value));
+
+const typeTabs = [
+    { value: 'default' as PageType, label: 'Built-in pages', icon: Lock, tone: '#818cf8' },
+    { value: 'custom' as PageType, label: 'Your pages', icon: FileText, tone: '#34d399' },
+];
+const typeModel = computed<PageType>({
+    get: () => type.value,
+    set: (value) => {
+        list.filters.type = value;
+    },
+});
+
+const current = ref<PageSummary | null>(null);
+const drawerOpen = ref(false);
+const previewing = ref(false);
 const createOpen = ref(false);
 
 const stateTone = { draft: 'neutral', published: 'success', live: 'success', scheduled: 'warning', expired: 'danger' } as const;
 const stateLabel = { draft: 'Draft', published: 'Published', live: 'Live', scheduled: 'Scheduled', expired: 'Expired' } as const;
 
-async function load(): Promise<void> {
-    loading.value = true;
+const noun = computed(() => (isCampaigns.value ? 'campaign' : 'page'));
+const summary = computed(() => (list.meta.value ? `${list.meta.value.total} ${list.meta.value.total === 1 ? noun.value : `${noun.value}s`}` : ''));
 
+const title = (page: PageSummary) => pickText(page.title, app.defaultLocale);
+const address = (page: PageSummary) => (page.system_key === 'home' ? '/' : `/${page.slug}`);
+const isOnline = (page: PageSummary) => page.state === 'published' || page.state === 'live';
+
+function open(page: PageSummary): void {
+    current.value = page;
+    drawerOpen.value = true;
+}
+
+function clearFilters(): void {
+    list.filters.status = '';
+}
+
+function clearAll(): void {
+    list.filters.status = '';
+    list.filters.search = '';
+}
+
+async function preview(page: PageSummary): Promise<void> {
+    // Open the tab right away so pop-up blockers allow it, then point it at the signed preview.
+    const tab = window.open('', '_blank');
+    previewing.value = true;
     try {
-        if (isCampaigns.value) {
-            builtIn.value = [];
-            custom.value = (await http.get<{ data: PageSummary[] }>('/pages', { params: { type: 'campaign' } })).data.data;
-        } else {
-            const [defaults, customs] = await Promise.all([
-                http.get<{ data: PageSummary[] }>('/pages', { params: { type: 'default' } }),
-                http.get<{ data: PageSummary[] }>('/pages', { params: { type: 'custom' } }),
-            ]);
-            builtIn.value = defaults.data.data;
-            custom.value = customs.data.data;
-        }
+        const { data } = await http.get<{ url: string }>(`/pages/${page.id}/preview-url`);
+        if (tab) tab.location.href = data.url;
+        drawerOpen.value = false;
     } catch (e) {
+        tab?.close();
         toast.error(errorMessage(e));
     } finally {
-        loading.value = false;
+        previewing.value = false;
     }
 }
 
@@ -61,7 +118,8 @@ async function duplicate(page: PageSummary): Promise<void> {
     try {
         await http.post(`/pages/${page.id}/duplicate`);
         toast.success('Copy created', 'The copy is saved as a draft.');
-        load();
+        drawerOpen.value = false;
+        list.load();
     } catch (e) {
         toast.error(errorMessage(e));
     }
@@ -69,7 +127,7 @@ async function duplicate(page: PageSummary): Promise<void> {
 
 async function remove(page: PageSummary): Promise<void> {
     const ok = await confirm({
-        title: `Delete "${pickText(page.title, app.defaultLocale)}"?`,
+        title: `Delete "${title(page)}"?`,
         message: 'The page and all its sections will be removed. Menu links to it will stop working.',
         confirmLabel: 'Delete page',
     });
@@ -78,7 +136,8 @@ async function remove(page: PageSummary): Promise<void> {
     try {
         await http.delete(`/pages/${page.id}`);
         toast.success('Page deleted');
-        load();
+        drawerOpen.value = false;
+        list.load();
     } catch (e) {
         toast.error(errorMessage(e));
     }
@@ -89,8 +148,21 @@ function schedule(page: PageSummary): string {
     return `${page.starts_at ? formatDate(page.starts_at) : 'Now'} – ${page.expires_at ? formatDate(page.expires_at) : 'no end'}`;
 }
 
-watch(() => route.name, load);
-onMounted(load);
+// Pages and campaigns share this screen: switching routes swaps the type (which reloads the list).
+watch(
+    () => route.name,
+    () => {
+        drawerOpen.value = false;
+        list.filters.status = '';
+        list.filters.search = '';
+        list.filters.type = routeType();
+    },
+);
+
+onMounted(() => {
+    // A corrected type already triggers a reload.
+    if (!normalized) list.load();
+});
 </script>
 
 <template>
@@ -104,84 +176,118 @@ onMounted(load);
             </template>
         </PageHeader>
 
-        <div v-if="loading" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
+        <TabSwitcher v-if="!isCampaigns" v-model="typeModel" :options="typeTabs" label="Show pages" class="mb-4" />
 
-        <template v-else>
-            <template v-if="!isCampaigns">
-                <h2 class="mb-3 text-[12px] font-bold tracking-[0.08em] text-ink-muted uppercase">Built-in pages</h2>
-                <div class="mb-10 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    <RouterLink
-                        v-for="page in builtIn"
-                        :key="page.id"
-                        :to="{ name: 'page-editor', params: { id: page.id } }"
-                        class="card group flex items-center gap-3.5 p-4 transition-[border-color,box-shadow] hover:border-brand/30 hover:shadow-[var(--shadow-pop)]"
-                    >
-                        <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand group-hover:bg-brand group-hover:text-white">
-                            <FileText class="size-5" />
-                        </span>
-                        <span class="min-w-0 flex-1">
-                            <span class="flex items-center gap-1.5 font-semibold text-ink">{{ pickText(page.title, app.defaultLocale) }} <Lock class="size-3 text-ink-muted" /></span>
-                            <span class="block text-[12px] text-ink-muted">{{ page.system_key === 'home' ? '/' : `/${page.slug}` }} · {{ page.sections_count }} sections</span>
-                        </span>
-                        <AppBadge v-if="page.status !== 'published'" tone="neutral">Draft</AppBadge>
+        <FilterBar
+            v-model:search="list.filters.search as string"
+            :placeholder="isCampaigns ? 'Search campaigns by title or address' : 'Search pages by title or address'"
+            :active="activeFilters"
+            :summary="summary"
+            @clear="clearFilters"
+        >
+            <select v-model="list.filters.status" class="control" aria-label="Filter by status">
+                <option value="">Any status</option>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+            </select>
+        </FilterBar>
+
+        <div class="card overflow-hidden">
+            <div v-if="list.loading.value && !list.rows.value.length" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
+            <EmptyState
+                v-else-if="!list.rows.value.length"
+                :icon="isCampaigns ? Megaphone : FileText"
+                :title="filtered ? `No ${noun}s match` : isCampaigns ? 'No campaigns yet' : isBuiltIn ? 'No built-in pages' : 'No custom pages yet'"
+                :description="
+                    filtered
+                        ? 'Try another search or clear the filters.'
+                        : isCampaigns
+                          ? 'Create a landing page for your next registration drive or ad campaign.'
+                          : 'Create pages such as a refund policy or a Hajj guide.'
+                "
+            >
+                <AppButton v-if="filtered" variant="secondary" @click="clearAll">Clear filters</AppButton>
+                <AppButton v-else-if="!isBuiltIn && auth.can(`${scope}.create`)" :icon="Plus" @click="createOpen = true">{{ isCampaigns ? 'New campaign' : 'New page' }}</AppButton>
+            </EmptyState>
+            <table v-else class="dt" :class="{ 'opacity-60 transition-opacity': list.loading.value }">
+                <thead>
+                    <tr>
+                        <th>{{ isCampaigns ? 'Campaign' : 'Page' }}</th>
+                        <th>Status</th>
+                        <th v-if="isCampaigns">Runs</th>
+                        <th class="dt-hide-sm">Sections</th>
+                        <th>Updated</th>
+                        <th class="dt-trigger"><span class="sr-only">Open</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="page in list.rows.value" :key="page.id" class="dt-row" @click="open(page)">
+                        <td>
+                            <p class="flex items-center gap-1.5 font-semibold text-ink">
+                                {{ title(page) }}
+                                <Lock v-if="page.type === 'default'" class="size-3 shrink-0 text-ink-muted" aria-label="Built-in page" />
+                            </p>
+                            <p class="mt-0.5 text-[12.5px] break-all text-ink-muted">{{ address(page) }}</p>
+                        </td>
+                        <td data-label="Status"><AppBadge :tone="stateTone[page.state]">{{ stateLabel[page.state] }}</AppBadge></td>
+                        <td v-if="isCampaigns" data-label="Runs" class="text-[13px] text-ink-soft">
+                            <span class="inline-flex items-center gap-1.5"><CalendarClock class="size-3.5 shrink-0 text-ink-muted" /> {{ schedule(page) }}</span>
+                        </td>
+                        <td data-label="Sections" class="dt-hide-sm text-[13px] text-ink-soft">{{ page.sections_count }}</td>
+                        <td data-label="Updated" class="text-[13px] whitespace-nowrap text-ink-soft">{{ formatDate(page.updated_at) }}</td>
+                        <td class="dt-trigger">
+                            <button type="button" class="dt-open" :aria-label="`Open ${title(page)}`" @click.stop="open(page)"><ChevronRight class="size-4" /></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <AppPagination v-if="list.meta.value" :meta="list.meta.value" :label="`${noun}s`" @change="list.goTo" @per-page="list.setPerPage" />
+
+        <!-- Preview and actions -->
+        <AppDrawer v-model:open="drawerOpen" :title="current ? title(current) : ''" :description="current ? address(current) : ''" :icon="isCampaigns ? Megaphone : FileText">
+            <template v-if="current">
+                <div class="flex flex-wrap gap-2">
+                    <AppBadge :tone="stateTone[current.state]">{{ stateLabel[current.state] }}</AppBadge>
+                    <AppBadge v-if="current.type === 'default'" tone="neutral"><Lock class="size-3" />Built-in</AppBadge>
+                </div>
+
+                <dl class="dl mt-5 rounded-2xl bg-canvas p-4">
+                    <dt class="flex items-center gap-2"><Link2 class="size-4 text-emerald-600" />Address</dt>
+                    <dd class="break-all">{{ address(current) }}</dd>
+                    <dt class="flex items-center gap-2"><Layers class="size-4 text-violet-600" />Sections</dt>
+                    <dd>{{ current.sections_count }}</dd>
+                    <template v-if="current.type === 'campaign'">
+                        <dt class="flex items-center gap-2"><CalendarClock class="size-4 text-sky-600" />Starts</dt>
+                        <dd>{{ current.starts_at ? formatDate(current.starts_at, true) : 'When published' }}</dd>
+                        <dt class="flex items-center gap-2"><CalendarClock class="size-4 text-rose-600" />Ends</dt>
+                        <dd>{{ current.expires_at ? formatDate(current.expires_at, true) : 'No end date' }}</dd>
+                    </template>
+                    <dt>Updated</dt>
+                    <dd>{{ formatDate(current.updated_at, true) }}</dd>
+                </dl>
+
+                <p class="mt-6 mb-2 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">Actions</p>
+                <div class="-mx-1 space-y-1">
+                    <RouterLink :to="{ name: 'page-editor', params: { id: current.id } }" class="ad-action">
+                        <span class="ad-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit {{ isCampaigns ? 'campaign' : 'page' }}
                     </RouterLink>
+                    <a v-if="isOnline(current)" :href="current.url" target="_blank" rel="noopener" class="ad-action">
+                        <span class="ad-action-icon" style="--tone: #38bdf8"><ExternalLink class="size-4" /></span>View on the website
+                    </a>
+                    <button type="button" class="ad-action" :disabled="previewing" @click="preview(current)">
+                        <span class="ad-action-icon" style="--tone: #a78bfa"><Eye class="size-4" /></span>Preview the saved version
+                    </button>
+                    <button v-if="current.type !== 'default' && auth.can(`${scope}.create`)" type="button" class="ad-action" @click="duplicate(current)">
+                        <span class="ad-action-icon" style="--tone: #2dd4bf"><Copy class="size-4" /></span>Duplicate as a draft
+                    </button>
+                    <button v-if="current.type !== 'default' && auth.can(`${scope}.delete`)" type="button" class="ad-action is-danger" @click="remove(current)">
+                        <span class="ad-action-icon"><Trash2 class="size-4" /></span>Delete {{ isCampaigns ? 'campaign' : 'page' }}
+                    </button>
                 </div>
-                <h2 class="mb-3 text-[12px] font-bold tracking-[0.08em] text-ink-muted uppercase">Your pages</h2>
             </template>
-
-            <div class="card">
-                <EmptyState
-                    v-if="!custom.length"
-                    :icon="isCampaigns ? Megaphone : FileText"
-                    :title="isCampaigns ? 'No campaigns yet' : 'No custom pages yet'"
-                    :description="isCampaigns ? 'Create a landing page for your next registration drive or ad campaign.' : 'Create pages such as a refund policy or a Hajj guide.'"
-                >
-                    <AppButton v-if="auth.can(`${scope}.create`)" :icon="Plus" @click="createOpen = true">{{ isCampaigns ? 'New campaign' : 'New page' }}</AppButton>
-                </EmptyState>
-
-                <div v-else class="overflow-x-auto">
-                    <table class="w-full min-w-[720px] text-sm">
-                        <thead>
-                            <tr class="border-b border-line text-left text-[12px] font-semibold tracking-wide text-ink-muted uppercase">
-                                <th class="px-4 py-3">Page</th>
-                                <th class="px-4 py-3">Status</th>
-                                <th v-if="isCampaigns" class="px-4 py-3">Runs</th>
-                                <th class="px-4 py-3">Updated</th>
-                                <th class="px-4 py-3"><span class="sr-only">Actions</span></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-line">
-                            <tr v-for="page in custom" :key="page.id" class="hover:bg-canvas/60">
-                                <td class="px-4 py-3">
-                                    <RouterLink :to="{ name: 'page-editor', params: { id: page.id } }" class="font-semibold text-ink hover:text-brand">
-                                        {{ pickText(page.title, app.defaultLocale) }}
-                                    </RouterLink>
-                                    <a :href="page.url" target="_blank" rel="noopener" class="mt-0.5 flex items-center gap-1 text-[12px] text-ink-muted hover:text-brand">/{{ page.slug }} <ExternalLink class="size-3" /></a>
-                                </td>
-                                <td class="px-4 py-3"><AppBadge :tone="stateTone[page.state]">{{ stateLabel[page.state] }}</AppBadge></td>
-                                <td v-if="isCampaigns" class="px-4 py-3 text-[13px] text-ink-soft">
-                                    <span class="inline-flex items-center gap-1.5"><CalendarClock class="size-3.5 text-ink-muted" /> {{ schedule(page) }}</span>
-                                </td>
-                                <td class="px-4 py-3 text-[13px] text-ink-soft">{{ formatDate(page.updated_at) }}</td>
-                                <td class="px-4 py-3">
-                                    <div class="flex justify-end gap-1">
-                                        <RouterLink :to="{ name: 'page-editor', params: { id: page.id } }" class="rounded-lg p-2 text-ink-muted hover:bg-white hover:text-brand" :aria-label="`Edit ${pickText(page.title)}`">
-                                            <Pencil class="size-4" />
-                                        </RouterLink>
-                                        <button v-if="auth.can(`${scope}.create`)" type="button" class="rounded-lg p-2 text-ink-muted hover:bg-white hover:text-brand" :aria-label="`Duplicate ${pickText(page.title)}`" @click="duplicate(page)">
-                                            <Copy class="size-4" />
-                                        </button>
-                                        <button v-if="auth.can(`${scope}.delete`)" type="button" class="rounded-lg p-2 text-ink-muted hover:bg-red-50 hover:text-red-600" :aria-label="`Delete ${pickText(page.title)}`" @click="remove(page)">
-                                            <Trash2 class="size-4" />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </template>
+        </AppDrawer>
 
         <CreatePageModal v-model:open="createOpen" :type="isCampaigns ? 'campaign' : 'custom'" />
     </div>

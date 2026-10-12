@@ -137,6 +137,7 @@ function removeColumn(block: Block, index: number): void {
                         :model-value="block.body?.[locale] ?? null"
                         :invalid="!!error(index, 'body')"
                         min-height="110px"
+                        label="Text block"
                         @update:model-value="block.body = { ...(block.body ?? {}), [locale]: $event }"
                     />
 
@@ -160,14 +161,14 @@ function removeColumn(block: Block, index: number): void {
 
                     <!-- Table -->
                     <div v-else-if="block.type === 'table'" class="space-y-2">
-                        <div class="overflow-x-auto">
-                            <table class="w-full border-collapse text-[13px]">
+                        <div>
+                            <table class="w-full table-fixed border-collapse text-[13px]">
                                 <tbody>
                                     <tr v-for="(row, r) in block.rows" :key="r">
                                         <td v-for="(cell, c) in row" :key="c" class="border border-line p-0">
                                             <input
                                                 :value="cell[locale] ?? ''"
-                                                class="w-full min-w-24 bg-transparent px-2 py-1.5 outline-none focus:bg-brand-soft/50"
+                                                class="w-full min-w-0 bg-transparent px-2 py-1.5 outline-none focus:bg-brand-soft/50"
                                                 :class="{ 'font-bold': r === 0 && block.header }"
                                                 @input="row[c] = setText(cell, ($event.target as HTMLInputElement).value)"
                                             />

@@ -34,6 +34,9 @@ export default defineConfig({
                     if (!id.includes('node_modules')) return undefined;
                     if (id.includes('alpinejs')) return 'site-vendor';
                     if (id.includes('cropperjs')) return 'cropper';
+                    // Loaded only when a phone or date field is shown.
+                    if (id.includes('intl-tel-input')) return id.includes('utils') ? 'phone-utils' : 'phone-input';
+                    if (id.includes('flatpickr')) return 'date-picker';
                     return 'admin-vendor';
                 },
             },

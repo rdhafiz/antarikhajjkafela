@@ -43,6 +43,7 @@ const firstError = computed(() => app.locales.map((l) => errorFor(l.code)).find(
                 :model-value="model?.[locale.code] ?? null"
                 :invalid="!!errorFor(locale.code)"
                 :lang="locale.code"
+                :label="`${label} (${locale.name ?? locale.code})`"
                 :dir="locale.dir"
                 @update:model-value="model = { ...model, [locale.code]: $event }"
             />

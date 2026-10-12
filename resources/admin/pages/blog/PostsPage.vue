@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useDebounceFn } from '@vueuse/core';
-import { ExternalLink, FolderTree, Newspaper, Pencil, Plus, Search, Star, Trash2 } from 'lucide-vue-next';
+import { CalendarClock, ChevronRight, Eye, ExternalLink, FolderTree, Link2, Newspaper, Pencil, Plus, Star, Trash2 } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
+import AppDrawer from '@admin/components/ui/AppDrawer.vue';
 import AppModal from '@admin/components/ui/AppModal.vue';
 import AppPagination from '@admin/components/ui/AppPagination.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
+import FilterBar from '@admin/components/ui/FilterBar.vue';
 import FormField from '@admin/components/ui/FormField.vue';
 import PageHeader from '@admin/components/ui/PageHeader.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
@@ -16,7 +17,8 @@ import CategoriesModal from './CategoriesModal.vue';
 import { pickText } from '@admin/pages/content/builder/types';
 import { useConfirm } from '@admin/composables/useConfirm';
 import { useForm } from '@admin/composables/useForm';
-import { errorMessage, http, type Paginated } from '@admin/lib/http';
+import { useListQuery } from '@admin/composables/useListQuery';
+import { errorMessage, http } from '@admin/lib/http';
 import { formatDate } from '@admin/lib/format';
 import { useAppStore } from '@admin/stores/app';
 import { useAuthStore } from '@admin/stores/auth';
@@ -42,11 +44,11 @@ const auth = useAuthStore();
 const toast = useToastStore();
 const { confirm } = useConfirm();
 
-const posts = ref<PostRow[]>([]);
-const meta = ref<Paginated<PostRow>['meta'] | null>(null);
+const list = useListQuery<PostRow>('/posts', { category_id: '', state: '' });
 const categories = ref<PostCategory[]>([]);
-const loading = ref(true);
-const filters = reactive({ category_id: '' as number | '', state: '', search: '', page: 1 });
+const current = ref<PostRow | null>(null);
+const drawerOpen = ref(false);
+const previewing = ref(false);
 const createOpen = ref(false);
 const categoriesOpen = ref(false);
 const createForm = useForm({ title: {} as Translations, category_id: '' as number | '' });
@@ -54,38 +56,25 @@ const createForm = useForm({ title: {} as Translations, category_id: '' as numbe
 const stateTone = { draft: 'neutral', scheduled: 'warning', published: 'success' } as const;
 const stateLabel = { draft: 'Draft', scheduled: 'Scheduled', published: 'Published' } as const;
 
+const filtered = computed(() => Boolean(list.filters.search || list.active.value));
+const summary = computed(() => (list.meta.value ? `${list.meta.value.total} ${list.meta.value.total === 1 ? 'post' : 'posts'}` : ''));
+
+const title = (row: PostRow) => pickText(row.title, app.defaultLocale);
+const categoryName = (row: PostRow) => (row.category ? pickText(row.category, app.defaultLocale) : 'No category');
+const publishDate = (row: PostRow) => (row.published_at ? formatDate(row.published_at, row.state === 'scheduled') : '—');
+
 async function loadMeta(): Promise<void> {
     categories.value = (await http.get<PostMeta>('/posts/meta')).data.categories;
 }
 
-async function load(): Promise<void> {
-    loading.value = true;
-    try {
-        const params = Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== ''));
-        const { data } = await http.get<Paginated<PostRow>>('/posts', { params });
-        posts.value = data.data;
-        meta.value = data.meta;
-    } catch (e) {
-        toast.error(errorMessage(e));
-    } finally {
-        loading.value = false;
-    }
+function open(row: PostRow): void {
+    current.value = row;
+    drawerOpen.value = true;
 }
 
-const searchLater = useDebounceFn(() => {
-    filters.page = 1;
-    load();
-}, 300);
-
-watch(() => filters.search, searchLater);
-watch(() => [filters.category_id, filters.state], () => {
-    filters.page = 1;
-    load();
-});
-
-function goTo(page: number): void {
-    filters.page = page;
-    load();
+function clearAll(): void {
+    list.clear();
+    list.filters.search = '';
 }
 
 function openCreate(): void {
@@ -102,12 +91,30 @@ async function create(): Promise<void> {
     }
 }
 
+async function preview(row: PostRow): Promise<void> {
+    // Open the tab right away so pop-up blockers allow it, then point it at the signed preview.
+    const tab = window.open('', '_blank');
+    previewing.value = true;
+    try {
+        const { data } = await http.get<{ url: string }>(`/posts/${row.id}/preview-url`);
+        if (tab) tab.location.href = data.url;
+        else window.open(data.url, '_blank', 'noopener');
+        drawerOpen.value = false;
+    } catch (e) {
+        tab?.close();
+        toast.error(errorMessage(e));
+    } finally {
+        previewing.value = false;
+    }
+}
+
 async function remove(row: PostRow): Promise<void> {
     if (!(await confirm({ title: `Delete "${pickText(row.title)}"?`, message: 'The post will be removed from the website. This cannot be undone.', confirmLabel: 'Delete post' }))) return;
     try {
         await http.delete(`/posts/${row.id}`);
         toast.success('Post deleted');
-        load();
+        drawerOpen.value = false;
+        list.load();
     } catch (e) {
         toast.error(errorMessage(e));
     }
@@ -115,16 +122,16 @@ async function remove(row: PostRow): Promise<void> {
 
 async function categoriesChanged(): Promise<void> {
     await loadMeta();
-    load();
+    list.load();
 }
 
 onMounted(async () => {
+    list.load();
     try {
         await loadMeta();
     } catch (e) {
         toast.error(errorMessage(e));
     }
-    load();
 });
 </script>
 
@@ -137,64 +144,98 @@ onMounted(async () => {
             </template>
         </PageHeader>
 
-        <div class="mb-4 flex flex-col gap-3 sm:flex-row">
-            <div class="relative sm:w-72">
-                <Search class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-muted" />
-                <input v-model="filters.search" type="search" class="control pl-9" placeholder="Search posts" aria-label="Search posts" />
-            </div>
-            <select v-model="filters.category_id" class="control sm:w-52" aria-label="Filter by category">
+        <FilterBar v-model:search="list.filters.search as string" placeholder="Search posts by title" :active="list.active.value" :summary="summary" @clear="list.clear">
+            <select v-model="list.filters.category_id" class="control" aria-label="Filter by category">
                 <option value="">All categories</option>
-                <option v-for="category in categories" :key="category.id" :value="category.id">{{ pickText(category.name, app.defaultLocale) }}</option>
+                <option v-for="category in categories" :key="category.id" :value="String(category.id)">{{ pickText(category.name, app.defaultLocale) }}</option>
             </select>
-            <select v-model="filters.state" class="control sm:w-44" aria-label="Filter by status">
+            <select v-model="list.filters.state" class="control" aria-label="Filter by status">
                 <option value="">Any status</option>
                 <option value="published">Published</option>
                 <option value="scheduled">Scheduled</option>
                 <option value="draft">Draft</option>
             </select>
+        </FilterBar>
+
+        <div class="card overflow-hidden">
+            <div v-if="list.loading.value && !list.rows.value.length" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
+            <EmptyState
+                v-else-if="!list.rows.value.length"
+                :icon="Newspaper"
+                :title="filtered ? 'No posts match' : 'No posts yet'"
+                :description="filtered ? 'Try another search or clear the filters.' : 'Write a guide or share news with your pilgrims.'"
+            >
+                <AppButton v-if="filtered" variant="secondary" @click="clearAll">Clear filters</AppButton>
+                <AppButton v-else-if="auth.can('blog.create')" :icon="Plus" @click="openCreate">New post</AppButton>
+            </EmptyState>
+            <table v-else class="dt" :class="{ 'opacity-60 transition-opacity': list.loading.value }">
+                <thead>
+                    <tr>
+                        <th>Post</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Publish date</th>
+                        <th class="dt-trigger"><span class="sr-only">Open</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="row in list.rows.value" :key="row.id" class="dt-row" @click="open(row)">
+                        <td>
+                            <p class="flex items-center gap-1.5 font-semibold text-ink">
+                                <Star v-if="row.is_featured" class="size-3.5 shrink-0 fill-gold text-gold" aria-label="Featured" />
+                                {{ title(row) }}
+                            </p>
+                            <p class="mt-0.5 text-[12.5px] break-all text-ink-muted">/blog/{{ row.slug }}</p>
+                        </td>
+                        <td data-label="Category" class="text-[13px] text-ink-soft">{{ categoryName(row) }}</td>
+                        <td data-label="Status"><AppBadge :tone="stateTone[row.state]">{{ stateLabel[row.state] }}</AppBadge></td>
+                        <td data-label="Publish date" class="text-[13px] whitespace-nowrap text-ink-soft">{{ publishDate(row) }}</td>
+                        <td class="dt-trigger">
+                            <button type="button" class="dt-open" :aria-label="`Open ${title(row)}`" @click.stop="open(row)"><ChevronRight class="size-4" /></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
-        <div v-if="loading && !posts.length" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
-        <div v-else-if="!posts.length" class="card">
-            <EmptyState :icon="Newspaper" :title="filters.search || filters.category_id || filters.state ? 'No matching posts' : 'No posts yet'" description="Write a guide or share news with your pilgrims.">
-                <AppButton v-if="auth.can('blog.create')" :icon="Plus" @click="openCreate">New post</AppButton>
-            </EmptyState>
-        </div>
-        <template v-else>
-            <div class="card overflow-x-auto" :class="{ 'opacity-60': loading }">
-                <table class="w-full min-w-[760px] text-sm">
-                    <thead>
-                        <tr class="border-b border-line text-left text-[12px] font-semibold tracking-wide text-ink-muted uppercase">
-                            <th class="px-4 py-3">Post</th>
-                            <th class="px-4 py-3">Status</th>
-                            <th class="px-4 py-3">Publish date</th>
-                            <th class="px-4 py-3"><span class="sr-only">Actions</span></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-line">
-                        <tr v-for="row in posts" :key="row.id" class="hover:bg-canvas/60">
-                            <td class="px-4 py-3">
-                                <RouterLink :to="{ name: 'post-editor', params: { id: row.id } }" class="flex items-center gap-1.5 font-semibold text-ink hover:text-brand">
-                                    <Star v-if="row.is_featured" class="size-3.5 shrink-0 fill-gold text-gold" aria-label="Featured" />
-                                    {{ pickText(row.title, app.defaultLocale) }}
-                                </RouterLink>
-                                <p class="text-[12px] text-ink-muted">{{ row.category ? pickText(row.category, app.defaultLocale) : 'No category' }} · /blog/{{ row.slug }}</p>
-                            </td>
-                            <td class="px-4 py-3"><AppBadge :tone="stateTone[row.state]">{{ stateLabel[row.state] }}</AppBadge></td>
-                            <td class="px-4 py-3 text-[13px] text-ink-soft">{{ row.published_at ? formatDate(row.published_at, row.state === 'scheduled') : '—' }}</td>
-                            <td class="px-4 py-3">
-                                <div class="flex justify-end gap-1">
-                                    <a v-if="row.state === 'published'" :href="row.url" target="_blank" rel="noopener" class="rounded-lg p-2 text-ink-muted hover:bg-white hover:text-brand" aria-label="View on website"><ExternalLink class="size-4" /></a>
-                                    <RouterLink :to="{ name: 'post-editor', params: { id: row.id } }" class="rounded-lg p-2 text-ink-muted hover:bg-white hover:text-brand" aria-label="Edit"><Pencil class="size-4" /></RouterLink>
-                                    <button v-if="auth.can('blog.delete')" type="button" class="rounded-lg p-2 text-ink-muted hover:bg-red-50 hover:text-red-600" aria-label="Delete" @click="remove(row)"><Trash2 class="size-4" /></button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <AppPagination v-if="meta" :meta="meta" @change="goTo" />
-        </template>
+        <AppPagination v-if="list.meta.value" :meta="list.meta.value" label="posts" @change="list.goTo" @per-page="list.setPerPage" />
+
+        <!-- Preview and actions -->
+        <AppDrawer v-model:open="drawerOpen" :title="current ? title(current) : ''" :description="current ? categoryName(current) : ''" :icon="Newspaper">
+            <template v-if="current">
+                <div class="flex flex-wrap gap-2">
+                    <AppBadge :tone="stateTone[current.state]">{{ stateLabel[current.state] }}</AppBadge>
+                    <AppBadge v-if="current.is_featured" tone="gold"><Star class="size-3 fill-current" />Featured</AppBadge>
+                </div>
+
+                <dl class="dl mt-5 rounded-2xl bg-canvas p-4">
+                    <dt class="flex items-center gap-2"><FolderTree class="size-4 text-violet-600" />Category</dt>
+                    <dd>{{ categoryName(current) }}</dd>
+                    <dt class="flex items-center gap-2"><CalendarClock class="size-4 text-sky-600" />{{ current.state === 'scheduled' ? 'Goes live' : 'Published' }}</dt>
+                    <dd>{{ current.published_at ? formatDate(current.published_at, true) : 'Not yet' }}</dd>
+                    <dt class="flex items-center gap-2"><Link2 class="size-4 text-emerald-600" />Address</dt>
+                    <dd class="break-all">/blog/{{ current.slug }}</dd>
+                    <dt>Updated</dt>
+                    <dd>{{ formatDate(current.updated_at, true) }}</dd>
+                </dl>
+
+                <p class="mt-6 mb-2 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">Actions</p>
+                <div class="-mx-1 space-y-1">
+                    <RouterLink :to="{ name: 'post-editor', params: { id: current.id } }" class="ad-action">
+                        <span class="ad-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit post
+                    </RouterLink>
+                    <a v-if="current.state === 'published'" :href="current.url" target="_blank" rel="noopener" class="ad-action">
+                        <span class="ad-action-icon" style="--tone: #38bdf8"><ExternalLink class="size-4" /></span>View on the website
+                    </a>
+                    <button v-else type="button" class="ad-action" :disabled="previewing" @click="preview(current)">
+                        <span class="ad-action-icon" style="--tone: #a78bfa"><Eye class="size-4" /></span>Preview the saved version
+                    </button>
+                    <button v-if="auth.can('blog.delete')" type="button" class="ad-action is-danger" @click="remove(current)">
+                        <span class="ad-action-icon"><Trash2 class="size-4" /></span>Delete post
+                    </button>
+                </div>
+            </template>
+        </AppDrawer>
 
         <AppModal v-model:open="createOpen" title="New post" description="Saved as a draft. You'll write the content next." :persistent="createForm.processing">
             <form id="new-post" class="space-y-4" novalidate @submit.prevent="create">

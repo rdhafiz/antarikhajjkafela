@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
-import { ArrowLeft, ExternalLink } from 'lucide-vue-next';
+import { ArrowLeft, ExternalLink, FileText, LayoutList, Plane, Search, Wallet } from 'lucide-vue-next';
+import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
+import TabSwitcher from '@admin/components/ui/TabSwitcher.vue';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
@@ -61,6 +63,9 @@ const tabs = [
     { key: 'sections', label: 'Page sections', match: /^sections/ },
     { key: 'seo', label: 'SEO', match: /^seo/ },
 ] as const;
+
+const tabIcons = { details: [FileText, '#60a5fa'], prices: [Wallet, '#34d399'], flights: [Plane, '#38bdf8'], sections: [LayoutList, '#a78bfa'], seo: [Search, '#fbbf24'] } as const;
+const tabOptions = computed(() => tabs.map((t) => ({ value: t.key, label: t.label, icon: tabIcons[t.key][0], tone: tabIcons[t.key][1], alert: tabHasError(t.match) })));
 
 function tabHasError(match: RegExp): boolean {
     return Object.keys(errors.value).some((k) => match.test(k));
@@ -157,21 +162,7 @@ const bookingTone = { open: 'success', upcoming: 'warning', closed: 'danger' } a
                 <span v-if="dirty" class="hidden text-[13px] font-semibold text-amber-700 sm:inline">Unsaved changes</span>
                 <AppButton v-if="canEdit" :loading="saving" :disabled="!dirty" @click="save">Save</AppButton>
             </div>
-            <nav class="-mb-px mt-3 flex gap-1 overflow-x-auto" role="tablist">
-                <button
-                    v-for="item in tabs"
-                    :key="item.key"
-                    type="button"
-                    role="tab"
-                    :aria-selected="tab === item.key"
-                    class="relative shrink-0 border-b-2 px-3.5 py-2.5 text-[13px] font-semibold whitespace-nowrap transition-colors"
-                    :class="tab === item.key ? 'border-brand text-brand' : 'border-transparent text-ink-muted hover:text-ink'"
-                    @click="tab = item.key"
-                >
-                    {{ item.label }}
-                    <span v-if="tabHasError(item.match)" class="absolute top-2 right-1 size-1.5 rounded-full bg-red-500" />
-                </button>
-            </nav>
+            <TabSwitcher v-model="tab" :options="tabOptions" label="Package sections" variant="underline" class="mt-3 pb-3 md:pb-0" />
         </div>
 
         <fieldset :disabled="!canEdit" class="card p-6">
@@ -189,10 +180,10 @@ const bookingTone = { open: 'success', upcoming: 'warning', closed: 'danger' } a
                     <TranslatableInput v-model="(data.summary as Translations)" label="Card summary" multiline :rows="2" :errors="errors" error-key="summary" hint="One or two lines shown on package cards and at the top of the page." />
                     <div class="grid gap-4 sm:grid-cols-3">
                         <FormField label="Booking opens" for="pkg-start" :error="errors.booking_starts_on?.[0]" hint="Empty = open now.">
-                            <input id="pkg-start" v-model="data.booking_starts_on" type="date" class="control" />
+                            <AppDatePicker id="pkg-start" v-model="(data.booking_starts_on as string | null)" placeholder="Open now" :max-date="data.booking_ends_on as string | null" :invalid="!!errors.booking_starts_on" />
                         </FormField>
                         <FormField label="Booking closes" for="pkg-end" :error="errors.booking_ends_on?.[0]" hint="After this date it shows 'Booking closed'.">
-                            <input id="pkg-end" v-model="data.booking_ends_on" type="date" class="control" />
+                            <AppDatePicker id="pkg-end" v-model="(data.booking_ends_on as string | null)" placeholder="No closing date" :min-date="data.booking_starts_on as string | null" :invalid="!!errors.booking_ends_on" />
                         </FormField>
                         <FormField label="Duration (days)" for="pkg-days" :error="errors.duration_days?.[0]">
                             <input id="pkg-days" v-model.number="data.duration_days" type="number" min="1" max="365" class="control" />
@@ -222,7 +213,7 @@ const bookingTone = { open: 'success', upcoming: 'warning', closed: 'danger' } a
                                    class="cursor-pointer rounded-lg border p-3" :class="data.status === option.v ? 'border-brand bg-brand-soft' : 'border-line'">
                                 <input v-model="data.status" type="radio" :value="option.v" class="sr-only" />
                                 <span class="block text-sm font-semibold" :class="data.status === option.v ? 'text-brand' : 'text-ink'">{{ option.l }}</span>
-                                <span class="block text-[12px] text-ink-muted">{{ option.t }}</span>
+                                <span class="block text-[12px] text-ink-soft">{{ option.t }}</span>
                             </label>
                         </div>
                         <p v-if="errors.types?.[0]" class="mt-1.5 text-[13px] font-medium text-red-600">{{ errors.types[0] }}</p>

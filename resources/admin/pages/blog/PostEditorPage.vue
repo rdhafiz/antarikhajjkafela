@@ -4,6 +4,7 @@ import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { ArrowLeft, Eye, ExternalLink } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
+import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import AppSwitch from '@admin/components/ui/AppSwitch.vue';
 import FormField from '@admin/components/ui/FormField.vue';
@@ -157,11 +158,11 @@ onBeforeUnmount(() => {
                 <RouterLink to="/admin/blog" class="flex size-9 items-center justify-center rounded-lg text-ink-soft hover:bg-white hover:text-ink" aria-label="Back to posts"><ArrowLeft class="size-5" /></RouterLink>
                 <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-2">
-                        <h1 class="truncate text-[17px] font-bold text-ink">{{ pickText(data.title, app.defaultLocale) || 'Untitled post' }}</h1>
+                        <h1 class="min-w-0 truncate text-[17px] font-bold text-ink">{{ pickText(data.title, app.defaultLocale) || 'Untitled post' }}</h1>
                         <AppBadge :tone="stateTone[data.state]">{{ data.state }}</AppBadge>
                     </div>
-                    <a v-if="data.state === 'published'" :href="data.url" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-[12px] text-ink-muted hover:text-brand">/blog/{{ data.slug }} <ExternalLink class="size-3" /></a>
-                    <p v-else class="text-[12px] text-ink-muted">/blog/{{ data.slug }}</p>
+                    <a v-if="data.state === 'published'" :href="data.url" target="_blank" rel="noopener" class="inline-flex max-w-full items-center gap-1 text-[12px] text-ink-muted hover:text-brand"><span class="truncate">/blog/{{ data.slug }}</span> <ExternalLink class="size-3 shrink-0" /></a>
+                    <p v-else class="truncate text-[12px] text-ink-muted">/blog/{{ data.slug }}</p>
                 </div>
                 <span v-if="dirty" class="hidden text-[13px] font-semibold text-amber-700 sm:inline">Unsaved changes</span>
                 <AppButton variant="secondary" :icon="Eye" @click="preview">Preview</AppButton>
@@ -169,7 +170,7 @@ onBeforeUnmount(() => {
             </div>
         </div>
 
-        <fieldset :disabled="!canEdit" class="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <fieldset :disabled="!canEdit" class="m-0 grid min-w-0 grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
             <div class="min-w-0 space-y-6">
                 <div class="card space-y-5 p-6">
                     <TranslatableInput v-model="data.title" label="Title" required :errors="errors" error-key="title" />
@@ -191,7 +192,7 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <aside class="space-y-6">
+            <aside class="min-w-0 space-y-6">
                 <div class="card space-y-4 p-5">
                     <FormField label="Status" for="post-status">
                         <div class="grid grid-cols-2 gap-2">
@@ -199,12 +200,12 @@ onBeforeUnmount(() => {
                                    class="cursor-pointer rounded-lg border p-3" :class="data.status === option.v ? 'border-brand bg-brand-soft' : 'border-line'">
                                 <input v-model="data.status" type="radio" :value="option.v" class="sr-only" />
                                 <span class="block text-sm font-semibold" :class="data.status === option.v ? 'text-brand' : 'text-ink'">{{ option.l }}</span>
-                                <span class="block text-[12px] text-ink-muted">{{ option.t }}</span>
+                                <span class="block text-[12px] text-ink-soft">{{ option.t }}</span>
                             </label>
                         </div>
                     </FormField>
                     <FormField label="Publish date" for="post-date" :error="errors.published_at?.[0]" :hint="publishHint">
-                        <input id="post-date" v-model="data.published_at" type="datetime-local" class="control" />
+                        <AppDatePicker id="post-date" v-model="data.published_at" mode="datetime" placeholder="Publish now" :disabled="!canEdit" :invalid="Boolean(errors.published_at)" />
                     </FormField>
                     <div class="rounded-lg border border-line p-3.5">
                         <AppSwitch v-model="data.is_featured" label="Featured" description="Leads the blog page when it is the newest featured post." />

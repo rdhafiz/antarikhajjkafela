@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\BootstrapController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\MediaController;
@@ -42,6 +43,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('profile/password', [ProfileController::class, 'password'])->name('profile.password');
 
         Route::get('bootstrap', BootstrapController::class)->name('bootstrap');
+        Route::get('dashboard', DashboardController::class)->name('dashboard');
 
         // Users
         Route::get('users', [UserController::class, 'index'])->middleware('can:users.view')->name('users.index');

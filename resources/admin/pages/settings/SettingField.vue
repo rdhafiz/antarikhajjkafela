@@ -6,6 +6,7 @@ import AppSwitch from '@admin/components/ui/AppSwitch.vue';
 import ColorInput from '@admin/components/ui/ColorInput.vue';
 import FormField from '@admin/components/ui/FormField.vue';
 import MapEmbedInput from '@admin/components/ui/MapEmbedInput.vue';
+import PhoneInput from '@admin/components/ui/PhoneInput.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
 import MediaField from '@admin/components/media/MediaField.vue';
 import type { SettingFieldDefinition } from './types';
@@ -76,6 +77,10 @@ const text = computed({
             class="control resize-y"
             :class="{ 'control-invalid': error, 'font-mono text-[12px]': field.type === 'json' }"
         />
+    </FormField>
+
+    <FormField v-else-if="field.type === 'phone'" :label="field.label" :for="id" :hint="field.hint">
+        <PhoneInput :id="id" v-model="model as string | null" :error="error" :disabled="field.readonly" />
     </FormField>
 
     <AppInput

@@ -4,6 +4,7 @@ namespace App\Domain\Settings;
 
 use App\Support\Locales;
 use Illuminate\Validation\Rule;
+use Propaganistas\LaravelPhone\Rules\Phone;
 
 /**
  * Builds validation rules for a settings group from its schema.
@@ -53,7 +54,9 @@ class SettingsValidator
     private function typeRules(array $field): array
     {
         return match ($field['type']) {
-            'string', 'phone' => ['string', 'max:255'],
+            'string' => ['string', 'max:255'],
+            // Any country's number; numbers without a code are read as Bangladeshi.
+            'phone' => ['string', 'max:40', (new Phone)->international()->country('BD')],
             'text' => ['string', 'max:2000'],
             'json' => ['string', 'json'],
             'map' => ['url:https', 'max:2000', 'regex:#^https://(www\.)?google\.com/maps/embed\?#'],

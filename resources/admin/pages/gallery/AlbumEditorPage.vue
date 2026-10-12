@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ArrowLeft, Check, ExternalLink, ImagePlus, Pencil, Play, Star, Trash2, Video } from 'lucide-vue-next';
+import { ArrowLeft, Check, ExternalLink, Image as ImageIcon, ImagePlus, MoreHorizontal, Pencil, Play, Star, Trash2, Video } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
+import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
+import AppDrawer from '@admin/components/ui/AppDrawer.vue';
 import AppModal from '@admin/components/ui/AppModal.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import AppSwitch from '@admin/components/ui/AppSwitch.vue';
@@ -59,6 +61,13 @@ const videoOpen = ref(false);
 const videoForm = useForm({ video_url: '', caption: {} as Translations });
 const captionItem = ref<Item | null>(null);
 const captionForm = useForm({ caption: {} as Translations });
+const current = ref<Item | null>(null);
+const drawerOpen = ref(false);
+
+function openItem(item: Item): void {
+    current.value = item;
+    drawerOpen.value = true;
+}
 
 const canEdit = computed(() => auth.can('gallery.update'));
 const items = computed(() => album.value?.items ?? []);
@@ -139,6 +148,7 @@ async function addVideo(): Promise<void> {
 }
 
 function editCaption(item: Item): void {
+    drawerOpen.value = false;
     captionItem.value = item;
     captionForm.reset({ caption: { ...item.caption } });
 }
@@ -177,8 +187,23 @@ async function removeSelected(): Promise<void> {
 
 async function setCover(item: Item): Promise<void> {
     if (!details.value || !item.media_id) return;
+    drawerOpen.value = false;
     details.value.cover_id = item.media_id;
     await saveDetails();
+}
+
+async function removeItem(item: Item): Promise<void> {
+    if (!album.value) return;
+    if (!(await confirm({ title: `Remove this ${item.type === 'video' ? 'video' : 'photo'} from the album?`, message: 'Photos stay in the media library.', confirmLabel: 'Remove' }))) return;
+    try {
+        await http.post(`/gallery/${album.value.id}/items/remove`, { ids: [item.id] });
+        album.value.items = album.value.items.filter((i) => i.id !== item.id);
+        selected.value = selected.value.filter((id) => id !== item.id);
+        drawerOpen.value = false;
+        toast.success('Removed from the album');
+    } catch (e) {
+        toast.error(errorMessage(e));
+    }
 }
 
 async function removeAlbum(): Promise<void> {
@@ -225,7 +250,7 @@ onMounted(load);
 
                 <MediaDropzone v-if="canEdit && auth.can('media.create')" usage="gallery" class="mb-5" @uploaded="uploaded" />
 
-                <div v-if="items.length && canEdit" class="mb-3 flex items-center gap-3 text-[13px]">
+                <div v-if="items.length && canEdit" class="mb-3 flex flex-wrap items-center gap-3 text-[13px]">
                     <button type="button" class="font-semibold text-brand hover:underline" @click="toggleAll">{{ allSelected ? 'Clear selection' : 'Select all' }}</button>
                     <template v-if="selected.length">
                         <span class="text-ink-muted">{{ selected.length }} selected</span>
@@ -246,10 +271,7 @@ onMounted(load);
                         </button>
                         <div class="flex items-center gap-1 border-t border-line bg-white px-2 py-1.5">
                             <p class="min-w-0 flex-1 truncate text-[12px] text-ink-soft" :title="pickText(item.caption, app.defaultLocale)">{{ pickText(item.caption, app.defaultLocale) || 'No caption' }}</p>
-                            <template v-if="canEdit">
-                                <button v-if="item.type === 'image' && item.media_id !== details.cover_id" type="button" class="rounded p-1 text-ink-muted hover:bg-canvas hover:text-brand" aria-label="Use as album cover" title="Use as cover" @click="setCover(item)"><Star class="size-3.5" /></button>
-                                <button type="button" class="rounded p-1 text-ink-muted hover:bg-canvas hover:text-brand" aria-label="Edit caption" title="Edit caption" @click="editCaption(item)"><Pencil class="size-3.5" /></button>
-                            </template>
+                            <button type="button" class="flex size-7 shrink-0 items-center justify-center rounded-md text-ink-muted hover:bg-canvas hover:text-brand" :aria-label="`Open ${item.type === 'video' ? 'video' : 'photo'} details`" @click="openItem(item)"><MoreHorizontal class="size-4" /></button>
                         </div>
                     </li>
                 </ul>
@@ -262,7 +284,7 @@ onMounted(load);
                         <TranslatableInput v-model="details.title" label="Title" required :errors="errors" error-key="title" />
                         <TranslatableInput v-model="details.description" label="Description" multiline :rows="3" :errors="errors" error-key="description" />
                         <FormField label="Date" for="album-date" :error="errors.event_date?.[0]">
-                            <input id="album-date" v-model="details.event_date" type="date" class="control" />
+                            <AppDatePicker id="album-date" v-model="details.event_date" mode="date" :disabled="!canEdit" :invalid="!!errors.event_date" />
                         </FormField>
                         <FormField label="Web address" for="album-slug" :error="errors.slug?.[0]">
                             <div class="flex items-stretch overflow-hidden rounded-lg border border-line bg-white focus-within:border-brand">
@@ -279,6 +301,52 @@ onMounted(load);
                 </form>
             </aside>
         </div>
+
+        <!-- Item preview and actions -->
+        <AppDrawer
+            v-model:open="drawerOpen"
+            :title="current?.type === 'video' ? 'Video' : 'Photo'"
+            :description="current ? pickText(current.caption, app.defaultLocale) || 'No caption' : ''"
+            :icon="current?.type === 'video' ? Video : ImageIcon"
+        >
+            <template v-if="current">
+                <div class="relative overflow-hidden rounded-2xl bg-canvas">
+                    <img v-if="current.thumb" :src="current.thumb" alt="" class="aspect-[4/3] w-full object-cover" />
+                    <div v-else class="flex aspect-[4/3] items-center justify-center text-ink-muted"><ImageIcon class="size-8" /></div>
+                    <span v-if="current.type === 'video'" class="absolute top-1/2 left-1/2 flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gold text-brand shadow"><Play class="ml-0.5 size-5 fill-current" /></span>
+                </div>
+
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <AppBadge tone="brand">{{ current.type === 'video' ? 'YouTube video' : 'Photo' }}</AppBadge>
+                    <AppBadge v-if="current.media_id && current.media_id === details.cover_id" tone="gold"><Star class="size-3 fill-current" />Album cover</AppBadge>
+                </div>
+
+                <dl class="dl mt-5 rounded-2xl bg-canvas p-4">
+                    <dt>Caption</dt>
+                    <dd class="break-words">{{ pickText(current.caption, app.defaultLocale) || '—' }}</dd>
+                    <template v-if="current.video_url">
+                        <dt>Link</dt>
+                        <dd class="break-all">{{ current.video_url }}</dd>
+                    </template>
+                </dl>
+
+                <p class="mt-6 mb-2 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">Actions</p>
+                <div class="-mx-1 space-y-1">
+                    <button v-if="canEdit" type="button" class="ad-action" @click="editCaption(current)">
+                        <span class="ad-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit caption
+                    </button>
+                    <button v-if="canEdit && current.type === 'image' && current.media_id !== details.cover_id" type="button" class="ad-action" @click="setCover(current)">
+                        <span class="ad-action-icon" style="--tone: #a78bfa"><Star class="size-4" /></span>Use as album cover
+                    </button>
+                    <a v-if="current.video_url" :href="current.video_url" target="_blank" rel="noopener" class="ad-action">
+                        <span class="ad-action-icon" style="--tone: #fb7185"><ExternalLink class="size-4" /></span>Watch on YouTube
+                    </a>
+                    <button v-if="canEdit" type="button" class="ad-action is-danger" @click="removeItem(current)">
+                        <span class="ad-action-icon"><Trash2 class="size-4" /></span>Remove from album
+                    </button>
+                </div>
+            </template>
+        </AppDrawer>
 
         <MediaPickerModal v-model:open="pickerOpen" usage="gallery" @select="picked" />
 

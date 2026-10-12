@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Blog\PostEditor;
+use App\Http\Controllers\Admin\Concerns\PaginatedList;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Models\PostCategory;
@@ -15,6 +16,8 @@ use Illuminate\Validation\Rule;
 
 class PostController extends Controller
 {
+    use PaginatedList;
+
     public function __construct(private readonly PostEditor $editor) {}
 
     public function index(Request $request): JsonResponse
@@ -23,6 +26,7 @@ class PostController extends Controller
             'category_id' => ['nullable', 'integer'],
             'state' => ['nullable', Rule::in(['draft', 'scheduled', 'published'])],
             'search' => ['nullable', 'string', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $posts = Post::query()
@@ -39,22 +43,19 @@ class PostController extends Controller
             ->orderByRaw('published_at is null desc')
             ->latest('published_at')
             ->latest('id')
-            ->paginate(20);
+            ->paginate($filters['per_page'] ?? 20);
 
-        return response()->json([
-            'data' => $posts->getCollection()->map(fn (Post $post) => [
-                'id' => $post->id,
-                'title' => (object) $post->getTranslations('title'),
-                'slug' => $post->slug,
-                'url' => $post->url(),
-                'category' => $post->category ? (object) $post->category->getTranslations('name') : null,
-                'state' => $post->state(),
-                'is_featured' => $post->is_featured,
-                'banner_id' => $post->banner_id,
-                'published_at' => $post->published_at?->toIso8601String(),
-                'updated_at' => $post->updated_at?->toIso8601String(),
-            ]),
-            'meta' => ['current_page' => $posts->currentPage(), 'last_page' => $posts->lastPage(), 'total' => $posts->total(), 'per_page' => $posts->perPage()],
+        return $this->listResponse($posts, fn (Post $post) => [
+            'id' => $post->id,
+            'title' => (object) $post->getTranslations('title'),
+            'slug' => $post->slug,
+            'url' => $post->url(),
+            'category' => $post->category ? (object) $post->category->getTranslations('name') : null,
+            'state' => $post->state(),
+            'is_featured' => $post->is_featured,
+            'banner_id' => $post->banner_id,
+            'published_at' => $post->published_at?->toIso8601String(),
+            'updated_at' => $post->updated_at?->toIso8601String(),
         ]);
     }
 

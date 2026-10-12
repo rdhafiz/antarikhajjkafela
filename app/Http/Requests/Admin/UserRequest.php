@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Propaganistas\LaravelPhone\Rules\Phone;
 
 class UserRequest extends FormRequest
 {
@@ -20,7 +21,7 @@ class UserRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:190', Rule::unique('users')->ignore($user?->id)],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:40', (new Phone)->international()->country('BD')],
             'password' => [$creating ? 'required' : 'nullable', 'confirmed', Password::defaults()],
             'is_active' => ['boolean'],
             'roles' => ['array'],

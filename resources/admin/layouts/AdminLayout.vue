@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useLocalStorage } from '@vueuse/core';
 import { DialogContent, DialogOverlay, DialogPortal, DialogRoot, DialogTitle, VisuallyHidden } from 'reka-ui';
 import AppSidebar from '@admin/components/layout/AppSidebar.vue';
 import AppTopbar from '@admin/components/layout/AppTopbar.vue';
+import { findNavItem } from '@admin/navigation';
 
 const collapsed = useLocalStorage('admin.sidebar.collapsed', false);
 const mobileOpen = ref(false);
 const route = useRoute();
+/** The current module's colour, used by page headers, empty states and accents. */
+const tone = computed(() => findNavItem(route.path)?.item.tone ?? '#818cf8');
 
 watch(() => route.fullPath, () => (mobileOpen.value = false));
 </script>
@@ -16,7 +19,7 @@ watch(() => route.fullPath, () => (mobileOpen.value = false));
 <template>
     <div class="min-h-dvh">
         <!-- Desktop sidebar: full height, attached to the left edge -->
-        <aside class="sb-shell fixed inset-y-0 left-0 z-40 hidden lg:block" :class="collapsed ? 'w-[76px]' : 'w-[264px]'">
+        <aside aria-label="Sidebar" class="sb-shell fixed inset-y-0 left-0 z-40 hidden lg:block" :class="collapsed ? 'w-[76px]' : 'w-[264px]'">
             <AppSidebar :collapsed="collapsed" />
         </aside>
 
@@ -33,16 +36,13 @@ watch(() => route.fullPath, () => (mobileOpen.value = false));
 
         <div class="flex min-h-dvh flex-col transition-[padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" :class="collapsed ? 'lg:pl-[76px]' : 'lg:pl-[264px]'">
             <AppTopbar :collapsed="collapsed" @toggle-collapse="collapsed = !collapsed" @open-menu="mobileOpen = true" />
-            <main class="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            <main class="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8" :style="{ '--tone': tone }">
                 <RouterView v-slot="{ Component }">
-                    <Transition
-                        mode="out-in"
-                        enter-from-class="opacity-0 translate-y-1"
-                        enter-active-class="transition duration-200 ease-out"
-                        leave-to-class="opacity-0"
-                        leave-active-class="transition duration-100 ease-in"
-                    >
-                        <component :is="Component" :key="String(route.name)" />
+                    <Transition mode="out-in" leave-to-class="opacity-0" leave-active-class="transition duration-100 ease-in">
+                        <!-- Each page's blocks (header, filters, list…) rise in one after another. -->
+                        <div :key="String(route.name)" class="page-in">
+                            <component :is="Component" />
+                        </div>
                     </Transition>
                 </RouterView>
             </main>

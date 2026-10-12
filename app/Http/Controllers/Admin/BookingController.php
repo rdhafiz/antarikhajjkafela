@@ -207,6 +207,7 @@ class BookingController extends Controller
             'balance' => $booking->balance(),
             'customer_name' => $booking->customer_name,
             'customer_phone' => $booking->customer_phone,
+            'customer_email' => $booking->customer_email,
             'is_unread' => $booking->read_at === null,
             'created_at' => $booking->created_at?->toIso8601String(),
         ];

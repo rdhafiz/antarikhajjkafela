@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router';
-import { ListTree, Plus } from 'lucide-vue-next';
+import { CornerDownRight, Eye, EyeOff, Link2, ListTree, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import AppDrawer from '@admin/components/ui/AppDrawer.vue';
+import TabSwitcher from '@admin/components/ui/TabSwitcher.vue';
+import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
@@ -34,6 +37,27 @@ const editorOpen = ref(false);
 const editing = ref<MenuItemNode | null>(null);
 const editingIsNew = ref(false);
 let insertInto: MenuItemNode[] | null = null;
+
+const drawerOpen = ref(false);
+const selected = ref<{ item: MenuItemNode; depth: number; summary: string } | null>(null);
+const locationOptions = computed(() => locations.value.map((loc) => ({ value: loc.key, label: loc.name })));
+
+function openItem(item: MenuItemNode, depth: number, summary: string): void {
+    selected.value = { item, depth, summary };
+    drawerOpen.value = true;
+}
+
+/** Runs a drawer action after closing the drawer, so modals and dialogs open on top cleanly. */
+function act(action: (item: MenuItemNode) => unknown): void {
+    const item = selected.value?.item;
+    drawerOpen.value = false;
+    if (item) action(item);
+}
+
+function selectedLabel(): string {
+    const label = selected.value?.item.label ?? {};
+    return label[app.defaultLocale] || label.en || Object.values(label).find(Boolean) || 'Untitled';
+}
 
 const location = computed(() => String(route.params.location || 'primary'));
 const readonly = computed(() => !auth.can('menus.update'));
@@ -162,20 +186,15 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload));
             </template>
         </PageHeader>
 
-        <div class="mb-5 flex gap-1 border-b border-line" role="tablist">
-            <button
-                v-for="loc in locations"
-                :key="loc.key"
-                type="button"
-                role="tab"
-                :aria-selected="location === loc.key"
-                class="-mb-px border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors"
-                :class="location === loc.key ? 'border-brand text-brand' : 'border-transparent text-ink-muted hover:text-ink'"
-                @click="router.push({ name: 'menus', params: { location: loc.key } })"
-            >
-                {{ loc.name }}
-            </button>
-        </div>
+        <TabSwitcher
+            v-if="locationOptions.length"
+            :model-value="location"
+            :options="locationOptions"
+            label="Menu location"
+            variant="underline"
+            class="mb-5"
+            @update:model-value="(key) => router.push({ name: 'menus', params: { location: key } })"
+        />
 
         <div v-if="loading" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
 
@@ -199,9 +218,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload));
                     :link-types="linkTypes"
                     :locale="app.defaultLocale"
                     :readonly="readonly"
-                    @edit="editItem"
-                    @remove="removeItem"
-                    @add-child="addItem"
+                    @open="openItem"
                 />
             </div>
 
@@ -211,11 +228,44 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload));
                 <ul class="mt-4 space-y-2">
                     <li>Drag the <strong class="text-ink">⋮⋮</strong> handle to reorder items{{ menu.max_depth > 1 ? ' or move them into a dropdown' : '' }}.</li>
                     <li v-if="menu.max_depth > 1">Up to {{ menu.max_depth }} levels: menu → dropdown → sub-dropdown.</li>
-                    <li>Hide an item with the eye icon to keep it for later.</li>
+                    <li>Open an item to edit, hide, delete or add a sub-item to it.</li>
                     <li>Changes go live when you press <strong class="text-ink">Save menu</strong>.</li>
                 </ul>
             </aside>
         </div>
+
+        <AppDrawer v-model:open="drawerOpen" :title="selected ? selectedLabel() : ''" :description="selected?.summary" :icon="ListTree">
+            <template v-if="selected">
+                <div class="flex flex-wrap gap-2">
+                    <AppBadge :tone="selected.item.is_visible ? 'success' : 'neutral'">{{ selected.item.is_visible ? 'Shown' : 'Hidden' }}</AppBadge>
+                    <AppBadge v-if="selected.item.children.length" tone="brand">{{ selected.item.children.length }} sub-item{{ selected.item.children.length === 1 ? '' : 's' }}</AppBadge>
+                    <AppBadge v-if="selected.item.open_in_new_tab" tone="neutral">Opens in a new tab</AppBadge>
+                </div>
+                <dl class="dl mt-5 rounded-2xl bg-canvas p-4">
+                    <dt class="flex items-center gap-2"><Link2 class="size-4 text-sky-600" />Links to</dt>
+                    <dd class="break-words">{{ selected.summary || '—' }}</dd>
+                    <dt>Level</dt>
+                    <dd>{{ selected.depth === 1 ? 'Top level' : `Level ${selected.depth}` }}</dd>
+                </dl>
+
+                <p class="mt-6 mb-2 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">Actions</p>
+                <div class="-mx-1 space-y-1">
+                    <button type="button" class="ad-action" @click="act(editItem)">
+                        <span class="ad-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit item
+                    </button>
+                    <button v-if="menu && selected.depth < menu.max_depth" type="button" class="ad-action" @click="act(addItem)">
+                        <span class="ad-action-icon" style="--tone: #a78bfa"><CornerDownRight class="size-4" /></span>Add a sub-item
+                    </button>
+                    <button type="button" class="ad-action" @click="selected.item.is_visible = !selected.item.is_visible">
+                        <span class="ad-action-icon" style="--tone: #38bdf8"><component :is="selected.item.is_visible ? EyeOff : Eye" class="size-4" /></span>
+                        {{ selected.item.is_visible ? 'Hide from the website' : 'Show on the website' }}
+                    </button>
+                    <button type="button" class="ad-action is-danger" @click="act(removeItem)">
+                        <span class="ad-action-icon"><Trash2 class="size-4" /></span>Delete item
+                    </button>
+                </div>
+            </template>
+        </AppDrawer>
 
         <MenuItemModal v-model:open="editorOpen" :item="editing" :link-types="linkTypes" :is-new="editingIsNew" @save="applyItem" />
     </div>

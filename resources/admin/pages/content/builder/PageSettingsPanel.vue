@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue';
+import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
 import AppSwitch from '@admin/components/ui/AppSwitch.vue';
 import FormField from '@admin/components/ui/FormField.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
@@ -43,8 +44,9 @@ function slugify(): void {
         .replace(/^-|-$/g, '');
 }
 
-function local(value: string | null): string {
-    return value ? value.slice(0, 16) : '';
+/** The date picker works with "YYYY-MM-DDTHH:mm"; the server may send seconds too. */
+function local(value: string | null): string | null {
+    return value ? value.slice(0, 16) : null;
 }
 </script>
 
@@ -74,7 +76,7 @@ function local(value: string | null): string {
                     >
                         <input v-model="form.status" type="radio" :value="option.value" class="sr-only" />
                         <span class="block text-sm font-semibold" :class="form.status === option.value ? 'text-brand' : 'text-ink'">{{ option.label }}</span>
-                        <span class="block text-[12px] text-ink-muted">{{ option.text }}</span>
+                        <span class="block text-[12px] text-ink-soft">{{ option.text }}</span>
                     </label>
                 </div>
             </FormField>
@@ -84,10 +86,10 @@ function local(value: string | null): string {
             <h3 class="text-[12px] font-bold tracking-[0.08em] text-ink-muted uppercase">Campaign</h3>
             <div class="grid gap-3 sm:grid-cols-2">
                 <FormField label="Starts" :for="`${id}-start`" :error="error('starts_at')" hint="Empty = as soon as published.">
-                    <input :id="`${id}-start`" type="datetime-local" :value="local(form.starts_at)" class="control" @input="form.starts_at = ($event.target as HTMLInputElement).value || null" />
+                    <AppDatePicker :id="`${id}-start`" mode="datetime" :model-value="local(form.starts_at)" placeholder="When published" :max-date="local(form.expires_at)" :invalid="Boolean(error('starts_at'))" @update:model-value="form.starts_at = $event || null" />
                 </FormField>
                 <FormField label="Expires" :for="`${id}-end`" :error="error('expires_at')" hint="Visitors are redirected afterwards.">
-                    <input :id="`${id}-end`" type="datetime-local" :value="local(form.expires_at)" class="control" @input="form.expires_at = ($event.target as HTMLInputElement).value || null" />
+                    <AppDatePicker :id="`${id}-end`" mode="datetime" :model-value="local(form.expires_at)" placeholder="No end date" :min-date="local(form.starts_at)" :invalid="Boolean(error('expires_at'))" @update:model-value="form.expires_at = $event || null" />
                 </FormField>
             </div>
             <div class="rounded-lg border border-line p-3.5">

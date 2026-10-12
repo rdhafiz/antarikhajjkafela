@@ -30,12 +30,17 @@
     --color-ink-soft: #475569;
     --color-ink-muted: #627188; /* 4.5:1 on white and on the canvas */
 
-    --radius-card: 14px;
-    --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 1px rgb(15 23 42 / 0.03);
+    --radius-card: 18px;
+    --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 12px 32px -24px rgb(15 23 42 / 0.25);
     --shadow-pop: 0 12px 32px -8px rgb(15 23 42 / 0.18), 0 2px 6px rgb(15 23 42 / 0.06);
 }
 
 @layer base {
+    /* Fieldsets default to min-content width, which pushes narrow screens sideways. */
+    fieldset {
+        min-width: 0;
+    }
+
     html {
         -webkit-tap-highlight-color: transparent;
     }
@@ -70,7 +75,7 @@
     }
 
     .control {
-        @apply block w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink placeholder:text-ink-muted
+        @apply block w-full rounded-[10px] border border-line bg-white px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-muted
             transition-[border-color,box-shadow] duration-150
             hover:border-[#cbd3df]
             focus:border-brand focus:outline-none focus:ring-3 focus:ring-brand/12
@@ -665,5 +670,573 @@
     to {
         opacity: 1;
         translate: 0 0;
+    }
+}
+
+/*
+ * Admin theme for every page (components/ui/*). Each page takes its module's colour
+ * as --tone (set on <main> by AdminLayout from navigation.ts).
+ */
+@layer components {
+    /* Page entrance: the page's blocks rise in one after another. */
+    .page-in > * > * {
+        animation: pg-rise 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .page-in > * > :nth-child(2) { animation-delay: 70ms; }
+    .page-in > * > :nth-child(3) { animation-delay: 140ms; }
+    .page-in > * > :nth-child(4) { animation-delay: 210ms; }
+    .page-in > * > :nth-child(5) { animation-delay: 280ms; }
+    .page-in > * > :nth-child(n + 6) { animation-delay: 340ms; }
+
+    /* Settings section icons */
+    .st-icon {
+        background: color-mix(in oklab, var(--tone) 16%, white);
+        color: color-mix(in oklab, var(--tone) 50%, black);
+        transition: background-color 250ms ease, color 250ms ease;
+    }
+
+    .st-link.is-active .st-icon {
+        background: var(--tone);
+        color: #fff;
+    }
+
+    /* Page header tile */
+    .ph-tile {
+        background: linear-gradient(140deg, color-mix(in oklab, var(--tone) 28%, white), color-mix(in oklab, var(--tone) 12%, white));
+        color: color-mix(in oklab, var(--tone) 50%, black);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--tone) 30%, white), 0 10px 22px -14px var(--tone);
+    }
+
+    /* Empty state */
+    .es-tile {
+        background: color-mix(in oklab, var(--tone, var(--admin-primary)) 16%, white);
+        color: color-mix(in oklab, var(--tone, var(--admin-primary)) 50%, black);
+    }
+
+    .es-ring {
+        box-shadow: 0 0 0 8px color-mix(in oklab, var(--tone, var(--admin-primary)) 7%, transparent);
+    }
+
+    /*
+     * Lists as tables on wide screens and as stacked cards on phones (never sideways
+     * scrolling). Cells carry data-label="…", shown as the card's field labels.
+     */
+    .dt {
+        width: 100%;
+        font-size: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
+
+        thead th {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--color-ink-muted);
+            background: color-mix(in oklab, var(--color-canvas) 70%, white);
+            border-bottom: 1px solid var(--color-line);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--color-line);
+            vertical-align: middle;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        tbody tr {
+            transition: background-color 200ms ease;
+        }
+
+        tbody tr.dt-row {
+            cursor: pointer;
+
+            &:hover {
+                background: color-mix(in oklab, var(--tone, var(--admin-primary)) 5%, white);
+            }
+        }
+
+        .dt-trigger {
+            width: 1%;
+            text-align: right;
+        }
+
+        @media (width < 48rem) {
+            thead {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                overflow: hidden;
+                clip: rect(0 0 0 0);
+            }
+
+            tbody tr {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 0.35rem 1rem;
+                padding: 0.9rem 1rem;
+                border-bottom: 1px solid var(--color-line);
+            }
+
+            tbody tr:last-child {
+                border-bottom: 0;
+            }
+
+            tbody td {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 0;
+                border: 0;
+                grid-column: 1 / -1;
+                text-align: right;
+            }
+
+            tbody td[data-label]::before {
+                content: attr(data-label);
+                flex-shrink: 0;
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--color-ink-muted);
+                text-align: left;
+            }
+
+            /* The first cell is the card's title; the trigger sits beside it. */
+            tbody td:first-child {
+                grid-column: 1;
+                display: block;
+                text-align: left;
+                margin-bottom: 0.25rem;
+            }
+
+            tbody td:first-child::before {
+                content: none;
+            }
+
+            tbody td.dt-trigger {
+                grid-column: 2;
+                grid-row: 1;
+                display: block;
+                width: auto;
+            }
+
+            tbody td.dt-hide-sm {
+                display: none;
+            }
+        }
+    }
+
+    /* Single "open" trigger at the end of a row (instead of a row of icon buttons). */
+    .dt-open {
+        display: inline-flex;
+        width: 2.25rem;
+        height: 2.25rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.65rem;
+        color: var(--color-ink-muted);
+        transition: background-color 200ms ease, color 200ms ease;
+
+        &:hover,
+        tr:hover & {
+            background: color-mix(in oklab, var(--tone, var(--admin-primary)) 12%, white);
+            color: color-mix(in oklab, var(--tone, var(--admin-primary)) 50%, black);
+        }
+    }
+
+    /* Drawer */
+    .ad-overlay[data-state='open'] {
+        animation: ahk-fade 220ms ease-out;
+    }
+
+    .ad-overlay[data-state='closed'] {
+        animation: ad-fade-out 200ms ease-in forwards;
+    }
+
+    .ad-sheet[data-state='open'] {
+        animation: ad-in 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .ad-sheet[data-state='closed'] {
+        animation: ad-out 220ms ease-in forwards;
+    }
+
+    .ad-tile {
+        background: color-mix(in oklab, var(--tone, var(--admin-primary)) 18%, white);
+        color: color-mix(in oklab, var(--tone, var(--admin-primary)) 50%, black);
+    }
+
+    .ad-body > * {
+        animation: pg-rise 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .ad-body > :nth-child(2) { animation-delay: 60ms; }
+    .ad-body > :nth-child(3) { animation-delay: 120ms; }
+    .ad-body > :nth-child(n + 4) { animation-delay: 170ms; }
+
+    /* Detail lists inside drawers */
+    .dl {
+        display: grid;
+        grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+        gap: 0.65rem 1rem;
+        font-size: 14px;
+
+        dt {
+            color: var(--color-ink-muted);
+        }
+
+        dd {
+            font-weight: 500;
+            color: var(--color-ink);
+            overflow-wrap: anywhere;
+        }
+    }
+
+    /* Drawer action list: one row per action. */
+    .ad-action {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        gap: 0.75rem;
+        border-radius: 0.85rem;
+        padding: 0.7rem 0.75rem;
+        text-align: left;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-ink);
+        transition: background-color 200ms ease;
+
+        &:hover {
+            background: var(--color-canvas);
+        }
+
+        .ad-action-icon {
+            display: flex;
+            width: 2.25rem;
+            height: 2.25rem;
+            flex-shrink: 0;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.65rem;
+            background: color-mix(in oklab, var(--tone, var(--admin-primary)) 15%, white);
+            color: color-mix(in oklab, var(--tone, var(--admin-primary)) 50%, black);
+        }
+
+        &.is-danger {
+            color: #b91c1c;
+
+            .ad-action-icon {
+                background: #fee2e2;
+                color: #b91c1c;
+            }
+
+            &:hover {
+                background: #fef2f2;
+            }
+        }
+    }
+
+    /* Filter bar */
+    .fb-panel {
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 350ms cubic-bezier(0.22, 1, 0.36, 1);
+
+        &.is-open {
+            grid-template-rows: 1fr;
+        }
+    }
+
+    .fb select.control {
+        height: 2.75rem;
+        border-radius: 0.75rem;
+        min-width: 10rem;
+    }
+
+    /* Tabs */
+    .ts-pill {
+        display: inline-flex;
+        height: 2.5rem;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 999px;
+        border: 1px solid var(--color-line);
+        background: #fff;
+        padding: 0 1rem;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-ink-soft);
+        transition: background-color 250ms ease, border-color 250ms ease, color 250ms ease, box-shadow 250ms ease;
+
+        &:hover {
+            color: var(--color-ink);
+            border-color: #cbd3df;
+        }
+
+        &.is-active {
+            border-color: var(--admin-primary);
+            background: var(--admin-primary);
+            color: #fff;
+            box-shadow: 0 8px 18px -12px var(--admin-primary);
+
+            .ts-count {
+                background: rgb(255 255 255 / 0.18);
+                color: #fff;
+            }
+        }
+    }
+
+    .ts-line {
+        display: inline-flex;
+        height: 2.75rem;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: -1px;
+        border-bottom: 2px solid transparent;
+        padding: 0 0.85rem;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-ink-soft);
+        transition: color 200ms ease, border-color 200ms ease;
+
+        &:hover {
+            color: var(--color-ink);
+        }
+
+        &.is-active {
+            border-color: var(--admin-secondary);
+            color: var(--color-ink);
+        }
+    }
+
+    .ts-icon {
+        color: color-mix(in oklab, var(--tone, var(--admin-primary)) 60%, black);
+    }
+
+    .ts-pill.is-active .ts-icon {
+        color: #fff;
+    }
+
+    .ts-count {
+        display: inline-flex;
+        min-width: 1.5rem;
+        height: 1.375rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: var(--color-canvas);
+        padding: 0 0.4rem;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--color-ink-soft);
+    }
+
+    .ts-choice {
+        transition: background-color 200ms ease;
+
+        &:hover {
+            background: var(--color-canvas);
+        }
+
+        &.is-active {
+            background: color-mix(in oklab, var(--admin-primary) 7%, white);
+        }
+    }
+
+    .ts-choice-icon {
+        background: color-mix(in oklab, var(--tone, var(--admin-primary)) 16%, white);
+        color: color-mix(in oklab, var(--tone, var(--admin-primary)) 50%, black);
+    }
+
+    /* Pagination */
+    .pg-btn {
+        display: flex;
+        min-width: 2.25rem;
+        height: 2.25rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.65rem;
+        border: 1px solid var(--color-line);
+        background: #fff;
+        padding: 0 0.5rem;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--color-ink);
+        transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+
+        &:hover:not(:disabled) {
+            border-color: #cbd3df;
+            background: var(--color-canvas);
+        }
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        &.is-current {
+            border-color: var(--admin-primary);
+            background: var(--admin-primary);
+            color: #fff;
+        }
+    }
+
+    /* Date picker (flatpickr) */
+    .dp .dp-alt {
+        padding-left: 2.4rem;
+        padding-right: 2.25rem;
+        cursor: pointer;
+        background: #fff;
+    }
+
+    .dp .dp-icon {
+        color: var(--color-ink-muted);
+    }
+
+    .dp.is-invalid .dp-alt {
+        border-color: #f87171;
+    }
+
+    /* Phone field (intl-tel-input) */
+    .pi .pi-iti {
+        display: block;
+        width: 100%;
+        --iti-border-color: var(--color-line);
+        --iti-dialcode-color: var(--color-ink-soft);
+        --iti-hover-color: var(--color-canvas);
+        --iti-dropdown-bg: #fff;
+        --iti-spacer-horizontal: 10px;
+    }
+
+    .pi .pi-iti input.control {
+        padding-right: 2.25rem;
+    }
+
+    .pi.is-invalid input.control {
+        border-color: #f87171;
+    }
+
+    .pi.is-valid input.control {
+        border-color: color-mix(in oklab, #10b981 45%, var(--color-line));
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .page-in > * > *,
+        .ad-body > *,
+        .ad-sheet[data-state='open'] {
+            animation: none;
+        }
+    }
+}
+
+/* flatpickr calendar, matched to the admin theme */
+.flatpickr-calendar {
+    border: 1px solid var(--color-line);
+    border-radius: 16px;
+    box-shadow: var(--shadow-pop);
+    font-family: var(--font-sans);
+    padding: 6px;
+}
+
+.flatpickr-calendar.arrowTop::before,
+.flatpickr-calendar.arrowTop::after {
+    display: none;
+}
+
+.flatpickr-months .flatpickr-month,
+.flatpickr-current-month input.cur-year,
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    font-weight: 700;
+    color: var(--color-ink);
+}
+
+.flatpickr-current-month {
+    font-size: 15px;
+}
+
+.flatpickr-day {
+    border-radius: 10px;
+    font-weight: 500;
+    color: var(--color-ink);
+}
+
+.flatpickr-day:hover {
+    background: var(--color-canvas);
+    border-color: transparent;
+}
+
+.flatpickr-day.today {
+    border-color: var(--admin-secondary);
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover {
+    background: var(--admin-primary);
+    border-color: var(--admin-primary);
+    color: #fff;
+}
+
+.flatpickr-time input:hover,
+.flatpickr-time .flatpickr-am-pm:hover,
+.flatpickr-time input:focus,
+.flatpickr-time .flatpickr-am-pm:focus {
+    background: var(--color-canvas);
+}
+
+span.flatpickr-weekday {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-ink-muted);
+}
+
+.flatpickr-months .flatpickr-prev-month:hover svg,
+.flatpickr-months .flatpickr-next-month:hover svg {
+    fill: var(--admin-primary);
+}
+
+/* intl-tel-input country list above drawers and modals */
+.iti--container,
+.iti__dropdown-content {
+    z-index: 60;
+}
+
+@keyframes pg-rise {
+    from {
+        opacity: 0;
+        translate: 0 12px;
+    }
+
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+
+@keyframes ad-in {
+    from {
+        translate: 100% 0;
+    }
+
+    to {
+        translate: 0 0;
+    }
+}
+
+@keyframes ad-out {
+    to {
+        translate: 100% 0;
+    }
+}
+
+@keyframes ad-fade-out {
+    to {
+        opacity: 0;
     }
 }

@@ -11,7 +11,7 @@ import {
     DropdownMenuTrigger,
 } from 'reka-ui';
 import { CalendarCheck, ChevronDown, Globe, Inbox, LogOut, Menu, PanelLeftClose, PanelLeftOpen, UserRound } from 'lucide-vue-next';
-import { navigation } from '@admin/navigation';
+import { findNavItem } from '@admin/navigation';
 import { useAuthStore } from '@admin/stores/auth';
 import { useAppStore } from '@admin/stores/app';
 import { initials } from '@admin/lib/format';
@@ -25,16 +25,7 @@ const route = useRoute();
 const router = useRouter();
 
 /** Where the admin is: the sidebar section and module of the current page, with its colour. */
-const place = computed(() => {
-    for (const section of navigation) {
-        for (const item of section.items) {
-            const match = item.to === '/admin' ? route.path === '/admin' : route.path.startsWith(item.to);
-            if (match) return { section: section.label ?? 'Overview', item };
-        }
-    }
-
-    return null;
-});
+const place = computed(() => findNavItem(route.path));
 const title = computed(() => String(route.meta.title ?? place.value?.item.label ?? 'Dashboard'));
 
 async function signOut(): Promise<void> {

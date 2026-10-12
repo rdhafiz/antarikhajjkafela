@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useId } from 'vue';
+import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
 import AppSwitch from '@admin/components/ui/AppSwitch.vue';
 import ColorInput from '@admin/components/ui/ColorInput.vue';
 import FormField from '@admin/components/ui/FormField.vue';
@@ -45,9 +46,9 @@ function aspectFor(usage?: string): string {
     return { icon: '1 / 1', avatar: '1 / 1', logo: '3 / 1', og: '1200 / 630', card: '4 / 3', banner: '16 / 6', hero: '16 / 9' }[usage ?? ''] ?? '16 / 9';
 }
 
-/** datetime-local wants "YYYY-MM-DDTHH:mm" in the server's local time. */
-function toLocalInput(value: unknown): string {
-    return typeof value === 'string' ? value.slice(0, 16) : '';
+/** The date picker wants "YYYY-MM-DDTHH:mm" in the server's local time. */
+function toLocalInput(value: unknown): string | null {
+    return typeof value === 'string' && value !== '' ? value.slice(0, 16) : null;
 }
 </script>
 
@@ -111,14 +112,14 @@ function toLocalInput(value: unknown): string {
                         :class="{ 'control-invalid': error(field.key) }"
                         @input="set(field.key, ($event.target as HTMLInputElement).value === '' ? null : Number(($event.target as HTMLInputElement).value))"
                     />
-                    <input
+                    <AppDatePicker
                         v-else-if="field.type === 'datetime'"
                         :id="`${baseId}-${field.key}`"
-                        type="datetime-local"
-                        :value="toLocalInput(model[field.key])"
-                        class="control"
-                        :class="{ 'control-invalid': error(field.key) }"
-                        @input="set(field.key, ($event.target as HTMLInputElement).value || null)"
+                        mode="datetime"
+                        :model-value="toLocalInput(model[field.key])"
+                        :placeholder="field.placeholder"
+                        :invalid="Boolean(error(field.key))"
+                        @update:model-value="set(field.key, $event || null)"
                     />
                     <input
                         v-else

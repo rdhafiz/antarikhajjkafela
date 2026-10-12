@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { VueDraggable } from 'vue-draggable-plus';
-import { CornerDownRight, Eye, EyeOff, ExternalLink, GripVertical, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { ChevronRight, CornerDownRight, EyeOff, ExternalLink, GripVertical } from 'lucide-vue-next';
 import { subtreeHeight, type LinkType, type MenuItemNode } from './types';
 
 defineOptions({ name: 'MenuTree' });
 
 const items = defineModel<MenuItemNode[]>({ required: true });
 const props = defineProps<{ depth: number; maxDepth: number; linkTypes: LinkType[]; locale: string; readonly?: boolean }>();
-const emit = defineEmits<{ edit: [item: MenuItemNode]; remove: [item: MenuItemNode]; 'add-child': [item: MenuItemNode]; change: [] }>();
+const emit = defineEmits<{ open: [item: MenuItemNode, depth: number, summary: string]; change: [] }>();
 
 /** Block drops that would make the menu deeper than allowed. */
 function onMove(event: { to: HTMLElement; dragged: HTMLElement }): boolean {
@@ -62,44 +62,20 @@ function label(item: MenuItemNode): string {
                 </button>
                 <CornerDownRight v-else-if="depth > 1" class="ml-2 size-4 text-ink-muted" />
 
-                <button type="button" class="min-w-0 flex-1 text-left" :disabled="readonly" @click="emit('edit', item)">
+                <button type="button" class="min-w-0 flex-1 text-left" :disabled="readonly" @click="emit('open', item, depth, linkSummary(item))">
                     <span class="flex items-center gap-2">
                         <span class="truncate text-sm font-semibold" :class="item.is_visible ? 'text-ink' : 'text-ink-muted line-through decoration-1'">
                             {{ label(item) }}
                         </span>
                         <ExternalLink v-if="item.open_in_new_tab" class="size-3 shrink-0 text-ink-muted" />
+                        <EyeOff v-if="!item.is_visible" class="size-3.5 shrink-0 text-ink-muted" aria-label="Hidden" />
                     </span>
                     <span class="block truncate text-[12px] text-ink-muted">{{ linkSummary(item) }}</span>
                 </button>
 
-                <div v-if="!readonly" class="flex shrink-0 items-center">
-                    <button
-                        v-if="depth < maxDepth"
-                        type="button"
-                        class="rounded-lg p-2 text-ink-muted hover:bg-canvas hover:text-brand"
-                        :aria-label="`Add a sub-item under ${label(item)}`"
-                        title="Add sub-item"
-                        @click="emit('add-child', item)"
-                    >
-                        <Plus class="size-4" />
-                    </button>
-                    <button
-                        type="button"
-                        class="rounded-lg p-2 text-ink-muted hover:bg-canvas hover:text-ink"
-                        :aria-label="item.is_visible ? `Hide ${label(item)}` : `Show ${label(item)}`"
-                        :title="item.is_visible ? 'Hide' : 'Show'"
-                        @click="item.is_visible = !item.is_visible; emit('change')"
-                    >
-                        <Eye v-if="item.is_visible" class="size-4" />
-                        <EyeOff v-else class="size-4" />
-                    </button>
-                    <button type="button" class="rounded-lg p-2 text-ink-muted hover:bg-canvas hover:text-brand" :aria-label="`Edit ${label(item)}`" title="Edit" @click="emit('edit', item)">
-                        <Pencil class="size-4" />
-                    </button>
-                    <button type="button" class="rounded-lg p-2 text-ink-muted hover:bg-red-50 hover:text-red-600" :aria-label="`Delete ${label(item)}`" title="Delete" @click="emit('remove', item)">
-                        <Trash2 class="size-4" />
-                    </button>
-                </div>
+                <button v-if="!readonly" type="button" class="dt-open shrink-0" :aria-label="`Open ${label(item)}`" @click="emit('open', item, depth, linkSummary(item))">
+                    <ChevronRight class="size-4" />
+                </button>
             </div>
 
             <MenuTree
@@ -110,9 +86,7 @@ function label(item: MenuItemNode): string {
                 :link-types="linkTypes"
                 :locale="locale"
                 :readonly="readonly"
-                @edit="emit('edit', $event)"
-                @remove="emit('remove', $event)"
-                @add-child="emit('add-child', $event)"
+                @open="(child, d, summary) => emit('open', child, d, summary)"
                 @change="emit('change')"
             />
         </li>

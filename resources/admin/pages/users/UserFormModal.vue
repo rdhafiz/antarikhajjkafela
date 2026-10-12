@@ -6,6 +6,7 @@ import AppInput from '@admin/components/ui/AppInput.vue';
 import AppModal from '@admin/components/ui/AppModal.vue';
 import AppSwitch from '@admin/components/ui/AppSwitch.vue';
 import FormField from '@admin/components/ui/FormField.vue';
+import PhoneInput from '@admin/components/ui/PhoneInput.vue';
 import { useForm } from '@admin/composables/useForm';
 import { http } from '@admin/lib/http';
 import { useAuthStore } from '@admin/stores/auth';
@@ -17,7 +18,7 @@ const emit = defineEmits<{ saved: [user: AdminUser] }>();
 
 const auth = useAuthStore();
 
-const blank = { name: '', email: '', phone: '', password: '', password_confirmation: '', is_active: true, roles: [] as string[] };
+const blank = { name: '', email: '', phone: null as string | null, password: '', password_confirmation: '', is_active: true, roles: [] as string[] };
 const form = useForm({ ...blank });
 
 const editing = computed(() => props.user !== null);
@@ -28,7 +29,7 @@ watch(open, (value) => {
 
     form.reset(
         props.user
-            ? { ...blank, name: props.user.name, email: props.user.email, phone: props.user.phone ?? '', is_active: props.user.is_active, roles: [...(props.user.roles ?? [])] }
+            ? { ...blank, name: props.user.name, email: props.user.email, phone: props.user.phone ?? null, is_active: props.user.is_active, roles: [...(props.user.roles ?? [])] }
             : blank,
     );
 });
@@ -57,7 +58,9 @@ async function save(): Promise<void> {
             <AppInput v-model="form.data.name" label="Full name" required :error="form.error('name')" />
             <div class="grid gap-4 sm:grid-cols-2">
                 <AppInput v-model="form.data.email" label="Email address" type="email" autocomplete="off" required :error="form.error('email')" />
-                <AppInput v-model="form.data.phone" label="Phone" type="tel" :error="form.error('phone')" />
+                <FormField label="Phone" for="user-phone">
+                    <PhoneInput id="user-phone" v-model="form.data.phone" :error="form.error('phone')" />
+                </FormField>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 <AppInput

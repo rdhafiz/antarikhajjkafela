@@ -7,6 +7,7 @@ import AppCheckbox from '@admin/components/ui/AppCheckbox.vue';
 import AppInput from '@admin/components/ui/AppInput.vue';
 import AppModal from '@admin/components/ui/AppModal.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
+import FilterBar from '@admin/components/ui/FilterBar.vue';
 import PageHeader from '@admin/components/ui/PageHeader.vue';
 import { useConfirm } from '@admin/composables/useConfirm';
 import { useForm } from '@admin/composables/useForm';
@@ -27,7 +28,12 @@ const selectedId = ref<number | null>(null);
 const draft = ref<Set<string>>(new Set());
 
 const selected = computed(() => roles.value.find((r) => r.id === selectedId.value) ?? null);
-const actions = computed(() => [...new Set(modules.value.flatMap((m) => m.actions))]);
+const search = ref('');
+const visibleRoles = computed(() => {
+    const term = search.value.trim().toLowerCase();
+    return term ? roles.value.filter((r) => r.label.toLowerCase().includes(term) || r.name.toLowerCase().includes(term)) : roles.value;
+});
+const roleSummary = computed(() => `${roles.value.length} ${roles.value.length === 1 ? 'role' : 'roles'}`);
 const readonly = computed(() => !selected.value || selected.value.is_super_admin || !auth.can('roles.update'));
 const dirty = computed(() => {
     const original = new Set(selected.value?.permissions ?? []);
@@ -68,6 +74,10 @@ function toggle(permission: string, value: boolean | 'indeterminate'): void {
     const next = new Set(draft.value);
     value === true ? next.add(permission) : next.delete(permission);
     draft.value = next;
+}
+
+function grantedCount(module: PermissionModule): number {
+    return module.actions.filter((a) => has(`${module.key}.${a}`)).length;
 }
 
 function moduleState(module: PermissionModule): boolean | 'indeterminate' {
@@ -140,27 +150,31 @@ onMounted(load);
 
         <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
             <!-- Role list -->
-            <div class="card h-fit p-2">
-                <button
-                    v-for="role in roles"
-                    :key="role.id"
-                    type="button"
-                    class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors"
-                    :class="selectedId === role.id ? 'bg-brand-soft' : 'hover:bg-canvas'"
-                    @click="select(role)"
-                >
-                    <span
-                        class="flex size-8 shrink-0 items-center justify-center rounded-lg"
-                        :class="role.is_super_admin ? 'bg-[color-mix(in_oklab,var(--admin-secondary)_25%,white)] text-[#6b5400]' : 'bg-white text-brand ring-1 ring-line'"
+            <div class="h-fit">
+                <FilterBar v-model:search="search" placeholder="Search roles" :summary="search ? `${visibleRoles.length} of ${roleSummary}` : ''" />
+                <div class="card p-2">
+                    <p v-if="!visibleRoles.length" class="px-3 py-6 text-center text-[13px] text-ink-muted">No roles match "{{ search }}".</p>
+                    <button
+                        v-for="role in visibleRoles"
+                        :key="role.id"
+                        type="button"
+                        class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors"
+                        :class="selectedId === role.id ? 'bg-brand-soft' : 'hover:bg-canvas'"
+                        @click="select(role)"
                     >
-                        <Crown v-if="role.is_super_admin" class="size-4" />
-                        <ShieldCheck v-else class="size-4" />
-                    </span>
-                    <span class="min-w-0 flex-1">
-                        <span class="block truncate text-sm font-semibold" :class="selectedId === role.id ? 'text-brand' : 'text-ink'">{{ role.label }}</span>
-                        <span class="block text-[12px] text-ink-muted">{{ role.users_count }} {{ role.users_count === 1 ? 'user' : 'users' }}</span>
-                    </span>
-                </button>
+                        <span
+                            class="flex size-8 shrink-0 items-center justify-center rounded-lg"
+                            :class="role.is_super_admin ? 'bg-[color-mix(in_oklab,var(--admin-secondary)_25%,white)] text-[#6b5400]' : 'bg-white text-brand ring-1 ring-line'"
+                        >
+                            <Crown v-if="role.is_super_admin" class="size-4" />
+                            <ShieldCheck v-else class="size-4" />
+                        </span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold" :class="selectedId === role.id ? 'text-brand' : 'text-ink'">{{ role.label }}</span>
+                            <span class="block text-[12px] text-ink-soft">{{ role.users_count }} {{ role.users_count === 1 ? 'user' : 'users' }}</span>
+                        </span>
+                    </button>
+                </div>
             </div>
 
             <!-- Permission matrix -->
@@ -175,7 +189,7 @@ onMounted(load);
                             {{ selected.is_super_admin ? 'Super admins always have full access to everything.' : 'Tick what this role is allowed to do.' }}
                         </p>
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap gap-2">
                         <AppButton
                             v-if="!selected.is_system && auth.can('roles.delete')"
                             variant="ghost"
@@ -192,39 +206,30 @@ onMounted(load);
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full min-w-[640px] text-sm">
-                        <thead>
-                            <tr class="border-b border-line text-[12px] font-semibold tracking-wide text-ink-muted uppercase">
-                                <th class="px-5 py-3 text-left">Module</th>
-                                <th v-for="action in actions" :key="action" class="px-3 py-3 text-center">{{ titleCase(action) }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-line">
-                            <tr v-for="module in modules" :key="module.key">
-                                <td class="px-5 py-3">
-                                    <AppCheckbox
-                                        :model-value="moduleState(module)"
-                                        :disabled="readonly"
-                                        @update:model-value="toggleModule(module, $event)"
-                                    >
-                                        <span class="font-semibold">{{ module.label }}</span>
-                                    </AppCheckbox>
-                                </td>
-                                <td v-for="action in actions" :key="action" class="px-3 py-3 text-center">
-                                    <AppCheckbox
-                                        v-if="module.actions.includes(action)"
-                                        :model-value="has(`${module.key}.${action}`)"
-                                        :disabled="readonly"
-                                        :aria-label="`${module.label}: ${action}`"
-                                        @update:model-value="toggle(`${module.key}.${action}`, $event)"
-                                    />
-                                    <span v-else class="text-line" aria-hidden="true">—</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <ul class="grid grid-cols-[minmax(0,1fr)] gap-3 p-4 sm:p-5 xl:grid-cols-2">
+                    <li v-for="module in modules" :key="module.key" class="rounded-xl border border-line p-3.5">
+                        <div class="flex items-center justify-between gap-3 border-b border-line pb-2.5">
+                            <AppCheckbox
+                                :model-value="moduleState(module)"
+                                :disabled="readonly"
+                                @update:model-value="toggleModule(module, $event)"
+                            >
+                                <span class="font-semibold">{{ module.label }}</span>
+                            </AppCheckbox>
+                            <span class="shrink-0 text-[12px] text-ink-muted">{{ grantedCount(module) }}/{{ module.actions.length }}</span>
+                        </div>
+                        <div class="flex flex-wrap gap-x-5 gap-y-2.5 pt-3" role="group" :aria-label="`${module.label} permissions`">
+                            <AppCheckbox
+                                v-for="action in module.actions"
+                                :key="action"
+                                :model-value="has(`${module.key}.${action}`)"
+                                :disabled="readonly"
+                                :label="titleCase(action)"
+                                @update:model-value="toggle(`${module.key}.${action}`, $event)"
+                            />
+                        </div>
+                    </li>
+                </ul>
             </div>
         </div>
 

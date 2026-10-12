@@ -42,6 +42,12 @@ export function useMediaList(initialUsage = '', perPage = 24) {
         load();
     }
 
+    function setPerPage(size: number): void {
+        filters.per_page = size;
+        filters.page = 1;
+        load();
+    }
+
     function prepend(media: Media): void {
         items.value = [media, ...items.value.filter((m) => m.id !== media.id)];
         if (meta.value) meta.value.total++;
@@ -56,5 +62,5 @@ export function useMediaList(initialUsage = '', perPage = 24) {
         if (meta.value) meta.value.total--;
     }
 
-    return { items, meta, loading, filters, load, goTo, prepend, replace, remove };
+    return { items, meta, loading, filters, load, goTo, setPerPage, prepend, replace, remove };
 }

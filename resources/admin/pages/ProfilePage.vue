@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import AppButton from '@admin/components/ui/AppButton.vue';
+import { KeyRound, UserRound } from 'lucide-vue-next';
 import AppInput from '@admin/components/ui/AppInput.vue';
+import FormField from '@admin/components/ui/FormField.vue';
+import PhoneInput from '@admin/components/ui/PhoneInput.vue';
 import PageHeader from '@admin/components/ui/PageHeader.vue';
 import { useForm } from '@admin/composables/useForm';
 import { http } from '@admin/lib/http';
@@ -14,7 +17,7 @@ const toast = useToastStore();
 const profile = useForm({
     name: auth.user?.name ?? '',
     email: auth.user?.email ?? '',
-    phone: auth.user?.phone ?? '',
+    phone: (auth.user?.phone ?? null) as string | null,
 });
 
 const password = useForm({ current_password: '', password: '', password_confirmation: '' });
@@ -42,21 +45,27 @@ async function savePassword(): Promise<void> {
     <div>
         <PageHeader title="My profile" description="Your account details and password." />
 
-        <div class="grid gap-6 xl:grid-cols-2">
-            <form class="card p-6" novalidate @submit.prevent="saveProfile">
-                <h2 class="text-[15px] font-bold text-ink">Account details</h2>
+        <div class="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-2">
+            <form class="card p-5 sm:p-6" novalidate @submit.prevent="saveProfile">
+                <h2 class="flex items-center gap-3 text-[15px] font-bold text-ink">
+                    <span class="ph-tile flex size-10 items-center justify-center rounded-xl" style="--tone: #60a5fa" aria-hidden="true"><UserRound class="size-5" /></span>Account details
+                </h2>
                 <div class="mt-5 space-y-4">
                     <AppInput v-model="profile.data.name" label="Full name" required :error="profile.error('name')" />
                     <AppInput v-model="profile.data.email" label="Email address" type="email" required :error="profile.error('email')" />
-                    <AppInput v-model="profile.data.phone" label="Phone" type="tel" :error="profile.error('phone')" />
+                    <FormField label="Phone" for="profile-phone">
+                        <PhoneInput id="profile-phone" v-model="profile.data.phone" :error="profile.error('phone')" />
+                    </FormField>
                 </div>
                 <div class="mt-6 flex justify-end">
                     <AppButton type="submit" :loading="profile.processing">Save changes</AppButton>
                 </div>
             </form>
 
-            <form class="card p-6" novalidate @submit.prevent="savePassword">
-                <h2 class="text-[15px] font-bold text-ink">Change password</h2>
+            <form class="card p-5 sm:p-6" novalidate @submit.prevent="savePassword">
+                <h2 class="flex items-center gap-3 text-[15px] font-bold text-ink">
+                    <span class="ph-tile flex size-10 items-center justify-center rounded-xl" style="--tone: #fbbf24" aria-hidden="true"><KeyRound class="size-5" /></span>Change password
+                </h2>
                 <div class="mt-5 space-y-4">
                     <AppInput
                         v-model="password.data.current_password"
