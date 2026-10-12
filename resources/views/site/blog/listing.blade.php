@@ -53,7 +53,7 @@
                 $leadMinutes = app(PostPresenter::class)->minutes($lead);
                 $excerpt = $lead->getTranslation('excerpt', $locale);
             @endphp
-            <article class="group relative isolate mx-auto flex min-h-[24rem] max-w-6xl flex-col items-center justify-end overflow-hidden rounded-[2rem] bg-brand-950 px-6 pt-24 pb-10 text-center text-white shadow-[var(--shadow-lift)] sm:min-h-[30rem] sm:px-10 sm:pb-12">
+            <article class="group relative isolate mx-auto flex min-h-[24rem] max-w-6xl flex-col items-start justify-end overflow-hidden rounded-[2rem] bg-brand-950 px-6 pt-24 pb-9 text-start text-white shadow-[var(--shadow-lift)] sm:min-h-[30rem] sm:px-12 sm:pb-12">
                 @if ($lead->banner)
                     <div class="absolute inset-0 -z-20 overflow-hidden">
                         <img src="{{ $lead->banner->url('lg') }}" srcset="{{ $lead->banner->srcset() }}" sizes="(min-width: 1200px) 1150px, 100vw" alt=""
@@ -62,10 +62,11 @@
                 @else
                     <div class="pattern-star absolute inset-0 -z-20 opacity-[0.08]" aria-hidden="true"></div>
                 @endif
-                <div class="absolute inset-0 -z-10 bg-gradient-to-t from-brand-950 via-brand-950/60 to-brand-950/10" aria-hidden="true"></div>
+                <div class="absolute inset-0 -z-10 bg-gradient-to-r from-brand-950/90 via-brand-950/45 to-transparent rtl:bg-gradient-to-l" aria-hidden="true"></div>
+                    <div class="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-brand-950/85 to-transparent" aria-hidden="true"></div>
 
-                <div class="flex max-w-2xl flex-col items-center" data-reveal>
-                    <p class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-[13px] font-medium text-white/80">
+                <div class="flex max-w-xl flex-col items-start" data-reveal>
+                    <p class="flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] font-medium text-white/80">
                         @if ($lead->category)
                             <span class="rounded-full bg-gold px-3 py-1 text-[12px] font-bold text-brand-950">{{ $lead->category->getTranslation('name', $locale) }}</span>
                         @endif
@@ -91,7 +92,7 @@
         @if ($rest->isNotEmpty())
             <div @class(['mx-auto flex max-w-6xl flex-wrap justify-center gap-6', 'mt-8' => $lead])>
                 @foreach ($rest as $index => $post)
-                    <x-site.post-card :post="$post" center :heading-tag="$lead ? 'h3' : 'h2'" class="w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]" data-reveal :style="'--reveal-delay: '.(($index % 3) * 90).'ms'" />
+                    <x-site.post-card :post="$post" :heading-tag="$lead ? 'h3' : 'h2'" class="w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]" data-reveal :style="'--reveal-delay: '.(($index % 3) * 90).'ms'" />
                 @endforeach
             </div>
         @endif

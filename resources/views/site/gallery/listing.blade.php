@@ -32,17 +32,18 @@
         {{-- Newest album: a wide cover with its details centered over it, then a row of its photos. --}}
         @if ($featured)
             <article class="mx-auto max-w-6xl">
-                <div class="relative isolate flex min-h-[24rem] flex-col items-center justify-end overflow-hidden rounded-[2rem] bg-brand-950 px-6 pt-24 pb-10 text-center text-white shadow-[var(--shadow-lift)] sm:min-h-[30rem] sm:px-10 sm:pb-12">
+                <div class="relative isolate flex min-h-[24rem] flex-col items-start justify-end overflow-hidden rounded-[2rem] bg-brand-950 px-6 pt-24 pb-9 text-start text-white shadow-[var(--shadow-lift)] sm:min-h-[30rem] sm:px-12 sm:pb-12">
                     @if ($featured->cover)
                         <img src="{{ $featured->cover->url('lg') ?? $featured->cover->url('md') }}" srcset="{{ $featured->cover->srcset() }}" sizes="(min-width: 1200px) 1150px, 100vw" alt=""
                              class="absolute inset-0 -z-20 size-full object-cover">
                     @else
                         <div class="pattern-star absolute inset-0 -z-20 opacity-[0.08]" aria-hidden="true"></div>
                     @endif
-                    <div class="absolute inset-0 -z-10 bg-gradient-to-t from-brand-950 via-brand-950/55 to-brand-950/10" aria-hidden="true"></div>
+                    <div class="absolute inset-0 -z-10 bg-gradient-to-r from-brand-950/90 via-brand-950/45 to-transparent rtl:bg-gradient-to-l" aria-hidden="true"></div>
+                    <div class="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-brand-950/85 to-transparent" aria-hidden="true"></div>
 
-                    <div class="flex max-w-2xl flex-col items-center" data-reveal>
-                        <p class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[13px] font-semibold text-gold">
+                    <div class="flex max-w-xl flex-col items-start" data-reveal>
+                        <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-semibold text-gold">
                             <span class="rounded-full bg-gold px-3 py-1 text-[12px] font-bold text-brand-950">{{ __('Latest album') }}</span>
                             @if ($featured->event_date)<span>{{ App\Support\Dates::format($featured->event_date, 'j F Y', $locale) }}</span>@endif
                         </p>
@@ -51,7 +52,7 @@
                             <p class="mt-3 line-clamp-2 text-[1.0625rem] leading-relaxed text-white/80">{{ $description }}</p>
                         @endif
                     </div>
-                    <div class="mt-7 flex flex-col items-center gap-5 sm:flex-row" data-reveal style="--reveal-delay: 120ms">
+                    <div class="mt-7 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6" data-reveal style="--reveal-delay: 120ms">
                         <p class="flex items-center gap-4 text-[14px] font-medium text-white/80">
                             @if ($featured->images_count)
                                 <span class="inline-flex items-center gap-1.5"><x-site.icon name="image" class="size-4 text-gold" />{{ trans_choice(':count photo|:count photos', $featured->images_count, ['count' => Money::digits($featured->images_count)]) }}</span>
