@@ -19,7 +19,7 @@ class PackageSchema
     {
         return [
             Field::repeater('flights', 'Flights', [
-                Field::text('airline', 'Airline')->notTranslatable()->max(120)->required()->placeholder('Saudia Airlines'),
+                Field::text('airline', 'Airline')->max(120)->required()->placeholder('Saudia Airlines'),
                 Field::text('schedule', 'Schedule')->max(200)->placeholder('Departs Dhaka 8 April 2027 (approx.)'),
                 Field::textarea('description', 'Details')->max(1000)->rows(2)->placeholder('Direct flight, 2×23 kg baggage'),
             ])->max(10)->itemLabel('airline'),

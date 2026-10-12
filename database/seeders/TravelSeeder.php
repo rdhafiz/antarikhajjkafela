@@ -116,7 +116,7 @@ class TravelSeeder extends Seeder
     private function packages(Service $hajj, Service $umrah): array
     {
         $hajjFlights = [[
-            'airline' => 'Saudia / Biman Bangladesh',
+            'airline' => $this->t('Saudia / Biman Bangladesh', 'সৌদিয়া / বিমান বাংলাদেশ'),
             'schedule' => $this->t('According to the government Hajj flight schedule', 'সরকারি হজ ফ্লাইট সূচি অনুযায়ী'),
             'description' => $this->t('Or another government-approved airline. Return tickets included.', 'অথবা সরকার অনুমোদিত অন্য এয়ারলাইন। রিটার্ন টিকেট অন্তর্ভুক্ত।'),
         ]];
@@ -216,7 +216,7 @@ class TravelSeeder extends Seeder
                 'is_featured' => true,
                 'advance_type' => 'none',
                 'flights' => [[
-                    'airline' => 'Direct / transit flights',
+                    'airline' => $this->t('Direct / transit flights', 'সরাসরি / ট্রানজিট ফ্লাইট'),
                     'schedule' => $this->t('Group departures throughout the year', 'সারা বছর গ্রুপ যাত্রা'),
                     'description' => $this->t('Return flights from Dhaka included.', 'ঢাকা থেকে রিটার্ন ফ্লাইট অন্তর্ভুক্ত।'),
                 ]],

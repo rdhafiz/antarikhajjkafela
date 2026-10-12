@@ -83,6 +83,29 @@ class TravelTest extends AdminTestCase
             ->assertSee('pkg-feature', false);
     }
 
+    public function test_flight_airlines_are_translatable(): void
+    {
+        $this->get('/packages/hajj-regular-package')->assertOk()->assertSeeText('Saudia / Biman Bangladesh');
+        $this->withUnencryptedCookie('locale', 'bn')->get('/packages/hajj-regular-package')
+            ->assertOk()
+            ->assertSeeText('সৌদিয়া / বিমান বাংলাদেশ')
+            ->assertDontSeeText('Saudia / Biman Bangladesh');
+
+        // Saved from the admin with both languages.
+        $package = $this->umrah();
+        $payload = $this->payload($package);
+        $payload['flights'][0]['airline'] = ['en' => 'Saudia', 'bn' => 'সৌদিয়া'];
+        $this->asAdmin($this->superAdmin())->putJson("/api/admin/packages/{$package->id}", $payload)->assertOk();
+        $this->assertSame(['en' => 'Saudia', 'bn' => 'সৌদিয়া'], $package->fresh()->flights[0]['airline']);
+
+        // The English name is required; a value saved before the change (plain text) still shows.
+        $payload['flights'][0]['airline'] = ['bn' => 'সৌদিয়া'];
+        $this->asAdmin($this->superAdmin())->putJson("/api/admin/packages/{$package->id}", $payload)->assertJsonValidationErrors('flights.0.airline.en');
+
+        $package->forceFill(['flights' => [['airline' => 'Biman', 'schedule' => null, 'description' => null]]])->save();
+        $this->withUnencryptedCookie('locale', 'bn')->get('/packages/umrah-package')->assertOk()->assertSeeText('Biman');
+    }
+
     public function test_service_and_package_pages_render(): void
     {
         $this->get('/hajj')->assertOk()->assertSeeText('Hajj Regular Package')->assertSeeText('Hajj Premium Package')->assertDontSeeText('Umrah Package');
