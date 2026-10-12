@@ -35,7 +35,7 @@ class BookingController extends Controller
                 'from' => $bookings->firstItem(),
                 'to' => $bookings->lastItem(),
             ],
-            'counts' => Booking::query()->select('status', DB::raw('count(*) as total'))->groupBy('status')->pluck('total', 'status'),
+            'counts' => Booking::query()->toBase()->select('status', DB::raw('count(*) as bookings_count'))->groupBy('status')->pluck('bookings_count', 'status')->map(fn ($n) => (int) $n),
             'statuses' => Booking::STATUSES,
         ]);
     }

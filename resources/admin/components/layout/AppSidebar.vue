@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { ExternalLink } from 'lucide-vue-next';
 import brandIcon from '@admin/assets/brand-icon.webp';
 import { navigation, type NavItem } from '@admin/navigation';
 import { useAuthStore } from '@admin/stores/auth';
@@ -20,68 +19,70 @@ const sections = computed(() =>
         .filter((section) => section.items.length > 0),
 );
 
+/** Running index of each item, so the start-up reveal can stagger them top to bottom. */
+const order = computed(() => {
+    const map = new Map<string, number>();
+    let i = 0;
+    for (const section of sections.value) for (const item of section.items) map.set(item.to, i++);
+    return map;
+});
+
 function isActive(item: NavItem): boolean {
     return item.to === '/admin' ? route.path === '/admin' : route.path.startsWith(item.to);
 }
 </script>
 
 <template>
-    <nav class="flex h-full flex-col bg-sidebar text-sidebar-text" aria-label="Main">
-        <RouterLink
-            to="/admin"
-            class="flex h-16 shrink-0 items-center gap-3 bg-sidebar-logo px-5"
-            :class="{ 'justify-center px-0': collapsed }"
-            @click="emit('navigate')"
-        >
-            <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white p-1">
+    <nav class="sb relative isolate flex h-full flex-col overflow-hidden text-sidebar-text" :class="{ 'is-collapsed': collapsed }" aria-label="Main">
+        <div class="sb-lattice pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
+        <div class="sb-glow pointer-events-none absolute -z-10" aria-hidden="true" />
+
+        <!-- Brand -->
+        <RouterLink to="/admin" class="sb-in flex h-[68px] shrink-0 items-center gap-3 px-4" :class="{ 'justify-center px-0': collapsed }" style="--i: 0" @click="emit('navigate')">
+            <span class="sb-mark relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-white p-1.5">
                 <img :src="app.icon ?? brandIcon" alt="" class="size-full object-contain" />
             </span>
             <span v-if="!collapsed" class="min-w-0 leading-tight">
-                <span class="block truncate text-[14px] font-bold text-white">{{ app.name }}</span>
-                <span class="block text-[11px] font-medium tracking-wider text-sidebar-text/70 uppercase">Admin</span>
+                <span class="block truncate text-[14.5px] font-bold text-white">{{ app.name }}</span>
+                <span class="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.16em] text-sidebar-accent uppercase">
+                    <span class="size-1.5 rounded-full bg-sidebar-accent" aria-hidden="true" />Admin portal
+                </span>
             </span>
         </RouterLink>
 
-        <div class="scroll-thin flex-1 overflow-y-auto px-3 py-4">
-            <div v-for="(section, i) in sections" :key="i" class="mb-5 last:mb-0">
-                <p
-                    v-if="section.label && !collapsed"
-                    class="mb-1.5 px-3 text-[11px] font-bold tracking-[0.08em] text-sidebar-text/55 uppercase"
-                >
+        <div class="sb-divider mx-4" aria-hidden="true" />
+
+        <!-- Navigation -->
+        <div class="sb-scroll flex-1 overflow-y-auto px-3 pt-3 pb-3">
+            <div v-for="(section, s) in sections" :key="s" class="mb-3 last:mb-0">
+                <p v-if="section.label && !collapsed" class="sb-in mb-1 px-3 text-[10.5px] font-bold tracking-[0.16em] text-sidebar-text/75 uppercase" :style="{ '--i': (order.get(section.items[0].to) ?? 0) + 1 }">
                     {{ section.label }}
                 </p>
-                <div v-else-if="section.label" class="mx-3 mb-2 h-px bg-white/10" />
+                <div v-else-if="section.label" class="mx-auto mb-2 h-px w-8 bg-white/10" aria-hidden="true" />
 
                 <ul class="space-y-0.5">
-                    <li v-for="item in section.items" :key="item.to">
+                    <li v-for="item in section.items" :key="item.to" class="sb-in" :style="{ '--i': (order.get(item.to) ?? 0) + 1 }">
                         <RouterLink
                             :to="item.to"
-                            class="group relative flex h-10 items-center gap-3 rounded-lg px-3 text-[14px] font-medium transition-colors"
-                            :class="[
-                                isActive(item) ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white',
-                                collapsed && 'justify-center px-0',
-                            ]"
+                            class="sb-link group relative flex h-10 items-center gap-3 rounded-xl px-2"
+                            :class="[{ 'is-active': isActive(item) }, collapsed && 'justify-center px-0']"
+                            :style="{ '--tone': item.tone }"
                             :title="collapsed ? item.label : undefined"
                             :aria-current="isActive(item) ? 'page' : undefined"
                             @click="emit('navigate')"
                         >
-                            <span
-                                v-if="isActive(item)"
-                                class="absolute top-2 bottom-2 left-0 w-[3px] rounded-r-full bg-sidebar-accent"
-                                aria-hidden="true"
-                            />
-                            <component
-                                :is="item.icon"
-                                class="size-[18px] shrink-0"
-                                :class="isActive(item) ? 'text-sidebar-accent' : 'opacity-80 group-hover:opacity-100'"
-                            />
-                            <span v-if="!collapsed" class="flex-1 truncate">{{ item.label }}</span>
+                            <span class="sb-tile flex size-8 shrink-0 items-center justify-center rounded-[10px]">
+                                <component :is="item.icon" class="size-[17px]" aria-hidden="true" />
+                            </span>
+                            <span v-if="!collapsed" class="flex-1 truncate text-[14px] font-medium">{{ item.label }}</span>
+                            <span v-else class="sr-only">{{ item.label }}</span>
                             <span
                                 v-if="item.badge && app[item.badge] > 0"
-                                class="flex h-5 min-w-5 items-center justify-center rounded-full bg-sidebar-accent px-1.5 text-[11px] font-bold text-sidebar"
-                                :class="collapsed && 'absolute top-1 right-1 h-4 min-w-4 px-1 text-[10px]'"
+                                class="sb-badge flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold"
+                                :class="collapsed && 'absolute top-0.5 right-1.5 h-4 min-w-4 px-1 text-[10px]'"
                             >
                                 {{ app[item.badge] > 99 ? '99+' : app[item.badge] }}
+                                <span class="sr-only">unread</span>
                             </span>
                         </RouterLink>
                     </li>
@@ -89,16 +90,24 @@ function isActive(item: NavItem): boolean {
             </div>
         </div>
 
-        <a
-            :href="app.siteUrl"
-            target="_blank"
-            rel="noopener"
-            class="m-3 flex h-10 items-center gap-3 rounded-lg border border-white/10 px-3 text-[13px] font-medium hover:bg-white/5 hover:text-white"
-            :class="{ 'justify-center px-0': collapsed }"
-            :title="collapsed ? 'View website' : undefined"
+        <!-- Signed-in user -->
+        <RouterLink
+            v-if="auth.user"
+            to="/admin/profile"
+            class="sb-in sb-user m-3 mt-0 flex items-center gap-3 rounded-2xl p-2.5"
+            :class="{ 'justify-center': collapsed }"
+            :style="{ '--i': order.size + 2 }"
+            :title="collapsed ? auth.user.name : undefined"
+            @click="emit('navigate')"
         >
-            <ExternalLink class="size-4 shrink-0" />
-            <span v-if="!collapsed">View website</span>
-        </a>
+            <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-[13px] font-bold text-sidebar">
+                {{ auth.user.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase() }}
+            </span>
+            <span v-if="!collapsed" class="min-w-0 leading-tight">
+                <span class="block truncate text-[13px] font-semibold text-white">{{ auth.user.name }}</span>
+                <span class="block truncate text-[12px] text-sidebar-text/80">{{ auth.user.is_super_admin ? 'Super admin' : auth.user.roles[0] ?? 'Admin' }}</span>
+            </span>
+            <span v-else class="sr-only">{{ auth.user.name }}</span>
+        </RouterLink>
     </nav>
 </template>

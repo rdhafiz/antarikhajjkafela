@@ -280,6 +280,8 @@ class BookingTest extends AdminTestCase
         $admin = $this->adminWith(['bookings.view', 'bookings.update', 'payments.create']);
 
         $this->asAdmin($admin)->getJson('/api/admin/bookings?search=Karim')->assertOk()->assertJsonCount(1, 'data');
+        // Status counts are whole numbers (not formatted like the booking total).
+        $this->assertSame(1, $this->asAdmin($admin)->getJson('/api/admin/bookings')->json('counts.'.$booking->fresh()->status));
         $this->asAdmin($admin)->getJson("/api/admin/bookings/{$booking->id}")->assertOk()->assertJsonPath('data.reference', $booking->reference);
         $this->assertNotNull($booking->fresh()->read_at);
 

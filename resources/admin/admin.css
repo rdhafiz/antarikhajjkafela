@@ -28,7 +28,7 @@
     --color-line: #e3e8ef;
     --color-ink: #0f172a;
     --color-ink-soft: #475569;
-    --color-ink-muted: #8a96a8;
+    --color-ink-muted: #627188; /* 4.5:1 on white and on the canvas */
 
     --radius-card: 14px;
     --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 1px rgb(15 23 42 / 0.03);
@@ -355,6 +355,319 @@
     from {
         opacity: 0;
         translate: 0 14px;
+    }
+
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+
+/*
+ * Admin shell: floating sidebar (components/layout/AppSidebar.vue), frosted header
+ * (AppTopbar.vue). Each menu item carries its own colour (--tone, from navigation.ts).
+ * Start-up: the panel slides in, then the brand and items reveal top to bottom;
+ * the header drops in beside them.
+ */
+@layer components {
+    .sb-shell {
+        transition: width 500ms cubic-bezier(0.22, 1, 0.36, 1);
+        animation: sb-panel 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .sb {
+        border-radius: 1.5rem;
+        background: linear-gradient(170deg, color-mix(in oklab, var(--admin-sidebar-bg) 88%, white) 0%, var(--admin-sidebar-bg) 38%, color-mix(in oklab, var(--admin-sidebar-bg) 82%, black) 100%);
+        box-shadow: 0 30px 60px -30px rgb(2 12 27 / 0.65), inset 0 1px 0 rgb(255 255 255 / 0.08);
+    }
+
+    .sb-lattice {
+        opacity: 0.05;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23fff' stroke-width='1.2'%3E%3Crect x='20' y='20' width='32' height='32'/%3E%3Crect x='20' y='20' width='32' height='32' transform='rotate(45 36 36)'/%3E%3C/g%3E%3C/svg%3E");
+        background-size: 72px 72px;
+        mask-image: linear-gradient(to bottom, black, transparent 55%);
+    }
+
+    .sb-glow {
+        top: -6rem;
+        right: -6rem;
+        width: 16rem;
+        height: 16rem;
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--admin-sidebar-accent) 22%, transparent);
+        filter: blur(48px);
+    }
+
+    .sb-mark {
+        box-shadow: 0 0 0 1px rgb(255 255 255 / 0.4), 0 10px 24px -10px rgb(0 0 0 / 0.6);
+    }
+
+    .sb-divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, rgb(255 255 255 / 0.14), transparent);
+    }
+
+    .sb-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: rgb(255 255 255 / 0.15) transparent;
+    }
+
+    .sb-link {
+        color: color-mix(in oklab, var(--admin-sidebar-text) 88%, transparent);
+        transition: background-color 400ms ease, color 300ms ease;
+
+        .sb-tile {
+            background: color-mix(in oklab, var(--tone) 16%, transparent);
+            color: var(--tone);
+            transition: background-color 400ms ease, color 400ms ease, box-shadow 400ms ease, scale 400ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        &:hover {
+            background: rgb(255 255 255 / 0.05);
+            color: #fff;
+
+            .sb-tile {
+                background: color-mix(in oklab, var(--tone) 26%, transparent);
+                scale: 1.06;
+            }
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--admin-sidebar-accent);
+            outline-offset: 1px;
+        }
+
+        /* Active: the row warms with its own colour, the tile fills, a gold marker sits at the edge. */
+        &.is-active {
+            background: linear-gradient(to right, color-mix(in oklab, var(--tone) 22%, transparent), color-mix(in oklab, var(--tone) 6%, transparent));
+            color: #fff;
+            font-weight: 600;
+
+            .sb-tile {
+                background: var(--tone);
+                color: var(--admin-sidebar-bg);
+                box-shadow: 0 8px 18px -8px var(--tone);
+            }
+
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0.625rem;
+                bottom: 0.625rem;
+                left: -0.75rem;
+                width: 4px;
+                border-radius: 0 4px 4px 0;
+                background: var(--admin-sidebar-accent);
+                animation: sb-marker 500ms cubic-bezier(0.22, 1, 0.36, 1);
+            }
+        }
+    }
+
+    .sb-badge {
+        background: var(--admin-sidebar-accent);
+        color: var(--admin-sidebar-bg);
+        box-shadow: 0 0 0 3px color-mix(in oklab, var(--admin-sidebar-accent) 25%, transparent);
+    }
+
+    .sb-user {
+        background: rgb(255 255 255 / 0.05);
+        box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
+        transition: background-color 300ms ease;
+
+        &:hover {
+            background: rgb(255 255 255 / 0.09);
+        }
+    }
+
+    /* Start-up reveal: items rise in one after another. */
+    .sb-in {
+        animation: sb-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        animation-delay: calc(200ms + var(--i, 0) * 45ms);
+    }
+
+    .sb-overlay[data-state='open'] {
+        animation: ahk-fade 250ms ease-out;
+    }
+
+    .sb-drawer {
+        &[data-state='open'] {
+            animation: sb-drawer-in 450ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        &[data-state='closed'] {
+            animation: sb-drawer-out 250ms ease-in forwards;
+        }
+    }
+
+    /* Header: frosted glass over the page. */
+    .tb {
+        background: color-mix(in oklab, var(--admin-header-bg) 82%, transparent);
+        backdrop-filter: saturate(1.4) blur(14px);
+        border-bottom: 1px solid color-mix(in oklab, var(--color-line) 80%, transparent);
+        animation: tb-drop 700ms cubic-bezier(0.22, 1, 0.36, 1) 150ms both;
+    }
+
+    .tb-in {
+        animation: sb-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        animation-delay: calc(300ms + var(--i, 0) * 90ms);
+    }
+
+    .tb-icon {
+        display: flex;
+        width: 2.5rem;
+        height: 2.5rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.75rem;
+        color: var(--color-ink-soft);
+        transition: background-color 250ms ease, color 250ms ease;
+
+        &:hover {
+            background: var(--color-canvas);
+            color: var(--color-ink);
+        }
+    }
+
+    .tb-place {
+        background: color-mix(in oklab, var(--tone) 18%, white);
+        color: color-mix(in oklab, var(--tone) 55%, black);
+        animation: sb-pop 500ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tb-dot {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
+        display: flex;
+        height: 1rem;
+        min-width: 1rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: #e11d48;
+        padding: 0 0.25rem;
+        font-size: 10px;
+        font-weight: 700;
+        color: #fff;
+        box-shadow: 0 0 0 2px #fff;
+    }
+
+    .tb-visit {
+        display: inline-flex;
+        height: 2.5rem;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--color-line);
+        background: #fff;
+        padding: 0 0.6875rem;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--admin-primary);
+        transition: border-color 300ms ease, background-color 300ms ease, box-shadow 300ms ease;
+
+        &:hover {
+            border-color: color-mix(in oklab, var(--admin-primary) 35%, white);
+            background: var(--color-brand-soft);
+            box-shadow: 0 6px 16px -10px var(--admin-primary);
+        }
+
+        @media (width >= 48rem) {
+            padding: 0 0.875rem;
+        }
+    }
+
+    .tb-user {
+        transition: background-color 250ms ease;
+
+        &:hover,
+        &[data-state='open'] {
+            background: var(--color-canvas);
+        }
+    }
+
+    .tb-menu[data-state='open'] {
+        animation: sb-pop 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .sb-shell,
+        .sb-in,
+        .tb,
+        .tb-in,
+        .tb-place,
+        .sb-drawer[data-state='open'] {
+            animation: none;
+        }
+    }
+}
+
+@keyframes sb-panel {
+    from {
+        opacity: 0;
+        translate: -24px 0;
+    }
+
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+
+@keyframes sb-rise {
+    from {
+        opacity: 0;
+        translate: 0 10px;
+    }
+
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+
+@keyframes sb-marker {
+    from {
+        scale: 1 0;
+    }
+
+    to {
+        scale: 1 1;
+    }
+}
+
+@keyframes sb-pop {
+    from {
+        opacity: 0;
+        scale: 0.85;
+    }
+
+    to {
+        opacity: 1;
+        scale: 1;
+    }
+}
+
+@keyframes sb-drawer-in {
+    from {
+        translate: calc(-100% - 1rem) 0;
+    }
+
+    to {
+        translate: 0 0;
+    }
+}
+
+@keyframes sb-drawer-out {
+    to {
+        translate: calc(-100% - 1rem) 0;
+    }
+}
+
+@keyframes tb-drop {
+    from {
+        opacity: 0;
+        translate: 0 -12px;
     }
 
     to {
