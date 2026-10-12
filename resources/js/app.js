@@ -320,6 +320,72 @@ Alpine.data('dropdown', () => ({
     },
 }));
 
+/**
+ * Process stepper: tabs beside a stage. While on screen it moves to the next
+ * step every few seconds (--t on the root fills the active step's rail).
+ * Hover or focus pauses it; a click, or reduced motion, stops it for good.
+ */
+Alpine.data('journey', (count, duration = 6500) => ({
+    active: 0,
+    auto: count > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    held: false,
+    visible: false,
+    t: 0,
+
+    init() {
+        this.paint();
+        if (!this.auto) return;
+
+        new IntersectionObserver(([entry]) => (this.visible = entry.isIntersecting), { threshold: 0.4 }).observe(this.$el);
+
+        let last = performance.now();
+        const tick = (now) => {
+            const dt = Math.min(now - last, 100);
+            last = now;
+            if (!this.auto) return this.paint();
+            if (this.visible && !this.held && !document.hidden) {
+                this.t += dt / duration;
+                if (this.t >= 1) this.go((this.active + 1) % count);
+                this.paint();
+            }
+            requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+    },
+
+    paint() {
+        this.$el.style.setProperty('--t', this.auto ? this.t.toFixed(4) : 1);
+    },
+
+    go(index) {
+        this.active = index;
+        this.t = 0;
+    },
+
+    select(index) {
+        this.auto = false;
+        this.go(index);
+        this.paint();
+    },
+
+    hold(on) {
+        this.held = on;
+    },
+
+    keys(event) {
+        const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+        const rtl = document.documentElement.dir === 'rtl' && ['ArrowRight', 'ArrowLeft'].includes(event.key);
+        let next = null;
+        if (step) next = (this.active + (rtl ? -step : step) + count) % count;
+        if (event.key === 'Home') next = 0;
+        if (event.key === 'End') next = count - 1;
+        if (next === null) return;
+        event.preventDefault();
+        this.select(next);
+        this.$nextTick(() => this.$el.querySelectorAll('[role="tab"]')[next]?.focus());
+    },
+}));
+
 window.Alpine = Alpine;
 Alpine.start();
 

@@ -710,6 +710,243 @@
     }
 
     /*
+     * Process stepper ("journey"). Tabs: a rail per step (on top on phones,
+     * at the start edge on desktop) fills gold as the step plays (--t).
+     */
+    .journey-tab {
+        color: var(--sec-muted);
+        border-radius: 0;
+        transition: background-color 500ms var(--ease-out-soft);
+    }
+
+    .journey-rail {
+        position: absolute;
+        inset: 0 0 auto;
+        height: 3px;
+        border-radius: 999px;
+        background: var(--sec-border);
+        overflow: hidden;
+    }
+
+    .journey-rail > span {
+        position: absolute;
+        inset: 0;
+        background: var(--color-gold);
+        transform-origin: left;
+        scale: 0 1;
+        transition: scale 500ms var(--ease-out-soft);
+    }
+
+    [dir='rtl'] .journey-rail > span {
+        transform-origin: right;
+    }
+
+    .journey-tab.is-past .journey-rail > span {
+        scale: 1 1;
+    }
+
+    .journey-tab.is-active .journey-rail > span {
+        scale: var(--t, 1) 1;
+        transition: none;
+    }
+
+    .journey-num {
+        color: transparent;
+        -webkit-text-stroke: 1.25px var(--sec-eyebrow, var(--color-gold-deep));
+        transition: color 500ms var(--ease-out-soft);
+    }
+
+    .journey-tab.is-active .journey-num,
+    .journey-tab.is-past .journey-num {
+        color: var(--sec-eyebrow, var(--color-gold-deep));
+    }
+
+    .journey-title {
+        opacity: 0.6;
+        transition: opacity 500ms var(--ease-out-soft), translate 600ms var(--ease-out-soft);
+    }
+
+    .journey-arrow {
+        opacity: 0;
+        translate: -0.5rem 0;
+        color: var(--sec-heading);
+        transition: opacity 500ms var(--ease-out-soft), translate 600ms var(--ease-out-soft);
+    }
+
+    .journey-tab.is-active .journey-title {
+        opacity: 1;
+    }
+
+    .journey-tab.is-active .journey-arrow {
+        opacity: 1;
+        translate: 0 0;
+    }
+
+    .journey-tab:focus-visible {
+        outline: 2px solid var(--color-gold);
+        outline-offset: 2px;
+    }
+
+    @media (hover: hover) {
+        .journey-tab:hover .journey-title {
+            opacity: 1;
+        }
+    }
+
+    @media (width >= 64rem) {
+        .journey-tab {
+            border-bottom: 1px solid var(--sec-border);
+        }
+
+        .journey-tab:first-child {
+            border-top: 1px solid var(--sec-border);
+        }
+
+        .journey-tab.is-active {
+            background: var(--sec-surface-2);
+        }
+
+        .journey-rail {
+            inset: 0 auto 0 0;
+            width: 3px;
+            height: auto;
+        }
+
+        [dir='rtl'] .journey-rail {
+            inset: 0 0 0 auto;
+        }
+
+        .journey-rail > span {
+            transform-origin: top;
+            scale: 1 0;
+        }
+
+        [dir='rtl'] .journey-rail > span {
+            transform-origin: top;
+        }
+
+        .journey-tab.is-past .journey-rail > span {
+            scale: 1 1;
+        }
+
+        .journey-tab.is-active .journey-rail > span {
+            scale: 1 var(--t, 1);
+        }
+    }
+
+    /* Stage: panels share one cell, so it keeps the tallest step's height. */
+    .journey-panel {
+        grid-area: 1 / 1;
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 400ms var(--ease-out-soft), visibility 0s linear 400ms;
+    }
+
+    .journey-panel.is-active {
+        visibility: visible;
+        opacity: 1;
+        transition: opacity 500ms var(--ease-out-soft);
+    }
+
+    .journey-panel .jp-in {
+        opacity: 0;
+        translate: 0 1.25rem;
+    }
+
+    .journey-panel.is-active .jp-in {
+        animation: journey-in 800ms var(--ease-out-soft) both;
+        animation-delay: calc(var(--i, 0) * 90ms + 100ms);
+    }
+
+    @keyframes journey-in {
+        from {
+            opacity: 0;
+            translate: 0 1.25rem;
+        }
+
+        to {
+            opacity: 1;
+            translate: 0 0;
+        }
+    }
+
+    .journey-bignum {
+        position: absolute;
+        inset-inline-end: -0.05em;
+        bottom: -0.22em;
+        font-size: clamp(9rem, 22vw, 15rem);
+        line-height: 1;
+        color: transparent;
+        -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.12);
+        pointer-events: none;
+        opacity: 0;
+        translate: 0 2rem;
+    }
+
+    .journey-panel.is-active .journey-bignum {
+        animation: journey-num 1200ms var(--ease-out-soft) both;
+    }
+
+    @keyframes journey-num {
+        from {
+            opacity: 0;
+            translate: 0 2rem;
+        }
+
+        to {
+            opacity: 1;
+            translate: 0 0;
+        }
+    }
+
+    /* A slow dashed ring turns around the step icon. */
+    .journey-ring {
+        position: absolute;
+        inset: -0.5rem;
+        border-radius: 999px;
+        border: 1.5px dashed rgb(250 204 21 / 0.55);
+        border-color: color-mix(in srgb, var(--color-gold) 55%, transparent);
+        animation: journey-spin 18s linear infinite;
+    }
+
+    @keyframes journey-spin {
+        to {
+            rotate: 1turn;
+        }
+    }
+
+    /* The glow drifts towards the step's place in the sequence. */
+    .journey-glow {
+        top: -8rem;
+        inset-inline-end: -8rem;
+        translate: calc(var(--step, 0) * -2.5rem) calc(var(--step, 0) * 3.5rem);
+        transition: translate 1400ms var(--ease-out-soft);
+    }
+
+    .journey-nav {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 999px;
+        border: 1px solid rgb(255 255 255 / 0.2);
+        color: #fff;
+        transition: background-color 400ms var(--ease-out-soft), border-color 400ms var(--ease-out-soft), color 400ms var(--ease-out-soft);
+    }
+
+    .journey-nav:hover {
+        background: var(--color-gold);
+        border-color: var(--color-gold);
+        color: var(--color-brand-950);
+    }
+
+    .journey-nav:focus-visible {
+        outline: 2px solid var(--color-gold);
+        outline-offset: 2px;
+    }
+
+    /*
      * Page heroes. The home hero fills the screen, other page tops take at
      * least half of it (svh: the height with phone browser bars showing).
      */

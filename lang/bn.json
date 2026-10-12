@@ -250,5 +250,9 @@
     "The website is being updated. Please check again in a few minutes.": "ওয়েবসাইটটি হালনাগাদ করা হচ্ছে। কয়েক মিনিট পর আবার দেখুন।",
     "This page has expired": "পাতাটির মেয়াদ শেষ",
     "Too many attempts": "অনেকবার চেষ্টা করা হয়েছে",
-    "We will be back shortly": "আমরা শিগগিরই ফিরছি"
+    "We will be back shortly": "আমরা শিগগিরই ফিরছি",
+    "Steps": "ধাপসমূহ",
+    "Step :current of :total": "ধাপ :current / :total",
+    "Previous step": "আগের ধাপ",
+    "Next step": "পরের ধাপ"
 }
