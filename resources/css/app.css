@@ -1124,6 +1124,11 @@
         min-height: 50svh;
     }
 
+    .hero-60 {
+        min-height: 60vh;
+        min-height: 60svh;
+    }
+
     /*
      * Background layer moved by the parallax script. It reaches above the
      * section so moving it down never uncovers an edge.

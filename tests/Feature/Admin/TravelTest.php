@@ -33,6 +33,24 @@ class TravelTest extends AdminTestCase
         return array_replace($data, $overrides);
     }
 
+    public function test_service_pages_show_stats_the_verse_and_no_filter_tabs(): void
+    {
+        $this->get('/hajj')
+            ->assertOk()
+            ->assertSee('hero-60', false)
+            ->assertSeeText('35–40 days')
+            ->assertSeeText('About Hajj')
+            ->assertSeeText('Surah Al-Hajj 22:27')
+            ->assertSee('<blockquote', false)
+            ->assertDontSee('aria-label="Filter packages"', false);
+
+        // The hadith keeps its lead-in above the quote.
+        $this->get('/umrah')->assertOk()->assertSeeText('The Prophet Muhammad (peace be upon him) said')->assertSeeText('Sahih Bukhari & Muslim');
+
+        // The all-packages page keeps its filter.
+        $this->get('/packages')->assertOk()->assertSee('aria-label="Filter packages"', false);
+    }
+
     public function test_service_and_package_pages_render(): void
     {
         $this->get('/hajj')->assertOk()->assertSeeText('Hajj Regular Package')->assertSeeText('Hajj Premium Package')->assertDontSeeText('Umrah Package');
