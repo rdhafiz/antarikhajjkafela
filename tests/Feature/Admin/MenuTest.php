@@ -113,7 +113,8 @@ class MenuTest extends AdminTestCase
 
         $this->assertSame('হোম', $tree[0]['label']);
         $this->assertSame(url('/hajj'), $tree[1]['url']);
-        $this->assertCount(2, collect($tree)->firstWhere('label', 'আমাদের সম্পর্কে')['children']);
+        // "About us" only: "Reviews" is seeded hidden until there are real reviews.
+        $this->assertCount(1, collect($tree)->firstWhere('label', 'আমাদের সম্পর্কে')['children']);
 
         // Hidden items disappear once the menu is saved (cache is flushed).
         $this->asAdmin($this->superAdmin())->putJson('/api/admin/menus/primary', ['items' => [

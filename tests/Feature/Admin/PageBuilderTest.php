@@ -54,14 +54,14 @@ class PageBuilderTest extends AdminTestCase
 
     public function test_inner_page_banners_use_the_shared_centered_hero(): void
     {
-        $reviews = $this->page('reviews');
-        $banner = $reviews->sections()->where('component', 'page_banner')->firstOrFail();
+        $policy = Page::where('slug', 'privacy-policy')->firstOrFail();
+        $banner = $policy->sections()->where('component', 'page_banner')->firstOrFail();
         $banner->update([
             'content' => array_replace($banner->content, ['highlight' => ['en' => 'since 2016.']]),
             'style' => array_replace($banner->style ?? [], ['background' => 'white']),
         ]);
 
-        $this->get('/reviews')
+        $this->get('/privacy-policy')
             ->assertOk()
             ->assertSee('hero-75', false)
             ->assertSee('data-section="page_banner"', false)
@@ -139,12 +139,12 @@ class PageBuilderTest extends AdminTestCase
         $this->asAdmin($admin)->putJson("/api/admin/pages/{$gallery->id}", [...$payload, 'sections' => $withoutListing])
             ->assertJsonValidationErrors('sections');
 
-        $reviews = $this->page('reviews');
-        $payload = $this->payload($reviews);
+        $policy = Page::where('slug', 'privacy-policy')->firstOrFail();
+        $payload = $this->payload($policy);
         $payload['sections'][] = $payload['sections'][0]; // a second page banner
         unset($payload['sections'][count($payload['sections']) - 1]['id']);
 
-        $this->asAdmin($admin)->putJson("/api/admin/pages/{$reviews->id}", $payload)->assertJsonValidationErrors('sections');
+        $this->asAdmin($admin)->putJson("/api/admin/pages/{$policy->id}", $payload)->assertJsonValidationErrors('sections');
     }
 
     public function test_custom_pages_can_be_created_with_safe_slugs(): void

@@ -16,7 +16,7 @@ return [
     'about-us' => '/about',
     'team' => '/about',
     'contact-us' => '/contact',
-    'testimonial' => '/reviews',
+    'testimonial' => '/', // '/reviews' once the Reviews page is published
     'terms' => '/terms-and-conditions',
     'faq' => '/#faq',
 

@@ -82,6 +82,8 @@ class PageSeeder extends Seeder
                 'system_key' => $key,
                 'slug' => $page['slug'],
                 'title' => $page['title'],
+                // Reviews stays a draft until there are real reviews to show.
+                'status' => $key === 'reviews' ? Page::STATUS_DRAFT : Page::STATUS_PUBLISHED,
                 'sections' => match ($key) {
                     'home' => $this->home(),
                     'about' => $this->about(),

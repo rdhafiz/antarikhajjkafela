@@ -43,6 +43,10 @@ class ReviewsGalleryTest extends AdminTestCase
         $this->asAdmin($admin)->postJson('/api/admin/reviews', ['name' => ['en' => 'Bad link'], 'video_url' => 'https://vimeo.com/1'])
             ->assertJsonValidationErrors('video_url');
 
+        // The page is a draft until there are real reviews; publish it to see the listing.
+        $this->get('/reviews')->assertNotFound();
+        Page::where('system_key', 'reviews')->update(['status' => Page::STATUS_PUBLISHED]);
+
         $this->get('/reviews')
             ->assertOk()
             ->assertSeeText('Every step was well organised.')
@@ -131,7 +135,8 @@ class ReviewsGalleryTest extends AdminTestCase
         foreach (['blog', 'reviews', 'gallery'] as $key) {
             $page = Page::where('system_key', $key)->firstOrFail();
             $this->assertTrue($page->sections()->where('component', 'page_listing')->exists());
-            $this->get($page->url())->assertOk();
+            // Reviews is a draft until there are real reviews.
+            $key === 'reviews' ? $this->get($page->url())->assertNotFound() : $this->get($page->url())->assertOk();
         }
     }
 }
