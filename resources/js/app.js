@@ -421,6 +421,7 @@ Alpine.data('sectionNav', () => ({
  * to its value whenever they scroll into view (both directions, like the reveals).
  * The formatting is kept exactly: Bangla or Latin digits, lakh grouping
  * (1,35,000), decimals, and surrounding text such as ৳, "+", "days" or "35–40".
+ * Years (1900–2099) never count; they always show as they are.
  * Screen readers get the final text from a hidden copy; the animated copy is hidden from them.
  */
 function countUp() {
@@ -430,6 +431,7 @@ function countUp() {
     const BN = '০১২৩৪৫৬৭৮৯';
     const toLatin = (s) => s.replace(/[০-৯]/g, (d) => BN.indexOf(d));
     const number = /[0-9০-৯]+(?:[,.][0-9০-৯]+)*/g;
+    const isYear = (m) => /^(19|20)\d{2}$/.test(toLatin(m));
 
     const format = (value, sample) => {
         const bangla = /[০-৯]/.test(sample);
@@ -462,18 +464,13 @@ function countUp() {
         while (walker.nextNode()) {
             const node = walker.currentNode;
             const original = node.nodeValue;
-            if (!number.test(original)) continue;
-            number.lastIndex = 0;
+            // Only text with a number other than a year (e.g. 2016, which stays as it is).
+            if (!(original.match(number) || []).some((m) => !isYear(m))) continue;
             parts.push({
                 node,
                 original,
                 render: (p) =>
-                    (node.nodeValue = original.replace(number, (m) => {
-                        const value = Number(toLatin(m).replace(/,/g, ''));
-                        // A year (e.g. 2016) counts up over the last few decades, not from 0.
-                        const from = /^\d{4}$/.test(toLatin(m)) && value >= 1900 && value <= 2100 ? value - 40 : 0;
-                        return format(from + (value - from) * p, m);
-                    })),
+                    (node.nodeValue = original.replace(number, (m) => (isYear(m) ? m : format(Number(toLatin(m).replace(/,/g, '')) * p, m)))),
             });
         }
         return parts;
