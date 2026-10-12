@@ -947,6 +947,136 @@
     }
 
     /*
+     * FAQ: each question is its own card. The open card lifts onto a solid
+     * surface with a gold edge; the plus turns into a minus.
+     */
+    .faq-item {
+        border: 1px solid var(--sec-border);
+        border-radius: 1.25rem;
+        background: color-mix(in srgb, var(--sec-surface) 55%, transparent);
+        transition:
+            background-color 500ms var(--ease-out-soft),
+            border-color 500ms var(--ease-out-soft),
+            box-shadow 500ms var(--ease-out-soft);
+    }
+
+    .faq-item.is-open {
+        background: var(--sec-surface);
+        border-color: color-mix(in srgb, var(--color-gold) 55%, var(--sec-border));
+        box-shadow: var(--shadow-soft);
+    }
+
+    .faq-question {
+        border-radius: 1.25rem;
+    }
+
+    .faq-question:focus-visible {
+        outline-offset: -2px;
+        border-radius: 1.25rem;
+    }
+
+    .faq-num {
+        color: var(--sec-muted);
+        transition: color 500ms var(--ease-out-soft);
+    }
+
+    .faq-item.is-open .faq-num {
+        color: var(--sec-eyebrow, var(--color-gold-deep));
+    }
+
+    .faq-toggle {
+        position: relative;
+        display: block;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 999px;
+        border: 1px solid var(--sec-border);
+        color: var(--sec-heading);
+        transition:
+            background-color 500ms var(--ease-out-soft),
+            border-color 500ms var(--ease-out-soft),
+            color 500ms var(--ease-out-soft),
+            rotate 600ms var(--ease-out-soft);
+    }
+
+    @media (width >= 40rem) {
+        .faq-toggle {
+            width: 2.25rem;
+            height: 2.25rem;
+        }
+    }
+
+    .faq-toggle > span {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0.8rem;
+        height: 2px;
+        margin: -1px 0 0 -0.4rem;
+        border-radius: 2px;
+        background: currentColor;
+        transition: rotate 600ms var(--ease-out-soft), opacity 400ms var(--ease-out-soft);
+    }
+
+    .faq-toggle > span + span {
+        rotate: 90deg;
+    }
+
+    .faq-item.is-open .faq-toggle {
+        background: var(--color-gold);
+        border-color: var(--color-gold);
+        color: var(--color-brand-950);
+        rotate: 180deg;
+    }
+
+    .faq-item.is-open .faq-toggle > span + span {
+        rotate: 0deg;
+        opacity: 0;
+    }
+
+    .faq-answer {
+        opacity: 0;
+        translate: 0 -0.5rem;
+        transition: opacity 500ms var(--ease-out-soft), translate 600ms var(--ease-out-soft);
+    }
+
+    .faq-item.is-open .faq-answer {
+        opacity: 1;
+        translate: 0 0;
+        transition-delay: 120ms;
+    }
+
+    @media (hover: hover) {
+        .faq-item:not(.is-open):hover {
+            background: var(--sec-surface);
+            border-color: color-mix(in srgb, var(--color-gold) 35%, var(--sec-border));
+        }
+
+        .faq-item:not(.is-open):hover .faq-toggle {
+            border-color: var(--color-gold);
+        }
+    }
+
+    .faq-contact {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1rem;
+        border-radius: 999px;
+        border: 1px solid rgb(255 255 255 / 0.2);
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        transition: background-color 400ms var(--ease-out-soft), border-color 400ms var(--ease-out-soft), color 400ms var(--ease-out-soft);
+    }
+
+    .faq-contact:hover {
+        background: var(--color-gold);
+        border-color: var(--color-gold);
+        color: var(--color-brand-950);
+    }
+
+    /*
      * Page heroes. The home hero fills the screen, other page tops take at
      * least half of it (svh: the height with phone browser bars showing).
      */
