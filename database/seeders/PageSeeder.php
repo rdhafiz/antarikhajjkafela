@@ -187,7 +187,7 @@ class PageSeeder extends Seeder
                 'columns' => '4',
                 'items' => $this->serviceItems(short: true),
                 'cta' => $this->link('/services', 'All services', 'সব সেবা দেখুন'),
-            ], ['background' => 'white']],
+            ], ['background' => 'white', 'spacing' => 'md']],
             ['quote', [
                 'arabic' => 'وَأَذِّن فِي النَّاسِ بِالْحَجِّ يَأْتُوكَ رِجَالًا وَعَلَىٰ كُلِّ ضَامِرٍ يَأْتِينَ مِن كُلِّ فَجٍّ عَمِيقٍ',
                 'text' => $this->t(

@@ -533,6 +533,30 @@
         color: var(--sec-icon);
     }
 
+    /* Connected feature grid: a gold rule draws across the top of the hovered cell. */
+    .feature-cell {
+        transition: background-color 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .feature-cell::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 auto;
+        height: 2px;
+        background: var(--color-gold);
+        scale: 0 1;
+        transform-origin: left;
+        transition: scale 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .feature-cell:hover {
+        background: var(--sec-surface-2);
+    }
+
+    .feature-cell:hover::before {
+        scale: 1 1;
+    }
+
     /* Scroll reveal (enabled by JS; content stays visible without it). */
     /*
      * Both ways: elements below the screen rise up into place, elements that
