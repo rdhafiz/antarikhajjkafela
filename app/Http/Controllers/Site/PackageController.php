@@ -30,11 +30,14 @@ class PackageController extends Controller
             ->breadcrumb(__('Home'), url('/'))
             ->breadcrumb(__('Packages'), route('packages.index'));
 
+        $packages = $this->listing($current?->id)->load('types.prices');
+
         return response()->view('site.packages.index', [
             'service' => null,
             'services' => $services,
             'current' => $current,
-            'packages' => $this->listing($current?->id),
+            'packages' => $packages,
+            'cards' => $this->cards($packages),
         ]);
     }
 
@@ -58,7 +61,7 @@ class PackageController extends Controller
         return response()->view('site.packages.service', [
             'service' => $service,
             'packages' => $packages,
-            'cards' => $packages->mapWithKeys(fn (Package $package) => [$package->id => $this->presenter->card($package)]),
+            'cards' => $this->cards($packages),
             'about' => $this->splitDescription($service->getTranslation('description', $locale)),
             'stats' => [
                 'count' => $packages->count(),
@@ -142,6 +145,17 @@ class PackageController extends Controller
             'p' => $data,
             'related' => $related,
         ]);
+    }
+
+    /**
+     * Listing card data (options, hotels, flight) for each package, by package id.
+     *
+     * @param  Collection<int, Package>  $packages
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function cards(Collection $packages): Collection
+    {
+        return $packages->mapWithKeys(fn (Package $package) => [$package->id => $this->presenter->card($package)]);
     }
 
     /**

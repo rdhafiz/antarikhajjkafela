@@ -1,4 +1,4 @@
-@props(['package', 'card'])
+@props(['package', 'card', 'showService' => false])
 {{--
     A package as a wide card on its service page: the banner (at its own 16:6 shape) with the
     name and starting price, then the summary and flight beside every package option (tier)
@@ -28,6 +28,9 @@
         <div class="absolute inset-0 -z-10 bg-gradient-to-t from-brand-950/90 via-brand-950/30 to-brand-950/10" aria-hidden="true"></div>
 
         <div class="flex flex-wrap items-start gap-2">
+            @if ($showService && $package->service)
+                <span class="rounded-full bg-white/95 px-3 py-1 text-[12px] font-semibold text-brand">{{ $package->service->getTranslation('name', $locale) }}</span>
+            @endif
             @if ($package->is_featured)
                 <span class="rounded-full bg-gold px-3 py-1 text-[12px] font-bold text-brand-950">{{ __('Featured') }}</span>
             @endif

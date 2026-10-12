@@ -13,7 +13,7 @@
 
     <x-site.section tone="sand" spacing="md">
         @if ($services->count() > 1)
-            <nav class="mb-10 flex flex-wrap gap-2" aria-label="{{ __('Filter packages') }}">
+            <nav class="mx-auto mb-10 flex max-w-6xl flex-wrap gap-2" aria-label="{{ __('Filter packages') }}">
                 <a href="{{ route('packages.index') }}" @class([
                     'rounded-full px-5 py-2 text-[15px] font-semibold transition-colors',
                     'bg-brand text-white' => ! $current,
@@ -41,9 +41,9 @@
             </div>
         @else
             <h2 class="sr-only">{{ __('Packages') }}</h2>
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                @foreach ($packages as $index => $package)
-                    <x-site.package-card :package="$package" data-reveal :style="'--reveal-delay: '.(($index % 3) * 80).'ms'" />
+            <div class="mx-auto grid max-w-6xl gap-8">
+                @foreach ($packages as $package)
+                    <x-site.package-feature :package="$package" :card="$cards[$package->id]" show-service data-reveal />
                 @endforeach
             </div>
         @endif

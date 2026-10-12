@@ -60,8 +60,10 @@ class TravelTest extends AdminTestCase
         // The hadith keeps its lead-in above the quote.
         $this->get('/umrah')->assertOk()->assertSeeText('The Prophet Muhammad (peace be upon him) said')->assertSeeText('Sahih Bukhari & Muslim');
 
-        // The all-packages page keeps its filter.
-        $this->get('/packages')->assertOk()->assertSee('aria-label="Filter packages"', false);
+        // The all-packages page keeps its filter and uses the same wide cards, with the service named.
+        $this->get('/packages')->assertOk()->assertSee('aria-label="Filter packages"', false)
+            ->assertSee('pkg-feature', false)
+            ->assertSeeText('Package C · Basic');
     }
 
     public function test_service_and_package_pages_render(): void
