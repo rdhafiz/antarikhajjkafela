@@ -2,10 +2,14 @@
     $count = $photos->count();
     // Five photos make a mosaic: one large tile beside four small ones.
     $mosaic = $count === 5;
-    $depths = ['0.03', '-0.06', '0.08', '-0.04', '0.06'];
+    $dark = $style['tone'] === 'dark';
 @endphp
 @if ($count)
     <x-site.block :style="$style" :section="$section">
+        @if ($dark && ! $style['image'])
+            <div class="pattern-star pointer-events-none absolute -inset-y-[25%] inset-x-0 -z-10 opacity-[0.05]" data-parallax="0.2" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute -right-40 -bottom-40 -z-10 size-[520px] rounded-full bg-gold/10 blur-3xl" data-parallax="-0.15" aria-hidden="true"></div>
+        @endif
         <x-site.block-heading :c="$c" class="mb-14" />
         <ul @class([
             'grid grid-cols-2 gap-2.5 sm:gap-3',
@@ -15,7 +19,7 @@
         ])>
             @foreach ($photos as $index => $photo)
                 @php($big = $mosaic && $index === 0)
-                <li @class(['col-span-2 row-span-2' => $big]) data-parallax="{{ $depths[$index % 5] }}">
+                <li @class(['col-span-2 row-span-2' => $big])>
                     <div class="size-full" data-reveal="scale" style="--reveal-delay: {{ ($index % 5) * 90 }}ms">
                     <a href="{{ $photo->album->url() }}" class="group relative block aspect-square overflow-hidden rounded-xl bg-brand-950 focus-visible:ring-4 focus-visible:ring-gold/60 focus-visible:outline-none sm:h-full">
                         <img

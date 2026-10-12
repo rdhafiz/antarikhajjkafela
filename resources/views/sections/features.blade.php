@@ -40,7 +40,6 @@
                             'group relative block',
                             'sec-card p-7 transition-[box-shadow,border-color] duration-300' => $cards,
                             'hover:shadow-[var(--shadow-lift)]' => $cards && $item['link'],
-                            'sm:even:translate-y-10' => $sticky,
                             'flex gap-5' => $layout === 'list',
                         ])
                         @if ($sticky) data-reveal="{{ $index % 2 ? 'right' : 'up' }}" @else data-reveal @endif

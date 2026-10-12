@@ -1,7 +1,6 @@
 @php
-    $staggered = ($c['layout'] ?? 'grid') === 'staggered' && $packages->count() >= 3;
-    // Each column drifts at its own speed while scrolling.
-    $depths = ['0.05', '-0.07', '0.09'];
+    // "staggered" (kept as the stored value): the cards sit over a background that moves on its own.
+    $staggered = ($c['layout'] ?? 'grid') === 'staggered';
 @endphp
 @if ($packages->isNotEmpty())
     <x-site.block :style="$style" :section="$section">
@@ -12,19 +11,12 @@
         <x-site.block-heading :c="$c" class="mb-14" />
         <div @class([
             'grid gap-6',
-            'sm:grid-cols-2 lg:grid-cols-3 lg:items-start lg:pb-16' => $staggered,
-            'sm:grid-cols-2 lg:grid-cols-3' => ! $staggered && $packages->count() !== 2 && $packages->count() !== 4,
+            'sm:grid-cols-2 lg:grid-cols-3' => $packages->count() !== 2 && $packages->count() !== 4,
             'mx-auto max-w-4xl sm:grid-cols-2' => $packages->count() === 2,
-            'sm:grid-cols-2 xl:grid-cols-4' => ! $staggered && $packages->count() === 4,
+            'sm:grid-cols-2 xl:grid-cols-4' => $packages->count() === 4,
         ])>
             @foreach ($packages as $index => $package)
-                @if ($staggered)
-                    <div @class(['lg:mt-16' => $index % 3 === 1]) data-parallax="{{ $depths[$index % 3] }}">
-                        <x-site.package-card :package="$package" data-reveal="scale" :style="'--reveal-delay: '.(($index % 3) * 120).'ms'" />
-                    </div>
-                @else
-                    <x-site.package-card :package="$package" data-reveal :style="'--reveal-delay: '.(($index % 3) * 80).'ms'" />
-                @endif
+                <x-site.package-card :package="$package" data-reveal :style="'--reveal-delay: '.(($index % 3) * 100).'ms'" />
             @endforeach
         </div>
         @if ($c['cta'])

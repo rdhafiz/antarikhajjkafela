@@ -6,7 +6,6 @@
             <div class="pointer-events-none absolute -top-10 -left-10 -z-10 size-48 rounded-full border border-gold/40" data-parallax="0.18" aria-hidden="true"></div>
             @if ($c['image'])
                 <img
-                    data-parallax="0.05"
                     src="{{ $c['image']->url('md') }}"
                     srcset="{{ $c['image']->srcset() }}"
                     sizes="(min-width: 1024px) 40vw, 90vw"
@@ -24,7 +23,6 @@
 
             @if ($c['image_secondary'])
                 <img
-                    data-parallax="-0.12"
                     src="{{ $c['image_secondary']->url('md') }}"
                     srcset="{{ $c['image_secondary']->srcset() }}"
                     sizes="(min-width: 1024px) 18vw, 42vw"
@@ -36,7 +34,7 @@
             @endif
 
             @if (filled($c['years_value']))
-                <div data-parallax="-0.2" class="absolute top-[12%] right-[4%] rounded-2xl bg-brand px-5 py-4 text-center text-white shadow-[var(--shadow-lift)]">
+                <div class="absolute top-[12%] right-[4%] rounded-2xl bg-brand px-5 py-4 text-center text-white shadow-[var(--shadow-lift)]">
                     <p class="font-display text-4xl leading-none font-semibold text-gold">{{ $c['years_value'] }}</p>
                     @if (filled($c['years_label']))<p class="mt-1.5 max-w-24 text-[12px] leading-tight text-white/75">{{ $c['years_label'] }}</p>@endif
                 </div>
