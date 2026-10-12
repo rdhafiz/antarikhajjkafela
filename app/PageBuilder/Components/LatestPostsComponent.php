@@ -53,7 +53,7 @@ class LatestPostsComponent extends Component
             ...$this->headingFields(),
             Field::select('category', 'Category', $categories)->default(null)->hint('Leave empty to show all categories.'),
             Field::number('limit', 'How many', 1, 9)->default(3),
-            Field::select('layout', 'Layout', ['grid' => 'Even grid', 'magazine' => 'Lead story with the rest below'])->default('grid'),
+            Field::select('layout', 'Layout', ['grid' => 'Even grid', 'magazine' => 'Lead story beside a list of the rest'])->default('grid'),
             Field::link('cta', 'Button below the posts'),
         ];
     }

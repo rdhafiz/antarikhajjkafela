@@ -1076,6 +1076,40 @@
         color: var(--color-brand-950);
     }
 
+    /* News (latest posts, magazine): slow photo zoom and a growing underline. */
+    .news-lead-img,
+    .news-row-img {
+        transition: scale 1400ms var(--ease-out-soft);
+    }
+
+    .news-row-link {
+        background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0 1.5px;
+        transition: background-size 700ms var(--ease-out-soft);
+    }
+
+    [dir='rtl'] .news-row-link {
+        background-position: 100% 100%;
+    }
+
+    @media (hover: hover) {
+        .news-lead:hover .news-lead-img {
+            scale: 1.05;
+        }
+
+        .news-row:hover .news-row-img {
+            scale: 1.08;
+        }
+
+        .news-row:hover .news-row-link {
+            background-size: 100% 1.5px;
+        }
+    }
+
+    .news-lead:focus-within {
+        outline: 2px solid var(--color-gold);
+        outline-offset: 3px;
+    }
+
     /*
      * Page heroes. The home hero fills the screen, other page tops take at
      * least half of it (svh: the height with phone browser bars showing).

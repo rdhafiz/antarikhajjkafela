@@ -192,7 +192,7 @@ class BlogSeeder extends Seeder
                 'content' => [
                     'eyebrow' => $this->t('Guides & news', 'গাইড ও সংবাদ'),
                     'title' => $this->t('Prepare for your journey', 'সফরের প্রস্তুতি নিন'),
-                    'limit' => 3,
+                    'limit' => 4,
                     'layout' => 'magazine',
                     'cta' => ['url' => '/blog', 'label' => $this->t('All articles', 'সব লেখা')],
                 ],
