@@ -4,7 +4,6 @@
 @php
     $menu = $site->menu('primary');
     $phones = $site->phones();
-    $emails = $site->emails();
     $languages = $site->languages();
     $current = rtrim(request()->url(), '/');
     $home = rtrim(url('/'), '/');
@@ -23,41 +22,12 @@
 @endphp
 
 <div x-data="siteHeader" @keydown.escape.window="mobileOpen = false" class="contents">
-    {{-- Utility bar --}}
-    <aside class="relative z-40 hidden bg-brand-950 text-[13px] text-white/75 lg:block" aria-label="{{ __('Contact and language') }}">
-        <div class="container-site flex h-10 items-center justify-between gap-6">
-            <div class="flex items-center gap-6">
-                @foreach (array_slice($phones, 0, 1) as $phone)
-                    <a href="{{ $phone['href'] }}" class="flex items-center gap-2 transition-colors hover:text-gold">
-                        <x-site.icon name="phone" class="size-3.5 text-gold" /> {{ $phone['display'] }}
-                    </a>
-                @endforeach
-                @if ($emails)
-                    <a href="mailto:{{ $emails[0] }}" class="flex items-center gap-2 transition-colors hover:text-gold">
-                        <x-site.icon name="mail" class="size-3.5 text-gold" /> {{ $emails[0] }}
-                    </a>
-                @endif
-            </div>
-            <div class="flex items-center gap-5">
-                <div class="flex items-center gap-1">
-                    @foreach ($site->socials() as $social)
-                        <a href="{{ $social['url'] }}" target="_blank" rel="noopener" class="rounded-full p-1.5 transition-colors hover:text-gold" aria-label="{{ $social['label'] }}">
-                            <x-site.icon :name="$social['key']" class="size-4" />
-                        </a>
-                    @endforeach
-                </div>
-                @if (count($languages) > 1)
-                    <span class="h-4 w-px bg-white/15" aria-hidden="true"></span>
-                    <x-site.language-switcher :languages="$languages" tone="dark" />
-                @endif
-            </div>
-        </div>
-    </aside>
-
     {{-- Main header --}}
     <header
+        data-transparent="{{ $overlay ? 'true' : 'false' }}"
+        :data-transparent="(!scrolled && {{ $overlay ? 'true' : 'false' }}).toString()"
         @class([
-            'sticky top-0 z-30 border-b transition-[background-color,box-shadow,border-color] duration-300',
+            'group/header sticky top-0 z-30 border-b transition-[background-color,box-shadow,border-color] duration-300',
             'border-line/70 bg-white/92 backdrop-blur-md' => ! $overlay,
             'border-transparent -mb-[calc(5rem+1px)]' => $overlay,
         ])
@@ -153,7 +123,10 @@
                 </ul>
             </nav>
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 sm:gap-3">
+                @if (count($languages) > 1)
+                    <x-site.language-switcher :languages="$languages" tone="header" />
+                @endif
                 @if ($phones)
                     <a href="{{ $phones[0]['href'] }}" class="btn btn-gold btn-sm hidden sm:inline-flex">
                         <x-site.icon name="phone" />
