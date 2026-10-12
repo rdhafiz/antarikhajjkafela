@@ -35,10 +35,9 @@ function isActive(item: NavItem): boolean {
 <template>
     <nav class="sb relative isolate flex h-full flex-col overflow-hidden text-sidebar-text" :class="{ 'is-collapsed': collapsed }" aria-label="Main">
         <div class="sb-lattice pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
-        <div class="sb-glow pointer-events-none absolute -z-10" aria-hidden="true" />
 
         <!-- Brand -->
-        <RouterLink to="/admin" class="sb-in flex h-[68px] shrink-0 items-center gap-3 px-4" :class="{ 'justify-center px-0': collapsed }" style="--i: 0" @click="emit('navigate')">
+        <RouterLink to="/admin" class="sb-brand sb-in flex h-16 shrink-0 items-center gap-3 px-4 lg:h-[72px]" :class="{ 'justify-center px-0': collapsed }" style="--i: 0" @click="emit('navigate')">
             <span class="sb-mark relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-white p-1.5">
                 <img :src="app.icon ?? brandIcon" alt="" class="size-full object-contain" />
             </span>
@@ -49,8 +48,6 @@ function isActive(item: NavItem): boolean {
                 </span>
             </span>
         </RouterLink>
-
-        <div class="sb-divider mx-4" aria-hidden="true" />
 
         <!-- Navigation -->
         <div class="sb-scroll flex-1 overflow-y-auto px-3 pt-3 pb-3">

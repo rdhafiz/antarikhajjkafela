@@ -375,27 +375,23 @@
         animation: sb-panel 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
+    /* Flush to the screen edge; one solid theme colour (Settings → Admin theme). */
     .sb {
-        border-radius: 1.5rem;
-        background: linear-gradient(170deg, color-mix(in oklab, var(--admin-sidebar-bg) 88%, white) 0%, var(--admin-sidebar-bg) 38%, color-mix(in oklab, var(--admin-sidebar-bg) 82%, black) 100%);
-        box-shadow: 0 30px 60px -30px rgb(2 12 27 / 0.65), inset 0 1px 0 rgb(255 255 255 / 0.08);
+        background: var(--admin-sidebar-bg);
+        box-shadow: 1px 0 0 rgb(0 0 0 / 0.06), 8px 0 24px -16px rgb(2 12 27 / 0.35);
+    }
+
+    /* Brand strip: same height as the header, so the two read as one top bar. */
+    .sb-brand {
+        background: var(--admin-sidebar-logo-bg);
+        border-bottom: 1px solid rgb(255 255 255 / 0.06);
     }
 
     .sb-lattice {
         opacity: 0.05;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23fff' stroke-width='1.2'%3E%3Crect x='20' y='20' width='32' height='32'/%3E%3Crect x='20' y='20' width='32' height='32' transform='rotate(45 36 36)'/%3E%3C/g%3E%3C/svg%3E");
         background-size: 72px 72px;
-        mask-image: linear-gradient(to bottom, black, transparent 55%);
-    }
-
-    .sb-glow {
-        top: -6rem;
-        right: -6rem;
-        width: 16rem;
-        height: 16rem;
-        border-radius: 999px;
-        background: color-mix(in oklab, var(--admin-sidebar-accent) 22%, transparent);
-        filter: blur(48px);
+        mask-image: linear-gradient(to bottom, transparent 72px, black 120px, transparent 60%);
     }
 
     .sb-mark {
@@ -500,10 +496,11 @@
     }
 
     /* Header: frosted glass over the page. */
+    /* Header: solid theme colour (Settings → Admin theme), one bottom line. */
     .tb {
-        background: color-mix(in oklab, var(--admin-header-bg) 82%, transparent);
-        backdrop-filter: saturate(1.4) blur(14px);
-        border-bottom: 1px solid color-mix(in oklab, var(--color-line) 80%, transparent);
+        background: var(--admin-header-bg);
+        border-bottom: 1px solid var(--color-line);
+        box-shadow: 0 4px 16px -14px rgb(15 23 42 / 0.4);
         animation: tb-drop 700ms cubic-bezier(0.22, 1, 0.36, 1) 150ms both;
     }
 
