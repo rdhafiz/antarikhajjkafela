@@ -13,10 +13,10 @@
         <x-site.block-heading :c="$c" class="mb-14" />
         <ol class="border-b border-[var(--sec-border)]">
             @foreach ($items as $index => $item)
-                <li class="group grid gap-x-10 gap-y-3 border-t border-[var(--sec-border)] py-8 sm:py-10 md:grid-cols-[8rem_minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-baseline" data-reveal="left" style="--reveal-delay: {{ $index * 90 }}ms">
+                <li class="numbered-row group relative grid gap-x-10 gap-y-3 border-t border-[var(--sec-border)] px-4 py-8 sm:px-8 sm:py-10 md:grid-cols-[8rem_minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-baseline" data-reveal="left" style="--reveal-delay: {{ $index * 90 }}ms">
                     <span class="numeral-outline font-display text-[3.5rem] leading-none font-semibold sm:text-[4.5rem]" aria-hidden="true">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
-                    <h3 class="sec-heading text-display-sm">{{ $item['title'] }}</h3>
-                    @if (filled($item['text']))<p class="sec-text leading-relaxed">{{ $item['text'] }}</p>@endif
+                    <h3 class="numbered-row-title sec-heading text-display-sm">{{ $item['title'] }}</h3>
+                    @if (filled($item['text']))<p class="numbered-row-text sec-text leading-relaxed">{{ $item['text'] }}</p>@endif
                 </li>
             @endforeach
         </ol>

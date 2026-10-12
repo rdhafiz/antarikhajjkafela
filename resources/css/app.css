@@ -643,6 +643,73 @@
     }
 
     /*
+     * Numbered rows: on hover a surface band sweeps in from the start edge,
+     * a gold bar marks the row, the number fills and the words ease forward.
+     */
+    .numbered-row {
+        isolation: isolate;
+    }
+
+    .numbered-row::before,
+    .numbered-row::after {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .numbered-row::before {
+        inset: 0;
+        background: var(--sec-surface);
+        box-shadow: var(--shadow-soft);
+        scale: 0 1;
+        transform-origin: left;
+        transition: scale 700ms var(--ease-out-soft);
+    }
+
+    .numbered-row::after {
+        inset: 0 auto 0 0;
+        width: 3px;
+        background: var(--color-gold);
+        scale: 1 0;
+        transition: scale 600ms var(--ease-out-soft) 120ms;
+    }
+
+    [dir='rtl'] .numbered-row::before {
+        transform-origin: right;
+    }
+
+    [dir='rtl'] .numbered-row::after {
+        inset: 0 0 0 auto;
+    }
+
+    .numbered-row-title,
+    .numbered-row-text {
+        transition: translate 700ms var(--ease-out-soft), color 400ms var(--ease-out-soft);
+    }
+
+    @media (hover: hover) {
+        .numbered-row:hover::before,
+        .numbered-row:hover::after {
+            scale: 1 1;
+        }
+
+        .numbered-row:hover .numbered-row-title {
+            translate: 0.5rem 0;
+        }
+
+        .numbered-row:hover .numbered-row-text {
+            translate: 0.5rem 0;
+            color: var(--sec-heading, currentColor);
+        }
+
+        [dir='rtl'] .numbered-row:hover .numbered-row-title,
+        [dir='rtl'] .numbered-row:hover .numbered-row-text {
+            translate: -0.5rem 0;
+        }
+    }
+
+    /*
      * Page heroes. The home hero fills the screen, other page tops take at
      * least half of it (svh: the height with phone browser bars showing).
      */
