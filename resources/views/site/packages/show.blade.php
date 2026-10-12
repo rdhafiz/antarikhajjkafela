@@ -117,18 +117,21 @@
                             <div role="tabpanel" id="type-panel-{{ $i }}" aria-labelledby="type-tab-{{ $i }}" x-show="tab === {{ $i }}" @if ($i > 0) x-cloak @endif
                                  x-transition:enter="transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" x-transition:enter-start="opacity-0 translate-y-3"
                                  class="space-y-6">
-                                @if (count($p['types']) === 1 || $type['description'])
-                                    <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2" data-reveal>
-                                        @if (count($p['types']) === 1)<h3 class="font-display text-display-sm text-brand">{{ $type['name'] }}</h3>@endif
-                                        @if ($type['description'])<p class="text-[1.0625rem] leading-relaxed text-ink-2">{{ $type['description'] }}</p>@endif
-                                    </div>
+                                @if (count($p['types']) === 1)
+                                    <h3 class="font-display text-display-sm text-brand" data-reveal>{{ $type['name'] }}</h3>
                                 @endif
 
                                 @foreach ($type['prices'] as $price)
                                     <article class="option-card overflow-hidden rounded-[1.75rem] border border-line bg-white shadow-[var(--shadow-soft)]">
                                         <header class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-line bg-gradient-to-br from-white to-sand-50 p-6 sm:p-8" data-reveal>
                                             <div class="min-w-0">
-                                                <p class="text-[12px] font-semibold tracking-[0.14em] text-gold-deep uppercase">{{ $type['name'] }}</p>
+                                                {{-- The type's name and its short description (e.g. "7 days"), inside the card. --}}
+                                                <p class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                                                    <span class="text-[12px] font-semibold tracking-[0.14em] text-gold-deep uppercase">{{ $type['name'] }}</span>
+                                                    @if ($type['description'])
+                                                        <span class="rounded-full bg-sand-100 px-3 py-1 text-[13px] font-medium text-ink-2">{{ $type['description'] }}</span>
+                                                    @endif
+                                                </p>
                                                 <h3 class="mt-1.5 font-display text-display-sm text-brand">{{ $price['title'] }}</h3>
                                                 @if ($price['description'])<p class="mt-2 text-[15px] text-ink-2">{{ $price['description'] }}</p>@endif
                                             </div>
