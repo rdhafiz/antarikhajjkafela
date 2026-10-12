@@ -14,7 +14,7 @@
 
         <div @class(['mx-auto w-full max-w-3xl' => ! $split]) x-data="{ open: 0 }">
             @foreach ($items as $index => $item)
-                <div class="border-b border-[var(--sec-border)] first:border-t">
+                <div class="border-b border-[var(--sec-border)] first:border-t" data-reveal style="--reveal-delay: {{ $index * 80 }}ms">
                     <h3>
                         <button
                             type="button"

@@ -324,26 +324,89 @@ window.Alpine = Alpine;
 Alpine.start();
 
 /**
- * Reveal-on-scroll for elements marked with [data-reveal].
- * Skipped entirely for visitors who prefer reduced motion.
+ * Scroll motion for the page sections. Skipped for visitors who prefer
+ * reduced motion; without JavaScript everything simply stays visible.
+ *
+ * [data-reveal]            Reveals when it enters the screen and resets when it
+ *                          leaves, in both directions: it comes up from below
+ *                          while scrolling down and down from above while
+ *                          scrolling up. Optional value: up (default), left,
+ *                          right, scale or wipe. --reveal-delay staggers items.
+ * [data-parallax="0.1"]    Moves by speed × its distance from the screen centre
+ *                          (negative values move against the scroll). Uses the
+ *                          CSS translate property, so it combines with reveals.
+ * [data-scroll-progress]   Gets --progress from 0 to 1 while it crosses the screen.
  */
-const revealTargets = document.querySelectorAll('[data-reveal]');
+function scrollMotion() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
 
-if (revealTargets.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
-    const observer = new IntersectionObserver(
+    const reveals = document.querySelectorAll('[data-reveal]');
+    const revealer = new IntersectionObserver(
         (entries) => {
-            for (const entry of entries) {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('is-revealed');
-                    observer.unobserve(entry.target);
+            for (const { target, isIntersecting, intersectionRatio, boundingClientRect } of entries) {
+                if (isIntersecting && intersectionRatio >= 0.12) {
+                    target.classList.add('is-revealed');
+                } else if (!isIntersecting) {
+                    // Remember which side it left from, so it re-enters from there.
+                    target.classList.remove('is-revealed');
+                    target.dataset.from = boundingClientRect.top < 0 ? 'above' : 'below';
                 }
             }
         },
-        { rootMargin: '0px 0px -8% 0px', threshold: 0.12 },
+        { threshold: [0, 0.12] },
     );
 
-    revealTargets.forEach((el) => {
+    reveals.forEach((el) => {
         el.classList.add('reveal');
-        observer.observe(el);
+        el.dataset.from = 'below';
+        revealer.observe(el);
     });
+
+    const movers = [...document.querySelectorAll('[data-parallax], [data-scroll-progress]')];
+    if (!movers.length) return;
+
+    const active = new Set();
+    const watcher = new IntersectionObserver(
+        (entries) => {
+            entries.forEach(({ target, isIntersecting }) => (isIntersecting ? active.add(target) : active.delete(target)));
+            queue();
+        },
+        { rootMargin: '25% 0px' },
+    );
+    movers.forEach((el) => watcher.observe(el));
+
+    const phone = window.matchMedia('(max-width: 767px)');
+    let queued = false;
+
+    const update = () => {
+        queued = false;
+        const vh = window.innerHeight;
+        const scale = phone.matches ? 0.5 : 1;
+
+        for (const el of active) {
+            const rect = el.getBoundingClientRect();
+
+            if (el.dataset.parallax !== undefined) {
+                const offset = (rect.top + rect.height / 2 - vh / 2) * parseFloat(el.dataset.parallax || '0.1') * scale;
+                el.style.translate = `0 ${(-offset).toFixed(1)}px`;
+            }
+
+            if (el.dataset.scrollProgress !== undefined) {
+                const progress = Math.min(1, Math.max(0, (vh * 0.85 - rect.top) / (rect.height + vh * 0.35)));
+                el.style.setProperty('--progress', progress.toFixed(3));
+            }
+        }
+    };
+
+    const queue = () => {
+        if (!queued) {
+            queued = true;
+            requestAnimationFrame(update);
+        }
+    };
+
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue, { passive: true });
 }
+
+scrollMotion();

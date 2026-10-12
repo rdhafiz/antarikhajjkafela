@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Package;
 use App\Models\Page;
+use App\Models\Post;
 use App\Models\Service;
 use Database\Seeders\Concerns\ImportsSeedImages;
 use Illuminate\Database\Seeder;
@@ -63,10 +64,35 @@ class HeroImagesSeeder extends Seeder
 
         $this->travelImages();
 
+        $this->postBanners();
+
+        // The closing call-to-action banner gets a photo that moves behind it.
+        $cta = Page::where('system_key', 'home')->first()?->sections()->where('component', 'cta')->first();
+        if ($cta && ($cta->content['variant'] ?? 'banner') === 'banner') {
+            $this->fillSectionImage($cta, 'image', fn () => $this->importImage('heroes/haram-wide.webp', 'banner', ['Masjid al-Haram in Makkah', 'মক্কার মসজিদুল হারাম']));
+        }
+
         if (blank(settings('branding.default_banner'))) {
             settings()->set('branding', [
                 'default_banner' => $this->importImage('heroes/haram-wide.webp', 'banner', ['Masjid al-Haram in Makkah', 'মক্কার মসজিদুল হারাম'])->id,
             ]);
+        }
+    }
+
+    /**
+     * Blog posts without a banner get a photo that fits their subject.
+     */
+    private function postBanners(): void
+    {
+        $banners = [
+            'how-to-perform-umrah' => ['hajj-regular.webp', 'Pilgrims in the courtyard of Masjid al-Haram', 'মসজিদুল হারামের আঙিনায় হাজিগণ'],
+            'important-information-for-hajj-pilgrims' => ['makkah-hotels.webp', 'Hotels around the Haram in Makkah', 'মক্কায় হারামের আশপাশের হোটেল'],
+            'umrah-2025-november-group' => ['madinah-golden.webp', 'The Prophet\'s Mosque in Madinah at sunset', 'সূর্যাস্তে মদিনার মসজিদে নববী'],
+        ];
+
+        foreach ($banners as $slug => [$file, $en, $bn]) {
+            Post::where('slug', $slug)->whereNull('banner_id')->first()
+                ?->update(['banner_id' => $this->importImage("heroes/{$file}", 'general', [$en, $bn])->id]);
         }
     }
 

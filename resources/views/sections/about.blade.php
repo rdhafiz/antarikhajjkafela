@@ -2,9 +2,11 @@
 <x-site.block :style="$style" :section="$section">
     <div class="grid items-center gap-14 lg:grid-cols-[0.95fr_1.05fr] lg:gap-20">
         {{-- Image collage --}}
-        <div class="relative mx-auto w-full max-w-lg lg:max-w-none" data-reveal>
+        <div class="relative mx-auto w-full max-w-lg lg:max-w-none" data-reveal="left">
+            <div class="pointer-events-none absolute -top-10 -left-10 -z-10 size-48 rounded-full border border-gold/40" data-parallax="0.18" aria-hidden="true"></div>
             @if ($c['image'])
                 <img
+                    data-parallax="0.05"
                     src="{{ $c['image']->url('md') }}"
                     srcset="{{ $c['image']->srcset() }}"
                     sizes="(min-width: 1024px) 40vw, 90vw"
@@ -22,6 +24,7 @@
 
             @if ($c['image_secondary'])
                 <img
+                    data-parallax="-0.12"
                     src="{{ $c['image_secondary']->url('md') }}"
                     srcset="{{ $c['image_secondary']->srcset() }}"
                     sizes="(min-width: 1024px) 18vw, 42vw"
@@ -33,14 +36,14 @@
             @endif
 
             @if (filled($c['years_value']))
-                <div class="absolute top-[12%] right-[4%] rounded-2xl bg-brand px-5 py-4 text-center text-white shadow-[var(--shadow-lift)]">
+                <div data-parallax="-0.2" class="absolute top-[12%] right-[4%] rounded-2xl bg-brand px-5 py-4 text-center text-white shadow-[var(--shadow-lift)]">
                     <p class="font-display text-4xl leading-none font-semibold text-gold">{{ $c['years_value'] }}</p>
                     @if (filled($c['years_label']))<p class="mt-1.5 max-w-24 text-[12px] leading-tight text-white/75">{{ $c['years_label'] }}</p>@endif
                 </div>
             @endif
         </div>
 
-        <div data-reveal style="--reveal-delay: 100ms">
+        <div data-reveal="right" style="--reveal-delay: 120ms">
             <x-site.block-heading :c="$c" align="left" />
             @if (filled($c['body']))
                 <div class="prose-site mt-6">{!! $c['body'] !!}</div>

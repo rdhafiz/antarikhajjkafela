@@ -42,7 +42,7 @@ class CtaComponent extends Component
             Field::link('primary', 'Primary button'),
             Field::link('secondary', 'Secondary button'),
             Field::toggle('contact_buttons', 'Show call & WhatsApp buttons')->default(true)->hint('Uses the phone and WhatsApp numbers from Settings.'),
-            Field::image('image', 'Image', 'card')->showIf('variant', ['split']),
+            Field::image('image', 'Image', 'banner')->showIf('variant', ['split', 'banner'])->hint('Banner: a background photo that moves gently while scrolling.'),
         ];
     }
 

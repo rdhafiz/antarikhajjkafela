@@ -51,9 +51,10 @@ class TravelSeeder extends Seeder
                 'intro' => $this->t('Hajj and Umrah packages for every budget, each with scholars beside you.', 'সব বাজেটের হজ ও উমরাহ প্যাকেজ—প্রতিটিতে আলেমগণ আপনার পাশে।'),
                 'source' => 'featured',
                 'limit' => 3,
+                'layout' => 'staggered',
                 'cta' => ['url' => '/packages', 'label' => $this->t('View all packages', 'সব প্যাকেজ দেখুন')],
             ]),
-            'style' => SectionStyle::sanitize(['background' => 'sand']),
+            'style' => SectionStyle::sanitize(['background' => 'navy-deep']),
         ]);
     }
 

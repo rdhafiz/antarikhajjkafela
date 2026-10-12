@@ -54,6 +54,7 @@ class PackageShowcaseComponent extends Component
             Field::select('source', 'Show', ['featured' => 'Featured packages', 'service' => 'Packages of one service', 'latest' => 'All packages, newest first']),
             Field::select('service', 'Service', $services)->default(null)->showIf('source', ['service']),
             Field::number('limit', 'How many', 1, 12)->default(3),
+            Field::select('layout', 'Layout', ['grid' => 'Even grid', 'staggered' => 'Staggered columns that move at different depths'])->default('grid'),
             Field::link('cta', 'Button below the cards'),
         ];
     }

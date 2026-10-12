@@ -2,6 +2,7 @@
     $count = $photos->count();
     // Five photos make a mosaic: one large tile beside four small ones.
     $mosaic = $count === 5;
+    $depths = ['0.03', '-0.06', '0.08', '-0.04', '0.06'];
 @endphp
 @if ($count)
     <x-site.block :style="$style" :section="$section">
@@ -14,7 +15,8 @@
         ])>
             @foreach ($photos as $index => $photo)
                 @php($big = $mosaic && $index === 0)
-                <li @class(['col-span-2 row-span-2' => $big]) data-reveal style="--reveal-delay: {{ ($index % 5) * 60 }}ms">
+                <li @class(['col-span-2 row-span-2' => $big]) data-parallax="{{ $depths[$index % 5] }}">
+                    <div class="size-full" data-reveal="scale" style="--reveal-delay: {{ ($index % 5) * 90 }}ms">
                     <a href="{{ $photo->album->url() }}" class="group relative block aspect-square overflow-hidden rounded-xl bg-brand-950 focus-visible:ring-4 focus-visible:ring-gold/60 focus-visible:outline-none sm:h-full">
                         <img
                             src="{{ $photo->media->url($big ? 'md' : 'thumb') }}"
@@ -28,6 +30,7 @@
                             {{ $photo->album->getTranslation('title', app()->getLocale()) }}
                         </span>
                     </a>
+                    </div>
                 </li>
             @endforeach
         </ul>

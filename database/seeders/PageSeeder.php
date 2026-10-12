@@ -183,11 +183,11 @@ class PageSeeder extends Seeder
                 'eyebrow' => $this->t('What we offer', 'আমাদের সেবা'),
                 'title' => $this->t('Everything your pilgrimage needs, in one place', 'আপনার যাত্রার সব প্রয়োজন, এক জায়গায়'),
                 'intro' => $this->t('From the first document to the last ziyarah, our team takes care of the details.', 'প্রথম কাগজপত্র থেকে শেষ যিয়ারাহ পর্যন্ত—সব খুঁটিনাটি আমরা দেখি।'),
-                'layout' => 'cards',
+                'layout' => 'sticky',
                 'columns' => '4',
                 'items' => $this->serviceItems(short: true),
                 'cta' => $this->link('/services', 'All services', 'সব সেবা দেখুন'),
-            ], ['background' => 'sand']],
+            ], ['background' => 'white']],
             ['quote', [
                 'arabic' => 'وَأَذِّن فِي النَّاسِ بِالْحَجِّ يَأْتُوكَ رِجَالًا وَعَلَىٰ كُلِّ ضَامِرٍ يَأْتِينَ مِن كُلِّ فَجٍّ عَمِيقٍ',
                 'text' => $this->t(
@@ -203,7 +203,7 @@ class PageSeeder extends Seeder
                     'Language barriers, lack of guidance and unclear dealings stop many pilgrims from the Hajj they hoped for. We built our service around preventing exactly that.',
                     'ভাষাগত সমস্যা, সঠিক দিকনির্দেশনার অভাব ও অস্বচ্ছ লেনদেনের কারণে অনেকেই কাঙ্ক্ষিত হজ করতে পারেন না। ঠিক এগুলো দূর করতেই আমাদের সেবা সাজানো।'
                 ),
-                'layout' => 'list',
+                'layout' => 'numbered',
                 'columns' => '2',
                 'items' => [
                     ['icon' => 'users', 'title' => $this->t('Qualified, caring management', 'যোগ্য ও আন্তরিক ব্যবস্থাপনা'), 'text' => $this->t('Educated, multilingual and well-mannered people responsible for every part of your journey.', 'শিক্ষিত, বহু ভাষায় দক্ষ ও সদাচারী মানুষেরা আপনার সফরের প্রতিটি অংশের দায়িত্বে।'), 'link' => null],
@@ -211,7 +211,7 @@ class PageSeeder extends Seeder
                     ['icon' => 'compass', 'title' => $this->t('Itineraries true to the rulings', 'বিধান মেনে পরিকল্পিত সফর'), 'text' => $this->t('Properly planned schedules that follow the rulings of Hajj and their exact implementation.', 'হজের বিধান ও তার সঠিক বাস্তবায়ন মেনে সুপরিকল্পিত সময়সূচি।'), 'link' => null],
                     ['icon' => 'shield', 'title' => $this->t('Transparent, fair dealings', 'স্বচ্ছ ও ন্যায্য লেনদেন'), 'text' => $this->t('Clear pricing and payments only through the official account of Antarik Travel International.', 'স্পষ্ট মূল্য এবং শুধুমাত্র আন্তরিক ট্রাভেল ইন্টারন্যাশনালের অফিসিয়াল অ্যাকাউন্টে পেমেন্ট।'), 'link' => null],
                 ],
-            ], ['background' => 'white']],
+            ], ['background' => 'sand']],
             ['process_steps', [
                 'eyebrow' => $this->t('How it works', 'কীভাবে শুরু করবেন'),
                 'title' => $this->t('Four steps to your journey', 'আপনার সফরের চারটি ধাপ'),
@@ -221,8 +221,8 @@ class PageSeeder extends Seeder
                     ['icon' => 'wallet', 'title' => $this->t('Confirm your booking', 'বুকিং নিশ্চিত'), 'text' => $this->t('Pay the advance or registration fee through official channels only.', 'শুধুমাত্র অফিসিয়াল মাধ্যমে অগ্রিম বা নিবন্ধন ফি পরিশোধ করুন।')],
                     ['icon' => 'kaaba', 'title' => $this->t('Prepare and travel', 'প্রস্তুতি ও যাত্রা'), 'text' => $this->t('Attend our workshop, then travel with scholars and guides beside you.', 'আমাদের কর্মশালায় অংশ নিন, তারপর আলেম ও গাইডদের সাথে যাত্রা করুন।')],
                 ],
-            ], ['background' => 'sand']],
-            ['faq', $this->faqContent(), ['background' => 'white', 'anchor' => 'faq']],
+            ], ['background' => 'white']],
+            ['faq', $this->faqContent(), ['background' => 'sand', 'anchor' => 'faq']],
             $this->cta(),
         ];
     }

@@ -178,7 +178,7 @@ class BlogSeeder extends Seeder
             ],
             'gallery_preview' => [
                 'after' => 'testimonials',
-                'background' => 'sand',
+                'background' => 'navy-deep',
                 'content' => [
                     'eyebrow' => $this->t('Gallery', 'গ্যালারি'),
                     'title' => $this->t('Moments from our journeys', 'আমাদের সফরের মুহূর্ত'),
@@ -193,6 +193,7 @@ class BlogSeeder extends Seeder
                     'eyebrow' => $this->t('Guides & news', 'গাইড ও সংবাদ'),
                     'title' => $this->t('Prepare for your journey', 'সফরের প্রস্তুতি নিন'),
                     'limit' => 3,
+                    'layout' => 'magazine',
                     'cta' => ['url' => '/blog', 'label' => $this->t('All articles', 'সব লেখা')],
                 ],
             ],
