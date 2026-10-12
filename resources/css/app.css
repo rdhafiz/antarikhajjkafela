@@ -1255,6 +1255,145 @@
         font-variant-numeric: tabular-nums;
     }
 
+    /* Booking form: step cards, choice tiles, the travelers stepper and upload boxes. */
+    .book-card {
+        overflow: hidden;
+        border: 1px solid var(--color-line);
+        border-radius: 1.75rem;
+        background: #fff;
+        box-shadow: var(--shadow-soft);
+    }
+
+    .book-card-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.5rem 1.5rem 1.25rem;
+        border-bottom: 1px solid var(--color-line);
+        background: linear-gradient(to bottom right, #fff, var(--color-sand-50));
+
+        @media (width >= 40rem) {
+            gap: 1.25rem;
+            padding: 1.75rem 2rem 1.5rem;
+        }
+    }
+
+    .book-card-num {
+        flex-shrink: 0;
+        font-family: var(--font-display);
+        font-size: 2.25rem;
+        line-height: 1;
+        font-weight: 600;
+        color: transparent;
+        -webkit-text-stroke: 1.25px var(--color-gold-deep);
+    }
+
+    .book-card-body {
+        padding: 1.5rem;
+
+        @media (width >= 40rem) {
+            padding: 1.75rem 2rem 2rem;
+        }
+    }
+
+    .book-step .book-step-num {
+        background: var(--color-sand-100);
+        color: var(--color-gold-deep);
+        transition: background-color 400ms var(--ease-out-soft), color 400ms var(--ease-out-soft);
+    }
+
+    .book-step.is-active .book-step-num {
+        background: var(--color-gold);
+        color: var(--color-brand-950);
+    }
+
+    .book-choice {
+        border: 1.5px solid var(--color-line);
+        border-radius: 1.25rem;
+        background: #fff;
+        transition: border-color 400ms var(--ease-out-soft), background-color 400ms var(--ease-out-soft), box-shadow 400ms var(--ease-out-soft);
+
+        .book-choice-check {
+            border: 1.5px solid var(--color-line);
+            color: transparent;
+            transition: background-color 400ms var(--ease-out-soft), border-color 400ms var(--ease-out-soft), color 400ms var(--ease-out-soft);
+        }
+
+        &:hover {
+            border-color: color-mix(in srgb, var(--color-gold) 55%, var(--color-line));
+        }
+
+        &:has(input:focus-visible) {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 2px;
+        }
+
+        &.is-selected {
+            border-color: var(--color-brand);
+            background: color-mix(in srgb, var(--color-brand-50) 60%, #fff);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-gold) 35%, transparent);
+
+            .book-choice-check {
+                border-color: var(--color-brand);
+                background: var(--color-brand);
+                color: #fff;
+            }
+        }
+    }
+
+    .book-stepper {
+        > button {
+            display: flex;
+            width: 3rem;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--color-line);
+            background: #fff;
+            font-size: 1.25rem;
+            color: var(--color-brand);
+            transition: background-color 300ms var(--ease-out-soft);
+
+            &:hover {
+                background: var(--color-sand-100);
+            }
+
+            &:first-child {
+                border-radius: 0.75rem 0 0 0.75rem;
+            }
+
+            &:last-child {
+                border-radius: 0 0.75rem 0.75rem 0;
+            }
+        }
+    }
+
+    [dir='rtl'] .book-stepper > button {
+        &:first-child {
+            border-radius: 0 0.75rem 0.75rem 0;
+        }
+
+        &:last-child {
+            border-radius: 0.75rem 0 0 0.75rem;
+        }
+    }
+
+    .book-drop {
+        border: 1.5px dashed color-mix(in srgb, var(--color-brand) 25%, var(--color-line));
+        border-radius: 1.25rem;
+        background: var(--color-sand-50);
+        transition: border-color 400ms var(--ease-out-soft), background-color 400ms var(--ease-out-soft);
+
+        &:hover {
+            border-color: var(--color-gold);
+            background: #fff;
+        }
+    }
+
+    div:has(> input:focus-visible) > .book-drop {
+        outline: 2px solid var(--color-gold);
+        outline-offset: 2px;
+    }
+
     /*
      * Page heroes. The home hero fills the screen, other page tops take at
      * least half of it (svh: the height with phone browser bars showing).
