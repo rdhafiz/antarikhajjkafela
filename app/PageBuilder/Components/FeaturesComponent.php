@@ -33,7 +33,7 @@ class FeaturesComponent extends Component
     {
         return [
             ...$this->headingFields(),
-            Field::select('layout', 'Style', ['cards' => 'Cards', 'sticky' => 'Split heading with a compact connected grid', 'list' => 'Icon list', 'numbered' => 'Numbered rows']),
+            Field::select('layout', 'Style', ['cards' => 'Cards', 'sticky' => 'Split heading with a compact connected grid', 'list' => 'Icon list', 'numbered' => 'Numbered rows', 'tiles' => 'Numbered tiles that fill with colour on hover']),
             Field::select('columns', 'Columns', ['3' => '3', '2' => '2', '4' => '4']),
             Field::repeater('items', 'Items', [
                 Field::icon('icon', 'Icon'),

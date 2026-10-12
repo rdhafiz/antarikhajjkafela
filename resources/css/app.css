@@ -1394,6 +1394,94 @@
         outline-offset: 2px;
     }
 
+    /* Service tiles (features "tiles"): a navy panel rises from the bottom on hover. */
+    .svc-tile {
+        transition: translate 700ms var(--ease-out-soft), box-shadow 700ms var(--ease-out-soft), border-color 700ms var(--ease-out-soft);
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: var(--color-brand);
+            transform-origin: bottom;
+            scale: 1 0;
+            transition: scale 700ms var(--ease-out-soft);
+        }
+
+        .svc-tile-num {
+            color: transparent;
+            -webkit-text-stroke: 1.25px color-mix(in srgb, var(--color-gold-deep) 55%, transparent);
+            transition: -webkit-text-stroke-color 600ms var(--ease-out-soft);
+        }
+
+        .svc-tile-icon {
+            background: var(--color-brand-50);
+            color: var(--color-brand);
+            transition: background-color 600ms var(--ease-out-soft), color 600ms var(--ease-out-soft), rotate 600ms var(--ease-out-soft);
+        }
+
+        .svc-tile-title {
+            color: var(--color-brand);
+            transition: color 600ms var(--ease-out-soft);
+        }
+
+        .svc-tile-text {
+            color: var(--color-ink-2);
+            transition: color 600ms var(--ease-out-soft);
+        }
+
+        .svc-tile-link {
+            color: var(--color-brand);
+            transition: color 600ms var(--ease-out-soft);
+        }
+
+        .svc-tile-rule {
+            scale: 0 1;
+            transition: scale 700ms var(--ease-out-soft) 150ms;
+        }
+
+        &:focus-within {
+            outline: 2px solid var(--color-gold);
+            outline-offset: 3px;
+        }
+    }
+
+    @media (hover: hover) {
+        .svc-tile:hover {
+            translate: 0 -0.375rem;
+            border-color: var(--color-brand);
+            box-shadow: var(--shadow-lift);
+
+            &::before {
+                scale: 1 1;
+            }
+
+            .svc-tile-num {
+                -webkit-text-stroke-color: color-mix(in srgb, var(--color-gold) 60%, transparent);
+            }
+
+            .svc-tile-icon {
+                background: var(--color-gold);
+                color: var(--color-brand-950);
+                rotate: -6deg;
+            }
+
+            .svc-tile-title,
+            .svc-tile-link {
+                color: #fff;
+            }
+
+            .svc-tile-text {
+                color: rgb(255 255 255 / 0.78);
+            }
+
+            .svc-tile-rule {
+                scale: 1 1;
+            }
+        }
+    }
+
     /*
      * Page heroes. The home hero fills the screen, other page tops take at
      * least half of it (svh: the height with phone browser bars showing).

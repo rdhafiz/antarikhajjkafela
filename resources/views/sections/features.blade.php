@@ -71,6 +71,41 @@
                 @endforeach
             </ul>
         </div>
+    @elseif ($layout === 'tiles')
+        {{-- Numbered tiles: rows stay full (a short last row is centered); a navy panel rises on hover. --}}
+        @php
+            $tileWidth = ['2' => 'sm:w-[calc(50%-0.625rem)]', '3' => 'sm:w-[calc(50%-0.625rem)] lg:w-[calc(33.333%-0.834rem)]', '4' => 'sm:w-[calc(50%-0.625rem)] lg:w-[calc(25%-0.9375rem)]'][$columns] ?? 'sm:w-[calc(50%-0.625rem)] lg:w-[calc(33.333%-0.834rem)]';
+        @endphp
+        <x-site.block-heading :c="$c" class="mb-14" />
+        <ul class="flex flex-wrap justify-center gap-5">
+            @foreach ($items as $index => $item)
+                <li class="w-full {{ $tileWidth }}" data-reveal style="--reveal-delay: {{ ($index % (int) $columns) * 90 }}ms">
+                    <div class="svc-tile group relative isolate flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-line bg-white p-7 shadow-[var(--shadow-soft)]">
+                        <span class="svc-tile-num absolute top-5 end-6 font-display text-[2.75rem] leading-none font-semibold" aria-hidden="true">{{ App\Support\Money::digits(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) }}</span>
+                        @if ($item['icon'])
+                            <span class="svc-tile-icon flex size-14 items-center justify-center rounded-2xl">
+                                <x-site.icon :name="$item['icon']" class="size-6" />
+                            </span>
+                        @endif
+                        <h3 class="svc-tile-title mt-7 font-display text-[1.3rem] leading-snug font-semibold">
+                            @if ($item['link'])
+                                <a href="{{ $item['link']['url'] }}" @if ($item['link']['external']) target="_blank" rel="noopener" @endif class="after:absolute after:inset-0 focus-visible:outline-none">{{ $item['title'] }}</a>
+                            @else
+                                {{ $item['title'] }}
+                            @endif
+                        </h3>
+                        @if (filled($item['text']))<p class="svc-tile-text mt-3 text-[15px] leading-relaxed">{{ $item['text'] }}</p>@endif
+                        @if ($item['link'] && filled($item['link']['label']))
+                            <span class="svc-tile-link mt-auto inline-flex items-center gap-1.5 pt-5 text-[14px] font-semibold">
+                                {{ $item['link']['label'] }}
+                                <x-site.icon name="arrow-right" class="size-4 rtl:rotate-180" />
+                            </span>
+                        @endif
+                        <span class="svc-tile-rule absolute inset-x-7 bottom-0 h-[3px] rounded-full bg-gold" aria-hidden="true"></span>
+                    </div>
+                </li>
+            @endforeach
+        </ul>
     @else
         <div>
             <x-site.block-heading :c="$c" class="mb-14" />

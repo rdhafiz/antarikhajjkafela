@@ -305,8 +305,8 @@ class PageSeeder extends Seeder
             ['features', [
                 'eyebrow' => $this->t('Complete pilgrimage support', 'পূর্ণাঙ্গ সহায়তা'),
                 'title' => $this->t('Services for Hajj and Umrah', 'হজ ও উমরাহর জন্য সেবা'),
-                'layout' => 'cards',
-                'columns' => '3',
+                'layout' => 'tiles',
+                'columns' => '4',
                 'items' => $this->serviceItems(short: false),
             ], ['background' => 'sand']],
             ['process_steps', [
