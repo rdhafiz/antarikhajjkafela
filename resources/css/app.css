@@ -1250,6 +1250,11 @@
         background: var(--sec-surface, #fff);
     }
 
+    /* Count-up figures: equal-width digits, so the number does not jiggle while it counts. */
+    [data-count] {
+        font-variant-numeric: tabular-nums;
+    }
+
     /*
      * Page heroes. The home hero fills the screen, other page tops take at
      * least half of it (svh: the height with phone browser bars showing).

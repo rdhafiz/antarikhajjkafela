@@ -11,17 +11,7 @@
         @foreach ($items as $index => $item)
             <div class="sec-card flex flex-col-reverse items-center px-4 py-7 text-center" data-reveal style="--reveal-delay: {{ $index * 80 }}ms">
                 <dt class="sec-muted mt-2 text-[14px] leading-snug font-medium">{{ $item['label'] }}</dt>
-                <dd class="font-display text-[2.6rem] leading-none font-semibold text-gold">
-                    <span
-                        x-data="{ shown: 0, target: {{ (int) $item['value'] }}, locale: @js($locale === 'bn' ? 'bn-BD' : 'en-US') }"
-                        x-intersect.once="
-                            if (matchMedia('(prefers-reduced-motion: reduce)').matches) { shown = target; return }
-                            const t0 = performance.now(), d = 1400;
-                            const tick = (t) => { const p = Math.min(1, (t - t0) / d); shown = Math.round(target * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(tick) };
-                            requestAnimationFrame(tick)"
-                        x-text="shown.toLocaleString(locale)"
-                    >{{ number_format((int) $item['value']) }}</span>{{ $item['suffix'] }}
-                </dd>
+                <dd class="font-display text-[2.6rem] leading-none font-semibold text-gold" data-count>{{ App\Support\Money::digits(number_format((int) $item['value'])) }}{{ $item['suffix'] }}</dd>
                 @if ($item['icon'])
                     <x-site.icon :name="$item['icon']" class="mb-4 size-7 text-gold" />
                 @endif

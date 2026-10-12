@@ -35,7 +35,7 @@
 
             @if (filled($c['years_value']))
                 <div class="absolute top-[12%] right-[4%] rounded-2xl bg-brand px-5 py-4 text-center text-white shadow-[var(--shadow-lift)]">
-                    <p class="font-display text-4xl leading-none font-semibold text-gold">{{ $c['years_value'] }}</p>
+                    <p class="font-display text-4xl leading-none font-semibold text-gold" data-count>{{ App\Support\Money::digits($c['years_value']) }}</p>
                     @if (filled($c['years_label']))<p class="mt-1.5 max-w-24 text-[12px] leading-tight text-white/75">{{ $c['years_label'] }}</p>@endif
                 </div>
             @endif

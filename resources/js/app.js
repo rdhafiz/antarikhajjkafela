@@ -416,6 +416,105 @@ Alpine.data('sectionNav', () => ({
     },
 }));
 
+/**
+ * Count-up figures: [data-count] elements count every number in their text from 0
+ * to its value whenever they scroll into view (both directions, like the reveals).
+ * The formatting is kept exactly: Bangla or Latin digits, lakh grouping
+ * (1,35,000), decimals, and surrounding text such as ৳, "+", "days" or "35–40".
+ * Screen readers get the final text from a hidden copy; the animated copy is hidden from them.
+ */
+function countUp() {
+    const els = document.querySelectorAll('[data-count]');
+    if (!els.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+
+    const BN = '০১২৩৪৫৬৭৮৯';
+    const toLatin = (s) => s.replace(/[০-৯]/g, (d) => BN.indexOf(d));
+    const number = /[0-9০-৯]+(?:[,.][0-9০-৯]+)*/g;
+
+    const format = (value, sample) => {
+        const bangla = /[০-৯]/.test(sample);
+        const latin = toLatin(sample);
+        const decimals = latin.includes('.') ? latin.split('.').pop().length : 0;
+        let text = value.toFixed(decimals);
+        if (latin.includes(',')) {
+            // Same grouping as the original: lakh (1,35,000, as Money::format) or thousands (150,000).
+            const lakh = /,\d{2},\d{3}(?:\.|$)/.test(latin);
+            const [int, frac] = text.split('.');
+            const last3 = int.slice(-3);
+            const rest = int.slice(0, -3).replace(lakh ? /\B(?=(\d{2})+(?!\d))/g : /\B(?=(\d{3})+(?!\d))/g, ',');
+            text = (rest ? rest + ',' : '') + last3 + (frac ? '.' + frac : '');
+        }
+        return bangla ? text.replace(/\d/g, (d) => BN[d]) : text;
+    };
+
+    const prepare = (el) => {
+        // Keep the real text for screen readers; animate an aria-hidden copy.
+        const sr = document.createElement('span');
+        sr.className = 'sr-only';
+        sr.textContent = el.textContent.trim();
+        const shown = document.createElement('span');
+        shown.setAttribute('aria-hidden', 'true');
+        shown.append(...el.childNodes);
+        el.append(sr, shown);
+
+        const parts = [];
+        const walker = document.createTreeWalker(shown, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode()) {
+            const node = walker.currentNode;
+            const original = node.nodeValue;
+            if (!number.test(original)) continue;
+            number.lastIndex = 0;
+            parts.push({
+                node,
+                original,
+                render: (p) =>
+                    (node.nodeValue = original.replace(number, (m) => {
+                        const value = Number(toLatin(m).replace(/,/g, ''));
+                        // A year (e.g. 2016) counts up over the last few decades, not from 0.
+                        const from = /^\d{4}$/.test(toLatin(m)) && value >= 1900 && value <= 2100 ? value - 40 : 0;
+                        return format(from + (value - from) * p, m);
+                    })),
+            });
+        }
+        return parts;
+    };
+
+    const run = (el) => {
+        cancelAnimationFrame(el._countFrame);
+        const parts = el._countParts;
+        const start = performance.now();
+        const duration = 1600;
+        const tick = (now) => {
+            const t = Math.min(1, (now - start) / duration);
+            const eased = 1 - Math.pow(1 - t, 4);
+            parts.forEach((part) => (t < 1 ? part.render(eased) : (part.node.nodeValue = part.original)));
+            if (t < 1) el._countFrame = requestAnimationFrame(tick);
+        };
+        el._countFrame = requestAnimationFrame(tick);
+    };
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            for (const { target, isIntersecting, intersectionRatio } of entries) {
+                if (isIntersecting && intersectionRatio >= 0.6 && !target._counted) {
+                    target._counted = true;
+                    run(target);
+                } else if (!isIntersecting) {
+                    // Gone from view: count again next time it appears.
+                    target._counted = false;
+                    target._countParts.forEach((part) => part.render(0));
+                }
+            }
+        },
+        { threshold: [0, 0.6] },
+    );
+
+    els.forEach((el) => {
+        el._countParts = prepare(el);
+        if (el._countParts.length) observer.observe(el);
+    });
+}
+
 window.Alpine = Alpine;
 Alpine.start();
 
@@ -522,3 +621,4 @@ function scrollMotion() {
 }
 
 scrollMotion();
+countUp();

@@ -9,7 +9,7 @@
     @else
         @if ($average)
             <div class="mx-auto mb-14 flex max-w-xl flex-col items-center gap-3 text-center sm:flex-row sm:justify-center sm:gap-6 sm:text-left" data-reveal>
-                <p class="sec-heading font-display text-[3.5rem] leading-none font-semibold">{{ Money::digits(number_format($average, 1)) }}</p>
+                <p class="sec-heading font-display text-[3.5rem] leading-none font-semibold" data-count>{{ Money::digits(number_format($average, 1)) }}</p>
                 <div>
                     <x-site.stars :rating="(int) round($average)" class="[&_svg]:size-5" />
                     <p class="sec-text mt-1.5 text-[15px]">{{ trans_choice('Average of :count review|Average of :count reviews', $ratedCount, ['count' => Money::digits($ratedCount)]) }}</p>

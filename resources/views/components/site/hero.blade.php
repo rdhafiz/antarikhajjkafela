@@ -55,7 +55,7 @@
                         <dd @class([
                             'font-display text-xl font-semibold text-gold sm:text-3xl' => ! ($stat['small'] ?? false),
                             'flex min-h-8 items-center gap-2 text-[15px] font-semibold text-white sm:min-h-9 sm:text-lg' => $stat['small'] ?? false,
-                        ])>{{ $stat['value'] }}</dd>
+                        ]) @unless ($stat['small'] ?? false) data-count @endunless>{{ $stat['value'] }}</dd>
                     </div>
                 @endforeach
             </dl>

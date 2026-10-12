@@ -200,7 +200,7 @@
                         @if ($p['duration'])
                             <div class="rounded-2xl border border-white/10 bg-white/[0.05] p-5" data-reveal style="--reveal-delay: 80ms">
                                 <dt class="text-[12px] font-semibold tracking-[0.14em] text-white/55 uppercase">{{ __('Duration') }}</dt>
-                                <dd class="mt-1 font-display text-2xl font-semibold text-gold">{{ trans_choice(':count day|:count days', $p['duration'], ['count' => Money::digits($p['duration'])]) }}</dd>
+                                <dd class="mt-1 font-display text-2xl font-semibold text-gold" data-count>{{ trans_choice(':count day|:count days', $p['duration'], ['count' => Money::digits($p['duration'])]) }}</dd>
                             </div>
                         @endif
                         <div class="rounded-2xl border border-white/10 bg-white/[0.05] p-5" data-reveal style="--reveal-delay: 180ms">
