@@ -53,7 +53,6 @@ const sections = computed(() => {
 
     return result;
 });
-const titledSections = computed(() => sections.value.map((s, i) => ({ title: s.title, index: i })).filter((s) => s.title));
 
 const pairable = ['color', 'string', 'phone', 'email', 'url', 'select', 'secret'];
 const twoColumns = (fields: SettingFieldDefinition[]) => fields.length > 1 && fields.every((f) => pairable.includes(f.type) && !f.translatable);
@@ -175,10 +174,6 @@ async function focusField(hash: string): Promise<void> {
     window.setTimeout(() => el.classList.remove('st-flash'), 2000);
 }
 
-function jumpTo(index: number): void {
-    document.getElementById(`st-s-${index}`)?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
-}
-
 async function enter(to: RouteLocationNormalized): Promise<void> {
     const key = String(to.params.group ?? '');
     if (key !== (group.value?.key ?? '')) await loadGroup(key);
@@ -241,31 +236,26 @@ onBeforeUnmount(() => {
         </template>
 
         <!-- One section -->
-        <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-7 lg:grid-cols-[248px_minmax(0,1fr)]" :style="{ '--tone': tone }">
-            <nav class="hidden h-fit lg:sticky lg:top-24 lg:block" aria-label="Settings sections">
-                <RouterLink :to="{ name: 'settings' }" class="st-back mb-5 flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13.5px] font-semibold text-ink-soft hover:bg-white hover:text-ink">
-                    <span class="flex size-8 items-center justify-center rounded-lg bg-white ring-1 ring-line"><LayoutGrid class="size-4" /></span>
+        <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-7 lg:grid-cols-[264px_minmax(0,1fr)]" :style="{ '--tone': tone }">
+            <nav class="st-rail card hidden h-fit p-3 lg:sticky lg:top-24 lg:block" aria-label="Settings sections">
+                <RouterLink :to="{ name: 'settings' }" class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-[14px] font-semibold text-ink-soft hover:bg-canvas hover:text-ink">
+                    <span class="flex size-8 items-center justify-center rounded-lg bg-canvas text-ink-soft"><LayoutGrid class="size-4" /></span>
                     All settings
                 </RouterLink>
-                <div class="space-y-5">
+                <div class="mt-2 space-y-4 border-t border-line pt-4">
                     <div v-for="section in navigation" :key="section.label">
                         <p class="mb-1.5 px-2.5 text-[11px] font-bold tracking-[0.12em] text-ink-muted uppercase">{{ section.label }}</p>
-                        <div v-for="item in section.groups" :key="item.key">
+                        <div v-for="item in section.groups" :key="item.key" class="mb-0.5">
                             <RouterLink
                                 :to="{ name: 'settings', params: { group: item.key } }"
-                                class="st-link flex items-center gap-3 rounded-xl px-2.5 py-2 text-[14px] font-medium transition-colors"
-                                :class="groupKey === item.key ? 'is-active bg-white text-ink shadow-[var(--shadow-card)] ring-1 ring-line' : 'text-ink-soft hover:bg-white/70 hover:text-ink'"
+                                class="st-link st-rail-link flex items-center gap-3 rounded-xl px-2.5 py-2 text-[14px] font-medium"
+                                :class="groupKey === item.key ? 'is-active font-semibold text-ink' : 'text-ink-soft hover:bg-canvas hover:text-ink'"
                                 :style="{ '--tone': groupTone(item.icon) }"
                                 :aria-current="groupKey === item.key ? 'page' : undefined"
                             >
                                 <span class="st-icon flex size-8 shrink-0 items-center justify-center rounded-lg"><component :is="groupIcon(item.icon)" class="size-4" /></span>
                                 <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
                             </RouterLink>
-                            <ul v-if="groupKey === item.key && group?.key === item.key && titledSections.length > 1" class="st-sub mt-1 mb-2 ml-[26px] space-y-0.5 border-l border-line pl-3">
-                                <li v-for="sub in titledSections" :key="sub.index">
-                                    <button type="button" class="w-full rounded-md px-2 py-1 text-left text-[13px] text-ink-soft hover:bg-white hover:text-ink" @click="jumpTo(sub.index)">{{ sub.title }}</button>
-                                </li>
-                            </ul>
                         </div>
                     </div>
                 </div>
@@ -294,26 +284,16 @@ onBeforeUnmount(() => {
                     </div>
 
                     <form v-else :key="group.key" class="st-form" novalidate @submit.prevent="save">
-                        <!-- Section hero -->
-                        <header class="st-hero card relative overflow-hidden p-5 sm:p-7">
-                            <span class="st-hero-glow pointer-events-none absolute -top-24 -right-20 size-72 rounded-full" aria-hidden="true" />
-                            <div class="relative flex flex-wrap items-start gap-4 sm:gap-5">
-                                <span class="ph-tile flex size-14 shrink-0 items-center justify-center rounded-2xl" aria-hidden="true"><component :is="groupIcon(current?.icon)" class="size-6" /></span>
-                                <div class="min-w-0 flex-1 basis-56">
-                                    <p class="text-[11.5px] font-bold tracking-[0.14em] text-ink-muted uppercase">{{ navigation.find((s) => s.groups.some((g) => g.key === group?.key))?.label ?? 'Settings' }}</p>
-                                    <h1 class="mt-0.5 text-[22px] leading-tight font-bold tracking-[-0.01em] text-ink sm:text-[26px]">{{ group.label }}</h1>
-                                    <p v-if="group.description" class="mt-1.5 max-w-2xl text-[14px] leading-relaxed text-ink-soft">{{ group.description }}</p>
-                                </div>
-                                <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-col sm:items-end">
-                                    <span v-if="!canEdit" class="inline-flex items-center gap-1.5 rounded-full bg-canvas px-3 py-1 text-[12.5px] font-semibold text-ink-soft"><Eye class="size-3.5" />View only</span>
-                                    <span v-else-if="dirty" class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-[12.5px] font-semibold text-amber-800"><span class="size-1.5 rounded-full bg-amber-500" />Unsaved changes</span>
-                                    <span v-else class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[12.5px] font-semibold text-emerald-700" :class="{ 'st-pop': justSaved }"><CheckCircle2 class="size-3.5" />All changes saved</span>
-                                    <span v-if="current" class="inline-flex items-center gap-2 text-[12.5px] font-medium text-ink-soft">
-                                        <span class="st-meter h-1.5 w-20 overflow-hidden rounded-full" aria-hidden="true"><span class="block h-full rounded-full" :style="{ width: `${current.total ? (current.filled / current.total) * 100 : 0}%` }" /></span>
-                                        {{ current.filled }} of {{ current.total }} filled
-                                    </span>
-                                </div>
+                        <!-- Compact section header -->
+                        <header class="flex flex-wrap items-center gap-x-3.5 gap-y-2">
+                            <span class="ph-tile flex size-10 shrink-0 items-center justify-center rounded-xl" aria-hidden="true"><component :is="groupIcon(current?.icon)" class="size-5" /></span>
+                            <div class="min-w-0 flex-1 basis-60">
+                                <h1 class="text-[19px] leading-tight font-bold text-ink">{{ group.label }}</h1>
+                                <p v-if="group.description" class="mt-0.5 text-[13.5px] text-ink-soft">{{ group.description }}</p>
                             </div>
+                            <span v-if="!canEdit" class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[12.5px] font-semibold text-ink-soft ring-1 ring-line"><Eye class="size-3.5" />View only</span>
+                            <span v-else-if="dirty" class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-[12.5px] font-semibold text-amber-800 ring-1 ring-amber-200"><span class="size-1.5 rounded-full bg-amber-500" />Unsaved changes</span>
+                            <span v-else class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[12.5px] font-semibold text-emerald-700 ring-1 ring-emerald-200" :class="{ 'st-pop': justSaved }"><CheckCircle2 class="size-3.5" />All changes saved</span>
                         </header>
 
                         <div class="mt-5" :class="{ 'xl:grid xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start xl:gap-6': group.key === 'theme' }">
