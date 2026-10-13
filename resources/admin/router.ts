@@ -14,12 +14,11 @@ declare module 'vue-router' {
 
 const routes: RouteRecordRaw[] = [
     {
-        path: '/admin',
+        // Its own path: a guest layout at "/admin" would also match the dashboard URL and skip the sign-in redirect.
+        path: '/admin/login',
         component: () => import('@admin/layouts/AuthLayout.vue'),
         meta: { guest: true },
-        children: [
-            { path: 'login', name: 'login', component: () => import('@admin/pages/auth/LoginPage.vue'), meta: { guest: true, title: 'Sign in' } },
-        ],
+        children: [{ path: '', name: 'login', component: () => import('@admin/pages/auth/LoginPage.vue'), meta: { guest: true, title: 'Sign in' } }],
     },
     {
         path: '/admin',
