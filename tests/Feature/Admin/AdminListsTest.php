@@ -69,7 +69,13 @@ class AdminListsTest extends AdminTestCase
             ->assertJsonPath('meta.total', $total)
             ->assertJsonPath('meta.per_page', 1)
             ->assertJsonPath('meta.from', 1)
-            ->assertJsonPath('meta.to', 1);
+            ->assertJsonPath('meta.to', 1)
+            ->assertJsonStructure(['data' => [['banner_url', 'prices_count', 'hotels_count', 'flights_count', 'sections_count']]]);
+
+        $umrah = collect($admin->getJson('/api/admin/packages?search=umrah-package')->json('data'))->firstWhere('slug', 'umrah-package');
+        $package = Package::where('slug', 'umrah-package')->first();
+        $this->assertSame($package->prices()->count(), $umrah['prices_count']);
+        $this->assertSame(count($package->flights ?? []), $umrah['flights_count']);
 
         Package::where('slug', 'umrah-package')->update(['status' => 'draft']);
 

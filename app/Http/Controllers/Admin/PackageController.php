@@ -33,7 +33,7 @@ class PackageController extends Controller
         ]);
 
         $packages = Package::query()
-            ->with('service')
+            ->with(['service', 'banner', 'prices'])
             ->withCount('types')
             ->when($filters['service_id'] ?? null, fn ($q, $id) => $q->where('service_id', $id))
             ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
@@ -59,6 +59,13 @@ class PackageController extends Controller
             'min_price' => $p->min_price !== null ? (float) $p->min_price : null,
             'types_count' => $p->types_count,
             'banner_id' => $p->banner_id,
+            'banner_url' => $p->banner?->url('admin'),
+            // What the package includes, for the list's quick-glance chips.
+            'prices_count' => $p->prices->count(),
+            'hotels_count' => $p->prices->flatMap(fn ($price) => $price->hotels ?? [])
+                ->map(fn ($hotel) => json_encode([$hotel['heading'] ?? null, $hotel['subheading'] ?? null]))->unique()->count(),
+            'flights_count' => count($p->flights ?? []),
+            'sections_count' => count($p->sections ?? []),
             'updated_at' => $p->updated_at?->toIso8601String(),
         ]);
     }

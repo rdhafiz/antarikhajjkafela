@@ -11,7 +11,7 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | hajj-crowd.webp | Hajj service, other Hajj packages | ekrem osmanoglu | https://unsplash.com/photos/0bdDM8n8wYw |
 | hajj-premium.webp | Hajj Premium Package | Haidan | https://unsplash.com/photos/8Kg-2kK97Xc |
 | hajj-regular.webp | Hajj Regular Package | tasnim umar | https://unsplash.com/photos/blbwkwHPItE |
-| haram-wide.webp | Default page banner; Umrah fallback | Jubair Hossain | https://unsplash.com/photos/WuIroq-Q1hY |
+| haram-wide.webp | Default page banner; Umrah fallback; admin Packages header (cropped copy in `resources/admin/assets/packages-banner.webp`) | Jubair Hossain | https://unsplash.com/photos/WuIroq-Q1hY |
 | madinah-golden.webp | About | Sulthan Auliya | https://unsplash.com/photos/rzzS0_pMsD0 |
 | makkah-hotels.webp | Services | Sikiru Salami | https://unsplash.com/photos/jZp68sRx2w4 |
 | madinah-umbrellas.webp | Contact | Haidan | https://unsplash.com/photos/RhkbHU14MoA |
