@@ -11,6 +11,10 @@ use Throwable;
 /**
  * Menus as rendered on the public website: visible items only, labels in
  * the current language, links resolved to URLs. Cached until a menu is saved.
+ *
+ * The cache keeps site links as paths ("/hajj") and adds the domain on each
+ * request, so a cache built under another host (a CLI run, a copied
+ * database or storage folder) never sends visitors to that host.
  */
 class MenuRepository
 {
@@ -74,7 +78,7 @@ class MenuRepository
         return $byParent->get($parentId ?? '', collect())
             ->map(fn (MenuItem $item) => [
                 'label' => $item->getTranslations('label'),
-                'url' => $this->links->resolve($item->link_type, $item->link_target, $item->url),
+                'url' => $this->toPath($this->links->resolve($item->link_type, $item->link_target, $item->url)),
                 'new_tab' => $item->open_in_new_tab,
                 'children' => $this->branch($byParent, $item->id),
             ])
@@ -92,14 +96,44 @@ class MenuRepository
 
         return array_map(fn ($item) => [
             'label' => $item['label'][$locale] ?? $item['label'][$fallback] ?? collect($item['label'])->first(),
-            'url' => $item['url'],
+            'url' => $this->toUrl($item['url']),
             'new_tab' => $item['new_tab'],
             'children' => $this->localize($item['children'], $locale),
         ], $items);
     }
 
+    /**
+     * Strip this site's own root from a URL; other sites stay as they are.
+     */
+    private function toPath(?string $url): ?string
+    {
+        if ($url === null) {
+            return null;
+        }
+
+        $root = rtrim(url('/'), '/');
+
+        if ($url === $root) {
+            return '/';
+        }
+
+        foreach (['/', '?', '#'] as $next) {
+            if (str_starts_with($url, $root.$next)) {
+                return ($next === '/' ? '' : '/').substr($url, strlen($root));
+            }
+        }
+
+        return $url;
+    }
+
+    private function toUrl(?string $url): ?string
+    {
+        return $url !== null && str_starts_with($url, '/') && ! str_starts_with($url, '//') ? url($url) : $url;
+    }
+
+    /** "v2": entries from before paths were cached held full URLs. */
     private function cacheKey(string $location): string
     {
-        return "menus.{$location}";
+        return "menus.v2.{$location}";
     }
 }

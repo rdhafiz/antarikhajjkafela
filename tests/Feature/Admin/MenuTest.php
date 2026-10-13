@@ -6,6 +6,7 @@ use App\Domain\Menus\MenuRepository;
 use App\Models\Menu;
 use App\Models\MenuItem;
 use Database\Seeders\MenuSeeder;
+use Illuminate\Support\Facades\URL;
 
 class MenuTest extends AdminTestCase
 {
@@ -125,6 +126,25 @@ class MenuTest extends AdminTestCase
 
         app()->setLocale('en');
         $this->assertSame(['Home'], array_column($repository->tree('primary'), 'label'));
+    }
+
+    public function test_cached_links_follow_the_current_domain(): void
+    {
+        $this->seed(MenuSeeder::class);
+        $repository = app(MenuRepository::class);
+
+        // Built under one host (e.g. a CLI run with the local APP_URL)...
+        URL::forceRootUrl('http://antarikhajjkafela.test');
+        $repository->tree('primary');
+
+        // ...and served on the live domain from the same cache.
+        URL::forceRootUrl('http://example.com');
+        $tree = $repository->tree('primary');
+
+        $this->assertSame('http://example.com', $tree[0]['url']);
+        $this->assertSame('http://example.com/hajj', $tree[1]['url']);
+
+        URL::forceRootUrl(null);
     }
 
     public function test_menu_permissions_are_enforced(): void
