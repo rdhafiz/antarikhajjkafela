@@ -1445,3 +1445,83 @@ span.flatpickr-weekday {
         opacity: 0;
     }
 }
+
+/*
+ * Modals (AppModal, confirm dialog): a soft rise-and-scale in, a quicker fade
+ * out and a bottom sheet on phones. Outside clicks never close a modal (AppModal
+ * gives a short pulse instead).
+ */
+.mdl-overlay[data-state='open'] {
+    animation: mdl-fade-in 260ms ease-out;
+}
+
+.mdl-overlay[data-state='closed'] {
+    animation: mdl-fade-out 200ms ease-in forwards;
+}
+
+.mdl-panel[data-state='open'] {
+    animation: mdl-in 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mdl-panel[data-state='closed'] {
+    animation: mdl-out 200ms ease-in forwards;
+}
+
+@media (max-width: 639px) {
+    .mdl-panel[data-state='open'] {
+        animation-name: mdl-sheet-in;
+    }
+
+    .mdl-panel[data-state='closed'] {
+        animation-name: mdl-sheet-out;
+    }
+}
+
+@keyframes mdl-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes mdl-fade-out {
+    to {
+        opacity: 0;
+    }
+}
+
+/* `transform` adds to the centring done with the `translate` property, so the panel never jumps. */
+@keyframes mdl-in {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.95);
+    }
+}
+
+@keyframes mdl-out {
+    to {
+        opacity: 0;
+        transform: translateY(10px) scale(0.97);
+    }
+}
+
+@keyframes mdl-sheet-in {
+    from {
+        transform: translateY(100%);
+    }
+}
+
+@keyframes mdl-sheet-out {
+    to {
+        transform: translateY(100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mdl-panel[data-state='open'] {
+        animation: mdl-fade-in 150ms ease-out;
+    }
+
+    .mdl-panel[data-state='closed'] {
+        animation: mdl-fade-out 120ms ease-in forwards;
+    }
+}
