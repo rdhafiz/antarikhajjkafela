@@ -5,11 +5,26 @@
 @source '../views/admin';
 
 /*
+ * The taka sign (U+09F3) on its own face. The shared Noto Sans Bengali face uses
+ * font-display: optional, so on a first visit the sign fell back to the system
+ * font (a thin, broken-looking glyph in Segoe UI). This face swaps in instead,
+ * and is only downloaded on screens that show an amount.
+ */
+@font-face {
+    font-family: 'AHK Taka';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('../fonts/noto-sans-bengali-bengali-400-700.woff2') format('woff2');
+    unicode-range: U+09F3;
+}
+
+/*
  * Admin design tokens. Brand colors come from the admin theme settings
  * (injected as CSS variables by the shell); everything else is fixed.
  */
 @theme inline {
-    --font-sans: 'Plus Jakarta Sans', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'AHK Taka', 'Plus Jakarta Sans', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
 
     --color-brand: var(--admin-primary);
     --color-brand-soft: color-mix(in oklab, var(--admin-primary) 8%, white);
