@@ -14,6 +14,9 @@ implementation is `resources/admin/pages/travel/PackagesPage.vue`; copy its patt
 | `TabSwitcher` | `v-model`, `:options="[{ value, label, count?, icon?, tone?, alert? }]"` (`alert` = red dot, e.g. a tab with errors), `label`, `variant="pills"\|"underline"`. Wraps on wide screens; on phones it is one button that opens a drawer. Use it for every tab strip or filter-chip strip. |
 | `AppDatePicker` | flatpickr. `v-model` keeps the API format: `mode="date"` → `YYYY-MM-DD`, `mode="datetime"` → `YYYY-MM-DDTHH:mm`. Props `id`, `placeholder`, `minDate`, `maxDate`, `clearable`, `invalid`. Every date or date-time field uses it (no `<input type="date|datetime-local">`). |
 | `PhoneInput` | intl-tel-input. `v-model` (saves `+880 1711-381901`), `id`, `error` (server error), `country` (default `bd`). Every phone field uses it. The server validates with `Propaganistas\LaravelPhone\Rules\Phone`. |
+| `ListHero` | Page header with a photo fading in from the right: `title`, `description`, `icon`, `tone`, `photo` (import from `resources/admin/assets`), `#actions`. Used by Packages and Bookings. |
+| `ListToolbar` | One row above a list: `v-model:search`, `placeholder`, `:active` (count of set filters) and `@filters` (opens the drawer); extras such as a view switch go in the default slot. |
+| `FilterDrawer` | Every filter of a list as chip groups (`groups: [{ key, label, icon, tone, options: [{ value, label, count? }] }]`) bound to `filters[key]`, plus a slot for other controls (e.g. a date range). Footer: Clear all and "Show N …". |
 | `EmptyState`, `AppBadge`, `AppButton`, `AppModal`, `FormField`, `AppSpinner` | Unchanged APIs. |
 
 `composables/useListQuery.ts` drives every server-paginated list:
@@ -38,8 +41,10 @@ Call `list.load()` in `onMounted`. Filter values are strings (`''` = not set); s
    of details, then an "Actions" list of
    `<button|a|RouterLink class="dw-action"><span class="dw-action-icon" style="--tone: #hex"><Icon class="size-4" /></span>Label</…>`
    (`dw-action is-danger` for delete). Close the drawer after an action and reload the list.
-3. **Filters and pagination.** Server-paginated lists use `useListQuery` + `FilterBar` +
-   `AppPagination` (with `@per-page`). Short drag-sorted lists (services, reviews) filter on the
+3. **Filters and pagination.** Server-paginated lists use `useListQuery` + `AppPagination`
+   (with `@per-page`), and either `FilterBar` or, on the redesigned lists (Packages, Bookings),
+   `ListToolbar` + `FilterDrawer`. Rows there are card/row components laid out with container
+   queries (`PackageListItem`, `BookingListItem`) and a ⋮ menu styled with `.lm-item`/`.lm-icon`. Short drag-sorted lists (services, reviews) filter on the
    client instead; disable dragging while a filter or search is active.
 4. **Colourful, meaningful icons** (lucide-vue-next). Palette: indigo `#818cf8`, green `#34d399`,
    sky `#38bdf8`, amber `#fbbf24`, violet `#a78bfa`, blue `#60a5fa`, rose `#fb7185`,

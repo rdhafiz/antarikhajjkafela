@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, type Component } from 'vue';
 import {
+    ArrowDownUp,
     Ban,
     BadgeCheck,
     CalendarCheck,
     CalendarDays,
-    ChevronRight,
+    CalendarRange,
     CircleCheckBig,
     Clock,
     Download,
@@ -22,13 +23,15 @@ import {
 } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
+import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
 import AppDrawer from '@admin/components/ui/AppDrawer.vue';
 import AppPagination from '@admin/components/ui/AppPagination.vue';
-import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
-import FilterBar from '@admin/components/ui/FilterBar.vue';
-import PageHeader from '@admin/components/ui/PageHeader.vue';
-import TabSwitcher, { type TabOption } from '@admin/components/ui/TabSwitcher.vue';
+import FilterDrawer, { type FilterGroup } from '@admin/components/ui/FilterDrawer.vue';
+import ListHero from '@admin/components/ui/ListHero.vue';
+import ListToolbar from '@admin/components/ui/ListToolbar.vue';
+import BookingListItem from './BookingListItem.vue';
+import headerPhoto from '@admin/assets/bookings-header.webp';
 import { pickText } from '@admin/pages/content/builder/types';
 import { useListQuery } from '@admin/composables/useListQuery';
 import { http, type Paginated } from '@admin/lib/http';
@@ -37,17 +40,16 @@ import { useAppStore } from '@admin/stores/app';
 import type { Translations } from '@admin/types';
 import { money, statusTone, type BookingRow, type BookingStatus } from './types';
 
-/** The list rows don't carry an email today; shown only if the API adds it. */
-type Row = BookingRow & { customer_email?: string | null };
-type BookingsResponse = Paginated<Row> & { counts: Partial<Record<BookingStatus, number>>; statuses: Record<BookingStatus, string> };
+type BookingsResponse = Paginated<BookingRow> & { counts: Partial<Record<BookingStatus, number>>; statuses: Record<BookingStatus, string> };
 
 const app = useAppStore();
 
-const list = useListQuery<Row, BookingsResponse>('/bookings', { status: '', package_id: '' });
+const list = useListQuery<BookingRow, BookingsResponse>('/bookings', { status: '', package_id: '', payment: '', from: '', to: '', sort: '' });
 const packages = ref<{ id: number; name: Translations }[]>([]);
 
-const current = ref<Row | null>(null);
+const current = ref<BookingRow | null>(null);
 const drawerOpen = ref(false);
+const filtersOpen = ref(false);
 
 const statusMeta: Record<BookingStatus, { icon: Component; tone: string }> = {
     pending: { icon: Clock, tone: '#fbbf24' },
@@ -61,35 +63,72 @@ const statusMeta: Record<BookingStatus, { icon: Component; tone: string }> = {
 const statuses = computed(() => list.response.value?.statuses ?? ({} as Record<BookingStatus, string>));
 const counts = computed(() => list.response.value?.counts ?? {});
 const statusLabel = (status: BookingStatus) => statuses.value[status] ?? status;
+const total = computed(() => list.meta.value?.total ?? 0);
 
-const statusOptions = computed<TabOption<string>[]>(() => {
+/** Every filter in the drawer ('' = any). Status shows how many bookings each one has. */
+const filterGroups = computed<FilterGroup[]>(() => {
     const all = Object.values(counts.value).reduce<number>((sum, n) => sum + (n ?? 0), 0);
     return [
-        { value: '', label: 'All', count: list.response.value ? all : null, icon: LayoutList, tone: '#818cf8' },
-        ...(Object.keys(statuses.value) as BookingStatus[]).map((key) => ({
-            value: key,
-            label: statuses.value[key],
-            count: counts.value[key] ?? 0,
-            icon: statusMeta[key]?.icon,
-            tone: statusMeta[key]?.tone,
-        })),
+        {
+            key: 'status',
+            label: 'Status',
+            icon: LayoutList,
+            tone: '#818cf8',
+            options: [
+                { value: '', label: 'All', count: list.response.value ? all : null },
+                ...(Object.keys(statuses.value) as BookingStatus[]).map((key) => ({ value: key, label: statuses.value[key], count: counts.value[key] ?? 0 })),
+            ],
+        },
+        {
+            key: 'package_id',
+            label: 'Package',
+            icon: PackageIcon,
+            tone: '#a78bfa',
+            options: [{ value: '', label: 'All packages' }, ...packages.value.map((p) => ({ value: String(p.id), label: pickText(p.name, app.defaultLocale) }))],
+        },
+        {
+            key: 'payment',
+            label: 'Payment',
+            icon: Wallet,
+            tone: '#34d399',
+            options: [
+                { value: '', label: 'Any' },
+                { value: 'unpaid', label: 'Nothing paid' },
+                { value: 'partial', label: 'Part paid' },
+                { value: 'paid', label: 'Paid in full' },
+            ],
+        },
+        {
+            key: 'sort',
+            label: 'Sort by',
+            icon: ArrowDownUp,
+            tone: '#fbbf24',
+            options: [
+                { value: '', label: 'Newest first' },
+                { value: 'oldest', label: 'Oldest first' },
+                { value: 'total_desc', label: 'Highest total' },
+                { value: 'balance_desc', label: 'Most due' },
+            ],
+        },
     ];
 });
 
-const statusModel = computed({
-    get: () => String(list.filters.status),
-    set: (value: string) => (list.filters.status = value),
-});
+const activeFilters = computed(
+    () => (['status', 'package_id', 'payment'] as const).filter((key) => list.filters[key] !== '').length + (list.filters.from || list.filters.to ? 1 : 0),
+);
+const filtered = computed(() => Boolean(list.filters.search) || activeFilters.value > 0);
 
-const summary = computed(() => (list.meta.value ? `${list.meta.value.total} ${list.meta.value.total === 1 ? 'booking' : 'bookings'}` : ''));
-const hasFilters = computed(() => Boolean(list.filters.search) || list.active.value > 0);
+// The date pickers give null when cleared; the list keeps '' for "any".
+const fromDate = computed({ get: () => (list.filters.from as string) || null, set: (v: string | null) => (list.filters.from = v ?? '') });
+const toDate = computed({ get: () => (list.filters.to as string) || null, set: (v: string | null) => (list.filters.to = v ?? '') });
 
+const paidPercent = computed(() => (current.value && current.value.total > 0 ? Math.min(100, Math.round((current.value.paid_amount / current.value.total) * 100)) : 0));
 const whatsapp = computed(() => {
     const digits = (current.value?.customer_phone ?? '').replace(/\D/g, '');
     return digits ? `https://wa.me/${digits.startsWith('0') ? `88${digits}` : digits}` : null;
 });
 
-function open(row: Row): void {
+function open(row: BookingRow): void {
     current.value = row;
     drawerOpen.value = true;
 }
@@ -100,11 +139,8 @@ function clearAll(): void {
 }
 
 function exportCsv(): void {
-    const params = new URLSearchParams(
-        Object.entries({ status: list.filters.status, package_id: list.filters.package_id, search: list.filters.search })
-            .filter(([, v]) => v !== '')
-            .map(([k, v]) => [k, String(v)]),
-    );
+    const keys = ['status', 'package_id', 'payment', 'from', 'to', 'search'] as const;
+    const params = new URLSearchParams(keys.filter((k) => list.filters[k] !== '').map((k) => [k, String(list.filters[k])]));
     window.location.href = `/api/admin/bookings/export?${params}`;
 }
 
@@ -120,72 +156,73 @@ onMounted(async () => {
 
 <template>
     <div>
-        <PageHeader title="Bookings" description="Bookings from the website, their payments and documents.">
+        <!-- Header with a Madinah photo -->
+        <ListHero title="Bookings" description="Bookings from the website, their payments and documents." :icon="CalendarCheck" tone="#34d399" :photo="headerPhoto" photo-position="50% 45%">
             <template #actions>
                 <AppButton variant="secondary" :icon="Download" @click="exportCsv">Export CSV</AppButton>
             </template>
-        </PageHeader>
+        </ListHero>
 
-        <TabSwitcher v-model="statusModel" :options="statusOptions" label="Show bookings" class="mb-4" />
+        <!-- Search and filters in one row -->
+        <ListToolbar v-model:search="list.filters.search as string" placeholder="Reference, name, phone or email" :active="activeFilters" @filters="filtersOpen = true" />
 
-        <FilterBar v-model:search="list.filters.search as string" placeholder="Reference, name, phone or email" :active="list.active.value" :summary="summary" @clear="list.clear">
-            <select v-model="list.filters.package_id" class="control md:w-56" aria-label="Filter by package">
-                <option value="">All packages</option>
-                <option v-for="pkg in packages" :key="pkg.id" :value="String(pkg.id)">{{ pickText(pkg.name, app.defaultLocale) }}</option>
-            </select>
-        </FilterBar>
-
-        <div class="card overflow-hidden">
-            <div v-if="list.loading.value && !list.rows.value.length" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
+        <!-- Bookings -->
+        <div v-if="list.loading.value && !list.rows.value.length" class="grid gap-4" aria-busy="true" aria-label="Loading bookings">
+            <div v-for="n in 3" :key="n" class="card h-[260px] animate-pulse sm:h-[124px]" />
+        </div>
+        <div v-else-if="!list.rows.value.length" class="card">
             <EmptyState
-                v-else-if="!list.rows.value.length"
                 :icon="CalendarCheck"
-                :title="hasFilters ? 'No bookings match' : 'No bookings yet'"
-                :description="hasFilters ? 'Try another search or clear the filters.' : 'Bookings made on the package pages appear here.'"
+                :title="filtered ? 'No bookings match' : 'No bookings yet'"
+                :description="filtered ? 'Try another search or clear the filters.' : 'Bookings made on the package pages appear here.'"
             >
-                <AppButton v-if="hasFilters" variant="secondary" @click="clearAll">Clear filters</AppButton>
+                <AppButton v-if="filtered" variant="secondary" @click="clearAll">Clear filters</AppButton>
             </EmptyState>
-            <table v-else class="dt" :class="{ 'opacity-60 transition-opacity': list.loading.value }">
-                <thead>
-                    <tr>
-                        <th>Booking</th>
-                        <th>Customer</th>
-                        <th>Package</th>
-                        <th>Total</th>
-                        <th>Balance</th>
-                        <th>Status</th>
-                        <th class="dt-trigger"><span class="sr-only">Open</span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="row in list.rows.value" :key="row.id" class="dt-row" @click="open(row)">
-                        <td>
-                            <p class="flex items-center gap-2 font-semibold text-ink">
-                                <span v-if="row.is_unread" class="size-2 shrink-0 rounded-full bg-brand" aria-label="New" />
-                                {{ row.reference }}
-                            </p>
-                            <p class="mt-0.5 text-[12.5px] text-ink-muted">{{ formatDate(row.created_at, true) }}</p>
-                        </td>
-                        <td data-label="Customer">
-                            <p class="font-medium text-ink">{{ row.customer_name }}</p>
-                            <p class="text-[12px] text-ink-muted">{{ row.customer_phone }}</p>
-                        </td>
-                        <td data-label="Package" class="dt-hide-sm">
-                            <p class="text-ink">{{ row.package ?? '—' }}</p>
-                            <p class="text-[12px] text-ink-muted">{{ row.option }} · {{ row.travelers }} traveler{{ row.travelers > 1 ? 's' : '' }}</p>
-                        </td>
-                        <td data-label="Total" class="font-semibold whitespace-nowrap text-ink">{{ money(row.total) }}</td>
-                        <td data-label="Balance" class="whitespace-nowrap" :class="row.balance > 0 ? 'text-ink' : 'text-emerald-700'">{{ row.balance > 0 ? money(row.balance) : 'Paid' }}</td>
-                        <td data-label="Status"><AppBadge :tone="statusTone[row.status]">{{ statusLabel(row.status) }}</AppBadge></td>
-                        <td class="dt-trigger">
-                            <button type="button" class="dt-open" :aria-label="`Open booking ${row.reference}`" @click.stop="open(row)"><ChevronRight class="size-4" /></button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        </div>
+        <div v-else class="bk-list" :class="{ 'opacity-60 transition-opacity': list.loading.value }">
+            <div class="grid gap-4">
+                <BookingListItem
+                    v-for="(row, i) in list.rows.value"
+                    :key="row.id"
+                    :row="row"
+                    :status-label="statusLabel(row.status)"
+                    :status="statusMeta[row.status]"
+                    :index="i"
+                    @open="open(row)"
+                />
+            </div>
         </div>
 
-        <AppPagination v-if="list.meta.value" :meta="list.meta.value" label="bookings" @change="list.goTo" @per-page="list.setPerPage" />
+        <AppPagination v-if="list.meta.value && list.rows.value.length" :meta="list.meta.value" label="bookings" @change="list.goTo" @per-page="list.setPerPage" />
+
+        <!-- All filters -->
+        <FilterDrawer
+            v-model:open="filtersOpen"
+            :filters="list.filters"
+            :groups="filterGroups"
+            :total="total"
+            :noun="['booking', 'bookings']"
+            :loading="list.loading.value"
+            :can-clear="activeFilters > 0 || list.filters.sort !== ''"
+            @clear="list.clear()"
+        >
+            <fieldset class="min-w-0">
+                <legend class="mb-2.5 flex items-center gap-2 text-[13.5px] font-bold text-ink">
+                    <span class="fd-icon" style="--tone: #38bdf8"><CalendarRange class="size-4" aria-hidden="true" /></span>
+                    Booked between
+                </legend>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label for="bk-from" class="mb-1 block text-[12.5px] font-semibold text-ink-soft">From</label>
+                        <AppDatePicker id="bk-from" v-model="fromDate" placeholder="Any day" :max-date="toDate" />
+                    </div>
+                    <div>
+                        <label for="bk-to" class="mb-1 block text-[12.5px] font-semibold text-ink-soft">To</label>
+                        <AppDatePicker id="bk-to" v-model="toDate" placeholder="Any day" :min-date="fromDate" />
+                    </div>
+                </div>
+            </fieldset>
+        </FilterDrawer>
 
         <!-- Preview and actions -->
         <AppDrawer
@@ -195,13 +232,25 @@ onMounted(async () => {
             :icon="CalendarCheck"
         >
             <template v-if="current">
+                <img v-if="current.package_photo" :src="current.package_photo" alt="" class="mb-5 aspect-[16/9] w-full rounded-2xl object-cover" />
                 <div class="flex flex-wrap gap-2">
                     <AppBadge :tone="statusTone[current.status]">{{ statusLabel(current.status) }}</AppBadge>
                     <AppBadge v-if="current.is_unread" tone="brand">New</AppBadge>
-                    <AppBadge v-if="current.balance <= 0" tone="success">Paid in full</AppBadge>
+                    <AppBadge v-if="current.total > 0 && current.balance <= 0" tone="success">Paid in full</AppBadge>
                 </div>
 
-                <dl class="dl mt-5 rounded-2xl bg-canvas p-4">
+                <div class="mt-5 rounded-2xl border border-line p-4">
+                    <div class="flex items-baseline justify-between gap-3">
+                        <span class="text-[12px] font-semibold tracking-[0.08em] text-ink-soft uppercase">Paid</span>
+                        <span class="text-[13px] font-semibold text-ink tabular-nums">{{ money(current.paid_amount) }} of {{ money(current.total) }}</span>
+                    </div>
+                    <div class="mt-2 h-2 overflow-hidden rounded-full bg-emerald-100" role="progressbar" :aria-valuenow="paidPercent" aria-valuemin="0" aria-valuemax="100" aria-label="Paid">
+                        <span class="block h-full rounded-full bg-emerald-600" :style="{ width: `${paidPercent}%` }" />
+                    </div>
+                    <p class="mt-2 text-[13px] text-ink-soft">{{ current.balance > 0 ? `${money(current.balance)} still due` : 'Nothing left to pay' }}</p>
+                </div>
+
+                <dl class="dl mt-4 rounded-2xl bg-canvas p-4">
                     <dt class="flex items-center gap-2"><Hash class="size-4 text-indigo-500" />Reference</dt>
                     <dd>{{ current.reference }}</dd>
                     <dt class="flex items-center gap-2"><Users class="size-4 text-sky-600" />Customer</dt>
@@ -210,12 +259,6 @@ onMounted(async () => {
                     <dd>{{ current.package ?? '—' }}<template v-if="current.option"><br /><span class="text-ink-muted">{{ current.option }}</span></template></dd>
                     <dt class="flex items-center gap-2"><Users class="size-4 text-teal-600" />Travellers</dt>
                     <dd>{{ current.travelers }}</dd>
-                    <dt class="flex items-center gap-2"><Wallet class="size-4 text-emerald-600" />Total</dt>
-                    <dd>{{ money(current.total) }}</dd>
-                    <dt>Paid</dt>
-                    <dd class="text-emerald-700">{{ money(current.paid_amount) }}</dd>
-                    <dt class="flex items-center gap-2"><PiggyBank class="size-4 text-orange-500" />Balance</dt>
-                    <dd :class="current.balance > 0 ? 'font-semibold' : 'text-emerald-700'">{{ current.balance > 0 ? money(current.balance) : 'Paid' }}</dd>
                     <dt class="flex items-center gap-2"><CalendarDays class="size-4 text-amber-600" />Booked</dt>
                     <dd>{{ formatDate(current.created_at, true) }}</dd>
                 </dl>
@@ -239,3 +282,10 @@ onMounted(async () => {
         </AppDrawer>
     </div>
 </template>
+
+<style scoped>
+/* The list measures its own width, so rows adapt to the space next to the sidebar. */
+.bk-list {
+    container: bk-list / inline-size;
+}
+</style>

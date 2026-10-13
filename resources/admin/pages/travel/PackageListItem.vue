@@ -149,20 +149,20 @@ const meta = computed(() =>
                     <EllipsisVertical class="size-5" />
                 </DropdownMenuTrigger>
                 <DropdownMenuPortal>
-                    <DropdownMenuContent align="end" :side-offset="6" class="pk-menu z-50 min-w-52 rounded-2xl border border-line bg-white p-1.5 shadow-[var(--shadow-pop)]">
-                        <DropdownMenuItem class="pk-menu-item" @select="router.push({ name: 'package-editor', params: { id: row.id } })">
-                            <span class="pk-menu-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit package
+                    <DropdownMenuContent align="end" :side-offset="6" class="z-50 min-w-52 rounded-2xl border border-line bg-white p-1.5 shadow-[var(--shadow-pop)]">
+                        <DropdownMenuItem class="lm-item" @select="router.push({ name: 'package-editor', params: { id: row.id } })">
+                            <span class="lm-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit package
                         </DropdownMenuItem>
-                        <DropdownMenuItem as="a" :href="row.url" target="_blank" rel="noopener" class="pk-menu-item">
-                            <span class="pk-menu-icon" style="--tone: #38bdf8"><ExternalLink class="size-4" /></span>View on the website
+                        <DropdownMenuItem as="a" :href="row.url" target="_blank" rel="noopener" class="lm-item">
+                            <span class="lm-icon" style="--tone: #38bdf8"><ExternalLink class="size-4" /></span>View on the website
                         </DropdownMenuItem>
-                        <DropdownMenuItem v-if="canCreate" class="pk-menu-item" @select="emit('duplicate')">
-                            <span class="pk-menu-icon" style="--tone: #a78bfa"><Copy class="size-4" /></span>Duplicate as a draft
+                        <DropdownMenuItem v-if="canCreate" class="lm-item" @select="emit('duplicate')">
+                            <span class="lm-icon" style="--tone: #a78bfa"><Copy class="size-4" /></span>Duplicate as a draft
                         </DropdownMenuItem>
                         <template v-if="canDelete">
                             <DropdownMenuSeparator class="my-1 h-px bg-line" />
-                            <DropdownMenuItem class="pk-menu-item is-danger" @select="emit('remove')">
-                                <span class="pk-menu-icon"><Trash2 class="size-4" /></span>Delete package
+                            <DropdownMenuItem class="lm-item is-danger" @select="emit('remove')">
+                                <span class="lm-icon"><Trash2 class="size-4" /></span>Delete package
                             </DropdownMenuItem>
                         </template>
                     </DropdownMenuContent>
@@ -549,49 +549,5 @@ const meta = computed(() =>
     .pk-item:hover .pk-photo {
         transform: none;
     }
-}
-</style>
-
-<style>
-/* The actions menu is teleported out of the row, so it is styled globally. */
-.pk-menu-item {
-    display: flex;
-    cursor: pointer;
-    align-items: center;
-    gap: 0.65rem;
-    border-radius: 0.65rem;
-    padding: 0.45rem 0.6rem;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--color-ink);
-    outline: none;
-
-    &[data-highlighted] {
-        background: var(--color-canvas);
-    }
-
-    &.is-danger {
-        color: #b91c1c;
-
-        &[data-highlighted] {
-            background: #fef2f2;
-        }
-
-        .pk-menu-icon {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-    }
-}
-
-.pk-menu-icon {
-    display: flex;
-    width: 1.9rem;
-    height: 1.9rem;
-    align-items: center;
-    justify-content: center;
-    border-radius: 0.55rem;
-    background: color-mix(in oklab, var(--tone, var(--admin-primary)) 16%, white);
-    color: color-mix(in oklab, var(--tone, var(--admin-primary)) 55%, black);
 }
 </style>

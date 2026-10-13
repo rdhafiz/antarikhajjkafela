@@ -23,7 +23,15 @@ class BookingController extends Controller
     public function index(Request $request): JsonResponse
     {
         $filters = $this->filters($request);
-        $bookings = $this->query($filters)->latest('id')->paginate($filters['per_page'] ?? 20);
+        $bookings = $this->query($filters)
+            ->with('package.banner')
+            ->when($filters['sort'] ?? 'newest', fn ($q, $sort) => match ($sort) {
+                'oldest' => $q->oldest('id'),
+                'total_desc' => $q->orderByDesc('total')->latest('id'),
+                'balance_desc' => $q->orderByRaw('(total - paid_amount) desc')->latest('id'),
+                default => $q->latest('id'),
+            })
+            ->paginate($filters['per_page'] ?? 20);
 
         return response()->json([
             'data' => collect($bookings->items())->map(fn (Booking $b) => $this->summary($b)),
@@ -168,6 +176,10 @@ class BookingController extends Controller
         return $request->validate([
             'status' => ['nullable', Rule::in(array_keys(Booking::STATUSES))],
             'package_id' => ['nullable', 'integer'],
+            'payment' => ['nullable', Rule::in(['unpaid', 'partial', 'paid'])],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'total_desc', 'balance_desc'])],
             'search' => ['nullable', 'string', 'max:100'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
@@ -181,6 +193,13 @@ class BookingController extends Controller
         return Booking::query()
             ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
             ->when($filters['package_id'] ?? null, fn ($q, $id) => $q->where('package_id', $id))
+            ->when($filters['payment'] ?? null, fn ($q, $payment) => match ($payment) {
+                'unpaid' => $q->where('paid_amount', '<=', 0),
+                'partial' => $q->where('paid_amount', '>', 0)->whereColumn('paid_amount', '<', 'total'),
+                default => $q->where('total', '>', 0)->whereColumn('paid_amount', '>=', 'total'),
+            })
+            ->when($filters['from'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '>=', $date))
+            ->when($filters['to'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '<=', $date))
             ->when($filters['search'] ?? null, function ($q, $search) {
                 $like = '%'.addcslashes($search, '%_').'%';
                 $q->where(fn ($q) => $q->where('reference', 'like', $like)
@@ -208,6 +227,7 @@ class BookingController extends Controller
             'customer_name' => $booking->customer_name,
             'customer_phone' => $booking->customer_phone,
             'customer_email' => $booking->customer_email,
+            'package_photo' => $booking->relationLoaded('package') ? $booking->package?->banner?->url('admin') : null,
             'is_unread' => $booking->read_at === null,
             'created_at' => $booking->created_at?->toIso8601String(),
         ];

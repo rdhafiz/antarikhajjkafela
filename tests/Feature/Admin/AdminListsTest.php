@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Booking;
 use App\Models\GalleryAlbum;
 use App\Models\Package;
 use App\Models\PackagePrice;
@@ -108,6 +109,29 @@ class AdminListsTest extends AdminTestCase
         $this->assertSame(array_reverse($ascending), $prices('price_desc'));
 
         $admin->getJson('/api/admin/packages?booking=soon')->assertUnprocessable();
+    }
+
+    public function test_bookings_filter_by_payment_and_date_and_sort(): void
+    {
+        $this->book();
+        $this->book();
+        [$older, $newer] = Booking::orderBy('id')->get()->all();
+        $older->forceFill(['created_at' => now()->subDays(10), 'paid_amount' => $older->total])->save();
+        $newer->forceFill(['paid_amount' => 1000])->save();
+
+        $admin = $this->asAdmin($this->superAdmin());
+        $refs = fn (string $query) => collect($admin->getJson('/api/admin/bookings?'.$query)->assertOk()->json('data'))->pluck('reference')->all();
+
+        $this->assertSame([$older->reference], $refs('payment=paid'));
+        $this->assertSame([$newer->reference], $refs('payment=partial'));
+        $this->assertSame([], $refs('payment=unpaid'));
+        $this->assertSame([$newer->reference], $refs('from='.now()->subDay()->toDateString()));
+        $this->assertSame([$older->reference], $refs('to='.now()->subDays(5)->toDateString()));
+        $this->assertSame([$older->reference, $newer->reference], $refs('sort=oldest'));
+        $this->assertSame($newer->reference, $refs('sort=balance_desc')[0]);
+        $this->assertArrayHasKey('package_photo', $admin->getJson('/api/admin/bookings')->json('data.0'));
+
+        $admin->getJson('/api/admin/bookings?from=2026-05-02&to=2026-05-01')->assertUnprocessable();
     }
 
     public function test_page_post_and_gallery_lists_send_full_pagination_meta(): void

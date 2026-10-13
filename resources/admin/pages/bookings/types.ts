@@ -28,6 +28,8 @@ export interface BookingRow {
     customer_name: string;
     customer_phone: string;
     customer_email?: string | null;
+    /** The package's banner (small), when it has one. */
+    package_photo?: string | null;
     is_unread: boolean;
     created_at: string;
 }
