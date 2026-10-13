@@ -19,7 +19,12 @@ class ServiceController extends Controller
 {
     public function index(): JsonResponse
     {
-        $services = Service::withCount('packages')->orderBy('sort')->get();
+        $services = Service::query()
+            ->with('image')
+            // "Live" = published packages that visitors can see (the service must be shown too).
+            ->withCount(['packages', 'packages as live_packages_count' => fn ($q) => $q->published()])
+            ->orderBy('sort')
+            ->get();
 
         return response()->json(['data' => $services->map(fn (Service $s) => $this->present($s))]);
     }
@@ -129,6 +134,8 @@ class ServiceController extends Controller
             'is_active' => $service->is_active,
             'seo' => ['title' => (object) ($service->seo['title'] ?? []), 'description' => (object) ($service->seo['description'] ?? []), 'image' => $service->seo['image'] ?? null],
             'packages_count' => $service->packages_count ?? 0,
+            'live_packages_count' => $service->live_packages_count ?? 0,
+            'image_url' => $service->relationLoaded('image') ? $service->image?->url('admin') : null,
         ];
     }
 }

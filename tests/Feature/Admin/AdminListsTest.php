@@ -161,6 +161,23 @@ class AdminListsTest extends AdminTestCase
         $admin->get('/api/admin/inquiries/export?read=unread')->assertOk();
     }
 
+    public function test_services_list_counts_live_packages_and_can_be_hidden_from_the_list(): void
+    {
+        $admin = $this->asAdmin($this->superAdmin());
+        $hajj = collect($admin->getJson('/api/admin/services')->assertOk()->json('data'))->firstWhere('slug', 'hajj');
+
+        $this->assertSame(Package::whereHas('service', fn ($q) => $q->where('slug', 'hajj'))->count(), $hajj['packages_count']);
+        $this->assertSame($hajj['packages_count'], $hajj['live_packages_count']);
+        $this->assertArrayHasKey('image_url', $hajj);
+
+        // The list's "Hide from the website" action sends the row back with is_active flipped.
+        $admin->putJson('/api/admin/services/'.$hajj['id'], [...$hajj, 'is_active' => false])->assertOk();
+
+        $hidden = collect($admin->getJson('/api/admin/services')->json('data'))->firstWhere('slug', 'hajj');
+        $this->assertFalse($hidden['is_active']);
+        $this->assertSame(0, $hidden['live_packages_count']);
+    }
+
     public function test_page_post_and_gallery_lists_send_full_pagination_meta(): void
     {
         GalleryAlbum::create(['title' => ['en' => 'Arafat day'], 'slug' => 'arafat-day', 'is_published' => true]);
