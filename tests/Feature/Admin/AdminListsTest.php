@@ -7,6 +7,8 @@ use App\Models\GalleryAlbum;
 use App\Models\Inquiry;
 use App\Models\Package;
 use App\Models\PackagePrice;
+use App\Models\Page;
+use App\Support\Locales;
 use Database\Seeders\PageSeeder;
 use Database\Seeders\TravelSeeder;
 use Illuminate\Support\Facades\Mail;
@@ -176,6 +178,31 @@ class AdminListsTest extends AdminTestCase
         $hidden = collect($admin->getJson('/api/admin/services')->json('data'))->firstWhere('slug', 'hajj');
         $this->assertFalse($hidden['is_active']);
         $this->assertSame(0, $hidden['live_packages_count']);
+    }
+
+    public function test_pages_list_has_counts_covers_campaign_states_and_title_sort(): void
+    {
+        $admin = $this->asAdmin($this->superAdmin());
+
+        $response = $admin->getJson('/api/admin/pages?type=default')->assertOk();
+        $this->assertSame(Page::where('type', 'default')->count(), $response->json('counts.types.default'));
+        $this->assertSame(Page::where('type', 'default')->where('status', 'published')->count(), $response->json('counts.statuses.published'));
+        $this->assertArrayHasKey('cover_url', $response->json('data.0'));
+        // Built-in pages keep the menu order unless another sort is chosen.
+        $this->assertSame('home', $response->json('data.0.system_key'));
+
+        $titles = collect($admin->getJson('/api/admin/pages?type=default&sort=title')->json('data'))
+            ->map(fn ($page) => $page['title'][app(Locales::class)->default()] ?? $page['title']['en'])->all();
+        $sorted = $titles;
+        (new \Collator(app(Locales::class)->default()))->sort($sorted);
+        $this->assertSame(array_values($sorted), $titles);
+
+        $campaign = Page::create(['type' => 'campaign', 'title' => ['en' => 'Hajj 2028 early bird'], 'slug' => 'hajj-2028-early-bird', 'status' => 'published', 'expires_at' => now()->subDay()]);
+        $expired = $admin->getJson('/api/admin/pages?type=campaign&state=expired')->assertOk();
+        $this->assertSame([$campaign->id], collect($expired->json('data'))->pluck('id')->all());
+        $this->assertSame(1, $expired->json('counts.states.expired'));
+
+        $admin->getJson('/api/admin/pages?type=default&sort=newest')->assertUnprocessable();
     }
 
     public function test_page_post_and_gallery_lists_send_full_pagination_meta(): void

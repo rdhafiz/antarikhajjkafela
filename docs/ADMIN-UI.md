@@ -42,9 +42,9 @@ Call `list.load()` in `onMounted`. Filter values are strings (`''` = not set); s
    `<button|a|RouterLink class="dw-action"><span class="dw-action-icon" style="--tone: #hex"><Icon class="size-4" /></span>Label</…>`
    (`dw-action is-danger` for delete). Close the drawer after an action and reload the list.
 3. **Filters and pagination.** Server-paginated lists use `useListQuery` + `AppPagination`
-   (with `@per-page`), and either `FilterBar` or, on the redesigned lists (Packages, Bookings, Inquiries, Services),
+   (with `@per-page`), and either `FilterBar` or, on the redesigned lists (Packages, Bookings, Inquiries, Services, Pages, Campaigns),
    `ListToolbar` + `FilterDrawer`. Rows there are card/row components laid out with container
-   queries (`PackageListItem`, `BookingListItem`, `InquiryListItem`, `ServiceListItem`) and a ⋮ menu styled with `.lm-item`/`.lm-icon`. Short drag-sorted lists (services, reviews) filter on the
+   queries (`PackageListItem`, `BookingListItem`, `InquiryListItem`, `ServiceListItem`, `PageListItem`) and a ⋮ menu styled with `.lm-item`/`.lm-icon`. Short drag-sorted lists (services, reviews) filter on the
    client instead; disable dragging while a filter or search is active.
 4. **Colourful, meaningful icons** (lucide-vue-next). Palette: indigo `#818cf8`, green `#34d399`,
    sky `#38bdf8`, amber `#fbbf24`, violet `#a78bfa`, blue `#60a5fa`, rose `#fb7185`,

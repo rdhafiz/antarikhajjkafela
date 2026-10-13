@@ -6,6 +6,7 @@ use App\Domain\Pages\PageEditor;
 use App\Http\Controllers\Admin\Concerns\PaginatedList;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\PageSaveRequest;
+use App\Models\Media;
 use App\Models\Page;
 use App\PageBuilder\ComponentRegistry;
 use App\PageBuilder\SectionStyle;
@@ -13,6 +14,7 @@ use App\Support\Icons;
 use App\Support\Locales;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\Rule;
@@ -32,6 +34,9 @@ class PageController extends Controller
         $filters = $request->validate([
             'type' => ['required', Rule::in([Page::TYPE_DEFAULT, Page::TYPE_CUSTOM, Page::TYPE_CAMPAIGN])],
             'status' => ['nullable', Rule::in([Page::STATUS_DRAFT, Page::STATUS_PUBLISHED])],
+            // Campaigns only: draft, scheduled, live or expired.
+            'state' => ['nullable', Rule::in(['draft', 'scheduled', 'live', 'expired'])],
+            'sort' => ['nullable', Rule::in(['updated', 'title'])],
             'search' => ['nullable', 'string', 'max:100'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'page' => ['nullable', 'integer', 'min:1'],
@@ -42,22 +47,62 @@ class PageController extends Controller
         $pages = Page::query()
             ->where('type', $type)
             ->withCount('sections')
-            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->with('sections:id,page_id,sort,content')
             ->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q
                 ->where('slug', 'like', $this->likeTerm($search))
                 ->orWhere('title', 'like', $this->likeTerm($search))))
             ->latest('updated_at')
             ->get();
 
-        // Built-in pages keep the order of the site menu.
-        if ($type === Page::TYPE_DEFAULT) {
+        // Counts for the filter drawer, before the status filters are applied.
+        $counts = [
+            'statuses' => $pages->countBy('status'),
+            'states' => $type === Page::TYPE_CAMPAIGN ? $pages->countBy(fn (Page $page) => $page->campaignState()) : (object) [],
+            'types' => Page::query()->toBase()->selectRaw('type, count(*) as n')->groupBy('type')->pluck('n', 'type')->map(fn ($n) => (int) $n),
+        ];
+
+        $pages = $pages
+            ->when($filters['status'] ?? null, fn ($pages, $status) => $pages->where('status', $status))
+            ->when($type === Page::TYPE_CAMPAIGN ? ($filters['state'] ?? null) : null, fn ($pages, $state) => $pages->filter(fn (Page $page) => $page->campaignState() === $state))
+            ->values();
+
+        $sort = $filters['sort'] ?? null;
+        if ($sort === 'title') {
+            // Alphabetical in the language the list shows (Collator orders Bangla correctly).
+            $locale = app(Locales::class)->default();
+            $collator = class_exists(\Collator::class) ? new \Collator($locale) : null;
+            $pages = $pages->sort(fn (Page $a, Page $b) => $collator
+                ? $collator->compare($a->getTranslation('title', $locale), $b->getTranslation('title', $locale))
+                : strcmp(mb_strtolower($a->getTranslation('title', $locale)), mb_strtolower($b->getTranslation('title', $locale))))->values();
+        } elseif ($type === Page::TYPE_DEFAULT && $sort !== 'updated') {
+            // Built-in pages keep the order of the site menu.
             $order = array_flip(array_keys(config('page-builder.default_pages')));
             $pages = $pages->sortBy(fn (Page $page) => $order[$page->system_key] ?? 99)->values();
         }
 
         $page = $this->paginateCollection($pages, (int) ($filters['per_page'] ?? 20), (int) ($filters['page'] ?? 1));
+        $covers = $this->covers($page->getCollection());
 
-        return $this->listResponse($page, fn (Page $page) => $this->summary($page));
+        return $this->listResponse($page, fn (Page $page) => [...$this->summary($page), 'cover_url' => $covers[$page->id] ?? null], ['counts' => $counts]);
+    }
+
+    /**
+     * A picture for each page in the list: the top section's image, else the share image.
+     *
+     * @param  Collection<int, Page>  $pages
+     * @return array<int, string|null>
+     */
+    private function covers($pages): array
+    {
+        $ids = $pages->mapWithKeys(function (Page $page) {
+            $content = $page->sections->first()?->content ?? [];
+            $id = $content['image'] ?? $content['background_image'] ?? $page->seo['image'] ?? null;
+
+            return [$page->id => is_numeric($id) ? (int) $id : null];
+        });
+        $media = Media::whereIn('id', $ids->filter()->unique()->values())->get()->keyBy('id');
+
+        return $ids->map(fn ($id) => $id ? $media->get($id)?->url('admin') : null)->all();
     }
 
     public function store(Request $request): JsonResponse

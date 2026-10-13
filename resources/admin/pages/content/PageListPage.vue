@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { CalendarClock, ChevronRight, Copy, ExternalLink, Eye, FileText, Layers, Link2, Lock, Megaphone, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { ArrowDownUp, CalendarClock, CircleCheck, Copy, ExternalLink, Eye, FileText, Layers, Link2, Lock, Megaphone, Pencil, Plus, Radio, Trash2 } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
 import AppDrawer from '@admin/components/ui/AppDrawer.vue';
 import AppPagination from '@admin/components/ui/AppPagination.vue';
-import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
-import FilterBar from '@admin/components/ui/FilterBar.vue';
-import PageHeader from '@admin/components/ui/PageHeader.vue';
-import TabSwitcher from '@admin/components/ui/TabSwitcher.vue';
+import FilterDrawer, { type FilterGroup } from '@admin/components/ui/FilterDrawer.vue';
+import ListHero from '@admin/components/ui/ListHero.vue';
+import ListToolbar from '@admin/components/ui/ListToolbar.vue';
 import CreatePageModal from './CreatePageModal.vue';
+import PageListItem from './PageListItem.vue';
+import pagesPhoto from '@admin/assets/pages-header.webp';
+import campaignsPhoto from '@admin/assets/campaigns-header.webp';
+import type { Paginated } from '@admin/lib/http';
 import { pickText, type PageSummary } from './builder/types';
 import { useConfirm } from '@admin/composables/useConfirm';
 import { useListQuery } from '@admin/composables/useListQuery';
@@ -41,7 +44,11 @@ function routeType(): PageType {
     return isCampaigns.value ? 'campaign' : 'default';
 }
 
-const list = useListQuery<PageSummary>('/pages', { type: routeType(), status: '' });
+type PagesResponse = Paginated<PageSummary> & {
+    counts: { statuses: Record<string, number>; states: Record<string, number>; types: Record<string, number> };
+};
+
+const list = useListQuery<PageSummary, PagesResponse>('/pages', { type: routeType(), status: '', state: '', sort: '' });
 
 // The address bar may carry a type from the other route (or a bad one): keep it within this route.
 function normalizeType(): boolean {
@@ -54,19 +61,61 @@ const normalized = normalizeType();
 
 const type = computed(() => list.filters.type as PageType);
 const isBuiltIn = computed(() => type.value === 'default');
-/** Only the status counts as a filter; the type is fixed by the route or the tab. */
-const activeFilters = computed(() => (list.filters.status !== '' ? 1 : 0));
+/** Status (or a campaign's state) is the filter; the type is fixed by the route or the switch. */
+const activeFilters = computed(() => (list.filters.status !== '' ? 1 : 0) + (list.filters.state !== '' ? 1 : 0));
 const filtered = computed(() => Boolean(list.filters.search || activeFilters.value));
+const counts = computed(() => list.response.value?.counts);
+const total = computed(() => list.meta.value?.total ?? 0);
+const filtersOpen = ref(false);
 
-const typeTabs = [
-    { value: 'default' as PageType, label: 'Built-in pages', icon: Lock, tone: '#818cf8' },
-    { value: 'custom' as PageType, label: 'Your pages', icon: FileText, tone: '#34d399' },
-];
-const typeModel = computed<PageType>({
-    get: () => type.value,
-    set: (value) => {
-        list.filters.type = value;
-    },
+const typeTabs = computed(() => [
+    { value: 'default' as PageType, label: 'Built-in', icon: Lock, count: counts.value?.types.default },
+    { value: 'custom' as PageType, label: 'Your pages', icon: FileText, count: counts.value?.types.custom },
+]);
+
+const filterGroups = computed<FilterGroup[]>(() => {
+    const statuses = counts.value?.statuses ?? {};
+    const states = counts.value?.states ?? {};
+    const all = Object.values(isCampaigns.value ? states : statuses).reduce<number>((sum, n) => sum + n, 0);
+    const known = Boolean(counts.value);
+    return [
+        isCampaigns.value
+            ? {
+                  key: 'state',
+                  label: 'Runs',
+                  icon: Radio,
+                  tone: '#34d399',
+                  options: [
+                      { value: '', label: 'All', count: known ? all : null },
+                      { value: 'live', label: 'Live now', count: states.live ?? 0 },
+                      { value: 'scheduled', label: 'Scheduled', count: states.scheduled ?? 0 },
+                      { value: 'expired', label: 'Expired', count: states.expired ?? 0 },
+                      { value: 'draft', label: 'Draft', count: states.draft ?? 0 },
+                  ],
+              }
+            : {
+                  key: 'status',
+                  label: 'Status',
+                  icon: CircleCheck,
+                  tone: '#34d399',
+                  options: [
+                      { value: '', label: 'Any status', count: known ? all : null },
+                      { value: 'published', label: 'Published', count: statuses.published ?? 0 },
+                      { value: 'draft', label: 'Draft', count: statuses.draft ?? 0 },
+                  ],
+              },
+        {
+            key: 'sort',
+            label: 'Sort by',
+            icon: ArrowDownUp,
+            tone: '#fbbf24',
+            options: [
+                { value: '', label: isBuiltIn.value ? 'Menu order' : 'Recently updated' },
+                ...(isBuiltIn.value ? [{ value: 'updated', label: 'Recently updated' }] : []),
+                { value: 'title', label: 'Title A–Z' },
+            ],
+        },
+    ];
 });
 
 const current = ref<PageSummary | null>(null);
@@ -78,7 +127,6 @@ const stateTone = { draft: 'neutral', published: 'success', live: 'success', sch
 const stateLabel = { draft: 'Draft', published: 'Published', live: 'Live', scheduled: 'Scheduled', expired: 'Expired' } as const;
 
 const noun = computed(() => (isCampaigns.value ? 'campaign' : 'page'));
-const summary = computed(() => (list.meta.value ? `${list.meta.value.total} ${list.meta.value.total === 1 ? noun.value : `${noun.value}s`}` : ''));
 
 const title = (page: PageSummary) => pickText(page.title, app.defaultLocale);
 const address = (page: PageSummary) => (page.system_key === 'home' ? '/' : `/${page.slug}`);
@@ -91,11 +139,19 @@ function open(page: PageSummary): void {
 
 function clearFilters(): void {
     list.filters.status = '';
+    list.filters.state = '';
+    list.filters.sort = '';
 }
 
 function clearAll(): void {
-    list.filters.status = '';
+    clearFilters();
     list.filters.search = '';
+}
+
+function setType(value: PageType): void {
+    list.filters.status = '';
+    list.filters.sort = '';
+    list.filters.type = value;
 }
 
 async function preview(page: PageSummary): Promise<void> {
@@ -143,17 +199,12 @@ async function remove(page: PageSummary): Promise<void> {
     }
 }
 
-function schedule(page: PageSummary): string {
-    if (!page.starts_at && !page.expires_at) return 'No end date';
-    return `${page.starts_at ? formatDate(page.starts_at) : 'Now'} – ${page.expires_at ? formatDate(page.expires_at) : 'no end'}`;
-}
-
 // Pages and campaigns share this screen: switching routes swaps the type (which reloads the list).
 watch(
     () => route.name,
     () => {
         drawerOpen.value = false;
-        list.filters.status = '';
+        clearFilters();
         list.filters.search = '';
         list.filters.type = routeType();
     },
@@ -167,35 +218,51 @@ onMounted(() => {
 
 <template>
     <div>
-        <PageHeader
+        <!-- Header with a photo -->
+        <ListHero
             :title="isCampaigns ? 'Campaign pages' : 'Pages'"
             :description="isCampaigns ? 'Landing pages for marketing and ads, live between their start and expiry dates.' : 'Built-in website pages and your own pages, each built from sections.'"
+            :icon="isCampaigns ? Megaphone : FileText"
+            :tone="isCampaigns ? '#fb7185' : '#60a5fa'"
+            :photo="isCampaigns ? campaignsPhoto : pagesPhoto"
+            :photo-position="isCampaigns ? '50% 55%' : '50% 50%'"
         >
             <template #actions>
                 <AppButton v-if="auth.can(`${scope}.create`)" :icon="Plus" @click="createOpen = true">{{ isCampaigns ? 'New campaign' : 'New page' }}</AppButton>
             </template>
-        </PageHeader>
+        </ListHero>
 
-        <TabSwitcher v-if="!isCampaigns" v-model="typeModel" :options="typeTabs" label="Show pages" class="mb-4" />
-
-        <FilterBar
+        <!-- Search, filters and (on pages) the built-in / your pages switch in one row -->
+        <ListToolbar
             v-model:search="list.filters.search as string"
             :placeholder="isCampaigns ? 'Search campaigns by title or address' : 'Search pages by title or address'"
             :active="activeFilters"
-            :summary="summary"
-            @clear="clearFilters"
+            @filters="filtersOpen = true"
         >
-            <select v-model="list.filters.status" class="control" aria-label="Filter by status">
-                <option value="">Any status</option>
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
-            </select>
-        </FilterBar>
+            <div v-if="!isCampaigns" class="pg-types" role="group" aria-label="Show pages">
+                <button
+                    v-for="tab in typeTabs"
+                    :key="tab.value"
+                    type="button"
+                    class="pg-type"
+                    :class="{ 'is-on': type === tab.value }"
+                    :aria-pressed="type === tab.value"
+                    :aria-label="tab.label"
+                    @click="setType(tab.value)"
+                >
+                    <component :is="tab.icon" class="size-4 shrink-0" aria-hidden="true" />
+                    <span class="max-lg:sm:hidden">{{ tab.label }}</span>
+                    <span v-if="tab.count !== undefined" class="pg-type-count">{{ tab.count }}</span>
+                </button>
+            </div>
+        </ListToolbar>
 
-        <div class="card overflow-hidden">
-            <div v-if="list.loading.value && !list.rows.value.length" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
+        <!-- Pages -->
+        <div v-if="list.loading.value && !list.rows.value.length" class="grid gap-4" aria-busy="true" aria-label="Loading pages">
+            <div v-for="n in 3" :key="n" class="card h-[300px] animate-pulse sm:h-[118px]" />
+        </div>
+        <div v-else-if="!list.rows.value.length" class="card">
             <EmptyState
-                v-else-if="!list.rows.value.length"
                 :icon="isCampaigns ? Megaphone : FileText"
                 :title="filtered ? `No ${noun}s match` : isCampaigns ? 'No campaigns yet' : isBuiltIn ? 'No built-in pages' : 'No custom pages yet'"
                 :description="
@@ -209,45 +276,43 @@ onMounted(() => {
                 <AppButton v-if="filtered" variant="secondary" @click="clearAll">Clear filters</AppButton>
                 <AppButton v-else-if="!isBuiltIn && auth.can(`${scope}.create`)" :icon="Plus" @click="createOpen = true">{{ isCampaigns ? 'New campaign' : 'New page' }}</AppButton>
             </EmptyState>
-            <table v-else class="dt" :class="{ 'opacity-60 transition-opacity': list.loading.value }">
-                <thead>
-                    <tr>
-                        <th>{{ isCampaigns ? 'Campaign' : 'Page' }}</th>
-                        <th>Status</th>
-                        <th v-if="isCampaigns">Runs</th>
-                        <th class="dt-hide-sm">Sections</th>
-                        <th>Updated</th>
-                        <th class="dt-trigger"><span class="sr-only">Open</span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="page in list.rows.value" :key="page.id" class="dt-row" @click="open(page)">
-                        <td>
-                            <p class="flex items-center gap-1.5 font-semibold text-ink">
-                                {{ title(page) }}
-                                <Lock v-if="page.type === 'default'" class="size-3 shrink-0 text-ink-muted" aria-label="Built-in page" />
-                            </p>
-                            <p class="mt-0.5 text-[12.5px] break-all text-ink-muted">{{ address(page) }}</p>
-                        </td>
-                        <td data-label="Status"><AppBadge :tone="stateTone[page.state]">{{ stateLabel[page.state] }}</AppBadge></td>
-                        <td v-if="isCampaigns" data-label="Runs" class="text-[13px] text-ink-soft">
-                            <span class="inline-flex items-center gap-1.5"><CalendarClock class="size-3.5 shrink-0 text-ink-muted" /> {{ schedule(page) }}</span>
-                        </td>
-                        <td data-label="Sections" class="dt-hide-sm text-[13px] text-ink-soft">{{ page.sections_count }}</td>
-                        <td data-label="Updated" class="text-[13px] whitespace-nowrap text-ink-soft">{{ formatDate(page.updated_at) }}</td>
-                        <td class="dt-trigger">
-                            <button type="button" class="dt-open" :aria-label="`Open ${title(page)}`" @click.stop="open(page)"><ChevronRight class="size-4" /></button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        </div>
+        <div v-else class="pg-list" :class="{ 'opacity-60 transition-opacity': list.loading.value }">
+            <div class="grid gap-4">
+                <PageListItem
+                    v-for="(page, i) in list.rows.value"
+                    :key="page.id"
+                    :page="page"
+                    :title="title(page)"
+                    :index="i"
+                    :can-create="auth.can(`${scope}.create`)"
+                    :can-delete="auth.can(`${scope}.delete`)"
+                    @open="open(page)"
+                    @preview="preview(page)"
+                    @duplicate="duplicate(page)"
+                    @remove="remove(page)"
+                />
+            </div>
         </div>
 
-        <AppPagination v-if="list.meta.value" :meta="list.meta.value" :label="`${noun}s`" @change="list.goTo" @per-page="list.setPerPage" />
+        <AppPagination v-if="list.meta.value && list.rows.value.length" :meta="list.meta.value" :label="`${noun}s`" @change="list.goTo" @per-page="list.setPerPage" />
+
+        <!-- All filters -->
+        <FilterDrawer
+            v-model:open="filtersOpen"
+            :filters="list.filters"
+            :groups="filterGroups"
+            :total="total"
+            :noun="[noun, `${noun}s`]"
+            :loading="list.loading.value"
+            :can-clear="activeFilters > 0 || list.filters.sort !== ''"
+            @clear="clearFilters"
+        />
 
         <!-- Preview and actions -->
         <AppDrawer v-model:open="drawerOpen" :title="current ? title(current) : ''" :description="current ? address(current) : ''" :icon="isCampaigns ? Megaphone : FileText">
             <template v-if="current">
+                <img v-if="current.cover_url" :src="current.cover_url" alt="" class="mb-5 aspect-[16/7] w-full rounded-2xl object-cover" />
                 <div class="flex flex-wrap gap-2">
                     <AppBadge :tone="stateTone[current.state]">{{ stateLabel[current.state] }}</AppBadge>
                     <AppBadge v-if="current.type === 'default'" tone="neutral"><Lock class="size-3" />Built-in</AppBadge>
@@ -292,3 +357,68 @@ onMounted(() => {
         <CreatePageModal v-model:open="createOpen" :type="isCampaigns ? 'campaign' : 'custom'" />
     </div>
 </template>
+
+<style scoped>
+/* The list measures its own width, so rows adapt to the space next to the sidebar. */
+.pg-list {
+    container: pg-list / inline-size;
+}
+
+.pg-types {
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.25rem;
+    border-radius: 0.9rem;
+    border: 1px solid var(--color-line);
+    background: #fff;
+    padding: 0.25rem;
+    box-shadow: var(--shadow-card);
+}
+
+@media (max-width: 639px) {
+    .pg-types {
+        width: 100%;
+    }
+
+    .pg-type {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+.pg-type {
+    display: inline-flex;
+    height: 2.4rem;
+    align-items: center;
+    gap: 0.45rem;
+    border-radius: 0.65rem;
+    padding: 0 0.85rem;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--color-ink-soft);
+    transition: background-color 180ms ease, color 180ms ease;
+
+    &:hover {
+        color: var(--color-ink);
+    }
+
+    &.is-on {
+        background: var(--admin-primary);
+        color: #fff;
+    }
+}
+
+.pg-type-count {
+    border-radius: 999px;
+    background: var(--color-canvas);
+    padding: 0.05rem 0.45rem;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--color-ink-soft);
+
+    .is-on & {
+        background: rgb(255 255 255 / 0.2);
+        color: #fff;
+    }
+}
+</style>

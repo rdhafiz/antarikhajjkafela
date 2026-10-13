@@ -12,8 +12,9 @@ const emit = defineEmits<{ filters: [] }>();
 </script>
 
 <template>
-    <div class="mb-4 flex items-center gap-2 sm:gap-3">
-        <label class="relative min-w-0 flex-1">
+    <div class="mb-4 flex flex-wrap items-center gap-2 sm:gap-3">
+        <!-- The search keeps at least 12rem; extras wrap onto their own row on narrow screens. -->
+        <label class="relative min-w-0 flex-1 basis-48">
             <span class="sr-only">{{ placeholder }}</span>
             <Search class="pointer-events-none absolute top-1/2 left-4 size-[18px] -translate-y-1/2 text-ink-muted" aria-hidden="true" />
             <input v-model="search" type="search" :placeholder="placeholder" class="control lt-search pr-10 pl-11" />

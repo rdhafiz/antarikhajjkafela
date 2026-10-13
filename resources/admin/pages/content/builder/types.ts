@@ -77,6 +77,8 @@ export interface PageSummary {
     starts_at: string | null;
     expires_at: string | null;
     sections_count: number;
+    /** Top section image or share image (list only). */
+    cover_url?: string | null;
     updated_at: string | null;
 }
 

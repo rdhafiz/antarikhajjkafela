@@ -7,7 +7,7 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | File | Used on | Photographer | Source |
 | --- | --- | --- | --- |
 | home-haram.webp | Home hero | Ömer F. Arslan | https://unsplash.com/photos/W0FhhtnMd8k |
-| hajj-campaign.webp | Hajj pre-registration campaign | ibrahim uz | https://unsplash.com/photos/3Z3RvzpVAqM |
+| hajj-campaign.webp | Hajj pre-registration campaign; admin Campaign pages header (cropped copy in `resources/admin/assets/campaigns-header.webp`) | ibrahim uz | https://unsplash.com/photos/3Z3RvzpVAqM |
 | hajj-crowd.webp | Hajj service, other Hajj packages | ekrem osmanoglu | https://unsplash.com/photos/0bdDM8n8wYw |
 | hajj-premium.webp | Hajj Premium Package | Haidan | https://unsplash.com/photos/8Kg-2kK97Xc |
 | hajj-regular.webp | Hajj Regular Package | tasnim umar | https://unsplash.com/photos/blbwkwHPItE |
@@ -18,7 +18,7 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | haram-courtyard.webp | Gallery | Sam Riz | https://unsplash.com/photos/ceNCWYqL8DY |
 | green-dome.webp | Reviews | A Miah | https://unsplash.com/photos/hJXiPheKFus |
 | quran.webp | Blog & news | Abdullah Arif | https://unsplash.com/photos/Dxi6KbpvUgA |
-| nabawi-colonnade.webp | Terms & conditions, Privacy policy | djonk creative | https://unsplash.com/photos/XqO6H6ikj1w |
+| nabawi-colonnade.webp | Terms & conditions, Privacy policy; admin Pages header (cropped copy in `resources/admin/assets/pages-header.webp`) | djonk creative | https://unsplash.com/photos/XqO6H6ikj1w |
 
 ## Social share images
 
@@ -33,8 +33,8 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | haram-courtyard.webp | Gallery |
 | quran.webp | Blog & news |
 | green-dome.webp | Reviews; Umrah Package |
-| nabawi-colonnade.webp | Terms & conditions, Privacy policy |
-| hajj-campaign.webp | Hajj pre-registration campaign |
+| nabawi-colonnade.webp | Terms & conditions, Privacy policy; admin Pages header (cropped copy in `resources/admin/assets/pages-header.webp`) |
+| hajj-campaign.webp | Hajj pre-registration campaign; admin Campaign pages header (cropped copy in `resources/admin/assets/campaigns-header.webp`) |
 | hajj-crowd.webp | Hajj |
 | haram-wide.webp | Umrah; post "What is Umrah?" |
 | hajj-regular.webp | Hajj Regular Package; post "How to perform Umrah" |
