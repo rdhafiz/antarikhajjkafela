@@ -61,7 +61,10 @@ class ContentProcessor
                     break;
 
                 case Field::IMAGE:
-                    $rules[$path] = [$required ? 'required' : 'nullable', 'integer', 'exists:media,id'];
+                    $sibling = $field->option('required_without');
+                    $rules[$path] = $sibling
+                        ? ["required_without:{$prefix}.{$sibling}", 'nullable', 'integer', 'exists:media,id']
+                        : [$required ? 'required' : 'nullable', 'integer', 'exists:media,id'];
                     break;
 
                 case Field::LINK:

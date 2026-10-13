@@ -136,6 +136,7 @@ class PageSaveRequest extends FormRequest
             'slug.regex' => 'Use lowercase letters, numbers and single hyphens only, e.g. hajj-registration-2027.',
             'slug.not_in' => 'This address is used by the website. Choose another.',
             'expires_at.after' => 'The expiry must be after the start date.',
+            'sections.*.content.slides.*.image.required_without' => 'Add an image (image-only slides can use a mobile image instead).',
         ];
     }
 }

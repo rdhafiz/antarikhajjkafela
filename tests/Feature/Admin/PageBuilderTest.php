@@ -85,19 +85,25 @@ class PageBuilderTest extends AdminTestCase
         $payload['sections'][$index]['content']['variant'] = 'centered';
         $payload['sections'][$index]['content']['slides'] = [
             ['type' => 'text', 'image' => $image('makkah.webp'), 'title' => ['en' => 'Hajj 2027 registration'], 'highlight' => ['en' => 'is open.'], 'primary' => ['label' => ['en' => 'See packages'], 'url' => '/hajj']],
-            ['type' => 'image', 'image' => $image('poster.webp'), 'link' => ['label' => ['en' => 'Our offer'], 'url' => '/umrah']],
+            ['type' => 'image', 'image' => $image('poster.webp'), 'image_mobile' => $image('poster-tall.webp'), 'link' => ['label' => ['en' => 'Our offer'], 'url' => '/umrah']],
+            // Only the mobile image: it is used on every screen.
+            ['type' => 'image', 'image' => null, 'image_mobile' => $image('only-tall.webp')],
         ];
 
         // Every slide needs an image, and the type is one of the two kinds.
         $broken = $payload;
-        $broken['sections'][$index]['content']['slides'][1] = ['type' => 'video', 'image' => null];
-        $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $broken)
-            ->assertJsonValidationErrors(["sections.{$index}.content.slides.1.image", "sections.{$index}.content.slides.1.type"]);
+        $broken['sections'][$index]['content']['slides'][1] = ['type' => 'video', 'image' => null, 'image_mobile' => null];
+        $errors = $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $broken)
+            ->assertJsonValidationErrors(["sections.{$index}.content.slides.1.type"])
+            ->json('errors');
+        $this->assertSame('Add an image (image-only slides can use a mobile image instead).', $errors["sections.{$index}.content.slides.1.image"][0] ?? null);
 
         $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $payload)->assertOk();
 
         $html = $this->get('/')->assertOk()
-            ->assertSee('heroSlider(3)', false)
+            ->assertSee('heroSlider(4)', false)
+            ->assertSee('<source media="(max-width: 767px)" srcset="'.url('storage/media/test/poster-tall.webp').' 1600w"', false)
+            ->assertSee('src="'.url('storage/media/test/only-tall.webp').'"', false)
             ->assertSeeText('Hajj 2027 registration')
             ->assertSee('href="'.url('/umrah').'"', false)
             ->assertSee('aria-label="Our offer"', false)

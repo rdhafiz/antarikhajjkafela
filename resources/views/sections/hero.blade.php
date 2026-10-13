@@ -11,8 +11,12 @@
     if ($variant === 'centered') {
         $slides[] = ['type' => 'text', 'link' => null, ...Illuminate\Support\Arr::only($c, ['image', 'eyebrow', 'title', 'highlight', 'text', 'primary', 'secondary'])];
         foreach ($c['slides'] ?? [] as $slide) {
-            if ($slide['image']) {
-                $slides[] = [...$slide, 'type' => ($slide['type'] ?? 'text') === 'image' ? 'image' : 'text'];
+            // Either image stands in for a missing other one.
+            $wide = $slide['image'] ?? null;
+            $tall = $slide['image_mobile'] ?? null;
+            if ($wide || $tall) {
+                $only = ($slide['type'] ?? 'text') === 'image';
+                $slides[] = [...$slide, 'type' => $only ? 'image' : 'text', 'image' => $wide ?? $tall, 'image_mobile' => $only && $wide && $tall ? $tall : null];
             }
         }
     }
@@ -64,14 +68,20 @@
                             @if ($slide['link']) href="{{ $slide['link']['url'] }}" @if ($slide['link']['external']) target="_blank" rel="noopener" @endif aria-label="{{ $slide['link']['label'] ?: ($alt ?: __('Open')) }}" @endif
                             @class(['hs-full absolute inset-0 flex items-center justify-center px-4 pb-24 sm:px-10 sm:pb-28', 'pt-24' => $first, 'pt-8' => ! $first])
                         >
-                            <img
-                                src="{{ $image->url('lg') }}"
-                                srcset="{{ $image->srcset() }}"
-                                sizes="100vw"
-                                alt="{{ $slide['link'] ? '' : $alt }}"
-                                class="size-full object-contain"
-                                @if ($index === 0) fetchpriority="high" @else loading="lazy" decoding="async" @endif
-                            >
+                            {{-- Phones get the vertical image when there is one. --}}
+                            <picture class="contents">
+                                @if ($slide['image_mobile'])
+                                    <source media="(max-width: 767px)" srcset="{{ $slide['image_mobile']->srcset() ?: $slide['image_mobile']->url() }}" sizes="100vw">
+                                @endif
+                                <img
+                                    src="{{ $image->url('lg') }}"
+                                    srcset="{{ $image->srcset() }}"
+                                    sizes="100vw"
+                                    alt="{{ $slide['link'] ? '' : $alt }}"
+                                    class="size-full object-contain"
+                                    @if ($index === 0) fetchpriority="high" @else loading="lazy" decoding="async" @endif
+                                >
+                            </picture>
                         </{{ $tag }}>
                     @else
                         @if ($image)

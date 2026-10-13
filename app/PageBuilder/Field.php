@@ -134,6 +134,14 @@ class Field
         return $this->with('required', $required);
     }
 
+    /**
+     * Required unless the sibling field (in the same item) has a value.
+     */
+    public function requiredWithout(string $sibling): self
+    {
+        return $this->with('required_without', $sibling);
+    }
+
     public function max(int $max): self
     {
         return $this->with('max', $max);
