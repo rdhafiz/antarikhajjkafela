@@ -95,10 +95,14 @@ class AppServiceProvider extends ServiceProvider
             date_default_timezone_set($timezone);
         }
 
-        $default = $this->app->make(Locales::class)->default();
+        $locales = $this->app->make(Locales::class);
+        $default = $locales->default();
 
+        // Content falls back to the site's default language; interface strings
+        // (validation, auth) fall back to the base language, which always has them.
         config(['app.fallback_locale' => $default]);
         $this->app->setLocale($default);
+        $this->app->make('translator')->setFallback($locales->base());
 
         Translatable::fallback(fallbackLocale: $default, fallbackAny: true);
     }
