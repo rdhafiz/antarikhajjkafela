@@ -9,16 +9,19 @@ export function useMediaList(initialUsage = '', perPage = 24) {
     const items = ref<Media[]>([]);
     const meta = ref<Paginated<Media>['meta'] | null>(null);
     const loading = ref(false);
-    const filters = reactive({ search: '', usage: initialUsage, page: 1, per_page: perPage });
+    const filters = reactive({ search: '', usage: initialUsage, sort: '', page: 1, per_page: perPage });
+    /** How many images each usage has (library page filters). */
+    const counts = ref<{ usages: Record<string, number>; total: number } | null>(null);
 
     async function load(): Promise<void> {
         loading.value = true;
 
         try {
             const params = Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== ''));
-            const { data } = await http.get<Paginated<Media>>('/media', { params });
+            const { data } = await http.get<Paginated<Media> & { counts?: { usages: Record<string, number>; total: number } }>('/media', { params });
             items.value = data.data;
             meta.value = data.meta;
+            counts.value = data.counts ?? null;
         } catch (e) {
             useToastStore().error(errorMessage(e));
         } finally {
@@ -32,7 +35,7 @@ export function useMediaList(initialUsage = '', perPage = 24) {
     }, 300);
 
     watch(() => filters.search, reload);
-    watch(() => filters.usage, () => {
+    watch(() => [filters.usage, filters.sort], () => {
         filters.page = 1;
         load();
     });
@@ -62,5 +65,5 @@ export function useMediaList(initialUsage = '', perPage = 24) {
         if (meta.value) meta.value.total--;
     }
 
-    return { items, meta, loading, filters, load, goTo, setPerPage, prepend, replace, remove };
+    return { items, meta, counts, loading, filters, load, goTo, setPerPage, prepend, replace, remove };
 }

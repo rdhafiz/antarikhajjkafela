@@ -1567,3 +1567,26 @@ span.flatpickr-weekday {
     background: color-mix(in oklab, var(--tone, var(--admin-primary)) 16%, white);
     color: color-mix(in oklab, var(--tone, var(--admin-primary)) 55%, black);
 }
+
+/* Settings start page: overall "N of M filled in" pill with a small progress ring. */
+.st-overall {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    gap: 0.55rem;
+    border-radius: 999px;
+    background: #fff;
+    padding: 0 1rem 0 0.45rem;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-ink);
+    box-shadow: inset 0 0 0 1px var(--color-line), 0 10px 24px -14px rgb(2 12 27 / 0.45);
+}
+
+.st-overall-ring {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 999px;
+    background: conic-gradient(#22c55e var(--p), #e2e8f0 0);
+    mask: radial-gradient(circle, transparent 52%, #000 54%);
+}

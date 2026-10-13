@@ -18,16 +18,33 @@ class MediaController extends Controller
     {
         $request->validate([
             'usage' => ['nullable', Rule::in(array_keys(config('media.usages')))],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'largest', 'smallest', 'name'])],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $media = Media::query()
-            ->when($request->string('search')->trim()->value(), fn ($q, string $search) => $q->where('original_name', 'like', "%{$search}%"))
+            ->when($request->string('search')->trim()->value(), function ($q, string $search) {
+                // "!" escapes % and _ so they are matched literally (the same in MySQL and SQLite).
+                $q->whereRaw("original_name like ? escape '!'", ['%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search).'%']);
+            })
             ->when($request->input('usage'), fn ($q, string $usage) => $q->where('usage', $usage))
+            ->when($request->input('sort', 'newest'), fn ($q, string $sort) => match ($sort) {
+                'oldest' => $q->oldest('id'),
+                'largest' => $q->orderByDesc('size'),
+                'smallest' => $q->orderBy('size'),
+                'name' => $q->orderBy('original_name'),
+                default => $q,
+            })
             ->latest('id')
             ->paginate($request->integer('per_page', 24));
 
-        return MediaResource::collection($media);
+        return MediaResource::collection($media)->additional([
+            // Counts for the filter drawer.
+            'counts' => [
+                'usages' => Media::query()->toBase()->selectRaw('`usage`, count(*) as n')->groupBy('usage')->pluck('n', 'usage')->map(fn ($n) => (int) $n),
+                'total' => Media::count(),
+            ],
+        ]);
     }
 
     public function store(MediaUploadRequest $request, MediaUploader $uploader): MediaResource

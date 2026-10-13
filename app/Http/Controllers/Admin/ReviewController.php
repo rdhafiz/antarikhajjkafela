@@ -14,7 +14,7 @@ class ReviewController extends Controller
 {
     public function index(): JsonResponse
     {
-        return response()->json(['data' => Review::orderBy('sort')->latest('id')->get()->map(fn (Review $r) => $this->present($r))]);
+        return response()->json(['data' => Review::with('photo')->orderBy('sort')->latest('id')->get()->map(fn (Review $r) => $this->present($r))]);
     }
 
     public function store(Request $request): JsonResponse
@@ -100,6 +100,7 @@ class ReviewController extends Controller
             'text' => (object) $review->getTranslations('text'),
             'video_url' => $review->video_url,
             'photo_id' => $review->photo_id,
+            'photo_url' => $review->photo_id ? $review->photo?->url('sm') : null,
             'rating' => $review->rating,
             'is_featured' => $review->is_featured,
             'is_published' => $review->is_published,

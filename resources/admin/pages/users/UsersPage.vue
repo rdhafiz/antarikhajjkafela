@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { ChevronRight, Clock, Mail, Pencil, Phone, Plus, ShieldCheck, Trash2, UserCheck, UserX, Users } from 'lucide-vue-next';
+import { ArrowDownUp, CircleCheck, Clock, Mail, Pencil, Phone, Plus, ShieldCheck, Trash2, UserCheck, UserX, Users } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
 import AppDrawer from '@admin/components/ui/AppDrawer.vue';
 import AppPagination from '@admin/components/ui/AppPagination.vue';
-import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
-import FilterBar from '@admin/components/ui/FilterBar.vue';
-import PageHeader from '@admin/components/ui/PageHeader.vue';
+import FilterDrawer, { type FilterGroup } from '@admin/components/ui/FilterDrawer.vue';
+import ListHero from '@admin/components/ui/ListHero.vue';
+import ListToolbar from '@admin/components/ui/ListToolbar.vue';
 import UserFormModal from './UserFormModal.vue';
+import UserListItem from './UserListItem.vue';
+import headerPhoto from '@admin/assets/users-header.webp';
+import type { Paginated } from '@admin/lib/http';
 import { useConfirm } from '@admin/composables/useConfirm';
 import { useListQuery } from '@admin/composables/useListQuery';
 import { errorMessage, http } from '@admin/lib/http';
@@ -22,7 +25,12 @@ const auth = useAuthStore();
 const toast = useToastStore();
 const { confirm } = useConfirm();
 
-const list = useListQuery<AdminUser>('/users', { role: '' });
+type UsersResponse = Paginated<AdminUser> & {
+    counts: { total: number; active: number; inactive: number; never: number; roles: Record<string, number> };
+};
+
+const list = useListQuery<AdminUser, UsersResponse>('/users', { role: '', status: '', signed_in: '', sort: '' });
+const filtersOpen = ref(false);
 const roles = ref<Role[]>([]);
 
 const formOpen = ref(false);
@@ -31,8 +39,57 @@ const current = ref<AdminUser | null>(null);
 const drawerOpen = ref(false);
 const toggling = ref(false);
 
-const filtered = computed(() => !!list.filters.search || list.active.value > 0);
-const summary = computed(() => (list.meta.value ? `${list.meta.value.total} ${list.meta.value.total === 1 ? 'user' : 'users'}` : ''));
+const counts = computed(() => list.response.value?.counts);
+const total = computed(() => list.meta.value?.total ?? 0);
+const activeFilters = computed(() => (['role', 'status', 'signed_in'] as const).filter((key) => list.filters[key] !== '').length);
+const filtered = computed(() => !!list.filters.search || activeFilters.value > 0);
+
+const filterGroups = computed<FilterGroup[]>(() => {
+    const c = counts.value;
+    return [
+        {
+            key: 'role',
+            label: 'Role',
+            icon: ShieldCheck,
+            tone: '#4ade80',
+            options: [{ value: '', label: 'All roles', count: c?.total ?? null }, ...roles.value.map((r) => ({ value: r.name, label: r.label, count: c?.roles[r.name] ?? 0 }))],
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            icon: CircleCheck,
+            tone: '#34d399',
+            options: [
+                { value: '', label: 'Any status' },
+                { value: 'active', label: 'Active', count: c?.active ?? null },
+                { value: 'inactive', label: 'Inactive', count: c?.inactive ?? null },
+            ],
+        },
+        {
+            key: 'signed_in',
+            label: 'Last sign-in',
+            icon: Clock,
+            tone: '#fbbf24',
+            options: [
+                { value: '', label: 'Any time' },
+                { value: 'week', label: 'This week' },
+                { value: 'month', label: 'This month' },
+                { value: 'never', label: 'Never signed in', count: c?.never ?? null },
+            ],
+        },
+        {
+            key: 'sort',
+            label: 'Sort by',
+            icon: ArrowDownUp,
+            tone: '#38bdf8',
+            options: [
+                { value: '', label: 'Name A–Z' },
+                { value: 'last_login', label: 'Recent sign-in' },
+                { value: 'newest', label: 'Newest accounts' },
+            ],
+        },
+    ];
+});
 const isSelf = (user: AdminUser) => user.id === auth.user?.id;
 
 function roleLabel(name: string): string {
@@ -119,23 +176,22 @@ onMounted(async () => {
 
 <template>
     <div>
-        <PageHeader title="Users" description="People who can sign in to the admin portal.">
+        <!-- Header with a photo -->
+        <ListHero title="Users" description="People who can sign in to the admin portal." :icon="Users" tone="#93c5fd" :photo="headerPhoto" photo-position="60% 30%">
             <template #actions>
                 <AppButton v-if="auth.can('users.create')" :icon="Plus" @click="openCreate">Add user</AppButton>
             </template>
-        </PageHeader>
+        </ListHero>
 
-        <FilterBar v-model:search="list.filters.search as string" placeholder="Search by name or email" :active="list.active.value" :summary="summary" @clear="list.clear">
-            <select v-model="list.filters.role" class="control" aria-label="Filter by role">
-                <option value="">All roles</option>
-                <option v-for="role in roles" :key="role.id" :value="role.name">{{ role.label }}</option>
-            </select>
-        </FilterBar>
+        <!-- Search and filters in one row -->
+        <ListToolbar v-model:search="list.filters.search as string" placeholder="Search by name or email" :active="activeFilters" @filters="filtersOpen = true" />
 
-        <div class="card overflow-hidden">
-            <div v-if="list.loading.value && !list.rows.value.length" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
+        <!-- Users -->
+        <div v-if="list.loading.value && !list.rows.value.length" class="grid gap-3" aria-busy="true" aria-label="Loading users">
+            <div v-for="n in 3" :key="n" class="card h-[190px] animate-pulse sm:h-[96px]" />
+        </div>
+        <div v-else-if="!list.rows.value.length" class="card">
             <EmptyState
-                v-else-if="!list.rows.value.length"
                 :icon="Users"
                 :title="filtered ? 'No users match' : 'No users yet'"
                 :description="filtered ? 'Try another search or clear the filters.' : 'Add the first admin user.'"
@@ -143,49 +199,39 @@ onMounted(async () => {
                 <AppButton v-if="filtered" variant="secondary" @click="clearFilters">Clear filters</AppButton>
                 <AppButton v-else-if="auth.can('users.create')" :icon="Plus" @click="openCreate">Add user</AppButton>
             </EmptyState>
-            <table v-else class="dt" :class="{ 'opacity-60 transition-opacity': list.loading.value }">
-                <thead>
-                    <tr>
-                        <th>User</th>
-                        <th>Roles</th>
-                        <th>Status</th>
-                        <th>Last sign-in</th>
-                        <th class="dt-trigger"><span class="sr-only">Open</span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="user in list.rows.value" :key="user.id" class="dt-row" @click="open(user)">
-                        <td>
-                            <div class="flex items-center gap-3">
-                                <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-[13px] font-bold text-brand" aria-hidden="true">
-                                    {{ initials(user.name) }}
-                                </span>
-                                <div class="min-w-0">
-                                    <p class="truncate font-semibold text-ink">
-                                        {{ user.name }}
-                                        <span v-if="isSelf(user)" class="ml-1 text-[12px] font-medium text-ink-muted">(you)</span>
-                                    </p>
-                                    <p class="truncate text-[12.5px] text-ink-muted">{{ user.email }}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td data-label="Roles">
-                            <div class="flex flex-wrap gap-1">
-                                <AppBadge v-for="role in user.roles" :key="role" :tone="role === 'super-admin' ? 'gold' : 'brand'">{{ roleLabel(role) }}</AppBadge>
-                                <span v-if="!user.roles?.length" class="text-[13px] text-ink-muted">No role</span>
-                            </div>
-                        </td>
-                        <td data-label="Status"><AppBadge :tone="user.is_active ? 'success' : 'neutral'">{{ user.is_active ? 'Active' : 'Inactive' }}</AppBadge></td>
-                        <td data-label="Last sign-in" class="dt-hide-sm text-[13px] whitespace-nowrap text-ink-soft">{{ formatDate(user.last_login_at, true) }}</td>
-                        <td class="dt-trigger">
-                            <button type="button" class="dt-open" :aria-label="`Open ${user.name}`" @click.stop="open(user)"><ChevronRight class="size-4" /></button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        </div>
+        <div v-else class="us-list" :class="{ 'opacity-60 transition-opacity': list.loading.value }">
+            <div class="grid gap-3">
+                <UserListItem
+                    v-for="(user, i) in list.rows.value"
+                    :key="user.id"
+                    :user="user"
+                    :role-label="roleLabel"
+                    :is-self="isSelf(user)"
+                    :index="i"
+                    :can-update="auth.can('users.update')"
+                    :can-delete="auth.can('users.delete')"
+                    @open="open(user)"
+                    @edit="openEdit(user)"
+                    @toggle="toggleActive(user)"
+                    @remove="remove(user)"
+                />
+            </div>
         </div>
 
-        <AppPagination v-if="list.meta.value" :meta="list.meta.value" label="users" @change="list.goTo" @per-page="list.setPerPage" />
+        <AppPagination v-if="list.meta.value && list.rows.value.length" :meta="list.meta.value" label="users" @change="list.goTo" @per-page="list.setPerPage" />
+
+        <!-- All filters -->
+        <FilterDrawer
+            v-model:open="filtersOpen"
+            :filters="list.filters"
+            :groups="filterGroups"
+            :total="total"
+            :noun="['user', 'users']"
+            :loading="list.loading.value"
+            :can-clear="activeFilters > 0 || list.filters.sort !== ''"
+            @clear="list.clear()"
+        />
 
         <!-- Preview and actions -->
         <AppDrawer v-model:open="drawerOpen" :title="current?.name ?? ''" :description="current?.email" :icon="Users">
@@ -242,3 +288,10 @@ onMounted(async () => {
         <UserFormModal v-model:open="formOpen" :user="editing" :roles="roles" @saved="saved" />
     </div>
 </template>
+
+<style scoped>
+/* The list measures its own width, so rows adapt to the space next to the sidebar. */
+.us-list {
+    container: us-list / inline-size;
+}
+</style>

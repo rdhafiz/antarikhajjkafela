@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
@@ -18,18 +19,50 @@ class UserController extends Controller
 {
     public function index(Request $request): AnonymousResourceCollection
     {
+        $request->validate([
+            'status' => ['nullable', Rule::in(['active', 'inactive'])],
+            'signed_in' => ['nullable', Rule::in(['week', 'month', 'never'])],
+            'sort' => ['nullable', Rule::in(['name', 'newest', 'last_login'])],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
         $users = User::query()
             ->with('roles')
             ->when($request->string('search')->trim()->value(), function ($query, string $search) {
-                $query->where(fn ($q) => $q
-                    ->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%"));
+                // "!" escapes % and _ so they are matched literally (the same in MySQL and SQLite).
+                $like = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search).'%';
+                $query->where(fn ($q) => $q->whereRaw("name like ? escape '!'", [$like])->orWhereRaw("email like ? escape '!'", [$like]));
             })
             ->when($request->string('role')->value(), fn ($query, string $role) => $query->role($role))
-            ->orderBy('name')
+            ->when($request->input('status'), fn ($query, string $status) => $query->where('is_active', $status === 'active'))
+            ->when($request->input('signed_in'), fn ($query, string $when) => match ($when) {
+                'never' => $query->whereNull('last_login_at'),
+                'week' => $query->where('last_login_at', '>=', now()->subWeek()),
+                default => $query->where('last_login_at', '>=', now()->subMonth()),
+            })
+            ->when($request->input('sort', 'name'), fn ($query, string $sort) => match ($sort) {
+                'newest' => $query->latest('id'),
+                'last_login' => $query->orderByRaw('last_login_at is null')->latest('last_login_at'),
+                default => $query->orderBy('name'),
+            })
             ->paginate($request->integer('per_page', 15));
 
-        return UserResource::collection($users);
+        return UserResource::collection($users)->additional([
+            // Counts for the filter drawer.
+            'counts' => [
+                'total' => User::count(),
+                'active' => User::where('is_active', true)->count(),
+                'inactive' => User::where('is_active', false)->count(),
+                'never' => User::whereNull('last_login_at')->count(),
+                'roles' => DB::table(config('permission.table_names.model_has_roles').' as assigned')
+                    ->join(config('permission.table_names.roles').' as r', 'r.id', '=', 'assigned.role_id')
+                    ->where('assigned.model_type', (new User)->getMorphClass())
+                    ->selectRaw('r.name as role, count(*) as n')
+                    ->groupBy('r.name')
+                    ->pluck('n', 'role')
+                    ->map(fn ($n) => (int) $n),
+            ],
+        ]);
     }
 
     /**

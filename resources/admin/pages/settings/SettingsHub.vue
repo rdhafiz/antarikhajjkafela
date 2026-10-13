@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { ArrowRight, ChevronRight, CornerDownLeft, Search, SearchX, X } from 'lucide-vue-next';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { ArrowRight, ChevronRight, CircleDashed, CornerDownLeft, LayoutGrid, SearchX } from 'lucide-vue-next';
+import FilterDrawer, { type FilterGroup } from '@admin/components/ui/FilterDrawer.vue';
+import ListToolbar from '@admin/components/ui/ListToolbar.vue';
 import { groupIcon, groupTone } from './meta';
 import type { SettingsNavGroup, SettingsNavSection } from './types';
 
@@ -11,7 +13,50 @@ import type { SettingsNavGroup, SettingsNavSection } from './types';
 const props = defineProps<{ navigation: SettingsNavSection[] }>();
 
 const query = ref('');
-const searchInput = ref<HTMLInputElement | null>(null);
+const filtersOpen = ref(false);
+/** Which sections show: by area ('' = all) and by how complete they are. */
+const filters = reactive({ area: '', completion: '' });
+
+const allGroups = computed(() => props.navigation.flatMap((s) => s.groups));
+const isComplete = (group: SettingsNavGroup) => group.filled >= group.total;
+const filterGroups = computed<FilterGroup[]>(() => [
+    {
+        key: 'area',
+        label: 'Area',
+        icon: LayoutGrid,
+        tone: '#cbd5e1',
+        options: [{ value: '', label: 'Everything', count: allGroups.value.length }, ...props.navigation.map((s) => ({ value: s.label, label: s.label, count: s.groups.length }))],
+    },
+    {
+        key: 'completion',
+        label: 'Filled in',
+        icon: CircleDashed,
+        tone: '#fbbf24',
+        options: [
+            { value: '', label: 'Any' },
+            { value: 'empty', label: 'Has empty fields', count: allGroups.value.filter((g) => !isComplete(g)).length },
+            { value: 'complete', label: 'Fully filled in', count: allGroups.value.filter(isComplete).length },
+        ],
+    },
+]);
+const activeFilters = computed(() => Object.values(filters).filter((v) => v !== '').length);
+
+/** Sections after the filters, keeping their areas. */
+const visibleSections = computed(() =>
+    props.navigation
+        .filter((section) => !filters.area || section.label === filters.area)
+        .map((section) => ({
+            ...section,
+            groups: section.groups.filter((g) => !filters.completion || (filters.completion === 'complete') === isComplete(g)),
+        }))
+        .filter((section) => section.groups.length),
+);
+const visibleCount = computed(() => visibleSections.value.reduce((sum, s) => sum + s.groups.length, 0));
+
+function clearFilters(): void {
+    filters.area = '';
+    filters.completion = '';
+}
 
 interface Hit {
     group: SettingsNavGroup;
@@ -45,7 +90,7 @@ function onKey(event: KeyboardEvent): void {
     const typing = event.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName);
     if (event.key === '/' && !typing) {
         event.preventDefault();
-        searchInput.value?.focus();
+        document.getElementById('settings-search')?.focus();
     }
 }
 
@@ -55,27 +100,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
 
 <template>
     <div class="space-y-7">
-        <!-- Search -->
-        <div class="sh-search relative">
-            <label for="settings-search" class="sr-only">Search settings</label>
-            <Search class="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
-            <input
-                id="settings-search"
-                ref="searchInput"
-                v-model="query"
-                type="search"
-                autocomplete="off"
-                class="h-14 w-full rounded-2xl border border-line bg-white pr-12 pl-12 text-[15px] text-ink shadow-[var(--shadow-card)] placeholder:text-ink-muted focus:border-brand focus:ring-4 focus:ring-brand/10 focus:outline-none"
-                placeholder="Search any setting: WhatsApp, logo…"
-                aria-describedby="settings-search-help"
-                @keydown.esc="query = ''"
-            />
-            <button v-if="query" type="button" class="absolute top-1/2 right-3 -translate-y-1/2 rounded-lg p-1.5 text-ink-muted hover:bg-canvas hover:text-ink" aria-label="Clear search" @click="query = ''; searchInput?.focus()">
-                <X class="size-4" />
-            </button>
-            <kbd v-else class="absolute top-1/2 right-4 hidden -translate-y-1/2 rounded-md border border-line bg-canvas px-1.5 py-0.5 font-mono text-[12px] text-ink-soft md:block" aria-hidden="true">/</kbd>
-            <p id="settings-search-help" class="sr-only">Results appear below as you type.</p>
-        </div>
+        <!-- Search and filters in one row ("/" jumps to the search) -->
+        <ListToolbar v-model:search="query" input-id="settings-search" placeholder="Search any setting (press /): WhatsApp, logo…" :active="activeFilters" @filters="filtersOpen = true" />
 
         <!-- Results -->
         <section v-if="query.trim()" aria-live="polite" aria-label="Search results">
@@ -103,7 +129,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
 
         <!-- Sections -->
         <template v-else>
-            <section v-for="section in navigation" :key="section.label" :aria-labelledby="`sh-${section.label}`">
+            <div v-if="!visibleCount" class="card flex flex-col items-center px-6 py-10 text-center">
+                <SearchX class="size-7 text-ink-muted" aria-hidden="true" />
+                <p class="mt-3 text-[15px] font-semibold text-ink">No sections match these filters</p>
+                <button type="button" class="mt-2 text-[13.5px] font-semibold text-brand hover:underline" @click="clearFilters">Clear filters</button>
+            </div>
+            <section v-for="section in visibleSections" :key="section.label" :aria-labelledby="`sh-${section.label}`">
                 <h2 :id="`sh-${section.label}`" class="mb-3 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">{{ section.label }}</h2>
 
                 <!-- Phones: one grouped list -->
@@ -144,6 +175,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
                 </div>
             </section>
         </template>
+
+        <FilterDrawer v-model:open="filtersOpen" :filters="filters" :groups="filterGroups" :total="visibleCount" :noun="['section', 'sections']" :can-clear="activeFilters > 0" @clear="clearFilters" />
     </div>
 </template>
 

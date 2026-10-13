@@ -4,7 +4,8 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, type RouteLocationNo
 import { ArrowLeft, Check, CheckCircle2, ChevronDown, Eye, LayoutGrid, Settings2, Sparkles, Undo2 } from 'lucide-vue-next';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import AppDrawer from '@admin/components/ui/AppDrawer.vue';
-import PageHeader from '@admin/components/ui/PageHeader.vue';
+import ListHero from '@admin/components/ui/ListHero.vue';
+import headerPhoto from '@admin/assets/settings-header.webp';
 import SettingField from './SettingField.vue';
 import SettingsHub from './SettingsHub.vue';
 import ThemePreview from './ThemePreview.vue';
@@ -34,6 +35,7 @@ const justSaved = ref(false);
 
 const groupKey = computed(() => String(route.params.group ?? ''));
 const allGroups = computed(() => navigation.value.flatMap((section) => section.groups));
+const filledTotals = computed(() => allGroups.value.reduce((t, g) => ({ filled: t.filled + g.filled, total: t.total + g.total }), { filled: 0, total: 0 }));
 const current = computed(() => allGroups.value.find((item) => item.key === (group.value?.key ?? groupKey.value)) ?? null);
 const tone = computed(() => groupTone(current.value?.icon));
 const canEdit = computed(() => auth.can('settings.update'));
@@ -227,7 +229,11 @@ onBeforeUnmount(() => {
     <div>
         <!-- Hub: search and all sections -->
         <template v-if="!groupKey">
-            <PageHeader title="Settings" description="Website details, appearance, integrations and payment. Search for any setting or pick a section." />
+            <ListHero title="Settings" description="Website details, appearance, integrations and payment. Search for any setting or pick a section." :icon="Settings2" tone="#cbd5e1" :photo="headerPhoto" photo-position="70% 50%">
+                <template v-if="filledTotals.total" #actions>
+                    <span class="st-overall"><span class="st-overall-ring" :style="{ '--p': `${(filledTotals.filled / filledTotals.total) * 100}%` }" aria-hidden="true" />{{ filledTotals.filled }} of {{ filledTotals.total }} settings filled in</span>
+                </template>
+            </ListHero>
             <div v-if="!navigation.length" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
                 <div class="card h-14 animate-pulse md:col-span-2 xl:col-span-3" />
                 <div v-for="n in 6" :key="n" class="card h-44 animate-pulse" />

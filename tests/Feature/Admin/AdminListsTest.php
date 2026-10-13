@@ -5,14 +5,18 @@ namespace Tests\Feature\Admin;
 use App\Models\Booking;
 use App\Models\GalleryAlbum;
 use App\Models\Inquiry;
+use App\Models\Media;
 use App\Models\Package;
 use App\Models\PackagePrice;
 use App\Models\Page;
 use App\Models\Post;
+use App\Models\Review;
+use App\Models\User;
 use App\Support\Locales;
 use Database\Seeders\PageSeeder;
 use Database\Seeders\TravelSeeder;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class AdminListsTest extends AdminTestCase
 {
@@ -253,6 +257,75 @@ class AdminListsTest extends AdminTestCase
         $this->assertTrue($videos->fresh()->is_published);
 
         $admin->getJson('/api/admin/gallery?content=audio')->assertUnprocessable();
+    }
+
+    public function test_reviews_list_sends_photo_and_accepts_quick_toggles(): void
+    {
+        $review = Review::create(['name' => ['en' => 'Test pilgrim'], 'text' => ['en' => 'Kind and careful service.'], 'rating' => 5, 'is_featured' => false, 'is_published' => true]);
+
+        $admin = $this->asAdmin($this->superAdmin());
+        $row = collect($admin->getJson('/api/admin/reviews')->assertOk()->json('data'))->firstWhere('id', $review->id);
+        $this->assertArrayHasKey('photo_url', $row);
+
+        // The list's quick actions send the row back with one flag flipped.
+        $admin->putJson('/api/admin/reviews/'.$review->id, [...$row, 'is_featured' => true])->assertOk();
+        $admin->putJson('/api/admin/reviews/'.$review->id, [...$row, 'is_featured' => true, 'is_published' => false])->assertOk();
+
+        $review->refresh();
+        $this->assertTrue($review->is_featured);
+        $this->assertFalse($review->is_published);
+        $this->assertSame('Kind and careful service.', $review->getTranslation('text', 'en'));
+    }
+
+    public function test_media_list_sorts_by_size_and_name_with_usage_counts(): void
+    {
+        $make = fn (string $name, int $size, string $usage) => Media::create([
+            'uuid' => (string) Str::uuid(), 'usage' => $usage, 'disk' => 'public', 'original_name' => $name,
+            'directory' => 'media/test', 'filename' => $name, 'extension' => 'webp', 'mime_type' => 'image/webp', 'size' => $size, 'width' => 10, 'height' => 10,
+            'alt' => [], 'variants' => [],
+        ]);
+        $small = $make('b_small.webp', 1000, 'general');
+        $big = $make('a_100%_big.webp', 9000, 'banner');
+
+        $admin = $this->asAdmin($this->superAdmin());
+        $ids = fn (string $query) => collect($admin->getJson('/api/admin/media?'.$query)->assertOk()->json('data'))->pluck('id')->all();
+
+        $this->assertSame([$big->id, $small->id], $ids('sort=largest'));
+        $this->assertSame([$small->id, $big->id], $ids('sort=smallest'));
+        $this->assertSame([$big->id, $small->id], $ids('sort=name'));
+        // "%" is matched literally, not as a wildcard.
+        $this->assertSame([$big->id], $ids('search=100%25'));
+
+        $admin->getJson('/api/admin/media')
+            ->assertJsonPath('counts.total', 2)
+            ->assertJsonPath('counts.usages.banner', 1);
+
+        $admin->getJson('/api/admin/media?sort=random')->assertUnprocessable();
+    }
+
+    public function test_users_filter_by_status_and_sign_in_with_counts(): void
+    {
+        $me = $this->superAdmin(['name' => 'Zara Admin', 'last_login_at' => now()->subDay()]);
+        $old = User::factory()->create(['name' => 'Bilal 100% sure', 'last_login_at' => now()->subMonths(3)])->assignRole('admin');
+        $never = User::factory()->create(['name' => 'Asif', 'last_login_at' => null, 'is_active' => false])->assignRole('admin');
+
+        $admin = $this->asAdmin($me);
+        $ids = fn (string $query) => collect($admin->getJson('/api/admin/users?'.$query)->assertOk()->json('data'))->pluck('id')->all();
+
+        $this->assertSame([$never->id], $ids('status=inactive'));
+        $this->assertSame([$never->id], $ids('signed_in=never'));
+        $this->assertSame([$me->id], $ids('signed_in=week'));
+        $this->assertSame([$never->id, $old->id, $me->id], $ids('sort=name'));
+        $this->assertSame([$me->id, $old->id, $never->id], $ids('sort=last_login'));
+        // "%" is matched literally, not as a wildcard.
+        $this->assertSame([$old->id], $ids('search=100%25'));
+
+        $admin->getJson('/api/admin/users')
+            ->assertJsonPath('counts.inactive', 1)
+            ->assertJsonPath('counts.never', 1)
+            ->assertJsonPath('counts.roles.admin', 2);
+
+        $admin->getJson('/api/admin/users?signed_in=yesterday')->assertUnprocessable();
     }
 
     public function test_page_post_and_gallery_lists_send_full_pagination_meta(): void

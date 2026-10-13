@@ -7,7 +7,7 @@ import { Search, SlidersHorizontal, X } from 'lucide-vue-next';
  */
 const search = defineModel<string>('search', { default: '' });
 
-withDefaults(defineProps<{ placeholder?: string; active?: number }>(), { placeholder: 'Search', active: 0 });
+withDefaults(defineProps<{ placeholder?: string; active?: number; /** id for the search box, e.g. for a keyboard shortcut. */ inputId?: string }>(), { placeholder: 'Search', active: 0 });
 const emit = defineEmits<{ filters: [] }>();
 </script>
 
@@ -17,7 +17,7 @@ const emit = defineEmits<{ filters: [] }>();
         <label class="relative min-w-0 flex-1 basis-48">
             <span class="sr-only">{{ placeholder }}</span>
             <Search class="pointer-events-none absolute top-1/2 left-4 size-[18px] -translate-y-1/2 text-ink-muted" aria-hidden="true" />
-            <input v-model="search" type="search" :placeholder="placeholder" class="control lt-search pr-10 pl-11" />
+            <input :id="inputId" v-model="search" type="search" autocomplete="off" :placeholder="placeholder" class="control lt-search pr-10 pl-11" @keydown.esc="search = ''" />
             <button v-if="search" type="button" class="absolute top-1/2 right-2.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-ink-muted hover:bg-canvas hover:text-ink" aria-label="Clear search" @click="search = ''">
                 <X class="size-4" />
             </button>

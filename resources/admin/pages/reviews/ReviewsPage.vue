@@ -1,24 +1,25 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
-import { ChevronRight, Eye, EyeOff, GripVertical, MessageSquareQuote, Pencil, Plus, Star, Trash2, Video } from 'lucide-vue-next';
+import { Eye, EyeOff, MessageSquareQuote, Pencil, PenLine, Plus, Star, Trash2, Video } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
 import AppDrawer from '@admin/components/ui/AppDrawer.vue';
 import AppModal from '@admin/components/ui/AppModal.vue';
-import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import AppSwitch from '@admin/components/ui/AppSwitch.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
-import FilterBar from '@admin/components/ui/FilterBar.vue';
+import FilterDrawer, { type FilterGroup } from '@admin/components/ui/FilterDrawer.vue';
 import FormField from '@admin/components/ui/FormField.vue';
-import PageHeader from '@admin/components/ui/PageHeader.vue';
+import ListHero from '@admin/components/ui/ListHero.vue';
+import ListToolbar from '@admin/components/ui/ListToolbar.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
 import MediaField from '@admin/components/media/MediaField.vue';
+import ReviewListItem, { type ReviewItem } from './ReviewListItem.vue';
+import headerPhoto from '@admin/assets/reviews-header.webp';
 import { pickText } from '@admin/pages/content/builder/types';
 import { useConfirm } from '@admin/composables/useConfirm';
 import { useForm } from '@admin/composables/useForm';
 import { errorMessage, http } from '@admin/lib/http';
-import { initials } from '@admin/lib/format';
 import { useAppStore } from '@admin/stores/app';
 import { useAuthStore } from '@admin/stores/auth';
 import { useToastStore } from '@admin/stores/toast';
@@ -31,6 +32,7 @@ interface ReviewRow {
     text: Translations;
     video_url: string | null;
     photo_id: number | null;
+    photo_url?: string | null;
     rating: number | null;
     is_featured: boolean;
     is_published: boolean;
@@ -49,7 +51,8 @@ const current = ref<ReviewRow | null>(null);
 const drawerOpen = ref(false);
 
 const search = ref('');
-const filters = reactive({ type: '', featured: '', published: '' });
+const filters = reactive({ type: '', featured: '', published: '', rating: '' });
+const filtersOpen = ref(false);
 const term = computed(() => search.value.trim().toLowerCase());
 const active = computed(() => Object.values(filters).filter((value) => value !== '').length);
 const filtering = computed(() => !!term.value || active.value > 0);
@@ -64,20 +67,101 @@ function matches(review: ReviewRow): boolean {
     if (filters.type === 'video' && !review.video_url) return false;
     if (filters.featured && review.is_featured !== (filters.featured === 'yes')) return false;
     if (filters.published && review.is_published !== (filters.published === 'yes')) return false;
+    if (filters.rating === '5' && review.rating !== 5) return false;
+    if (filters.rating === '4' && (review.rating ?? 0) < 4) return false;
+    if (filters.rating === 'none' && review.rating) return false;
     if (!term.value) return true;
 
     return [review.name, review.intro, review.text].some((field) => Object.values(field ?? {}).some((value) => (value ?? '').toLowerCase().includes(term.value)));
 }
 
 const visibleCount = computed(() => reviews.value.filter(matches).length);
-const summary = computed(() => {
-    const total = `${reviews.value.length} ${reviews.value.length === 1 ? 'review' : 'reviews'}`;
-    return filtering.value ? `${visibleCount.value} of ${total}` : total;
+
+/** Filters run on the page: the list is short and keeps its drag-and-drop order. */
+const filterGroups = computed<FilterGroup[]>(() => {
+    const all = reviews.value;
+    const count = (test: (r: ReviewRow) => boolean) => all.filter(test).length;
+    return [
+        {
+            key: 'published',
+            label: 'Website',
+            icon: Eye,
+            tone: '#34d399',
+            options: [
+                { value: '', label: 'Shown or hidden', count: all.length },
+                { value: 'yes', label: 'Shown', count: count((r) => r.is_published) },
+                { value: 'no', label: 'Hidden', count: count((r) => !r.is_published) },
+            ],
+        },
+        {
+            key: 'type',
+            label: 'Type',
+            icon: PenLine,
+            tone: '#38bdf8',
+            options: [
+                { value: '', label: 'Any' },
+                { value: 'text', label: 'Written', count: count(hasText) },
+                { value: 'video', label: 'Video', count: count((r) => !!r.video_url) },
+            ],
+        },
+        {
+            key: 'featured',
+            label: 'Featured',
+            icon: Star,
+            tone: '#f472b6',
+            options: [
+                { value: '', label: 'Featured or not' },
+                { value: 'yes', label: 'Featured only', count: count((r) => r.is_featured) },
+                { value: 'no', label: 'Not featured', count: count((r) => !r.is_featured) },
+            ],
+        },
+        {
+            key: 'rating',
+            label: 'Rating',
+            icon: Star,
+            tone: '#fbbf24',
+            options: [
+                { value: '', label: 'Any rating' },
+                { value: '5', label: '5 stars', count: count((r) => r.rating === 5) },
+                { value: '4', label: '4 stars and up', count: count((r) => (r.rating ?? 0) >= 4) },
+                { value: 'none', label: 'No rating', count: count((r) => !r.rating) },
+            ],
+        },
+    ];
+});
+
+const item = (review: ReviewRow): ReviewItem => ({
+    id: review.id,
+    name: pickText(review.name, app.defaultLocale),
+    intro: pickText(review.intro, app.defaultLocale),
+    text: pickText(review.text, app.defaultLocale),
+    photo_url: review.photo_url ?? null,
+    video_id: youtubeId(review.video_url),
+    has_video: !!review.video_url,
+    rating: review.rating,
+    is_featured: review.is_featured,
+    is_published: review.is_published,
 });
 
 function clearFilters(): void {
-    Object.assign(filters, { type: '', featured: '', published: '' });
+    Object.assign(filters, { type: '', featured: '', published: '', rating: '' });
 }
+
+/** Quick show/hide and featured changes from the list, through the normal update. */
+async function quickUpdate(review: ReviewRow, change: Partial<ReviewRow>, message: string): Promise<void> {
+    try {
+        await http.put(`/reviews/${review.id}`, { ...JSON.parse(JSON.stringify(review)), ...change });
+        toast.success(message);
+        drawerOpen.value = false;
+        load();
+    } catch (e) {
+        toast.error(errorMessage(e));
+    }
+}
+
+const toggle = (review: ReviewRow) =>
+    quickUpdate(review, { is_published: !review.is_published }, review.is_published ? 'Review hidden from the website' : 'Review shown on the website');
+const feature = (review: ReviewRow) => quickUpdate(review, { is_featured: !review.is_featured }, review.is_featured ? 'Removed from featured' : 'Marked as featured');
 
 function clearAll(): void {
     clearFilters();
@@ -151,31 +235,20 @@ onMounted(load);
 
 <template>
     <div>
-        <PageHeader title="Reviews" description="Pilgrim testimonials shown on the Reviews page and in testimonial sections. Featured reviews come first; drag to set the order.">
+        <!-- Header with a photo -->
+        <ListHero title="Reviews" description="Pilgrim testimonials shown on the Reviews page and in testimonial sections. Featured reviews come first; drag to set the order." :icon="MessageSquareQuote" tone="#f472b6" :photo="headerPhoto" photo-position="40% 50%">
             <template #actions>
                 <AppButton v-if="auth.can('reviews.create')" :icon="Plus" @click="edit(null)">Add review</AppButton>
             </template>
-        </PageHeader>
+        </ListHero>
 
-        <FilterBar v-model:search="search" placeholder="Search reviews by name or text" :active="active" :summary="reviews.length ? summary : ''" @clear="clearFilters">
-            <select v-model="filters.type" class="control" aria-label="Filter by type">
-                <option value="">Any type</option>
-                <option value="text">Written</option>
-                <option value="video">Video</option>
-            </select>
-            <select v-model="filters.featured" class="control" aria-label="Filter featured reviews">
-                <option value="">Featured or not</option>
-                <option value="yes">Featured only</option>
-                <option value="no">Not featured</option>
-            </select>
-            <select v-model="filters.published" class="control" aria-label="Filter by visibility">
-                <option value="">Shown or hidden</option>
-                <option value="yes">Shown on the website</option>
-                <option value="no">Hidden</option>
-            </select>
-        </FilterBar>
+        <!-- Search and filters in one row -->
+        <ListToolbar v-model:search="search" placeholder="Search reviews by name or text" :active="active" @filters="filtersOpen = true" />
 
-        <div v-if="loading" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
+        <!-- Reviews (drag the grip to reorder) -->
+        <div v-if="loading" class="grid gap-3" aria-busy="true" aria-label="Loading reviews">
+            <div v-for="n in 3" :key="n" class="card h-[230px] animate-pulse sm:h-[112px]" />
+        </div>
         <div v-else-if="!reviews.length || !visibleCount" class="card">
             <EmptyState v-if="reviews.length" :icon="MessageSquareQuote" title="No reviews match" description="Try another search or clear the filters.">
                 <AppButton variant="secondary" @click="clearAll">Clear filters</AppButton>
@@ -184,38 +257,29 @@ onMounted(load);
                 <AppButton v-if="auth.can('reviews.create')" :icon="Plus" @click="edit(null)">Add review</AppButton>
             </EmptyState>
         </div>
-        <template v-else>
+        <div v-else class="rv-list">
             <p v-if="filtering && auth.can('reviews.update')" class="mb-3 px-0.5 text-[13px] text-ink-muted">Clear the search and filters to drag reviews into a new order.</p>
-            <VueDraggable v-model="reviews" handle=".drag" :animation="160" :disabled="!canSort" class="space-y-3" @end="saveOrder">
-                <div
-                    v-for="review in reviews"
+            <VueDraggable v-model="reviews" handle=".drag" :animation="200" :disabled="!canSort" class="grid gap-3" ghost-class="rv-ghost" @end="saveOrder">
+                <ReviewListItem
+                    v-for="(review, i) in reviews"
                     v-show="matches(review)"
                     :key="review.id"
-                    class="card flex cursor-pointer items-start gap-3 p-3 transition-shadow hover:shadow-md sm:p-4"
-                    :class="{ 'opacity-60': !review.is_published }"
-                    @click="preview(review)"
-                >
-                    <button v-if="canSort" type="button" class="drag mt-1.5 flex size-8 shrink-0 cursor-grab items-center justify-center rounded-lg text-ink-muted hover:bg-canvas" aria-label="Drag to reorder" @click.stop><GripVertical class="size-4" /></button>
-                    <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand text-[14px] font-semibold text-gold" aria-hidden="true">{{ initials(pickText(review.name, app.defaultLocale)) }}</span>
-                    <div class="min-w-0 flex-1">
-                        <p class="flex flex-wrap items-center gap-2 font-semibold text-ink">
-                            <span class="min-w-0 break-words">{{ pickText(review.name, app.defaultLocale) }}</span>
-                            <AppBadge v-if="review.is_featured" tone="gold">Featured</AppBadge>
-                            <AppBadge v-if="!review.is_published" tone="neutral"><EyeOff class="size-3" />Hidden</AppBadge>
-                        </p>
-                        <p class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12px] text-ink-muted">
-                            <span v-if="review.rating" class="inline-flex items-center gap-0.5 text-gold" :aria-label="`${review.rating} stars`">
-                                <Star v-for="i in review.rating" :key="i" class="size-3 fill-current" />
-                            </span>
-                            <span v-if="pickText(review.intro, app.defaultLocale)" class="min-w-0 break-words">{{ pickText(review.intro, app.defaultLocale) }}</span>
-                            <span v-if="review.video_url" class="inline-flex items-center gap-1"><Video class="size-3.5" /> Video</span>
-                        </p>
-                        <p v-if="pickText(review.text, app.defaultLocale)" class="mt-1.5 line-clamp-2 text-[13px] break-words text-ink-soft">{{ pickText(review.text, app.defaultLocale) }}</p>
-                    </div>
-                    <button type="button" class="dt-open mt-1.5 shrink-0" :aria-label="`Open review by ${pickText(review.name, app.defaultLocale)}`" @click.stop="preview(review)"><ChevronRight class="size-4" /></button>
-                </div>
+                    :review="item(review)"
+                    :index="i"
+                    :can-sort="canSort"
+                    :can-update="auth.can('reviews.update')"
+                    :can-delete="auth.can('reviews.delete')"
+                    @open="preview(review)"
+                    @edit="edit(review)"
+                    @toggle="toggle(review)"
+                    @feature="feature(review)"
+                    @remove="remove(review)"
+                />
             </VueDraggable>
-        </template>
+        </div>
+
+        <!-- All filters -->
+        <FilterDrawer v-model:open="filtersOpen" :filters="filters" :groups="filterGroups" :total="visibleCount" :noun="['review', 'reviews']" :can-clear="active > 0" @clear="clearFilters" />
 
         <!-- Preview and actions -->
         <AppDrawer
@@ -259,6 +323,12 @@ onMounted(load);
                     <div class="-mx-1 space-y-1">
                         <button v-if="auth.can('reviews.update')" type="button" class="dw-action" @click="edit(current)">
                             <span class="dw-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit review
+                        </button>
+                        <button v-if="auth.can('reviews.update')" type="button" class="dw-action" @click="feature(current)">
+                            <span class="dw-action-icon" style="--tone: #f472b6"><Star class="size-4" /></span>{{ current.is_featured ? 'Remove from featured' : 'Mark as featured' }}
+                        </button>
+                        <button v-if="auth.can('reviews.update')" type="button" class="dw-action" @click="toggle(current)">
+                            <span class="dw-action-icon" style="--tone: #34d399"><component :is="current.is_published ? EyeOff : Eye" class="size-4" /></span>{{ current.is_published ? 'Hide from the website' : 'Show on the website' }}
                         </button>
                         <button v-if="auth.can('reviews.delete')" type="button" class="dw-action is-danger" @click="remove(current)">
                             <span class="dw-action-icon"><Trash2 class="size-4" /></span>Delete review
@@ -304,3 +374,17 @@ onMounted(load);
         </AppModal>
     </div>
 </template>
+
+<style scoped>
+/* The list measures its own width, so rows adapt to the space next to the sidebar. */
+.rv-list {
+    container: rv-list / inline-size;
+}
+
+/* The spot a dragged review will drop into. */
+.rv-list :deep(.rv-ghost) {
+    opacity: 0.45;
+    outline: 2px dashed color-mix(in oklab, #f472b6 60%, white);
+    outline-offset: -2px;
+}
+</style>
