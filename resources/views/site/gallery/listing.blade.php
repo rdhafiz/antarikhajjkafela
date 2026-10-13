@@ -29,7 +29,7 @@
     @else
         <h2 class="sr-only">{{ __('Albums') }}</h2>
 
-        {{-- Newest album: a wide cover with its details centered over it, then a row of its photos. --}}
+        {{-- Newest album: a wide cover with its details over it. --}}
         @if ($featured)
             <article class="mx-auto max-w-6xl">
                 <div class="relative isolate flex min-h-[24rem] flex-col items-start justify-end overflow-hidden rounded-[2rem] bg-brand-950 px-6 pt-24 pb-9 text-start text-white shadow-[var(--shadow-lift)] sm:min-h-[30rem] sm:px-12 sm:pb-12">
@@ -64,20 +64,6 @@
                         <x-site.button :href="$featured->url()" variant="gold" icon-right="arrow-right">{{ __('View album') }}</x-site.button>
                     </div>
                 </div>
-
-                @if ($previews->count() > 1)
-                    <ul class="mt-4 flex flex-wrap justify-center gap-3" data-reveal style="--reveal-delay: 80ms">
-                        @foreach ($previews as $photo)
-                            <li class="w-[calc(33.333%-0.5rem)] sm:w-[calc(16.666%-0.625rem)]">
-                                <a href="{{ $featured->url() }}" class="group block aspect-square overflow-hidden rounded-2xl bg-brand-950 focus-visible:ring-4 focus-visible:ring-gold/60 focus-visible:outline-none"
-                                   aria-label="{{ __('View album') }}: {{ $featured->getTranslation('title', $locale) }}">
-                                    <img src="{{ $photo->media->url('thumb') ?? $photo->media->url('sm') }}" alt="" loading="lazy" decoding="async"
-                                         class="size-full object-cover transition-[scale,opacity] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.06] group-hover:opacity-90">
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
             </article>
         @endif
 
