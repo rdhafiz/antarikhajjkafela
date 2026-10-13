@@ -15,7 +15,7 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | madinah-golden.webp | About; admin Inquiries header (cropped copy in `resources/admin/assets/inquiries-header.webp`) | Sulthan Auliya | https://unsplash.com/photos/rzzS0_pMsD0 |
 | makkah-hotels.webp | Services; admin Services header (cropped copy in `resources/admin/assets/services-header.webp`) | Sikiru Salami | https://unsplash.com/photos/jZp68sRx2w4 |
 | madinah-umbrellas.webp | Contact; admin Bookings header (cropped copy in `resources/admin/assets/bookings-header.webp`) | Haidan | https://unsplash.com/photos/RhkbHU14MoA |
-| haram-courtyard.webp | Gallery | Sam Riz | https://unsplash.com/photos/ceNCWYqL8DY |
+| haram-courtyard.webp | Gallery; admin Gallery header (cropped copy in `resources/admin/assets/gallery-header.webp`) | Sam Riz | https://unsplash.com/photos/ceNCWYqL8DY |
 | green-dome.webp | Reviews; admin Blog header (cropped copy in `resources/admin/assets/blog-header.webp`) | A Miah | https://unsplash.com/photos/hJXiPheKFus |
 | quran.webp | Blog & news | Abdullah Arif | https://unsplash.com/photos/Dxi6KbpvUgA |
 | nabawi-colonnade.webp | Terms & conditions, Privacy policy; admin Pages header (cropped copy in `resources/admin/assets/pages-header.webp`) | djonk creative | https://unsplash.com/photos/XqO6H6ikj1w |
@@ -30,7 +30,7 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | madinah-golden.webp | About; post "Umrah 2025: November group" |
 | makkah-hotels.webp | Services; post "Important information for Hajj pilgrims" |
 | madinah-umbrellas.webp | Contact |
-| haram-courtyard.webp | Gallery |
+| haram-courtyard.webp | Gallery; admin Gallery header (cropped copy in `resources/admin/assets/gallery-header.webp`) |
 | quran.webp | Blog & news |
 | green-dome.webp | Reviews; Umrah Package; admin Blog header (cropped copy in `resources/admin/assets/blog-header.webp`) |
 | nabawi-colonnade.webp | Terms & conditions, Privacy policy; admin Pages header (cropped copy in `resources/admin/assets/pages-header.webp`) |

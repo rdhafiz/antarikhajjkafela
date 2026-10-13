@@ -27,6 +27,8 @@ class GalleryController extends Controller
     {
         $filters = $request->validate([
             'status' => ['nullable', Rule::in(['published', 'draft'])],
+            'content' => ['nullable', Rule::in(['photos', 'videos', 'empty'])],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'updated', 'title'])],
             'search' => ['nullable', 'string', 'max:100'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
@@ -36,10 +38,20 @@ class GalleryController extends Controller
             'items as videos_count' => fn ($q) => $q->where('type', 'video'),
         ])
             ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('is_published', $status === 'published'))
+            ->when($filters['content'] ?? null, fn ($q, $content) => match ($content) {
+                'photos' => $q->whereHas('items', fn ($q) => $q->where('type', 'image')),
+                'videos' => $q->whereHas('items', fn ($q) => $q->where('type', 'video')),
+                default => $q->whereDoesntHave('items'),
+            })
             ->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q
                 ->where('slug', 'like', $this->likeTerm($search))
                 ->orWhere('title', 'like', $this->likeTerm($search))))
-            ->newest()
+            ->when($filters['sort'] ?? 'newest', fn ($q, $sort) => match ($sort) {
+                'oldest' => $q->orderByRaw('event_date is null')->orderBy('event_date')->oldest('id'),
+                'updated' => $q->latest('updated_at'),
+                'title' => $q->orderBy('title->'.app(Locales::class)->default()),
+                default => $q->newest(),
+            })
             ->paginate($filters['per_page'] ?? 12);
         $albums = collect($page->items());
 
@@ -54,12 +66,21 @@ class GalleryController extends Controller
         $coverIds = $albums->mapWithKeys(fn (GalleryAlbum $a) => [$a->id => $a->cover_id ?? $firstImages[$a->id] ?? null]);
         $covers = Media::whereIn('id', $coverIds->filter())->get()->keyBy('id');
 
+        // Counts for the filter drawer.
+        $counts = [
+            'published' => GalleryAlbum::where('is_published', true)->count(),
+            'draft' => GalleryAlbum::where('is_published', false)->count(),
+            'photos' => GalleryAlbum::whereHas('items', fn ($q) => $q->where('type', 'image'))->count(),
+            'videos' => GalleryAlbum::whereHas('items', fn ($q) => $q->where('type', 'video'))->count(),
+            'empty' => GalleryAlbum::whereDoesntHave('items')->count(),
+        ];
+
         return $this->listResponse($page, fn (GalleryAlbum $a) => [
             ...$this->presentAlbum($a),
             'cover_thumb' => $covers->get((int) $coverIds[$a->id])?->url('thumb'),
             'images_count' => $a->images_count,
             'videos_count' => $a->videos_count,
-        ]);
+        ], ['counts' => $counts]);
     }
 
     public function store(Request $request): JsonResponse

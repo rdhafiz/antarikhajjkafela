@@ -229,6 +229,32 @@ class AdminListsTest extends AdminTestCase
         $admin->getJson('/api/admin/posts?sort=oldest')->assertUnprocessable();
     }
 
+    public function test_gallery_list_filters_by_content_with_counts_and_sorts(): void
+    {
+        $empty = GalleryAlbum::create(['title' => ['en' => 'Badr visit'], 'slug' => 'badr-visit', 'event_date' => '2024-01-01', 'is_published' => true]);
+        $videos = GalleryAlbum::create(['title' => ['en' => 'Arafat day'], 'slug' => 'arafat-day', 'event_date' => '2025-06-01', 'is_published' => false]);
+        $videos->items()->create(['type' => 'video', 'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ']);
+
+        $admin = $this->asAdmin($this->superAdmin());
+        $response = $admin->getJson('/api/admin/gallery')->assertOk();
+        $this->assertSame(1, $response->json('counts.empty'));
+        $this->assertSame(1, $response->json('counts.videos'));
+        $this->assertSame(1, $response->json('counts.draft'));
+
+        $ids = fn (string $query) => collect($admin->getJson('/api/admin/gallery?'.$query)->assertOk()->json('data'))->pluck('id')->all();
+        $this->assertSame([$empty->id], $ids('content=empty'));
+        $this->assertSame([$videos->id], $ids('content=videos'));
+        $this->assertSame([$videos->id, $empty->id], $ids('sort=newest'));
+        $this->assertSame([$empty->id, $videos->id], $ids('sort=oldest'));
+
+        // The list's "Show on the website" action sends the row back with is_published flipped.
+        $row = collect($response->json('data'))->firstWhere('id', $videos->id);
+        $admin->putJson('/api/admin/gallery/'.$videos->id, [...$row, 'is_published' => true])->assertOk();
+        $this->assertTrue($videos->fresh()->is_published);
+
+        $admin->getJson('/api/admin/gallery?content=audio')->assertUnprocessable();
+    }
+
     public function test_page_post_and_gallery_lists_send_full_pagination_meta(): void
     {
         GalleryAlbum::create(['title' => ['en' => 'Arafat day'], 'slug' => 'arafat-day', 'is_published' => true]);
