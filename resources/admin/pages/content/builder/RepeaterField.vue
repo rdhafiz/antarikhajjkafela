@@ -33,7 +33,11 @@ function itemTitle(item: Record<string, unknown>, index: number): string {
     const raw = key ? item[key] : null;
     const text = child?.type === 'select' ? child.options?.[String(raw)] : pickText(raw, app.defaultLocale);
 
-    return text || `Item ${index + 1}`;
+    // Without a title (e.g. an image-only slide), the item's type names it.
+    const kind = props.field.fields?.find((f) => f.type === 'select');
+    const kindLabel = kind ? kind.options?.[String(item[kind.key])] : null;
+
+    return text || kindLabel || `Item ${index + 1}`;
 }
 
 function itemHasError(index: number): boolean {

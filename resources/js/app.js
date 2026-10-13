@@ -387,6 +387,83 @@ Alpine.data('journey', (count, duration = 6500) => ({
 }));
 
 /**
+ * Hero slider. The leaving slide stays underneath while the next one fades in
+ * over it (CSS in .hs-*); the current dot fills with the time left (--t).
+ * Autoplay waits while the hero is hovered, focused, off-screen or the tab is
+ * hidden, can be paused, and is off with reduced motion.
+ */
+Alpine.data('heroSlider', (count, duration = 7000) => ({
+    i: 0,
+    leaving: null,
+    auto: count > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    paused: false,
+    holds: { hover: false, focus: false },
+    visible: true,
+    t: 0,
+    timer: null,
+    touchX: null,
+
+    init() {
+        this.paint();
+        if (!this.auto) return;
+
+        new IntersectionObserver(([entry]) => (this.visible = entry.isIntersecting), { threshold: 0.25 }).observe(this.$el);
+
+        let last = performance.now();
+        const tick = (now) => {
+            const dt = Math.min(now - last, 100);
+            last = now;
+            if (!this.paused && !this.holds.hover && !this.holds.focus && this.visible && !document.hidden) {
+                this.t += dt / duration;
+                if (this.t >= 1) this.go(this.i + 1);
+                this.paint();
+            }
+            requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+    },
+
+    paint() {
+        this.$el.style.setProperty('--t', this.auto ? this.t.toFixed(4) : 1);
+    },
+
+    go(index) {
+        const next = (index + count) % count;
+        this.t = 0;
+        this.paint();
+        if (next === this.i) return;
+
+        this.leaving = this.i;
+        this.i = next;
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => (this.leaving = null), 1200);
+    },
+
+    step(delta) {
+        this.go(this.i + delta);
+    },
+
+    hold(reason, on) {
+        this.holds[reason] = on;
+    },
+
+    toggle() {
+        this.paused = !this.paused;
+    },
+
+    swipeStart(event) {
+        this.touchX = event.touches[0].clientX;
+    },
+
+    swipeEnd(event) {
+        if (this.touchX === null) return;
+        const dx = event.changedTouches[0].clientX - this.touchX;
+        this.touchX = null;
+        if (Math.abs(dx) > 50) this.step(dx < 0 ? 1 : -1);
+    },
+}));
+
+/**
  * Sticky in-page section bar: marks the section in the middle of the screen
  * and keeps its link scrolled into view in the (sideways scrolling) bar.
  */

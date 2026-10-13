@@ -19,7 +19,7 @@ class HeroComponent extends Component
 
     public function description(): string
     {
-        return 'Large opening section with headline, buttons and an image or slider.';
+        return 'Large opening section with headline, buttons and an image; add slides to make it a slider.';
     }
 
     public function category(): string
@@ -34,28 +34,35 @@ class HeroComponent extends Component
 
     public function fields(): array
     {
-        $static = ['split', 'centered'];
+        $text = ['text'];
 
         return [
             Field::select('variant', 'Layout', [
                 'split' => 'Text with image beside it',
                 'centered' => 'Centered text over a background image',
-                'slider' => 'Image slider',
             ]),
-            Field::text('eyebrow', 'Eyebrow')->max(60)->showIf('variant', $static),
-            Field::text('title', 'Headline')->max(120)->showIf('variant', $static),
-            Field::text('highlight', 'Highlighted words')->max(80)->hint('Shown in gold on a second line.')->showIf('variant', $static),
-            Field::textarea('text', 'Supporting text')->max(400)->rows(3)->showIf('variant', $static),
-            Field::image('image', 'Image', 'hero')->showIf('variant', $static),
-            Field::link('primary', 'Primary button')->showIf('variant', $static),
-            Field::link('secondary', 'Secondary button')->showIf('variant', $static),
-            Field::repeater('slides', 'Slides', [
+            Field::text('eyebrow', 'Eyebrow')->max(60),
+            Field::text('title', 'Headline')->max(120),
+            Field::text('highlight', 'Highlighted words')->max(80)->hint('Shown in gold on a second line.'),
+            Field::textarea('text', 'Supporting text')->max(400)->rows(3),
+            Field::image('image', 'Image', 'hero'),
+            Field::link('primary', 'Primary button'),
+            Field::link('secondary', 'Secondary button'),
+            // The hero above is the first slide; adding slides turns it into a slider.
+            Field::repeater('slides', 'Extra slides', [
+                Field::select('type', 'Slide type', [
+                    'text' => 'Image with text',
+                    'image' => 'Image only (shown in full)',
+                ])->default('text'),
                 Field::image('image', 'Image', 'hero')->required(),
-                Field::text('eyebrow', 'Eyebrow')->max(60),
-                Field::text('title', 'Headline')->max(120)->required(),
-                Field::textarea('text', 'Supporting text')->max(300)->rows(2),
-                Field::link('link', 'Button'),
-            ])->max(6)->itemLabel('title')->showIf('variant', ['slider']),
+                Field::text('eyebrow', 'Eyebrow')->max(60)->showIf('type', $text),
+                Field::text('title', 'Headline')->max(120)->showIf('type', $text),
+                Field::text('highlight', 'Highlighted words')->max(80)->showIf('type', $text),
+                Field::textarea('text', 'Supporting text')->max(400)->rows(2)->showIf('type', $text),
+                Field::link('primary', 'Primary button')->showIf('type', $text),
+                Field::link('secondary', 'Secondary button')->showIf('type', $text),
+                Field::link('link', 'Link (optional)')->hint('Makes the whole image clickable.')->showIf('type', ['image']),
+            ])->max(6)->itemLabel('title')->hint('The hero above is the first slide. Add slides to turn it into a slider that changes every few seconds.')->showIf('variant', ['centered']),
             Field::repeater('highlights', 'Trust figures', [
                 Field::text('value', 'Value')->notTranslatable()->max(12)->placeholder('1500+'),
                 Field::text('label', 'Label')->max(40),

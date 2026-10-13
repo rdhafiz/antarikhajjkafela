@@ -1,75 +1,127 @@
 @php
-    $variant = $c['variant'] ?? 'split';
+    // "slider" was an older layout; its slides now follow the centered hero.
+    $variant = ($c['variant'] ?? 'split') === 'slider' ? 'centered' : ($c['variant'] ?? 'split');
     $dark = $style['tone'] === 'dark';
-    $slides = array_values(array_filter($c['slides'] ?? [], fn ($s) => $s['image']));
     $highlights = array_values(array_filter($c['highlights'] ?? [], fn ($h) => filled($h['value'])));
     // At the top of a page the hero fills the screen (home) or three quarters of it (like other pages), with parallax.
     $height = $first ? ($page->isHome() ? 'hero-full' : 'hero-75') : null;
+
+    // The centered hero is the first slide; extra slides make it a slider.
+    $slides = [];
+    if ($variant === 'centered') {
+        $slides[] = ['type' => 'text', 'link' => null, ...Illuminate\Support\Arr::only($c, ['image', 'eyebrow', 'title', 'highlight', 'text', 'primary', 'secondary'])];
+        foreach ($c['slides'] ?? [] as $slide) {
+            if ($slide['image']) {
+                $slides[] = [...$slide, 'type' => ($slide['type'] ?? 'text') === 'image' ? 'image' : 'text'];
+            }
+        }
+    }
+    $isSlider = count($slides) > 1;
 @endphp
 
 <x-site.block :style="$style" :section="$section" :container="false" :data-hero="$first ? true : null" @class([$first ? 'pt-20' : '', $height, 'flex flex-col' => $height, 'bg-gradient-to-br from-brand via-brand-900 to-brand-950' => ! $style['image'] && str_contains($style['class'], 'bg-brand-950')])>
-    @unless ($style['image'] || ($variant === 'centered' && $c['image']) || $variant === 'slider')
+    @unless ($style['image'] || ($variant === 'centered' && $c['image']) || $isSlider)
         <div class="pattern-star absolute inset-0 -z-10 opacity-[0.06]" aria-hidden="true"></div>
         <div class="absolute top-1/4 -right-48 -z-10 size-[620px] rounded-full bg-gold/12 blur-3xl" aria-hidden="true"></div>
         <div class="absolute -bottom-56 -left-40 -z-10 size-[520px] rounded-full bg-emerald/20 blur-3xl" aria-hidden="true"></div>
     @endunless
 
-    @if ($variant === 'slider' && $slides)
+    @if ($isSlider)
         <div
-            x-data="{ i: 0, n: {{ count($slides) }}, timer: null,
-                go(k) { this.i = (k + this.n) % this.n },
-                start() { if (this.n > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) this.timer = setInterval(() => this.go(this.i + 1), 6500) },
-                stop() { clearInterval(this.timer) } }"
-            x-init="start()"
-            @mouseenter="stop()" @mouseleave="start()" @focusin="stop()"
-            @class(['relative min-h-[560px] sm:min-h-[620px]', 'flex-1' => $height, 'lg:min-h-[680px]' => ! $height])
+            x-data="heroSlider({{ count($slides) }})"
+            @class(['hs relative min-h-[560px] sm:min-h-[620px]', '-mt-20' => $first, 'flex-1' => $height, 'lg:min-h-[680px]' => ! $height])
             role="region" aria-roledescription="carousel" aria-label="{{ __('Highlights') }}"
+            @pointerenter="$event.pointerType === 'mouse' && hold('hover', true)" @pointerleave="hold('hover', false)"
+            @focusin="hold('focus', $event.target.matches(':focus-visible'))" @focusout="hold('focus', $el.contains($event.relatedTarget) && $event.relatedTarget.matches(':focus-visible'))"
+            @keydown.left="step(-1)" @keydown.right="step(1)"
+            @touchstart.passive="swipeStart($event)" @touchend.passive="swipeEnd($event)"
         >
             @foreach ($slides as $index => $slide)
+                @php
+                    $image = $slide['image'];
+                    $alt = $image?->getTranslation('alt', app()->getLocale());
+                    $heading = $index === 0 ? 'h1' : 'h2';
+                @endphp
                 <div
-                    class="absolute inset-0 flex items-center transition-opacity duration-1000"
-                    :class="i === {{ $index }} ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none'"
-                    @if ($index > 0) style="opacity:0" @endif
-                    role="group" aria-roledescription="slide" aria-label="{{ $index + 1 }} / {{ count($slides) }}"
-                    :aria-hidden="(i !== {{ $index }}).toString()"
+                    @class(['hs-slide', 'is-active' => $index === 0])
+                    :class="{ 'is-active': i === {{ $index }}, 'is-leaving': leaving === {{ $index }} }"
+                    x-effect="$el.inert = i !== {{ $index }}"
+                    @if ($index > 0) inert @endif
+                    role="group" aria-roledescription="slide" aria-label="{{ __(':n of :total', ['n' => $index + 1, 'total' => count($slides)]) }}"
                 >
-                    <img
-                        src="{{ $slide['image']->url('lg') }}"
-                        srcset="{{ $slide['image']->srcset() }}"
-                        sizes="100vw"
-                        alt="{{ $slide['image']->getTranslation('alt', app()->getLocale()) }}"
-                        class="absolute inset-0 -z-20 size-full object-cover"
-                        @if ($index === 0) fetchpriority="high" @else loading="lazy" @endif
-                    >
-                    <div class="absolute inset-0 -z-10 bg-gradient-to-r from-brand-950/90 via-brand-950/65 to-brand-950/20" aria-hidden="true"></div>
-                    <div class="container-site py-24 text-white">
-                        <div class="max-w-2xl">
-                            @if (filled($slide['eyebrow']))<p class="eyebrow eyebrow-light">{{ $slide['eyebrow'] }}</p>@endif
-                            <{{ $index === 0 ? 'h1' : 'h2' }} @class(['text-display-xl text-white', 'mt-5' => filled($slide['eyebrow'])])>{{ $slide['title'] }}</{{ $index === 0 ? 'h1' : 'h2' }}>
-                            @if (filled($slide['text']))<p class="mt-6 max-w-xl text-lg leading-relaxed text-white/80">{{ $slide['text'] }}</p>@endif
-                            <x-site.link-button :link="$slide['link']" variant="gold" size="lg" icon-right="arrow-right" class="mt-9" />
+                    @if ($slide['type'] === 'image' || ! $image)
+                        {{-- Same backdrop as the footer, so space around a full image looks intended. --}}
+                        <div class="absolute inset-0 -z-20 bg-gradient-to-b from-brand-900 to-brand-950" aria-hidden="true">
+                            <div class="pattern-star absolute inset-0 opacity-[0.045]"></div>
+                            <div class="absolute -top-40 right-[-10%] size-[520px] rounded-full bg-gold/10 blur-3xl"></div>
                         </div>
-                    </div>
+                    @endif
+
+                    @if ($slide['type'] === 'image')
+                        {{-- Image only: shown whole, without parallax. --}}
+                        @php $tag = $slide['link'] ? 'a' : 'div'; @endphp
+                        <{{ $tag }}
+                            @if ($slide['link']) href="{{ $slide['link']['url'] }}" @if ($slide['link']['external']) target="_blank" rel="noopener" @endif aria-label="{{ $slide['link']['label'] ?: ($alt ?: __('Open')) }}" @endif
+                            @class(['hs-full absolute inset-0 flex items-center justify-center px-4 pb-24 sm:px-10 sm:pb-28', 'pt-24' => $first, 'pt-8' => ! $first])
+                        >
+                            <img
+                                src="{{ $image->url('lg') }}"
+                                srcset="{{ $image->srcset() }}"
+                                sizes="100vw"
+                                alt="{{ $slide['link'] ? '' : $alt }}"
+                                class="size-full object-contain"
+                                @if ($index === 0) fetchpriority="high" @else loading="lazy" decoding="async" @endif
+                            >
+                        </{{ $tag }}>
+                    @else
+                        @if ($image)
+                            <div class="hero-media" data-parallax-bg aria-hidden="true">
+                                <img src="{{ $image->url('lg') }}" srcset="{{ $image->srcset() }}" sizes="100vw" alt="" @if ($index === 0) fetchpriority="high" @else loading="lazy" decoding="async" @endif>
+                            </div>
+                            <div class="absolute inset-0 -z-10 bg-gradient-to-b from-brand-950/80 via-brand-950/70 to-brand-950/90" aria-hidden="true"></div>
+                        @endif
+                        <div @class(['container-site flex h-full flex-col items-center justify-center pb-28 text-center', 'pt-32' => $first, 'pt-16' => ! $first])>
+                            <div class="max-w-3xl" data-parallax-content>
+                                @if (filled($slide['eyebrow']))<p class="hs-line eyebrow eyebrow-light justify-center" style="--i: 0">{{ $slide['eyebrow'] }}</p>@endif
+                                @if (filled($slide['title']) || filled($slide['highlight']))
+                                    <{{ $heading }} @class(['text-display-xl text-white', 'mt-5' => filled($slide['eyebrow'])])>
+                                        @if (filled($slide['title']))<span class="hs-line block" style="--i: 1">{{ $slide['title'] }}</span>@endif
+                                        @if (filled($slide['highlight']))<span class="hs-line block text-gold italic" style="--i: 2">{{ $slide['highlight'] }}</span>@endif
+                                    </{{ $heading }}>
+                                @endif
+                                @if (filled($slide['text']))<p class="hs-line mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/80" style="--i: 3">{{ $slide['text'] }}</p>@endif
+                                @if ($slide['primary'] || $slide['secondary'])
+                                    <div class="hs-line mt-9 flex flex-col justify-center gap-3 sm:flex-row" style="--i: 4">
+                                        <x-site.link-button :link="$slide['primary']" variant="gold" size="lg" icon-right="arrow-right" />
+                                        <x-site.link-button :link="$slide['secondary']" variant="outline-light" size="lg" />
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 </div>
             @endforeach
 
-            @if (count($slides) > 1)
-                <div class="absolute inset-x-0 bottom-8 z-20">
-                    <div class="container-site flex items-center gap-4">
-                        <div class="flex gap-2">
-                            @foreach ($slides as $index => $slide)
-                                <button type="button" @click="go({{ $index }})" class="h-1.5 rounded-full transition-all duration-300"
-                                        :class="i === {{ $index }} ? 'w-10 bg-gold' : 'w-5 bg-white/40 hover:bg-white/70'"
-                                        aria-label="{{ __('Show slide :n', ['n' => $index + 1]) }}"></button>
-                            @endforeach
-                        </div>
-                        <div class="ml-auto flex gap-2">
-                            <button type="button" @click="go(i - 1)" class="flex size-11 items-center justify-center rounded-full border border-white/25 text-white hover:bg-white/10" aria-label="{{ __('Previous slide') }}"><x-site.icon name="chevron-left" /></button>
-                            <button type="button" @click="go(i + 1)" class="flex size-11 items-center justify-center rounded-full border border-white/25 text-white hover:bg-white/10" aria-label="{{ __('Next slide') }}"><x-site.icon name="chevron-right" /></button>
-                        </div>
+            {{-- Controls: dots showing the time left on the current slide, pause, previous and next. --}}
+            <div class="absolute inset-x-0 bottom-6 z-10 sm:bottom-8">
+                <div class="container-site flex items-center gap-3">
+                    <div class="flex items-center">
+                        @foreach ($slides as $index => $slide)
+                            <button type="button" @click="go({{ $index }})" @class(['hs-dot', 'is-current' => $index === 0]) :class="{ 'is-current': i === {{ $index }} }" @if ($index === 0) aria-current="true" @endif :aria-current="i === {{ $index }} ? 'true' : null" aria-label="{{ __('Show slide :n', ['n' => $index + 1]) }}">
+                                <span class="hs-dot-track"><span class="hs-dot-fill"></span></span>
+                            </button>
+                        @endforeach
+                    </div>
+                    <div class="ml-auto flex gap-2">
+                        <button type="button" x-show="auto" x-cloak @click="toggle()" class="hs-btn" :aria-label="paused ? @js(__('Play slideshow')) : @js(__('Pause slideshow'))">
+                            <span x-show="!paused"><x-site.icon name="pause" class="size-4" /></span>
+                            <span x-show="paused" x-cloak><x-site.icon name="play" class="size-4" /></span>
+                        </button>
+                        <button type="button" @click="step(-1)" class="hs-btn" aria-label="{{ __('Previous slide') }}"><x-site.icon name="chevron-left" /></button>
+                        <button type="button" @click="step(1)" class="hs-btn" aria-label="{{ __('Next slide') }}"><x-site.icon name="chevron-right" /></button>
                     </div>
                 </div>
-            @endif
+            </div>
         </div>
 
     @elseif ($variant === 'centered')

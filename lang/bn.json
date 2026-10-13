@@ -294,5 +294,9 @@
     "What is it about?": "বিষয় কী?",
     "Send us a message": "আমাদের বার্তা পাঠান",
     "Dhaka time": "ঢাকার সময়",
-    "Leave your details and our team will call you, In Sha Allah.": "আপনার তথ্য দিন, ইনশাআল্লাহ আমাদের টিম আপনাকে কল করবে।"
+    "Leave your details and our team will call you, In Sha Allah.": "আপনার তথ্য দিন, ইনশাআল্লাহ আমাদের টিম আপনাকে কল করবে।",
+    ":n of :total": ":total-এর মধ্যে :n",
+    "Pause slideshow": "স্লাইডশো থামান",
+    "Play slideshow": "স্লাইডশো চালান",
+    "Open": "খুলুন"
 }

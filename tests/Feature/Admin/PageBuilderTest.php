@@ -3,9 +3,11 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\Inquiry;
+use App\Models\Media;
 use App\Models\Page;
 use Database\Seeders\PageSeeder;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class PageBuilderTest extends AdminTestCase
 {
@@ -67,6 +69,49 @@ class PageBuilderTest extends AdminTestCase
             ->assertSee('data-section="page_banner"', false)
             ->assertSee('<span class="hero-line text-gold italic">since 2016.</span>', false)
             ->assertSee('data-transparent="true"', false);
+    }
+
+    public function test_hero_slides_turn_the_centered_hero_into_a_slider(): void
+    {
+        $image = fn (string $name) => Media::create([
+            'uuid' => (string) Str::uuid(), 'usage' => 'hero', 'disk' => 'public', 'original_name' => $name,
+            'directory' => 'media/test', 'filename' => $name, 'extension' => 'webp', 'mime_type' => 'image/webp', 'size' => 100, 'width' => 1600, 'height' => 900,
+            'alt' => ['en' => "Alt {$name}"], 'variants' => ['lg' => ['path' => "media/test/{$name}", 'width' => 1600, 'height' => 900]],
+        ])->id;
+
+        $page = $this->page('home');
+        $payload = $this->payload($page);
+        $index = collect($payload['sections'])->search(fn ($s) => $s['component'] === 'hero');
+        $payload['sections'][$index]['content']['variant'] = 'centered';
+        $payload['sections'][$index]['content']['slides'] = [
+            ['type' => 'text', 'image' => $image('makkah.webp'), 'title' => ['en' => 'Hajj 2027 registration'], 'highlight' => ['en' => 'is open.'], 'primary' => ['label' => ['en' => 'See packages'], 'url' => '/hajj']],
+            ['type' => 'image', 'image' => $image('poster.webp'), 'link' => ['label' => ['en' => 'Our offer'], 'url' => '/umrah']],
+        ];
+
+        // Every slide needs an image, and the type is one of the two kinds.
+        $broken = $payload;
+        $broken['sections'][$index]['content']['slides'][1] = ['type' => 'video', 'image' => null];
+        $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $broken)
+            ->assertJsonValidationErrors(["sections.{$index}.content.slides.1.image", "sections.{$index}.content.slides.1.type"]);
+
+        $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $payload)->assertOk();
+
+        $html = $this->get('/')->assertOk()
+            ->assertSee('heroSlider(3)', false)
+            ->assertSeeText('Hajj 2027 registration')
+            ->assertSee('href="'.url('/umrah').'"', false)
+            ->assertSee('aria-label="Our offer"', false)
+            ->getContent();
+
+        // One h1 (the hero's own slide); the image-only slide has no parallax layer.
+        $this->assertSame(1, substr_count($html, '<h1'));
+        $onlyImage = Str::after($html, 'hs-full');
+        $this->assertStringNotContainsString('data-parallax-bg', Str::before($onlyImage, 'hs-dot'));
+
+        // Without extra slides the hero is a plain hero again.
+        $payload['sections'][$index]['content']['slides'] = [];
+        $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $payload)->assertOk();
+        $this->get('/')->assertOk()->assertDontSee('heroSlider', false);
     }
 
     public function test_drafts_are_hidden_but_signed_previews_show_them(): void
