@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { CalendarClock, ChevronRight, Eye, ExternalLink, FolderTree, Link2, Newspaper, Pencil, Plus, Star, Trash2 } from 'lucide-vue-next';
+import { ArrowDownUp, CalendarClock, CircleCheck, Eye, ExternalLink, FolderTree, LayoutGrid, Link2, List, Newspaper, Pencil, Plus, Star, Trash2 } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
 import AppDrawer from '@admin/components/ui/AppDrawer.vue';
 import AppModal from '@admin/components/ui/AppModal.vue';
 import AppPagination from '@admin/components/ui/AppPagination.vue';
-import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
-import FilterBar from '@admin/components/ui/FilterBar.vue';
+import FilterDrawer, { type FilterGroup } from '@admin/components/ui/FilterDrawer.vue';
 import FormField from '@admin/components/ui/FormField.vue';
-import PageHeader from '@admin/components/ui/PageHeader.vue';
+import ListHero from '@admin/components/ui/ListHero.vue';
+import ListToolbar from '@admin/components/ui/ListToolbar.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
 import CategoriesModal from './CategoriesModal.vue';
+import PostListItem, { type PostItem } from './PostListItem.vue';
+import headerPhoto from '@admin/assets/blog-header.webp';
+import type { Paginated } from '@admin/lib/http';
 import { pickText } from '@admin/pages/content/builder/types';
 import { useConfirm } from '@admin/composables/useConfirm';
 import { useForm } from '@admin/composables/useForm';
@@ -34,9 +37,17 @@ interface PostRow {
     category: Translations | null;
     state: PostState;
     is_featured: boolean;
+    banner_url: string | null;
+    excerpt: Translations;
+    author_name: Translations;
+    tags: string[];
     published_at: string | null;
     updated_at: string;
 }
+
+type PostsResponse = Paginated<PostRow> & {
+    counts: { states: Record<PostState, number>; categories: Record<string, number>; featured: number };
+};
 
 const router = useRouter();
 const app = useAppStore();
@@ -44,7 +55,7 @@ const auth = useAuthStore();
 const toast = useToastStore();
 const { confirm } = useConfirm();
 
-const list = useListQuery<PostRow>('/posts', { category_id: '', state: '' });
+const list = useListQuery<PostRow, PostsResponse>('/posts', { category_id: '', state: '', featured: '', sort: '' });
 const categories = ref<PostCategory[]>([]);
 const current = ref<PostRow | null>(null);
 const drawerOpen = ref(false);
@@ -56,12 +67,93 @@ const createForm = useForm({ title: {} as Translations, category_id: '' as numbe
 const stateTone = { draft: 'neutral', scheduled: 'warning', published: 'success' } as const;
 const stateLabel = { draft: 'Draft', scheduled: 'Scheduled', published: 'Published' } as const;
 
-const filtered = computed(() => Boolean(list.filters.search || list.active.value));
-const summary = computed(() => (list.meta.value ? `${list.meta.value.total} ${list.meta.value.total === 1 ? 'post' : 'posts'}` : ''));
+const filtersOpen = ref(false);
+const counts = computed(() => list.response.value?.counts);
+const total = computed(() => list.meta.value?.total ?? 0);
+const activeFilters = computed(() => (['category_id', 'state', 'featured'] as const).filter((key) => list.filters[key] !== '').length);
+const filtered = computed(() => Boolean(list.filters.search) || activeFilters.value > 0);
+
+// List or grid, remembered on this device.
+const VIEW_KEY = 'ahk.posts.view';
+const view = ref<'list' | 'grid'>('list');
+try {
+    if (localStorage.getItem(VIEW_KEY) === 'grid') view.value = 'grid';
+} catch {
+    // Storage can be blocked; the list view is the default.
+}
+watch(view, (value) => {
+    try {
+        localStorage.setItem(VIEW_KEY, value);
+    } catch {
+        // Not remembered, which is fine.
+    }
+});
+
+const filterGroups = computed<FilterGroup[]>(() => {
+    const states = counts.value?.states;
+    const byCategory = counts.value?.categories ?? {};
+    return [
+        {
+            key: 'state',
+            label: 'Status',
+            icon: CircleCheck,
+            tone: '#34d399',
+            options: [
+                { value: '', label: 'Any status', count: states ? states.published + states.scheduled + states.draft : null },
+                { value: 'published', label: 'Published', count: states?.published ?? null },
+                { value: 'scheduled', label: 'Scheduled', count: states?.scheduled ?? null },
+                { value: 'draft', label: 'Draft', count: states?.draft ?? null },
+            ],
+        },
+        {
+            key: 'category_id',
+            label: 'Category',
+            icon: FolderTree,
+            tone: '#a78bfa',
+            options: [{ value: '', label: 'All categories' }, ...categories.value.map((c) => ({ value: String(c.id), label: pickText(c.name, app.defaultLocale), count: byCategory[c.id] ?? 0 }))],
+        },
+        {
+            key: 'featured',
+            label: 'Featured',
+            icon: Star,
+            tone: '#fbbf24',
+            options: [
+                { value: '', label: 'Featured or not' },
+                { value: 'yes', label: 'Featured only', count: counts.value?.featured ?? null },
+                { value: 'no', label: 'Not featured' },
+            ],
+        },
+        {
+            key: 'sort',
+            label: 'Sort by',
+            icon: ArrowDownUp,
+            tone: '#38bdf8',
+            options: [
+                { value: '', label: 'Newest first' },
+                { value: 'updated', label: 'Recently updated' },
+                { value: 'title', label: 'Title A–Z' },
+            ],
+        },
+    ];
+});
+
+const item = (row: PostRow): PostItem => ({
+    id: row.id,
+    title: title(row),
+    excerpt: pickText(row.excerpt, app.defaultLocale),
+    slug: row.slug,
+    url: row.url,
+    category: row.category ? pickText(row.category, app.defaultLocale) : null,
+    author: pickText(row.author_name, app.defaultLocale),
+    tags: row.tags ?? [],
+    state: row.state,
+    is_featured: row.is_featured,
+    banner_url: row.banner_url,
+    published_at: row.published_at,
+});
 
 const title = (row: PostRow) => pickText(row.title, app.defaultLocale);
 const categoryName = (row: PostRow) => (row.category ? pickText(row.category, app.defaultLocale) : 'No category');
-const publishDate = (row: PostRow) => (row.published_at ? formatDate(row.published_at, row.state === 'scheduled') : '—');
 
 async function loadMeta(): Promise<void> {
     categories.value = (await http.get<PostMeta>('/posts/meta')).data.categories;
@@ -137,30 +229,28 @@ onMounted(async () => {
 
 <template>
     <div>
-        <PageHeader title="Blog & news" description="Guides, news and announcements. Scheduled posts appear automatically at their publish time.">
+        <!-- Header with a Madinah photo -->
+        <ListHero title="Blog & news" description="Guides, news and announcements. Scheduled posts appear automatically at their publish time." :icon="Newspaper" tone="#fb923c" :photo="headerPhoto" photo-position="70% 45%">
             <template #actions>
                 <AppButton v-if="auth.can('blog.update')" variant="secondary" :icon="FolderTree" @click="categoriesOpen = true">Categories</AppButton>
                 <AppButton v-if="auth.can('blog.create')" :icon="Plus" @click="openCreate">New post</AppButton>
             </template>
-        </PageHeader>
+        </ListHero>
 
-        <FilterBar v-model:search="list.filters.search as string" placeholder="Search posts by title" :active="list.active.value" :summary="summary" @clear="list.clear">
-            <select v-model="list.filters.category_id" class="control" aria-label="Filter by category">
-                <option value="">All categories</option>
-                <option v-for="category in categories" :key="category.id" :value="String(category.id)">{{ pickText(category.name, app.defaultLocale) }}</option>
-            </select>
-            <select v-model="list.filters.state" class="control" aria-label="Filter by status">
-                <option value="">Any status</option>
-                <option value="published">Published</option>
-                <option value="scheduled">Scheduled</option>
-                <option value="draft">Draft</option>
-            </select>
-        </FilterBar>
+        <!-- Search, filters and view switch in one row -->
+        <ListToolbar v-model:search="list.filters.search as string" placeholder="Search posts by title" :active="activeFilters" @filters="filtersOpen = true">
+            <div class="hidden rounded-xl border border-line bg-white p-1 sm:flex" role="group" aria-label="Show posts as">
+                <button type="button" class="po-view" :class="{ 'is-on': view === 'grid' }" :aria-pressed="view === 'grid'" aria-label="Grid" title="Grid" @click="view = 'grid'"><LayoutGrid class="size-[18px]" /></button>
+                <button type="button" class="po-view" :class="{ 'is-on': view === 'list' }" :aria-pressed="view === 'list'" aria-label="List" title="List" @click="view = 'list'"><List class="size-[18px]" /></button>
+            </div>
+        </ListToolbar>
 
-        <div class="card overflow-hidden">
-            <div v-if="list.loading.value && !list.rows.value.length" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
+        <!-- Posts -->
+        <div v-if="list.loading.value && !list.rows.value.length" class="grid gap-4" :class="{ 'sm:grid-cols-2 xl:grid-cols-3': view === 'grid' }" aria-busy="true" aria-label="Loading posts">
+            <div v-for="n in 3" :key="n" class="card animate-pulse" :class="view === 'list' ? 'h-[340px] lg:h-[150px]' : 'h-[380px]'" />
+        </div>
+        <div v-else-if="!list.rows.value.length" class="card">
             <EmptyState
-                v-else-if="!list.rows.value.length"
                 :icon="Newspaper"
                 :title="filtered ? 'No posts match' : 'No posts yet'"
                 :description="filtered ? 'Try another search or clear the filters.' : 'Write a guide or share news with your pilgrims.'"
@@ -168,41 +258,41 @@ onMounted(async () => {
                 <AppButton v-if="filtered" variant="secondary" @click="clearAll">Clear filters</AppButton>
                 <AppButton v-else-if="auth.can('blog.create')" :icon="Plus" @click="openCreate">New post</AppButton>
             </EmptyState>
-            <table v-else class="dt" :class="{ 'opacity-60 transition-opacity': list.loading.value }">
-                <thead>
-                    <tr>
-                        <th>Post</th>
-                        <th>Category</th>
-                        <th>Status</th>
-                        <th>Publish date</th>
-                        <th class="dt-trigger"><span class="sr-only">Open</span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="row in list.rows.value" :key="row.id" class="dt-row" @click="open(row)">
-                        <td>
-                            <p class="flex items-center gap-1.5 font-semibold text-ink">
-                                <Star v-if="row.is_featured" class="size-3.5 shrink-0 fill-gold text-gold" aria-label="Featured" />
-                                {{ title(row) }}
-                            </p>
-                            <p class="mt-0.5 text-[12.5px] break-all text-ink-muted">/blog/{{ row.slug }}</p>
-                        </td>
-                        <td data-label="Category" class="text-[13px] text-ink-soft">{{ categoryName(row) }}</td>
-                        <td data-label="Status"><AppBadge :tone="stateTone[row.state]">{{ stateLabel[row.state] }}</AppBadge></td>
-                        <td data-label="Publish date" class="text-[13px] whitespace-nowrap text-ink-soft">{{ publishDate(row) }}</td>
-                        <td class="dt-trigger">
-                            <button type="button" class="dt-open" :aria-label="`Open ${title(row)}`" @click.stop="open(row)"><ChevronRight class="size-4" /></button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        </div>
+        <div v-else :key="view" class="po-list" :class="{ 'opacity-60 transition-opacity': list.loading.value }">
+            <div class="po-grid" :class="`is-${view}`">
+                <PostListItem
+                    v-for="(row, i) in list.rows.value"
+                    :key="row.id"
+                    :post="item(row)"
+                    :layout="view"
+                    :index="i"
+                    :can-delete="auth.can('blog.delete')"
+                    @open="open(row)"
+                    @preview="preview(row)"
+                    @remove="remove(row)"
+                />
+            </div>
         </div>
 
-        <AppPagination v-if="list.meta.value" :meta="list.meta.value" label="posts" @change="list.goTo" @per-page="list.setPerPage" />
+        <AppPagination v-if="list.meta.value && list.rows.value.length" :meta="list.meta.value" label="posts" @change="list.goTo" @per-page="list.setPerPage" />
+
+        <!-- All filters -->
+        <FilterDrawer
+            v-model:open="filtersOpen"
+            :filters="list.filters"
+            :groups="filterGroups"
+            :total="total"
+            :noun="['post', 'posts']"
+            :loading="list.loading.value"
+            :can-clear="activeFilters > 0 || list.filters.sort !== ''"
+            @clear="list.clear()"
+        />
 
         <!-- Preview and actions -->
         <AppDrawer v-model:open="drawerOpen" :title="current ? title(current) : ''" :description="current ? categoryName(current) : ''" :icon="Newspaper">
             <template v-if="current">
+                <img v-if="current.banner_url" :src="current.banner_url" alt="" class="mb-5 aspect-[16/9] w-full rounded-2xl object-cover" />
                 <div class="flex flex-wrap gap-2">
                     <AppBadge :tone="stateTone[current.state]">{{ stateLabel[current.state] }}</AppBadge>
                     <AppBadge v-if="current.is_featured" tone="gold"><Star class="size-3 fill-current" />Featured</AppBadge>
@@ -256,3 +346,42 @@ onMounted(async () => {
         <CategoriesModal v-model:open="categoriesOpen" :categories="categories" @changed="categoriesChanged" />
     </div>
 </template>
+
+<style scoped>
+/* The list measures its own width, so rows adapt to the space next to the sidebar. */
+.po-list {
+    container: po-list / inline-size;
+}
+
+.po-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+}
+
+@container po-list (min-width: 860px) {
+    .po-grid.is-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.po-view {
+    display: flex;
+    width: 2.5rem;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.6rem;
+    color: var(--color-ink-soft);
+    transition: background-color 180ms ease, color 180ms ease;
+
+    &:hover {
+        color: var(--color-ink);
+    }
+
+    &.is-on {
+        background: var(--admin-primary);
+        color: #fff;
+    }
+}
+</style>

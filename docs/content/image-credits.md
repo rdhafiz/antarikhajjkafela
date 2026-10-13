@@ -16,7 +16,7 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | makkah-hotels.webp | Services; admin Services header (cropped copy in `resources/admin/assets/services-header.webp`) | Sikiru Salami | https://unsplash.com/photos/jZp68sRx2w4 |
 | madinah-umbrellas.webp | Contact; admin Bookings header (cropped copy in `resources/admin/assets/bookings-header.webp`) | Haidan | https://unsplash.com/photos/RhkbHU14MoA |
 | haram-courtyard.webp | Gallery | Sam Riz | https://unsplash.com/photos/ceNCWYqL8DY |
-| green-dome.webp | Reviews | A Miah | https://unsplash.com/photos/hJXiPheKFus |
+| green-dome.webp | Reviews; admin Blog header (cropped copy in `resources/admin/assets/blog-header.webp`) | A Miah | https://unsplash.com/photos/hJXiPheKFus |
 | quran.webp | Blog & news | Abdullah Arif | https://unsplash.com/photos/Dxi6KbpvUgA |
 | nabawi-colonnade.webp | Terms & conditions, Privacy policy; admin Pages header (cropped copy in `resources/admin/assets/pages-header.webp`) | djonk creative | https://unsplash.com/photos/XqO6H6ikj1w |
 
@@ -32,7 +32,7 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | madinah-umbrellas.webp | Contact |
 | haram-courtyard.webp | Gallery |
 | quran.webp | Blog & news |
-| green-dome.webp | Reviews; Umrah Package |
+| green-dome.webp | Reviews; Umrah Package; admin Blog header (cropped copy in `resources/admin/assets/blog-header.webp`) |
 | nabawi-colonnade.webp | Terms & conditions, Privacy policy; admin Pages header (cropped copy in `resources/admin/assets/pages-header.webp`) |
 | hajj-campaign.webp | Hajj pre-registration campaign; admin Campaign pages header (cropped copy in `resources/admin/assets/campaigns-header.webp`) |
 | hajj-crowd.webp | Hajj |

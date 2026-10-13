@@ -25,25 +25,43 @@ class PostController extends Controller
         $filters = $request->validate([
             'category_id' => ['nullable', 'integer'],
             'state' => ['nullable', Rule::in(['draft', 'scheduled', 'published'])],
+            'featured' => ['nullable', Rule::in(['yes', 'no'])],
+            'sort' => ['nullable', Rule::in(['newest', 'updated', 'title'])],
             'search' => ['nullable', 'string', 'max:100'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $posts = Post::query()
-            ->with('category')
+            ->with(['category', 'banner'])
             ->when($filters['category_id'] ?? null, fn ($q, $id) => $q->where('category_id', $id))
             ->when($filters['state'] ?? null, fn ($q, $state) => match ($state) {
                 'draft' => $q->where('status', Post::STATUS_DRAFT),
                 'scheduled' => $q->where('status', Post::STATUS_PUBLISHED)->where('published_at', '>', now()),
                 default => $q->live(),
             })
+            ->when($filters['featured'] ?? null, fn ($q, $featured) => $q->where('is_featured', $featured === 'yes'))
             ->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q
                 ->where('slug', 'like', '%'.str($search)->slug().'%')
                 ->orWhere('title', 'like', '%'.addcslashes($search, '%_').'%')))
-            ->orderByRaw('published_at is null desc')
-            ->latest('published_at')
+            ->when($filters['sort'] ?? 'newest', fn ($q, $sort) => match ($sort) {
+                'updated' => $q->latest('updated_at'),
+                'title' => $q->orderBy('title->'.app(Locales::class)->default()),
+                default => $q->orderByRaw('published_at is null desc')->latest('published_at'),
+            })
             ->latest('id')
             ->paginate($filters['per_page'] ?? 20);
+
+        // Counts for the filter drawer.
+        $now = now();
+        $counts = [
+            'states' => [
+                'published' => Post::query()->live()->count(),
+                'scheduled' => Post::where('status', Post::STATUS_PUBLISHED)->where('published_at', '>', $now)->count(),
+                'draft' => Post::where('status', Post::STATUS_DRAFT)->count(),
+            ],
+            'categories' => Post::query()->toBase()->selectRaw('category_id, count(*) as n')->groupBy('category_id')->pluck('n', 'category_id')->map(fn ($n) => (int) $n),
+            'featured' => Post::where('is_featured', true)->count(),
+        ];
 
         return $this->listResponse($posts, fn (Post $post) => [
             'id' => $post->id,
@@ -54,9 +72,13 @@ class PostController extends Controller
             'state' => $post->state(),
             'is_featured' => $post->is_featured,
             'banner_id' => $post->banner_id,
+            'banner_url' => $post->banner?->url('admin'),
+            'excerpt' => (object) $post->getTranslations('excerpt'),
+            'author_name' => (object) $post->getTranslations('author_name'),
+            'tags' => $post->tags ?? [],
             'published_at' => $post->published_at?->toIso8601String(),
             'updated_at' => $post->updated_at?->toIso8601String(),
-        ]);
+        ], ['counts' => $counts]);
     }
 
     public function store(Request $request): JsonResponse

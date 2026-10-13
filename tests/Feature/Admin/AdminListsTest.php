@@ -8,6 +8,7 @@ use App\Models\Inquiry;
 use App\Models\Package;
 use App\Models\PackagePrice;
 use App\Models\Page;
+use App\Models\Post;
 use App\Support\Locales;
 use Database\Seeders\PageSeeder;
 use Database\Seeders\TravelSeeder;
@@ -203,6 +204,29 @@ class AdminListsTest extends AdminTestCase
         $this->assertSame(1, $expired->json('counts.states.expired'));
 
         $admin->getJson('/api/admin/pages?type=default&sort=newest')->assertUnprocessable();
+    }
+
+    public function test_posts_list_has_counts_featured_filter_and_sorts(): void
+    {
+        $featured = Post::create(['title' => ['en' => 'Zamzam guide'], 'slug' => 'zamzam-guide', 'status' => 'published', 'published_at' => now()->subDay(), 'is_featured' => true, 'tags' => ['Umrah']]);
+        $draft = Post::create(['title' => ['en' => 'Arafat day'], 'slug' => 'arafat-day', 'status' => 'draft']);
+
+        $admin = $this->asAdmin($this->superAdmin());
+        $response = $admin->getJson('/api/admin/posts')->assertOk();
+        $this->assertSame(1, $response->json('counts.featured'));
+        $this->assertSame(1, $response->json('counts.states.draft'));
+        $this->assertArrayHasKey('banner_url', $response->json('data.0'));
+
+        $ids = fn (string $query) => collect($admin->getJson('/api/admin/posts?'.$query)->assertOk()->json('data'))->pluck('id')->all();
+        $this->assertSame([$featured->id], $ids('featured=yes'));
+        $this->assertSame([$draft->id], $ids('featured=no'));
+        $this->assertSame(['Umrah'], $admin->getJson('/api/admin/posts?featured=yes')->json('data.0.tags'));
+
+        app()->setLocale('en');
+        settings()->set('localization', ['default_locale' => 'en']);
+        $this->assertSame([$draft->id, $featured->id], $ids('sort=title'));
+
+        $admin->getJson('/api/admin/posts?sort=oldest')->assertUnprocessable();
     }
 
     public function test_page_post_and_gallery_lists_send_full_pagination_meta(): void
