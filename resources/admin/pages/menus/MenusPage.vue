@@ -250,18 +250,18 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload));
 
                 <p class="mt-6 mb-2 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">Actions</p>
                 <div class="-mx-1 space-y-1">
-                    <button type="button" class="ad-action" @click="act(editItem)">
-                        <span class="ad-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit item
+                    <button type="button" class="dw-action" @click="act(editItem)">
+                        <span class="dw-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit item
                     </button>
-                    <button v-if="menu && selected.depth < menu.max_depth" type="button" class="ad-action" @click="act(addItem)">
-                        <span class="ad-action-icon" style="--tone: #a78bfa"><CornerDownRight class="size-4" /></span>Add a sub-item
+                    <button v-if="menu && selected.depth < menu.max_depth" type="button" class="dw-action" @click="act(addItem)">
+                        <span class="dw-action-icon" style="--tone: #a78bfa"><CornerDownRight class="size-4" /></span>Add a sub-item
                     </button>
-                    <button type="button" class="ad-action" @click="selected.item.is_visible = !selected.item.is_visible">
-                        <span class="ad-action-icon" style="--tone: #38bdf8"><component :is="selected.item.is_visible ? EyeOff : Eye" class="size-4" /></span>
+                    <button type="button" class="dw-action" @click="selected.item.is_visible = !selected.item.is_visible">
+                        <span class="dw-action-icon" style="--tone: #38bdf8"><component :is="selected.item.is_visible ? EyeOff : Eye" class="size-4" /></span>
                         {{ selected.item.is_visible ? 'Hide from the website' : 'Show on the website' }}
                     </button>
-                    <button type="button" class="ad-action is-danger" @click="act(removeItem)">
-                        <span class="ad-action-icon"><Trash2 class="size-4" /></span>Delete item
+                    <button type="button" class="dw-action is-danger" @click="act(removeItem)">
+                        <span class="dw-action-icon"><Trash2 class="size-4" /></span>Delete item
                     </button>
                 </div>
             </template>

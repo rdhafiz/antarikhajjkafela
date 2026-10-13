@@ -207,14 +207,14 @@ onMounted(() => list.load());
                 </div>
 
                 <div v-if="current.phone || current.email" class="-mx-1 space-y-1">
-                    <a v-if="current.phone" :href="`tel:${current.phone}`" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #38bdf8"><Phone class="size-4" /></span>Call {{ current.phone }}
+                    <a v-if="current.phone" :href="`tel:${current.phone}`" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #38bdf8"><Phone class="size-4" /></span>Call {{ current.phone }}
                     </a>
-                    <a v-if="whatsapp" :href="whatsapp" target="_blank" rel="noopener" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #34d399"><MessageCircle class="size-4" /></span>WhatsApp
+                    <a v-if="whatsapp" :href="whatsapp" target="_blank" rel="noopener" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #34d399"><MessageCircle class="size-4" /></span>WhatsApp
                     </a>
-                    <a v-if="current.email" :href="`mailto:${current.email}`" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #f472b6"><Mail class="size-4" /></span>Email {{ current.email }}
+                    <a v-if="current.email" :href="`mailto:${current.email}`" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #f472b6"><Mail class="size-4" /></span>Email {{ current.email }}
                     </a>
                 </div>
 

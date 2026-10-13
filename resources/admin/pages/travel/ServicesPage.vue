@@ -209,14 +209,14 @@ onMounted(load);
 
                 <p class="mt-6 mb-2 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">Actions</p>
                 <div class="-mx-1 space-y-1">
-                    <button v-if="auth.can('services.update')" type="button" class="ad-action" @click="edit(current)">
-                        <span class="ad-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit service
+                    <button v-if="auth.can('services.update')" type="button" class="dw-action" @click="edit(current)">
+                        <span class="dw-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit service
                     </button>
-                    <a :href="current.url" target="_blank" rel="noopener" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #38bdf8"><ExternalLink class="size-4" /></span>View on the website
+                    <a :href="current.url" target="_blank" rel="noopener" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #38bdf8"><ExternalLink class="size-4" /></span>View on the website
                     </a>
-                    <button v-if="auth.can('services.delete')" type="button" class="ad-action is-danger" @click="remove(current)">
-                        <span class="ad-action-icon"><Trash2 class="size-4" /></span>Delete service
+                    <button v-if="auth.can('services.delete')" type="button" class="dw-action is-danger" @click="remove(current)">
+                        <span class="dw-action-icon"><Trash2 class="size-4" /></span>Delete service
                     </button>
                 </div>
             </template>

@@ -222,17 +222,17 @@ onMounted(async () => {
 
                 <p class="mt-6 mb-2 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">Actions</p>
                 <div class="-mx-1 space-y-1">
-                    <RouterLink :to="{ name: 'booking', params: { id: current.id } }" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #818cf8"><ExternalLink class="size-4" /></span>Open booking
+                    <RouterLink :to="{ name: 'booking', params: { id: current.id } }" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #818cf8"><ExternalLink class="size-4" /></span>Open booking
                     </RouterLink>
-                    <a v-if="current.customer_phone" :href="`tel:${current.customer_phone}`" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #38bdf8"><Phone class="size-4" /></span>Call {{ current.customer_phone }}
+                    <a v-if="current.customer_phone" :href="`tel:${current.customer_phone}`" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #38bdf8"><Phone class="size-4" /></span>Call {{ current.customer_phone }}
                     </a>
-                    <a v-if="whatsapp" :href="whatsapp" target="_blank" rel="noopener" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #34d399"><MessageCircle class="size-4" /></span>WhatsApp the customer
+                    <a v-if="whatsapp" :href="whatsapp" target="_blank" rel="noopener" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #34d399"><MessageCircle class="size-4" /></span>WhatsApp the customer
                     </a>
-                    <a v-if="current.customer_email" :href="`mailto:${current.customer_email}`" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #f472b6"><Mail class="size-4" /></span>Email {{ current.customer_email }}
+                    <a v-if="current.customer_email" :href="`mailto:${current.customer_email}`" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #f472b6"><Mail class="size-4" /></span>Email {{ current.customer_email }}
                     </a>
                 </div>
             </template>

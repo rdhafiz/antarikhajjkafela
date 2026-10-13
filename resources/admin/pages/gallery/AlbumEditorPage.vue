@@ -332,17 +332,17 @@ onMounted(load);
 
                 <p class="mt-6 mb-2 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">Actions</p>
                 <div class="-mx-1 space-y-1">
-                    <button v-if="canEdit" type="button" class="ad-action" @click="editCaption(current)">
-                        <span class="ad-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit caption
+                    <button v-if="canEdit" type="button" class="dw-action" @click="editCaption(current)">
+                        <span class="dw-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit caption
                     </button>
-                    <button v-if="canEdit && current.type === 'image' && current.media_id !== details.cover_id" type="button" class="ad-action" @click="setCover(current)">
-                        <span class="ad-action-icon" style="--tone: #a78bfa"><Star class="size-4" /></span>Use as album cover
+                    <button v-if="canEdit && current.type === 'image' && current.media_id !== details.cover_id" type="button" class="dw-action" @click="setCover(current)">
+                        <span class="dw-action-icon" style="--tone: #a78bfa"><Star class="size-4" /></span>Use as album cover
                     </button>
-                    <a v-if="current.video_url" :href="current.video_url" target="_blank" rel="noopener" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #fb7185"><ExternalLink class="size-4" /></span>Watch on YouTube
+                    <a v-if="current.video_url" :href="current.video_url" target="_blank" rel="noopener" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #fb7185"><ExternalLink class="size-4" /></span>Watch on YouTube
                     </a>
-                    <button v-if="canEdit" type="button" class="ad-action is-danger" @click="removeItem(current)">
-                        <span class="ad-action-icon"><Trash2 class="size-4" /></span>Remove from album
+                    <button v-if="canEdit" type="button" class="dw-action is-danger" @click="removeItem(current)">
+                        <span class="dw-action-icon"><Trash2 class="size-4" /></span>Remove from album
                     </button>
                 </div>
             </template>

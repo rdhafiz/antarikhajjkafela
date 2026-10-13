@@ -223,16 +223,16 @@ onMounted(async () => {
                 <template v-if="auth.can('users.update') || (auth.can('users.delete') && !isSelf(current))">
                     <p class="mt-6 mb-2 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">Actions</p>
                     <div class="-mx-1 space-y-1">
-                        <button v-if="auth.can('users.update')" type="button" class="ad-action" @click="openEdit(current)">
-                            <span class="ad-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit user
+                        <button v-if="auth.can('users.update')" type="button" class="dw-action" @click="openEdit(current)">
+                            <span class="dw-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit user
                         </button>
-                        <button v-if="auth.can('users.update') && !isSelf(current)" type="button" class="ad-action" :disabled="toggling" @click="toggleActive(current)">
-                            <span v-if="current.is_active" class="ad-action-icon" style="--tone: #fb923c"><UserX class="size-4" /></span>
-                            <span v-else class="ad-action-icon" style="--tone: #34d399"><UserCheck class="size-4" /></span>
+                        <button v-if="auth.can('users.update') && !isSelf(current)" type="button" class="dw-action" :disabled="toggling" @click="toggleActive(current)">
+                            <span v-if="current.is_active" class="dw-action-icon" style="--tone: #fb923c"><UserX class="size-4" /></span>
+                            <span v-else class="dw-action-icon" style="--tone: #34d399"><UserCheck class="size-4" /></span>
                             {{ current.is_active ? 'Deactivate account' : 'Activate account' }}
                         </button>
-                        <button v-if="auth.can('users.delete') && !isSelf(current)" type="button" class="ad-action is-danger" @click="remove(current)">
-                            <span class="ad-action-icon"><Trash2 class="size-4" /></span>Delete user
+                        <button v-if="auth.can('users.delete') && !isSelf(current)" type="button" class="dw-action is-danger" @click="remove(current)">
+                            <span class="dw-action-icon"><Trash2 class="size-4" /></span>Delete user
                         </button>
                     </div>
                 </template>

@@ -270,20 +270,20 @@ onMounted(() => {
 
                 <p class="mt-6 mb-2 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">Actions</p>
                 <div class="-mx-1 space-y-1">
-                    <RouterLink :to="{ name: 'page-editor', params: { id: current.id } }" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit {{ isCampaigns ? 'campaign' : 'page' }}
+                    <RouterLink :to="{ name: 'page-editor', params: { id: current.id } }" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit {{ isCampaigns ? 'campaign' : 'page' }}
                     </RouterLink>
-                    <a v-if="isOnline(current)" :href="current.url" target="_blank" rel="noopener" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #38bdf8"><ExternalLink class="size-4" /></span>View on the website
+                    <a v-if="isOnline(current)" :href="current.url" target="_blank" rel="noopener" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #38bdf8"><ExternalLink class="size-4" /></span>View on the website
                     </a>
-                    <button type="button" class="ad-action" :disabled="previewing" @click="preview(current)">
-                        <span class="ad-action-icon" style="--tone: #a78bfa"><Eye class="size-4" /></span>Preview the saved version
+                    <button type="button" class="dw-action" :disabled="previewing" @click="preview(current)">
+                        <span class="dw-action-icon" style="--tone: #a78bfa"><Eye class="size-4" /></span>Preview the saved version
                     </button>
-                    <button v-if="current.type !== 'default' && auth.can(`${scope}.create`)" type="button" class="ad-action" @click="duplicate(current)">
-                        <span class="ad-action-icon" style="--tone: #2dd4bf"><Copy class="size-4" /></span>Duplicate as a draft
+                    <button v-if="current.type !== 'default' && auth.can(`${scope}.create`)" type="button" class="dw-action" @click="duplicate(current)">
+                        <span class="dw-action-icon" style="--tone: #2dd4bf"><Copy class="size-4" /></span>Duplicate as a draft
                     </button>
-                    <button v-if="current.type !== 'default' && auth.can(`${scope}.delete`)" type="button" class="ad-action is-danger" @click="remove(current)">
-                        <span class="ad-action-icon"><Trash2 class="size-4" /></span>Delete {{ isCampaigns ? 'campaign' : 'page' }}
+                    <button v-if="current.type !== 'default' && auth.can(`${scope}.delete`)" type="button" class="dw-action is-danger" @click="remove(current)">
+                        <span class="dw-action-icon"><Trash2 class="size-4" /></span>Delete {{ isCampaigns ? 'campaign' : 'page' }}
                     </button>
                 </div>
             </template>

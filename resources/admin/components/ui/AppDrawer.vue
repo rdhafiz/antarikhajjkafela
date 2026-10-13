@@ -31,14 +31,14 @@ const toneValue = computed(() => props.tone ?? findNavItem(route.path)?.item.ton
 <template>
     <DialogRoot v-model:open="open">
         <DialogPortal>
-            <DialogOverlay class="ad-overlay fixed inset-0 z-50 bg-[#06182e]/45 backdrop-blur-[2px]" />
+            <DialogOverlay class="dw-overlay fixed inset-0 z-50 bg-[#06182e]/45 backdrop-blur-[2px]" />
             <DialogContent
-                class="ad-sheet fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-white shadow-[-24px_0_60px_-30px_rgb(2_12_27/0.45)] outline-none"
+                class="dw-sheet fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-white shadow-[-24px_0_60px_-30px_rgb(2_12_27/0.45)] outline-none"
                 :class="width === 'lg' ? 'sm:max-w-[640px]' : 'sm:max-w-[460px]'"
                 :style="{ '--tone': toneValue }"
             >
                 <header class="flex items-start gap-3.5 border-b border-line px-5 py-4 sm:px-6">
-                    <span v-if="icon" class="ad-tile flex size-11 shrink-0 items-center justify-center rounded-xl" aria-hidden="true">
+                    <span v-if="icon" class="dw-tile flex size-11 shrink-0 items-center justify-center rounded-xl" aria-hidden="true">
                         <component :is="icon" class="size-5" />
                     </span>
                     <div class="min-w-0 flex-1 pt-0.5">
@@ -50,7 +50,7 @@ const toneValue = computed(() => props.tone ?? findNavItem(route.path)?.item.ton
                         <X class="size-5" />
                     </DialogClose>
                 </header>
-                <div class="ad-body scroll-thin flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+                <div class="dw-body scroll-thin flex-1 overflow-y-auto px-5 py-5 sm:px-6">
                     <slot />
                 </div>
                 <footer v-if="$slots.footer" class="flex flex-wrap items-center gap-2 border-t border-line bg-canvas/60 px-5 py-3.5 sm:px-6">

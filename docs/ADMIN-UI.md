@@ -36,8 +36,8 @@ Call `list.load()` in `onMounted`. Filter values are strings (`''` = not set); s
 2. **No rows of icon buttons.** A row's actions (edit, view, duplicate, delete…) move into an
    `AppDrawer` that previews the record: badges, a `<dl class="dl rounded-2xl bg-canvas p-4">`
    of details, then an "Actions" list of
-   `<button|a|RouterLink class="ad-action"><span class="ad-action-icon" style="--tone: #hex"><Icon class="size-4" /></span>Label</…>`
-   (`ad-action is-danger` for delete). Close the drawer after an action and reload the list.
+   `<button|a|RouterLink class="dw-action"><span class="dw-action-icon" style="--tone: #hex"><Icon class="size-4" /></span>Label</…>`
+   (`dw-action is-danger` for delete). Close the drawer after an action and reload the list.
 3. **Filters and pagination.** Server-paginated lists use `useListQuery` + `FilterBar` +
    `AppPagination` (with `@per-page`). Short drag-sorted lists (services, reviews) filter on the
    client instead; disable dragging while a filter or search is active.
@@ -52,5 +52,9 @@ Call `list.load()` in `onMounted`. Filter values are strings (`''` = not set); s
    root a single `<div>` whose direct children are the blocks.
 7. Long-content inputs never push the page sideways: fieldsets already get `min-width: 0`; add
    `min-w-0` to flex/grid children that hold long text, and give grids a `grid-cols-[minmax(0,1fr)]` base.
-8. Keep every existing behaviour: permission checks (`auth.can(...)`), API calls, toasts,
+8. **No ad-like class or file names.** Ad blockers hide elements whose classes look like ads
+   (EasyList has rules such as `##.ad-body`, `##.ad-overlay`, `##.ad-tile`). Never start a class
+   with `ad-`, `ads-` or `advert`, and avoid `banner`/`sponsor` in class and asset names. Drawer
+   classes use the `dw-` prefix for this reason.
+9. Keep every existing behaviour: permission checks (`auth.can(...)`), API calls, toasts,
    confirmations, keyboard access, `aria-*` labels.

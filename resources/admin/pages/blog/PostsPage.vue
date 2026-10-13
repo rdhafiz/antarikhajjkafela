@@ -221,17 +221,17 @@ onMounted(async () => {
 
                 <p class="mt-6 mb-2 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">Actions</p>
                 <div class="-mx-1 space-y-1">
-                    <RouterLink :to="{ name: 'post-editor', params: { id: current.id } }" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit post
+                    <RouterLink :to="{ name: 'post-editor', params: { id: current.id } }" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #fbbf24"><Pencil class="size-4" /></span>Edit post
                     </RouterLink>
-                    <a v-if="current.state === 'published'" :href="current.url" target="_blank" rel="noopener" class="ad-action">
-                        <span class="ad-action-icon" style="--tone: #38bdf8"><ExternalLink class="size-4" /></span>View on the website
+                    <a v-if="current.state === 'published'" :href="current.url" target="_blank" rel="noopener" class="dw-action">
+                        <span class="dw-action-icon" style="--tone: #38bdf8"><ExternalLink class="size-4" /></span>View on the website
                     </a>
-                    <button v-else type="button" class="ad-action" :disabled="previewing" @click="preview(current)">
-                        <span class="ad-action-icon" style="--tone: #a78bfa"><Eye class="size-4" /></span>Preview the saved version
+                    <button v-else type="button" class="dw-action" :disabled="previewing" @click="preview(current)">
+                        <span class="dw-action-icon" style="--tone: #a78bfa"><Eye class="size-4" /></span>Preview the saved version
                     </button>
-                    <button v-if="auth.can('blog.delete')" type="button" class="ad-action is-danger" @click="remove(current)">
-                        <span class="ad-action-icon"><Trash2 class="size-4" /></span>Delete post
+                    <button v-if="auth.can('blog.delete')" type="button" class="dw-action is-danger" @click="remove(current)">
+                        <span class="dw-action-icon"><Trash2 class="size-4" /></span>Delete post
                     </button>
                 </div>
             </template>
