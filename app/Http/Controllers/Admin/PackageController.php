@@ -11,6 +11,7 @@ use App\Models\Service;
 use App\PageBuilder\Field;
 use App\Support\Icons;
 use App\Support\Locales;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -29,6 +30,8 @@ class PackageController extends Controller
             'status' => ['nullable', Rule::in([Package::STATUS_DRAFT, Package::STATUS_PUBLISHED])],
             'search' => ['nullable', 'string', 'max:100'],
             'featured' => ['nullable', Rule::in(['yes', 'no'])],
+            'booking' => ['nullable', Rule::in(['open', 'upcoming', 'closed'])],
+            'sort' => ['nullable', Rule::in(['featured', 'updated', 'price_asc', 'price_desc'])],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
@@ -41,8 +44,14 @@ class PackageController extends Controller
             ->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q
                 ->where('slug', 'like', '%'.Str::slug($search).'%')
                 ->orWhere('name', 'like', $this->likeTerm($search))))
-            ->orderByDesc('is_featured')
-            ->latest('updated_at')
+            ->when($filters['booking'] ?? null, fn ($q, $state) => $this->whereBookingState($q, $state))
+            ->when($filters['sort'] ?? 'featured', fn ($q, $sort) => match ($sort) {
+                'updated' => $q->latest('updated_at'),
+                'price_asc' => $q->orderByRaw('min_price is null')->orderBy('min_price'),
+                'price_desc' => $q->orderByRaw('min_price is null')->orderByDesc('min_price'),
+                default => $q->orderByDesc('is_featured')->latest('updated_at'),
+            })
+            ->orderByDesc('id')
             ->paginate($filters['per_page'] ?? 20);
 
         return $this->listResponse($packages, fn (Package $p) => [
@@ -68,6 +77,22 @@ class PackageController extends Controller
             'sections_count' => count($p->sections ?? []),
             'updated_at' => $p->updated_at?->toIso8601String(),
         ]);
+    }
+
+    /**
+     * Same rules as Package::bookingState(): upcoming before the start date,
+     * closed after the end date, otherwise open.
+     */
+    private function whereBookingState(Builder $query, string $state): Builder
+    {
+        $today = now()->toDateString();
+        $started = fn ($q) => $q->whereNull('booking_starts_on')->orWhereDate('booking_starts_on', '<=', $today);
+
+        return match ($state) {
+            'upcoming' => $query->whereDate('booking_starts_on', '>', $today),
+            'closed' => $query->where($started)->whereDate('booking_ends_on', '<', $today),
+            default => $query->where($started)->where(fn ($q) => $q->whereNull('booking_ends_on')->orWhereDate('booking_ends_on', '>=', $today)),
+        };
     }
 
     public function store(Request $request): JsonResponse

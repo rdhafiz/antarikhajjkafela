@@ -89,6 +89,27 @@ class AdminListsTest extends AdminTestCase
             ->assertJsonPath('data.0.slug', 'umrah-package');
     }
 
+    public function test_packages_filter_by_booking_state_and_sort_by_price(): void
+    {
+        $admin = $this->asAdmin($this->superAdmin());
+        Package::where('slug', 'umrah-package')->update(['booking_starts_on' => now()->addWeek(), 'booking_ends_on' => null]);
+        Package::where('slug', 'hajj-regular-package')->update(['booking_starts_on' => null, 'booking_ends_on' => now()->subDay()]);
+
+        $slugs = fn (string $query) => collect($admin->getJson('/api/admin/packages?'.$query)->assertOk()->json('data'))->pluck('slug')->all();
+
+        $this->assertSame(['umrah-package'], $slugs('booking=upcoming'));
+        $this->assertSame(['hajj-regular-package'], $slugs('booking=closed'));
+        $this->assertNotContains('umrah-package', $slugs('booking=open'));
+        $this->assertNotContains('hajj-regular-package', $slugs('booking=open'));
+
+        $prices = fn (string $sort) => collect($admin->getJson('/api/admin/packages?sort='.$sort)->json('data'))->pluck('min_price')->filter()->values()->all();
+        $ascending = $prices('price_asc');
+        $this->assertSame($ascending, collect($ascending)->sort()->values()->all());
+        $this->assertSame(array_reverse($ascending), $prices('price_desc'));
+
+        $admin->getJson('/api/admin/packages?booking=soon')->assertUnprocessable();
+    }
+
     public function test_page_post_and_gallery_lists_send_full_pagination_meta(): void
     {
         GalleryAlbum::create(['title' => ['en' => 'Arafat day'], 'slug' => 'arafat-day', 'is_published' => true]);

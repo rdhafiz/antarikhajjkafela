@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { CalendarClock, Copy, ExternalLink, LayoutGrid, Layers, List, Package as PackageIcon, Pencil, Plus, Star, Trash2, Wallet, X } from 'lucide-vue-next';
+import { ArrowDownUp, CalendarCheck, CalendarClock, Check, Copy, ExternalLink, LayoutGrid, Layers, List, Package as PackageIcon, Pencil, Plus, Search, SlidersHorizontal, Star, Trash2, Wallet, X } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
 import AppDrawer from '@admin/components/ui/AppDrawer.vue';
 import AppModal from '@admin/components/ui/AppModal.vue';
 import AppPagination from '@admin/components/ui/AppPagination.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
-import FilterBar from '@admin/components/ui/FilterBar.vue';
 import FormField from '@admin/components/ui/FormField.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
 import PackageListItem, { type PackageRow as ItemRow } from './PackageListItem.vue';
@@ -51,7 +50,7 @@ const auth = useAuthStore();
 const toast = useToastStore();
 const { confirm } = useConfirm();
 
-const list = useListQuery<PackageRow>('/packages', { service_id: '', status: '', featured: '' });
+const list = useListQuery<PackageRow>('/packages', { service_id: '', status: '', featured: '', booking: '', sort: '' });
 const services = ref<{ id: number; name: Translations }[]>([]);
 
 const current = ref<PackageRow | null>(null);
@@ -79,8 +78,67 @@ const money = new Intl.NumberFormat('en-IN');
 const bookingTone = { open: 'success', upcoming: 'warning', closed: 'danger' } as const;
 const bookingLabel = { open: 'Booking open', upcoming: 'Opens soon', closed: 'Booking closed' } as const;
 const price = (value: number | null) => (value !== null ? `৳${money.format(value)}` : '—');
-const filtered = computed(() => Boolean(list.filters.search || list.active.value));
 const total = computed(() => list.meta.value?.total ?? 0);
+const filtersOpen = ref(false);
+
+/** Every filter in the drawer, as groups of choices ('' = any). Sort is a choice too, but not counted as a filter. */
+const filterGroups = computed(() => [
+    {
+        key: 'service_id' as const,
+        label: 'Service',
+        icon: LayoutGrid,
+        tone: '#38bdf8',
+        options: [{ value: '', label: 'All services' }, ...services.value.map((s) => ({ value: String(s.id), label: pickText(s.name, app.defaultLocale) }))],
+    },
+    {
+        key: 'status' as const,
+        label: 'Status',
+        icon: Layers,
+        tone: '#a78bfa',
+        options: [
+            { value: '', label: 'Any status' },
+            { value: 'published', label: 'Published' },
+            { value: 'draft', label: 'Draft' },
+        ],
+    },
+    {
+        key: 'booking' as const,
+        label: 'Booking',
+        icon: CalendarCheck,
+        tone: '#34d399',
+        options: [
+            { value: '', label: 'Any' },
+            { value: 'open', label: 'Booking open' },
+            { value: 'upcoming', label: 'Opens soon' },
+            { value: 'closed', label: 'Booking closed' },
+        ],
+    },
+    {
+        key: 'featured' as const,
+        label: 'Featured',
+        icon: Star,
+        tone: '#fb7185',
+        options: [
+            { value: '', label: 'Featured or not' },
+            { value: 'yes', label: 'Featured only' },
+            { value: 'no', label: 'Not featured' },
+        ],
+    },
+    {
+        key: 'sort' as const,
+        label: 'Sort by',
+        icon: ArrowDownUp,
+        tone: '#fbbf24',
+        options: [
+            { value: '', label: 'Featured first' },
+            { value: 'updated', label: 'Recently updated' },
+            { value: 'price_asc', label: 'Price: low to high' },
+            { value: 'price_desc', label: 'Price: high to low' },
+        ],
+    },
+]);
+const activeFilters = computed(() => (['service_id', 'status', 'booking', 'featured'] as const).filter((key) => list.filters[key] !== '').length);
+const filtered = computed(() => Boolean(list.filters.search) || activeFilters.value > 0);
 
 /** Price-box colour per service, so packages of one service share a colour. */
 const serviceTones = ['#34d399', '#38bdf8', '#fb923c', '#a78bfa', '#f472b6', '#fbbf24'];
@@ -169,43 +227,22 @@ onMounted(async () => {
             </div>
         </header>
 
-        <!-- Search and filters -->
-        <FilterBar v-model:search="list.filters.search as string" placeholder="Search packages" :active="0" class="pk-filters">
-            <label class="pk-select">
-                <span class="sr-only">Filter by service</span>
-                <LayoutGrid class="pk-select-icon text-sky-600" aria-hidden="true" />
-                <select v-model="list.filters.service_id" class="control">
-                    <option value="">All services</option>
-                    <option v-for="service in services" :key="service.id" :value="String(service.id)">{{ pickText(service.name, app.defaultLocale) }}</option>
-                </select>
+        <!-- Search, filters and view switch in one row -->
+        <div class="mb-4 flex items-center gap-2 sm:gap-3">
+            <label class="relative min-w-0 flex-1">
+                <span class="sr-only">Search packages</span>
+                <Search class="pointer-events-none absolute top-1/2 left-4 size-[18px] -translate-y-1/2 text-ink-muted" aria-hidden="true" />
+                <input v-model="list.filters.search" type="search" placeholder="Search packages" class="control pk-search pr-10 pl-11" />
+                <button v-if="list.filters.search" type="button" class="absolute top-1/2 right-2.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-ink-muted hover:bg-canvas hover:text-ink" aria-label="Clear search" @click="list.filters.search = ''">
+                    <X class="size-4" />
+                </button>
             </label>
-            <label class="pk-select">
-                <span class="sr-only">Filter by status</span>
-                <Layers class="pk-select-icon text-violet-600" aria-hidden="true" />
-                <select v-model="list.filters.status" class="control">
-                    <option value="">Any status</option>
-                    <option value="published">Published</option>
-                    <option value="draft">Draft</option>
-                </select>
-            </label>
-            <label class="pk-select">
-                <span class="sr-only">Filter featured packages</span>
-                <Star class="pk-select-icon text-rose-500" aria-hidden="true" />
-                <select v-model="list.filters.featured" class="control">
-                    <option value="">Featured or not</option>
-                    <option value="yes">Featured only</option>
-                    <option value="no">Not featured</option>
-                </select>
-            </label>
-        </FilterBar>
-
-        <!-- Count, clear and view switch -->
-        <div class="mb-3.5 flex items-center justify-between gap-3">
-            <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[14px] text-ink-soft" aria-live="polite">
-                <span v-if="list.meta.value"><strong class="font-semibold text-ink">{{ total }}</strong> {{ total === 1 ? 'package' : 'packages' }}</span>
-                <button v-if="filtered" type="button" class="inline-flex items-center gap-1 text-[13px] font-semibold text-brand hover:underline" @click="clearAll"><X class="size-3.5" aria-hidden="true" />Clear filters</button>
-            </p>
-            <div class="flex rounded-xl border border-line bg-white p-1" role="group" aria-label="Show packages as">
+            <button type="button" class="pk-filter-btn" :class="{ 'is-active': activeFilters }" aria-haspopup="dialog" @click="filtersOpen = true">
+                <SlidersHorizontal class="size-[18px]" aria-hidden="true" />
+                <span class="max-sm:sr-only">Filters</span>
+                <span v-if="activeFilters" class="pk-filter-count"><span class="sr-only">, </span>{{ activeFilters }}<span class="sr-only"> active</span></span>
+            </button>
+            <div class="hidden rounded-xl border border-line bg-white p-1 sm:flex" role="group" aria-label="Show packages as">
                 <button type="button" class="pk-view" :class="{ 'is-on': view === 'grid' }" :aria-pressed="view === 'grid'" aria-label="Grid" title="Grid" @click="view = 'grid'"><LayoutGrid class="size-[18px]" /></button>
                 <button type="button" class="pk-view" :class="{ 'is-on': view === 'list' }" :aria-pressed="view === 'list'" aria-label="List" title="List" @click="view = 'list'"><List class="size-[18px]" /></button>
             </div>
@@ -244,6 +281,29 @@ onMounted(async () => {
         </div>
 
         <AppPagination v-if="list.meta.value && list.rows.value.length" :meta="list.meta.value" label="packages" @change="list.goTo" @per-page="list.setPerPage" />
+
+        <!-- All filters -->
+        <AppDrawer v-model:open="filtersOpen" title="Filter packages" description="Results update as you choose." :icon="SlidersHorizontal" tone="#38bdf8">
+            <div class="space-y-6">
+                <fieldset v-for="group in filterGroups" :key="group.key" class="min-w-0">
+                    <legend class="mb-2.5 flex items-center gap-2 text-[13.5px] font-bold text-ink">
+                        <span class="pk-group-icon" :style="{ '--tone': group.tone }"><component :is="group.icon" class="size-4" aria-hidden="true" /></span>
+                        {{ group.label }}
+                    </legend>
+                    <div class="flex flex-wrap gap-2">
+                        <label v-for="option in group.options" :key="option.value" class="pk-chip-choice" :class="{ 'is-on': list.filters[group.key] === option.value }" :style="{ '--tone': group.tone }">
+                            <input v-model="list.filters[group.key]" type="radio" class="sr-only" :name="`pk-${group.key}`" :value="option.value" />
+                            <Check v-if="list.filters[group.key] === option.value" class="size-3.5" aria-hidden="true" />
+                            {{ option.label }}
+                        </label>
+                    </div>
+                </fieldset>
+            </div>
+            <template #footer>
+                <AppButton variant="ghost" :disabled="!activeFilters && !list.filters.sort" @click="list.clear()">Clear all</AppButton>
+                <AppButton class="ml-auto" :loading="list.loading.value" @click="filtersOpen = false">Show {{ total }} {{ total === 1 ? 'package' : 'packages' }}</AppButton>
+            </template>
+        </AppDrawer>
 
         <!-- Preview and actions -->
         <AppDrawer v-model:open="drawerOpen" :title="current ? pickText(current.name, app.defaultLocale) : ''" :description="current ? pickText(current.service, app.defaultLocale) ?? '' : ''" :icon="PackageIcon">
@@ -357,29 +417,95 @@ onMounted(async () => {
     }
 }
 
-.pk-filters :deep(input[type='search']) {
+.pk-search {
     height: 3rem;
     border-radius: 0.9rem;
     box-shadow: var(--shadow-card);
 }
 
-.pk-select {
+.pk-filter-btn {
     position: relative;
-    display: block;
+    display: inline-flex;
+    height: 3rem;
+    min-width: 3rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.9rem;
+    border: 1px solid var(--color-line);
+    background: #fff;
+    padding: 0 1.1rem;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-ink);
+    box-shadow: var(--shadow-card);
+    transition: border-color 180ms ease, background-color 180ms ease;
 
-    select {
-        height: 3rem;
-        width: 10rem;
-        border-radius: 0.9rem;
-        padding-left: 2.6rem;
-        box-shadow: var(--shadow-card);
-        font-weight: 500;
+    &:hover {
+        border-color: #cbd3df;
+    }
+
+    &.is-active {
+        border-color: color-mix(in oklab, var(--admin-primary) 45%, white);
+        background: color-mix(in oklab, var(--admin-primary) 6%, white);
     }
 }
 
-@media (min-width: 1280px) {
-    .pk-select select {
-        width: 12.5rem;
+.pk-filter-count {
+    display: flex;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--admin-primary);
+    padding: 0 0.3rem;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.pk-group-icon {
+    display: flex;
+    width: 1.75rem;
+    height: 1.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    background: color-mix(in oklab, var(--tone) 16%, white);
+    color: color-mix(in oklab, var(--tone) 55%, black);
+}
+
+.pk-chip-choice {
+    display: inline-flex;
+    min-height: 2.5rem;
+    cursor: pointer;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line);
+    background: #fff;
+    padding: 0 0.95rem;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--color-ink-soft);
+    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+
+    &:hover {
+        border-color: #cbd3df;
+        color: var(--color-ink);
+    }
+
+    &:has(:focus-visible) {
+        outline: 2px solid var(--admin-primary);
+        outline-offset: 2px;
+    }
+
+    &.is-on {
+        border-color: color-mix(in oklab, var(--tone) 65%, black 5%);
+        background: color-mix(in oklab, var(--tone) 14%, white);
+        color: color-mix(in oklab, var(--tone) 45%, black);
     }
 }
 
@@ -398,16 +524,6 @@ onMounted(async () => {
     .pk-grid.is-list {
         grid-template-columns: minmax(0, 1fr);
     }
-}
-
-.pk-select-icon {
-    position: absolute;
-    top: 50%;
-    left: 0.9rem;
-    width: 1.1rem;
-    height: 1.1rem;
-    transform: translateY(-50%);
-    pointer-events: none;
 }
 
 .pk-view {
