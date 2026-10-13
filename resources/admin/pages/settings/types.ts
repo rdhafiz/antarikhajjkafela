@@ -13,6 +13,8 @@ export interface SettingFieldDefinition {
     readonly: boolean;
     usage?: string;
     options?: SettingOption[];
+    /** Selects that may be left empty. */
+    clearable?: boolean;
 }
 
 export interface SettingsGroup {
@@ -25,5 +27,16 @@ export interface SettingsGroup {
 
 export interface SettingsNavSection {
     label: string;
-    groups: { key: string; label: string; description: string; icon: string }[];
+    groups: SettingsNavGroup[];
+}
+
+export interface SettingsNavGroup {
+    key: string;
+    label: string;
+    description: string;
+    icon: string;
+    /** Every field's name, for searching all settings from the hub. */
+    fields: { key: string; label: string; section: string | null }[];
+    filled: number;
+    total: number;
 }

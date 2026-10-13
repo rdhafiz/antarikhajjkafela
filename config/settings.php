@@ -232,7 +232,7 @@ return [
             'fields' => [
                 'active_gateway' => [
                     'type' => 'select', 'label' => 'Active gateway', 'default' => null,
-                    'hint' => 'Leave empty to turn off online payment (customers can still book without paying).',
+                    'hint' => 'Choose Off to turn off online payment (customers can still book without paying).',
                     'options' => ['sslcommerz' => 'SSLCommerz', 'dgepay' => 'DGePay'],
                 ],
                 'sslcommerz_mode' => ['type' => 'select', 'label' => 'Mode', 'section' => 'SSLCommerz', 'default' => 'sandbox', 'options' => ['sandbox' => 'Sandbox (testing)', 'live' => 'Live']],

@@ -1,28 +1,14 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router';
-import {
-    Activity,
-    BadgeCheck,
-    CreditCard,
-    Image as ImageIcon,
-    Languages,
-    Megaphone,
-    Paintbrush,
-    Palette,
-    Phone,
-    Search,
-    Share2,
-    Settings2,
-    Check,
-    ChevronDown,
-} from 'lucide-vue-next';
-import AppDrawer from '@admin/components/ui/AppDrawer.vue';
-import AppButton from '@admin/components/ui/AppButton.vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, type RouteLocationNormalized } from 'vue-router';
+import { ArrowLeft, Check, CheckCircle2, ChevronDown, Eye, LayoutGrid, Settings2, Sparkles, Undo2 } from 'lucide-vue-next';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
+import AppDrawer from '@admin/components/ui/AppDrawer.vue';
 import PageHeader from '@admin/components/ui/PageHeader.vue';
 import SettingField from './SettingField.vue';
+import SettingsHub from './SettingsHub.vue';
 import ThemePreview from './ThemePreview.vue';
+import { groupIcon, groupTone } from './meta';
 import { useConfirm } from '@admin/composables/useConfirm';
 import { useForm } from '@admin/composables/useForm';
 import { errorMessage, http } from '@admin/lib/http';
@@ -32,39 +18,7 @@ import { useToastStore } from '@admin/stores/toast';
 import type { AdminTheme } from '@admin/types';
 import type { SettingFieldDefinition, SettingsGroup, SettingsNavSection } from './types';
 
-const icons: Record<string, unknown> = {
-    badge: BadgeCheck,
-    palette: Palette,
-    languages: Languages,
-    phone: Phone,
-    share: Share2,
-    search: Search,
-    activity: Activity,
-    megaphone: Megaphone,
-    paintbrush: Paintbrush,
-    image: ImageIcon,
-    'credit-card': CreditCard,
-};
-
-/** A colour per settings section, by what it is about. */
-const tones: Record<string, string> = {
-    badge: '#fbbf24',
-    palette: '#f472b6',
-    languages: '#38bdf8',
-    phone: '#34d399',
-    share: '#60a5fa',
-    search: '#a78bfa',
-    activity: '#fb7185',
-    megaphone: '#fb923c',
-    paintbrush: '#2dd4bf',
-    image: '#22d3ee',
-    'credit-card': '#a3e635',
-};
-const sectionsOpen = ref(false);
-
-
 const route = useRoute();
-const router = useRouter();
 const app = useAppStore();
 const auth = useAuthStore();
 const toast = useToastStore();
@@ -72,19 +26,20 @@ const { confirm } = useConfirm();
 
 const navigation = ref<SettingsNavSection[]>([]);
 const group = ref<SettingsGroup | null>(null);
-const loading = ref(true);
+const loading = ref(false);
 const form = useForm({ values: {} as Record<string, unknown> });
 const saved = ref('');
+const switcherOpen = ref(false);
+const justSaved = ref(false);
 
 const groupKey = computed(() => String(route.params.group ?? ''));
 const allGroups = computed(() => navigation.value.flatMap((section) => section.groups));
-const currentItem = computed(() => allGroups.value.find((item) => item.key === groupKey.value) ?? null);
-function toneOf(key: string): string {
-    return tones[allGroups.value.find((item) => item.key === key)?.icon ?? ''] ?? '#818cf8';
-}
+const current = computed(() => allGroups.value.find((item) => item.key === (group.value?.key ?? groupKey.value)) ?? null);
+const tone = computed(() => groupTone(current.value?.icon));
 const canEdit = computed(() => auth.can('settings.update'));
-// Nothing loaded yet (saved is empty) is never "unsaved": opening /settings switches to the first section before it loads.
+// Nothing loaded yet (saved is empty) is never "unsaved".
 const dirty = computed(() => saved.value !== '' && JSON.stringify(form.data.values) !== saved.value);
+const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
 /** Fields grouped under their optional section heading, keeping order. */
 const sections = computed(() => {
@@ -98,6 +53,10 @@ const sections = computed(() => {
 
     return result;
 });
+const titledSections = computed(() => sections.value.map((s, i) => ({ title: s.title, index: i })).filter((s) => s.title));
+
+const pairable = ['color', 'string', 'phone', 'email', 'url', 'select', 'secret'];
+const twoColumns = (fields: SettingFieldDefinition[]) => fields.length > 1 && fields.every((f) => pairable.includes(f.type) && !f.translatable);
 
 /** Secrets come back as true/false; the inputs start empty. */
 function editableValues(values: Record<string, unknown>): Record<string, unknown> {
@@ -110,7 +69,21 @@ function editableValues(values: Record<string, unknown>): Record<string, unknown
     return result;
 }
 
+async function loadNavigation(): Promise<void> {
+    try {
+        navigation.value = (await http.get<{ data: SettingsNavSection[] }>('/settings')).data.data;
+    } catch (e) {
+        toast.error(errorMessage(e));
+    }
+}
+
 async function loadGroup(key: string): Promise<void> {
+    if (!key) {
+        group.value = null;
+        saved.value = '';
+        return;
+    }
+
     loading.value = true;
 
     try {
@@ -127,26 +100,35 @@ async function loadGroup(key: string): Promise<void> {
 }
 
 async function save(): Promise<void> {
-    if (!group.value) return;
+    if (!group.value || !dirty.value || form.processing) return;
 
     // Unchanged secrets are left out so the stored value is kept.
     const payload = Object.fromEntries(
-        Object.entries(form.data.values).filter(
-            ([key, value]) => !(group.value!.fields.find((f) => f.key === key)?.type === 'secret' && !value),
-        ),
+        Object.entries(form.data.values).filter(([key, value]) => !(group.value!.fields.find((f) => f.key === key)?.type === 'secret' && !value)),
     );
 
     const response = await form.submit(() => http.put<{ data: SettingsGroup }>(`/settings/${group.value!.key}`, payload));
-    if (!response) return;
+    if (!response) {
+        await nextTick();
+        document.querySelector<HTMLElement>('.st-form [aria-invalid="true"], .st-form [role="alert"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
 
     group.value = response.data.data;
     form.reset({ values: editableValues(response.data.data.values) });
     saved.value = JSON.stringify(form.data.values);
     toast.success(`${group.value.label} saved`);
+    justSaved.value = true;
+    window.setTimeout(() => (justSaved.value = false), 2400);
+    loadNavigation();
 
     if (['branding', 'admin_theme', 'media', 'localization'].includes(group.value.key)) {
         await app.load(true);
     }
+}
+
+function undo(): void {
+    form.reset({ values: JSON.parse(saved.value) });
 }
 
 async function confirmDiscard(): Promise<boolean> {
@@ -159,7 +141,7 @@ async function confirmDiscard(): Promise<boolean> {
     });
 }
 
-// Admin theme colors preview live while editing.
+// Admin theme colours preview live while editing.
 watch(
     () => (group.value?.key === 'admin_theme' ? form.data.values : null),
     (values) => values && app.applyTheme(values as unknown as AdminTheme),
@@ -172,10 +154,47 @@ function restoreTheme(): void {
     }
 }
 
-onBeforeRouteUpdate(async (to) => {
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** Scrolls to a field (from a search result) and highlights it briefly. */
+async function focusField(hash: string): Promise<void> {
+    if (!hash.startsWith('#f-')) return;
+    // The section fades in after loading, so wait (up to a second) for the field to exist.
+    let el: HTMLElement | null = null;
+    for (let i = 0; i < 60 && !el; i++) {
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        el = document.getElementById(hash.slice(1));
+    }
+    if (!el) return;
+    el.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'center' });
+    el.classList.remove('st-flash');
+    void el.offsetWidth;
+    el.classList.add('st-flash');
+    const target = el.querySelector<HTMLElement>('input:not([type=hidden]):not([type=radio]):not([type=search]), textarea, select') ?? el.querySelector<HTMLElement>('input, button');
+    target?.focus({ preventScroll: true });
+    window.setTimeout(() => el.classList.remove('st-flash'), 2000);
+}
+
+function jumpTo(index: number): void {
+    document.getElementById(`st-s-${index}`)?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+}
+
+async function enter(to: RouteLocationNormalized): Promise<void> {
+    const key = String(to.params.group ?? '');
+    if (key !== (group.value?.key ?? '')) await loadGroup(key);
+    if (key) focusField(to.hash);
+    else window.scrollTo({ top: 0 });
+}
+
+onBeforeRouteUpdate(async (to, from) => {
+    if (String(to.params.group ?? '') === String(from.params.group ?? '')) {
+        focusField(to.hash);
+        return true;
+    }
     if (!(await confirmDiscard())) return false;
     restoreTheme();
-    await loadGroup(String(to.params.group));
+    switcherOpen.value = false;
+    await enter(to);
     return true;
 });
 
@@ -189,135 +208,195 @@ function beforeUnload(event: BeforeUnloadEvent): void {
     if (dirty.value) event.preventDefault();
 }
 
+// Ctrl/Cmd + S saves the open section.
+function onKey(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's' && group.value) {
+        event.preventDefault();
+        if (canEdit.value) save();
+    }
+}
+
 onMounted(async () => {
     window.addEventListener('beforeunload', beforeUnload);
-
-    const { data } = await http.get<{ data: SettingsNavSection[] }>('/settings');
-    navigation.value = data.data;
-
-    if (!groupKey.value) {
-        router.replace({ name: 'settings', params: { group: data.data[0]?.groups[0]?.key ?? 'branding' } });
-        return;
-    }
-
-    await loadGroup(groupKey.value);
+    window.addEventListener('keydown', onKey);
+    await Promise.all([loadNavigation(), enter(route)]);
 });
 
-onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload));
+onBeforeUnmount(() => {
+    window.removeEventListener('beforeunload', beforeUnload);
+    window.removeEventListener('keydown', onKey);
+});
 </script>
 
 <template>
     <div>
-        <PageHeader title="Settings" description="Website details, appearance, integrations and payment." />
+        <!-- Hub: search and all sections -->
+        <template v-if="!groupKey">
+            <PageHeader title="Settings" description="Website details, appearance, integrations and payment. Search for any setting or pick a section." />
+            <div v-if="!navigation.length" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
+                <div class="card h-14 animate-pulse md:col-span-2 xl:col-span-3" />
+                <div v-for="n in 6" :key="n" class="card h-44 animate-pulse" />
+            </div>
+            <SettingsHub v-else :navigation="navigation" />
+        </template>
 
-        <div class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-            <!-- Section navigation: a list on wide screens, a drawer on phones (never scrolls sideways). -->
-            <nav class="h-fit lg:sticky lg:top-24" aria-label="Settings sections">
-                <button type="button" class="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-white px-3.5 text-left lg:hidden" @click="sectionsOpen = true">
-                    <span v-if="currentItem" class="st-icon flex size-8 shrink-0 items-center justify-center rounded-lg" :style="{ '--tone': toneOf(currentItem.key) }">
-                        <component :is="icons[currentItem.icon] ?? Settings2" class="size-4" />
-                    </span>
-                    <span class="min-w-0 flex-1">
-                        <span class="block text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">Section</span>
-                        <span class="block truncate text-[14.5px] font-semibold text-ink">{{ currentItem?.label ?? 'Choose a section' }}</span>
-                    </span>
-                    <ChevronDown class="size-4 text-ink-muted" aria-hidden="true" />
-                </button>
-
-                <div class="hidden space-y-5 lg:block">
+        <!-- One section -->
+        <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-7 lg:grid-cols-[248px_minmax(0,1fr)]" :style="{ '--tone': tone }">
+            <nav class="hidden h-fit lg:sticky lg:top-24 lg:block" aria-label="Settings sections">
+                <RouterLink :to="{ name: 'settings' }" class="st-back mb-5 flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13.5px] font-semibold text-ink-soft hover:bg-white hover:text-ink">
+                    <span class="flex size-8 items-center justify-center rounded-lg bg-white ring-1 ring-line"><LayoutGrid class="size-4" /></span>
+                    All settings
+                </RouterLink>
+                <div class="space-y-5">
                     <div v-for="section in navigation" :key="section.label">
-                        <p class="mb-1.5 px-3 text-[11px] font-bold tracking-[0.1em] text-ink-muted uppercase">{{ section.label }}</p>
+                        <p class="mb-1.5 px-2.5 text-[11px] font-bold tracking-[0.12em] text-ink-muted uppercase">{{ section.label }}</p>
+                        <div v-for="item in section.groups" :key="item.key">
+                            <RouterLink
+                                :to="{ name: 'settings', params: { group: item.key } }"
+                                class="st-link flex items-center gap-3 rounded-xl px-2.5 py-2 text-[14px] font-medium transition-colors"
+                                :class="groupKey === item.key ? 'is-active bg-white text-ink shadow-[var(--shadow-card)] ring-1 ring-line' : 'text-ink-soft hover:bg-white/70 hover:text-ink'"
+                                :style="{ '--tone': groupTone(item.icon) }"
+                                :aria-current="groupKey === item.key ? 'page' : undefined"
+                            >
+                                <span class="st-icon flex size-8 shrink-0 items-center justify-center rounded-lg"><component :is="groupIcon(item.icon)" class="size-4" /></span>
+                                <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
+                            </RouterLink>
+                            <ul v-if="groupKey === item.key && group?.key === item.key && titledSections.length > 1" class="st-sub mt-1 mb-2 ml-[26px] space-y-0.5 border-l border-line pl-3">
+                                <li v-for="sub in titledSections" :key="sub.index">
+                                    <button type="button" class="w-full rounded-md px-2 py-1 text-left text-[13px] text-ink-soft hover:bg-white hover:text-ink" @click="jumpTo(sub.index)">{{ sub.title }}</button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="min-w-0">
+                <!-- Phones: back to all settings + switch section -->
+                <div class="mb-4 flex items-center gap-2 lg:hidden">
+                    <RouterLink :to="{ name: 'settings' }" class="flex size-12 shrink-0 items-center justify-center rounded-xl border border-line bg-white text-ink" aria-label="All settings">
+                        <ArrowLeft class="size-5" />
+                    </RouterLink>
+                    <button type="button" class="flex h-12 min-w-0 flex-1 items-center gap-3 rounded-xl border border-line bg-white px-3 text-left" aria-haspopup="dialog" @click="switcherOpen = true">
+                        <span class="st-icon flex size-8 shrink-0 items-center justify-center rounded-lg" :style="{ '--tone': tone }"><component :is="groupIcon(current?.icon)" class="size-4" /></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">Switch section</span>
+                            <span class="block truncate text-[14.5px] font-semibold text-ink">{{ current?.label ?? 'Settings' }}</span>
+                        </span>
+                        <ChevronDown class="size-4 shrink-0 text-ink-muted" aria-hidden="true" />
+                    </button>
+                </div>
+
+                <Transition name="st-swap" mode="out-in">
+                    <div v-if="loading || !group" key="loading" class="space-y-5" aria-busy="true" aria-label="Loading settings">
+                        <div class="card h-36 animate-pulse" />
+                        <div class="card h-72 animate-pulse" />
+                    </div>
+
+                    <form v-else :key="group.key" class="st-form" novalidate @submit.prevent="save">
+                        <!-- Section hero -->
+                        <header class="st-hero card relative overflow-hidden p-5 sm:p-7">
+                            <span class="st-hero-glow pointer-events-none absolute -top-24 -right-20 size-72 rounded-full" aria-hidden="true" />
+                            <div class="relative flex flex-wrap items-start gap-4 sm:gap-5">
+                                <span class="ph-tile flex size-14 shrink-0 items-center justify-center rounded-2xl" aria-hidden="true"><component :is="groupIcon(current?.icon)" class="size-6" /></span>
+                                <div class="min-w-0 flex-1 basis-56">
+                                    <p class="text-[11.5px] font-bold tracking-[0.14em] text-ink-muted uppercase">{{ navigation.find((s) => s.groups.some((g) => g.key === group?.key))?.label ?? 'Settings' }}</p>
+                                    <h1 class="mt-0.5 text-[22px] leading-tight font-bold tracking-[-0.01em] text-ink sm:text-[26px]">{{ group.label }}</h1>
+                                    <p v-if="group.description" class="mt-1.5 max-w-2xl text-[14px] leading-relaxed text-ink-soft">{{ group.description }}</p>
+                                </div>
+                                <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-col sm:items-end">
+                                    <span v-if="!canEdit" class="inline-flex items-center gap-1.5 rounded-full bg-canvas px-3 py-1 text-[12.5px] font-semibold text-ink-soft"><Eye class="size-3.5" />View only</span>
+                                    <span v-else-if="dirty" class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-[12.5px] font-semibold text-amber-800"><span class="size-1.5 rounded-full bg-amber-500" />Unsaved changes</span>
+                                    <span v-else class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[12.5px] font-semibold text-emerald-700" :class="{ 'st-pop': justSaved }"><CheckCircle2 class="size-3.5" />All changes saved</span>
+                                    <span v-if="current" class="inline-flex items-center gap-2 text-[12.5px] font-medium text-ink-soft">
+                                        <span class="st-meter h-1.5 w-20 overflow-hidden rounded-full" aria-hidden="true"><span class="block h-full rounded-full" :style="{ width: `${current.total ? (current.filled / current.total) * 100 : 0}%` }" /></span>
+                                        {{ current.filled }} of {{ current.total }} filled
+                                    </span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="mt-5" :class="{ 'xl:grid xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start xl:gap-6': group.key === 'theme' }">
+                            <fieldset class="m-0 min-w-0 space-y-5 border-0 p-0" :disabled="!canEdit">
+                                <legend class="sr-only">{{ group.label }}</legend>
+
+                                <div v-if="group.key === 'theme'" class="xl:hidden">
+                                    <ThemePreview :primary="String(form.data.values.primary_color)" :secondary="String(form.data.values.secondary_color)" :accent="String(form.data.values.accent_color)" />
+                                </div>
+                                <p v-if="group.key === 'admin_theme'" class="flex items-start gap-2.5 rounded-2xl border border-line bg-white px-4 py-3 text-[13.5px] text-ink-soft">
+                                    <Sparkles class="mt-0.5 size-4 shrink-0 text-violet-600" aria-hidden="true" />
+                                    Colours preview live across the portal while you edit. Undo or leave without saving to go back.
+                                </p>
+
+                                <section v-for="(section, i) in sections" :id="`st-s-${i}`" :key="i" class="st-card card scroll-mt-24 p-5 sm:p-6" :aria-labelledby="section.title ? `st-h-${i}` : undefined">
+                                    <h2 v-if="section.title" :id="`st-h-${i}`" class="mb-5 flex items-center gap-2.5 text-[15px] font-bold text-ink">
+                                        <span class="st-dot size-2 rounded-full" aria-hidden="true" />{{ section.title }}
+                                        <span class="ml-auto text-[12px] font-medium text-ink-muted">{{ section.fields.length }} {{ section.fields.length === 1 ? 'setting' : 'settings' }}</span>
+                                    </h2>
+                                    <div class="grid grid-cols-[minmax(0,1fr)] gap-x-5 gap-y-6" :class="{ 'md:grid-cols-2': twoColumns(section.fields) }">
+                                        <div v-for="field in section.fields" :id="`f-${field.key}`" :key="field.key" class="st-field scroll-mt-28 rounded-xl">
+                                            <SettingField
+                                                v-model="form.data.values[field.key]"
+                                                :field="field"
+                                                :errors="form.errors"
+                                                :secret-stored="field.type === 'secret' ? group.values[field.key] === true : undefined"
+                                            />
+                                        </div>
+                                    </div>
+                                </section>
+                            </fieldset>
+
+                            <aside v-if="group.key === 'theme'" class="hidden xl:sticky xl:top-24 xl:block" aria-label="Preview">
+                                <p class="mb-2.5 text-[12px] font-bold tracking-[0.12em] text-ink-muted uppercase">Preview</p>
+                                <ThemePreview :primary="String(form.data.values.primary_color)" :secondary="String(form.data.values.secondary_color)" :accent="String(form.data.values.accent_color)" />
+                            </aside>
+                        </div>
+
+                        <!-- Appears only when something changed -->
+                        <Transition name="st-bar">
+                            <div v-if="canEdit && dirty" class="st-bar sticky bottom-3 z-20 mt-5 sm:bottom-5" role="region" aria-label="Unsaved changes">
+                                <div class="flex items-center gap-2 rounded-2xl bg-[#0b1d33] py-2.5 pr-2.5 pl-4 text-white shadow-[0_18px_44px_-14px_rgb(2_12_27/0.55)] sm:gap-3 sm:pl-5">
+                                    <span class="st-pulse size-2 shrink-0 rounded-full bg-amber-400" aria-hidden="true" />
+                                    <p class="min-w-0 flex-1 truncate text-[14px] font-semibold">
+                                        Unsaved changes
+                                        <span class="ml-2 hidden font-normal text-white/60 md:inline"><kbd class="rounded border border-white/20 px-1.5 py-0.5 font-sans text-[11.5px]">{{ isMac ? '⌘' : 'Ctrl' }} S</kbd> to save</span>
+                                    </p>
+                                    <button type="button" class="flex h-10 items-center gap-1.5 rounded-xl px-3 text-[14px] font-semibold text-white/80 hover:bg-white/10 hover:text-white disabled:opacity-50" :disabled="form.processing" @click="undo">
+                                        <Undo2 class="size-4" aria-hidden="true" />Undo
+                                    </button>
+                                    <button type="submit" class="st-save flex h-10 items-center gap-1.5 rounded-xl px-4 text-[14px] font-bold disabled:opacity-70" :disabled="form.processing" :aria-busy="form.processing">
+                                        <AppSpinner v-if="form.processing" class="size-4" /><Check v-else class="size-4" aria-hidden="true" />{{ form.processing ? 'Saving' : 'Save' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </Transition>
+                    </form>
+                </Transition>
+            </div>
+
+            <!-- Phones: every section -->
+            <AppDrawer v-model:open="switcherOpen" title="Settings sections" :icon="Settings2" :tone="tone">
+                <div class="space-y-5">
+                    <RouterLink :to="{ name: 'settings' }" class="flex items-center gap-3 rounded-xl px-2 py-2.5 text-[14.5px] font-semibold text-ink hover:bg-canvas">
+                        <span class="flex size-9 items-center justify-center rounded-lg bg-canvas"><LayoutGrid class="size-[18px] text-ink-soft" /></span>All settings
+                    </RouterLink>
+                    <div v-for="section in navigation" :key="section.label">
+                        <p class="mb-1.5 px-1 text-[11px] font-bold tracking-[0.1em] text-ink-muted uppercase">{{ section.label }}</p>
                         <RouterLink
                             v-for="item in section.groups"
                             :key="item.key"
                             :to="{ name: 'settings', params: { group: item.key } }"
-                            class="st-link flex items-center gap-3 rounded-xl px-2.5 py-2 text-[14px] font-medium transition-colors"
-                            :class="groupKey === item.key ? 'is-active bg-white text-ink shadow-[var(--shadow-card)] ring-1 ring-line' : 'text-ink-soft hover:bg-white/70 hover:text-ink'"
-                            :style="{ '--tone': toneOf(item.key) }"
+                            class="st-link flex min-h-12 items-center gap-3 rounded-xl px-2 py-2 text-[14.5px] font-semibold text-ink hover:bg-canvas"
+                            :class="{ 'is-active bg-canvas': groupKey === item.key }"
+                            :style="{ '--tone': groupTone(item.icon) }"
                         >
-                            <span class="st-icon flex size-8 shrink-0 items-center justify-center rounded-lg"><component :is="icons[item.icon] ?? Settings2" class="size-4" /></span>
-                            {{ item.label }}
+                            <span class="st-icon flex size-9 shrink-0 items-center justify-center rounded-lg"><component :is="groupIcon(item.icon)" class="size-[18px]" /></span>
+                            <span class="flex-1">{{ item.label }}</span>
+                            <Check v-if="groupKey === item.key" class="size-4 text-brand" aria-hidden="true" />
                         </RouterLink>
                     </div>
                 </div>
-
-                <AppDrawer v-model:open="sectionsOpen" title="Settings sections" :icon="Settings2">
-                    <div class="space-y-5">
-                        <div v-for="section in navigation" :key="section.label">
-                            <p class="mb-1.5 px-1 text-[11px] font-bold tracking-[0.1em] text-ink-muted uppercase">{{ section.label }}</p>
-                            <RouterLink
-                                v-for="item in section.groups"
-                                :key="item.key"
-                                :to="{ name: 'settings', params: { group: item.key } }"
-                                class="st-link flex items-center gap-3 rounded-xl px-2 py-2.5 text-[14.5px] font-semibold text-ink hover:bg-canvas"
-                                :class="{ 'is-active bg-canvas': groupKey === item.key }"
-                                :style="{ '--tone': toneOf(item.key) }"
-                                @click="sectionsOpen = false"
-                            >
-                                <span class="st-icon flex size-9 shrink-0 items-center justify-center rounded-lg"><component :is="icons[item.icon] ?? Settings2" class="size-[18px]" /></span>
-                                <span class="flex-1">{{ item.label }}</span>
-                                <Check v-if="groupKey === item.key" class="size-4 text-brand" aria-hidden="true" />
-                            </RouterLink>
-                        </div>
-                    </div>
-                </AppDrawer>
-            </nav>
-
-            <!-- Group form -->
-            <div class="min-w-0">
-                <div v-if="loading" class="card flex justify-center py-20 text-brand"><AppSpinner class="size-6" /></div>
-
-                <form v-else-if="group" class="card" novalidate @submit.prevent="save">
-                    <header class="border-b border-line px-6 py-5">
-                        <h2 class="text-[17px] font-bold text-ink">{{ group.label }}</h2>
-                        <p v-if="group.description" class="mt-0.5 text-[13px] text-ink-muted">{{ group.description }}</p>
-                    </header>
-
-                    <div class="space-y-8 px-6 py-6">
-                        <div v-if="group.key === 'theme'" class="max-w-md">
-                            <p class="label">Preview</p>
-                            <ThemePreview
-                                :primary="String(form.data.values.primary_color)"
-                                :secondary="String(form.data.values.secondary_color)"
-                                :accent="String(form.data.values.accent_color)"
-                            />
-                        </div>
-
-                        <section v-for="(section, i) in sections" :key="i">
-                            <h3 v-if="section.title" class="mb-4 flex items-center gap-3 text-[12px] font-bold tracking-[0.08em] text-ink-muted uppercase">
-                                {{ section.title }}
-                                <span class="h-px flex-1 bg-line" />
-                            </h3>
-                            <div
-                                class="grid gap-5"
-                                :class="{ 'sm:grid-cols-2': section.fields.every((f) => ['color', 'string', 'phone', 'email', 'url', 'select', 'secret'].includes(f.type) && !f.translatable) && section.fields.length > 1 }"
-                            >
-                                <SettingField
-                                    v-for="field in section.fields"
-                                    :key="field.key"
-                                    v-model="form.data.values[field.key]"
-                                    :field="field"
-                                    :errors="form.errors"
-                                    :secret-stored="field.type === 'secret' ? group.values[field.key] === true : undefined"
-                                />
-                            </div>
-                        </section>
-                    </div>
-
-                    <footer
-                        v-if="canEdit"
-                        class="sticky bottom-0 flex items-center justify-between gap-3 rounded-b-[var(--radius-card)] border-t border-line bg-white/95 px-6 py-3.5 backdrop-blur"
-                    >
-                        <p class="text-[13px]" :class="dirty ? 'font-semibold text-amber-700' : 'text-ink-muted'">
-                            {{ dirty ? 'You have unsaved changes' : 'All changes saved' }}
-                        </p>
-                        <div class="flex gap-2">
-                            <AppButton v-if="dirty" variant="ghost" :disabled="form.processing" @click="form.reset({ values: JSON.parse(saved) })">Undo</AppButton>
-                            <AppButton type="submit" :loading="form.processing" :disabled="!dirty">Save changes</AppButton>
-                        </div>
-                    </footer>
-                </form>
-            </div>
+            </AppDrawer>
         </div>
     </div>
 </template>

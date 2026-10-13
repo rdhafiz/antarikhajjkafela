@@ -89,6 +89,35 @@ class SettingsTest extends AdminTestCase
             ->assertJsonPath('data.1.groups.2.key', 'payment');
     }
 
+    public function test_navigation_indexes_fields_and_counts_filled_ones(): void
+    {
+        $groups = collect($this->asAdmin($this->superAdmin())->getJson('/api/admin/settings')->json('data'))
+            ->flatMap(fn ($section) => $section['groups'])
+            ->keyBy('key');
+
+        $contact = $groups['contact'];
+        $this->assertSame(count(config('settings.groups.contact.fields')), $contact['total']);
+        $this->assertContains('Primary WhatsApp', array_column($contact['fields'], 'label'));
+        $this->assertGreaterThan(0, $contact['filled']);
+        $this->assertLessThanOrEqual($contact['total'], $contact['filled']);
+
+        settings()->set('social', ['instagram' => 'https://instagram.com/antarik']);
+        $before = $groups['social']['filled'];
+
+        $after = collect($this->asAdmin($this->superAdmin())->getJson('/api/admin/settings')->json('data'))
+            ->flatMap(fn ($section) => $section['groups'])->keyBy('key')['social']['filled'];
+        $this->assertSame($before + 1, $after);
+    }
+
+    public function test_only_selects_without_a_default_can_be_switched_off(): void
+    {
+        $fields = collect($this->asAdmin($this->superAdmin())->getJson('/api/admin/settings/payment')->json('data.fields'))->keyBy('key');
+
+        $this->assertTrue($fields['active_gateway']['clearable']);
+        $this->assertArrayNotHasKey('clearable', $fields['sslcommerz_mode']);
+        $this->assertArrayNotHasKey('clearable', $fields['sslcommerz_store_id']);
+    }
+
     public function test_dynamic_options_are_resolved(): void
     {
         $admin = $this->superAdmin();

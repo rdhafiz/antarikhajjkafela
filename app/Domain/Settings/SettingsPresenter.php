@@ -28,8 +28,36 @@ class SettingsPresenter
                 'label' => config("settings.groups.{$key}.label"),
                 'description' => config("settings.groups.{$key}.description"),
                 'icon' => config("settings.groups.{$key}.icon"),
+                ...$this->summary($key),
             ])->all(),
         ])->all();
+    }
+
+    /**
+     * Field names (for searching every setting from the hub) and how many fields have a value.
+     *
+     * @return array{fields: list<array{key: string, label: string, section: string|null}>, filled: int, total: int}
+     */
+    private function summary(string $group): array
+    {
+        $fields = config("settings.groups.{$group}.fields", []);
+        $values = $this->settings->group($group);
+
+        $filled = collect($fields)->keys()->filter(function (string $key) use ($values) {
+            $value = $values[$key] ?? null;
+
+            return is_array($value) ? array_filter($value, fn ($v) => $v !== null && $v !== '') !== [] : ($value !== null && $value !== '' && $value !== false);
+        })->count();
+
+        return [
+            'fields' => collect($fields)->map(fn ($field, $key) => [
+                'key' => $key,
+                'label' => $field['label'] ?? str($key)->headline()->toString(),
+                'section' => $field['section'] ?? null,
+            ])->values()->all(),
+            'filled' => $filled,
+            'total' => count($fields),
+        ];
     }
 
     /**
@@ -49,6 +77,8 @@ class SettingsPresenter
             'readonly' => $field['readonly'] ?? false,
             'usage' => $field['usage'] ?? null,
             'options' => $this->options($field),
+            // A select whose default is empty can be switched off.
+            'clearable' => $field['type'] === 'select' && ($field['default'] ?? null) === null ? true : null,
         ], fn ($value) => $value !== null))->values();
 
         return [
