@@ -1,0 +1,1 @@
+var e=`/build/assets/brand-icon-DMYedXjD.webp`;export{e as t};
