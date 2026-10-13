@@ -59,7 +59,7 @@
                                     @click="toggle()"
                                     :aria-expanded="open.toString()"
                                     @class([
-                                        'group flex items-center gap-1 rounded-full px-3.5 py-2 text-[15px] font-medium transition-colors',
+                                        'group flex items-center gap-1 rounded-full px-2.5 py-2 xl:px-3.5 text-[15px] font-medium transition-colors',
                                         'text-brand' => $active,
                                     ])
                                     :class="!scrolled && {{ $overlay ? 'true' : 'false' }} ? 'text-white hover:text-gold' : '{{ $active ? 'text-brand' : 'text-ink-2 hover:text-brand' }}'"
@@ -109,7 +109,7 @@
                                     href="{{ $item['url'] ?? '#' }}"
                                     @if ($item['new_tab']) target="_blank" rel="noopener" @endif
                                     @if ($active) aria-current="page" @endif
-                                    class="relative block rounded-full px-3.5 py-2 text-[15px] font-medium transition-colors"
+                                    class="relative block rounded-full px-2.5 py-2 xl:px-3.5 text-[15px] font-medium transition-colors"
                                     :class="!scrolled && {{ $overlay ? 'true' : 'false' }} ? 'text-white hover:text-gold' : '{{ $active ? 'text-brand' : 'text-ink-2 hover:text-brand' }}'"
                                 >
                                     {{ $item['label'] }}
@@ -131,7 +131,8 @@
                     <a href="{{ $phones[0]['href'] }}" class="btn btn-gold btn-sm hidden sm:inline-flex">
                         <x-site.icon name="phone" />
                         <span class="hidden xl:inline">{{ $phones[0]['display'] }}</span>
-                        <span class="xl:hidden">{{ __('Call us') }}</span>
+                        {{-- Icon only beside the full menu on small laptops, where the text does not fit. --}}
+                        <span class="lg:max-xl:sr-only xl:hidden">{{ __('Call us') }}</span>
                     </a>
                 @endif
                 <button
