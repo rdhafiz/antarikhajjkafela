@@ -12,7 +12,7 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | hajj-premium.webp | Hajj Premium Package | Haidan | https://unsplash.com/photos/8Kg-2kK97Xc |
 | hajj-regular.webp | Hajj Regular Package | tasnim umar | https://unsplash.com/photos/blbwkwHPItE |
 | haram-wide.webp | Default page banner; Umrah fallback; admin Packages header (cropped copy in `resources/admin/assets/packages-header.webp`) | Jubair Hossain | https://unsplash.com/photos/WuIroq-Q1hY |
-| madinah-golden.webp | About | Sulthan Auliya | https://unsplash.com/photos/rzzS0_pMsD0 |
+| madinah-golden.webp | About; admin Inquiries header (cropped copy in `resources/admin/assets/inquiries-header.webp`) | Sulthan Auliya | https://unsplash.com/photos/rzzS0_pMsD0 |
 | makkah-hotels.webp | Services | Sikiru Salami | https://unsplash.com/photos/jZp68sRx2w4 |
 | madinah-umbrellas.webp | Contact; admin Bookings header (cropped copy in `resources/admin/assets/bookings-header.webp`) | Haidan | https://unsplash.com/photos/RhkbHU14MoA |
 | haram-courtyard.webp | Gallery | Sam Riz | https://unsplash.com/photos/ceNCWYqL8DY |

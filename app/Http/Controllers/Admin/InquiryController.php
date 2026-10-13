@@ -14,14 +14,12 @@ class InquiryController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->validate([
-            'status' => ['nullable', Rule::in(Inquiry::STATUSES)],
-            'source' => ['nullable', 'string', 'max:32'],
-            'search' => ['nullable', 'string', 'max:100'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-        ]);
+        $filters = $this->filters($request);
 
-        $inquiries = $this->query($filters)->with('page:id,title,type')->latest('id')->paginate($filters['per_page'] ?? 20);
+        $inquiries = $this->query($filters)
+            ->with('page:id,title,type')
+            ->when(($filters['sort'] ?? null) === 'oldest', fn ($q) => $q->oldest('id'), fn ($q) => $q->latest('id'))
+            ->paginate($filters['per_page'] ?? 20);
 
         return response()->json([
             'data' => collect($inquiries->items())->map(fn (Inquiry $inquiry) => $this->format($inquiry)),
@@ -36,6 +34,8 @@ class InquiryController extends Controller
             'counts' => [
                 'unread' => Inquiry::whereNull('read_at')->count(),
                 'new' => Inquiry::where('status', 'new')->count(),
+                'statuses' => Inquiry::query()->toBase()->selectRaw('status, count(*) as n')->groupBy('status')->pluck('n', 'status')->map(fn ($n) => (int) $n),
+                'sources' => Inquiry::query()->toBase()->selectRaw('source, count(*) as n')->groupBy('source')->pluck('n', 'source')->map(fn ($n) => (int) $n),
             ],
         ]);
     }
@@ -73,7 +73,7 @@ class InquiryController extends Controller
      */
     public function export(Request $request): StreamedResponse
     {
-        $filters = $request->only(['status', 'source', 'search']);
+        $filters = $this->filters($request);
 
         return response()->streamDownload(function () use ($filters) {
             $out = fopen('php://output', 'w');
@@ -103,15 +103,40 @@ class InquiryController extends Controller
     /**
      * @param  array<string, mixed>  $filters
      */
+    /**
+     * Filters shared by the list and the CSV export.
+     *
+     * @return array<string, mixed>
+     */
+    private function filters(Request $request): array
+    {
+        return $request->validate([
+            'status' => ['nullable', Rule::in(Inquiry::STATUSES)],
+            'source' => ['nullable', 'string', 'max:32'],
+            'read' => ['nullable', Rule::in(['unread', 'read'])],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest'])],
+            'search' => ['nullable', 'string', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+    }
+
     private function query(array $filters)
     {
         return Inquiry::query()
             ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
             ->when($filters['source'] ?? null, fn ($q, $source) => $q->where('source', $source))
-            ->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q
-                ->where('name', 'like', "%{$search}%")
-                ->orWhere('phone', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%")));
+            ->when($filters['read'] ?? null, fn ($q, $read) => $read === 'unread' ? $q->whereNull('read_at') : $q->whereNotNull('read_at'))
+            ->when($filters['from'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '>=', $date))
+            ->when($filters['to'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '<=', $date))
+            ->when($filters['search'] ?? null, function ($q, $search) {
+                // "!" escapes % and _ so they are matched literally (the same in MySQL and SQLite).
+                $like = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search).'%';
+                $q->where(fn ($q) => $q->whereRaw("name like ? escape '!'", [$like])
+                    ->orWhereRaw("phone like ? escape '!'", [$like])
+                    ->orWhereRaw("email like ? escape '!'", [$like]));
+            });
     }
 
     /**

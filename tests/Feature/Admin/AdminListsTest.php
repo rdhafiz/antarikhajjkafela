@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\Booking;
 use App\Models\GalleryAlbum;
+use App\Models\Inquiry;
 use App\Models\Package;
 use App\Models\PackagePrice;
 use Database\Seeders\PageSeeder;
@@ -132,6 +133,32 @@ class AdminListsTest extends AdminTestCase
         $this->assertArrayHasKey('package_photo', $admin->getJson('/api/admin/bookings')->json('data.0'));
 
         $admin->getJson('/api/admin/bookings?from=2026-05-02&to=2026-05-01')->assertUnprocessable();
+    }
+
+    public function test_inquiries_filter_by_read_state_and_dates_with_counts(): void
+    {
+        $old = Inquiry::create(['source' => 'contact_form', 'name' => 'Old 100% sure', 'phone' => '01711000001', 'data' => ['message' => 'Hi'], 'status' => 'closed', 'read_at' => now()]);
+        $old->forceFill(['created_at' => now()->subDays(10)])->save();
+        $new = Inquiry::create(['source' => 'lead_form', 'name' => 'New lead', 'phone' => '01711000002', 'data' => ['city' => 'Dhaka'], 'status' => 'new']);
+
+        $admin = $this->asAdmin($this->superAdmin());
+        $ids = fn (string $query) => collect($admin->getJson('/api/admin/inquiries?'.$query)->assertOk()->json('data'))->pluck('id')->all();
+
+        $this->assertSame([$new->id], $ids('read=unread'));
+        $this->assertSame([$old->id], $ids('read=read'));
+        $this->assertSame([$new->id], $ids('from='.now()->subDay()->toDateString()));
+        $this->assertSame([$old->id], $ids('to='.now()->subDays(5)->toDateString()));
+        $this->assertSame([$old->id, $new->id], $ids('sort=oldest'));
+        // "%" is matched literally, not as a wildcard.
+        $this->assertSame([$old->id], $ids('search=100%25'));
+
+        $admin->getJson('/api/admin/inquiries')
+            ->assertJsonPath('counts.unread', 1)
+            ->assertJsonPath('counts.statuses.closed', 1)
+            ->assertJsonPath('counts.sources.lead_form', 1);
+
+        $admin->getJson('/api/admin/inquiries?read=maybe')->assertUnprocessable();
+        $admin->get('/api/admin/inquiries/export?read=unread')->assertOk();
     }
 
     public function test_page_post_and_gallery_lists_send_full_pagination_meta(): void
