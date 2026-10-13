@@ -231,7 +231,7 @@
 
                 {{-- Dock --}}
                 <div class="mm-fade shrink-0 border-t border-white/10 bg-brand-950/60 backdrop-blur-md" style="--d: 560ms">
-                    <div class="container-site space-y-4 py-5" style="padding-bottom: max(1.25rem, env(safe-area-inset-bottom))">
+                    <div class="container-site py-5" style="padding-bottom: max(1.25rem, env(safe-area-inset-bottom))">
                         <div class="grid grid-cols-2 gap-3">
                             @if ($phones)
                                 <a href="{{ $phones[0]['href'] }}" class="btn btn-gold"><x-site.icon name="phone" /> {{ __('Call') }}</a>
@@ -240,21 +240,6 @@
                                 <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="btn btn-whatsapp"><x-site.icon name="whatsapp" /> WhatsApp</a>
                             @endif
                         </div>
-                        <div class="flex items-center justify-between gap-4">
-                            @if (count($languages) > 1)
-                                <x-site.language-switcher :languages="$languages" tone="dark" />
-                            @endif
-                            <div class="flex items-center gap-1">
-                                @foreach ($site->socials() as $social)
-                                    <a href="{{ $social['url'] }}" target="_blank" rel="noopener" class="flex size-10 items-center justify-center rounded-full text-white/70 ring-1 ring-white/15 transition-colors hover:text-gold" aria-label="{{ $social['label'] }}">
-                                        <x-site.icon :name="$social['key']" class="size-4" />
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
-                        @if ($address = $site->address())
-                            <p class="flex gap-2 text-[13px] leading-relaxed text-white/55"><x-site.icon name="map-pin" class="mt-0.5 size-4 shrink-0 text-gold/80" /> {{ $address }}</p>
-                        @endif
                     </div>
                 </div>
             </div>
