@@ -107,7 +107,11 @@
                                         <input type="radio" name="option" value="{{ $option['id'] }}" x-model.number="option" class="sr-only">
                                         <span class="text-[12px] font-semibold tracking-[0.12em] text-gold-deep uppercase">{{ $option['type'] }}</span>
                                         <span class="mt-1.5 pe-8 font-semibold text-ink">{{ $option['title'] }}</span>
-                                        <span class="mt-3 font-display text-[1.375rem] leading-none font-semibold text-brand">{{ Money::html($option['price']) }} <span class="font-sans text-[13px] font-normal text-ink-3">{{ $option['unit_label'] }}</span></span>
+                                        @if ($showPrice)
+                                            <span class="mt-3 font-display text-[1.375rem] leading-none font-semibold text-brand">{{ Money::html($option['price']) }} <span class="font-sans text-[13px] font-normal text-ink-3">{{ $option['unit_label'] }}</span></span>
+                                        @else
+                                            <x-site.price-request class="mt-3 text-[14px] font-semibold text-brand" />
+                                        @endif
                                         <span class="book-choice-check absolute top-4 end-4 flex size-6 items-center justify-center rounded-full" aria-hidden="true"><x-site.icon name="check" class="size-3.5" /></span>
                                     </label>
                                 @endforeach
@@ -251,10 +255,19 @@
                             <p class="mt-1 text-[14px] text-white/75" x-text="selected.type + ' · ' + selected.title"></p>
                         </div>
                         <dl class="space-y-3 border-t border-white/10 p-6 text-[15px]">
+                            @if ($showPrice)
                             <div class="flex justify-between gap-4"><dt class="text-white/65">{{ __('Price') }}</dt><dd class="text-end" x-text="money(selected.price) + ' ' + selected.unit_label"></dd></div>
+                            @endif
                             <div class="flex justify-between gap-4"><dt class="text-white/65" x-text="selected.unit === 'room' ? @js(__('Rooms')) : @js(__('Travelers'))"></dt><dd x-text="digits(selected.unit === 'room' ? rooms : (selected.unit === 'group' ? 1 : travelers))"></dd></div>
+                            @if ($showPrice)
                             <div class="flex items-baseline justify-between gap-4 border-t border-white/10 pt-4"><dt class="font-semibold">{{ __('Total') }}</dt><dd class="text-[1.625rem] leading-none font-bold text-gold tabular-nums" x-text="money(total)"></dd></div>
                             <div x-show="advanceAmount > 0" class="flex justify-between gap-4 text-[14px]"><dt class="text-white/65">{{ __('Advance to confirm') }}</dt><dd x-text="money(advanceAmount)"></dd></div>
+                            @else
+                            <div class="flex gap-3 border-t border-white/10 pt-4 text-[14px] text-white/80">
+                                <x-site.icon name="headset" class="mt-0.5 size-5 shrink-0 text-gold" />
+                                <p>{{ __('Our team will call you to confirm the price and how to pay.') }}</p>
+                            </div>
+                            @endif
                         </dl>
                         <div class="p-6 pt-0">
                             <button type="submit" class="btn btn-gold btn-lg w-full" :disabled="busy">

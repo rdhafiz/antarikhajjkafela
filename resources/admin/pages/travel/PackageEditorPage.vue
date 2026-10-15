@@ -57,7 +57,7 @@ const canEdit = computed(() => auth.can('packages.update'));
 const dirty = computed(() => saved.value !== '' && JSON.stringify(data.value) !== saved.value);
 
 const tabs = [
-    { key: 'details', label: 'Details', match: /^(service_id|name|summary|banner_id|booking_|duration|status|is_featured|advance_)/ },
+    { key: 'details', label: 'Details', match: /^(service_id|name|summary|banner_id|booking_|duration|status|is_featured|show_price|advance_)/ },
     { key: 'prices', label: 'Types, prices & hotels', match: /^types/ },
     { key: 'flights', label: 'Flights', match: /^flights/ },
     { key: 'sections', label: 'Page sections', match: /^sections/ },
@@ -220,6 +220,13 @@ const bookingTone = { open: 'success', upcoming: 'warning', closed: 'danger' } a
                     </FormField>
                     <div class="rounded-lg border border-line p-3.5">
                         <AppSwitch v-model="(data.is_featured as boolean)" label="Featured" description="Shown first and in 'featured packages' sections." />
+                    </div>
+                    <div class="rounded-lg border border-line p-3.5">
+                        <AppSwitch
+                            v-model="(data.show_price as boolean)"
+                            label="Show price on website"
+                            description="Off: visitors see &quot;Price on request&quot;, bookings show no amounts and online payment is off. You still see every price here."
+                        />
                     </div>
                     <MediaField v-model="(data.banner_id as number | null)" label="Banner image" usage="banner" aspect="16 / 6" hint="Top of the package page and on package cards." />
                 </div>

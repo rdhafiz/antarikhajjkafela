@@ -18,14 +18,16 @@
         :intro="$p['summary']"
         :image="$p['banner']"
         :stats="[
-            ['value' => $p['from'] ? Money::html($p['from']) : null, 'label' => __('Starting from')],
+            $p['showPrice']
+                ? ['value' => $p['from'] ? Money::html($p['from']) : null, 'label' => __('Starting from')]
+                : ['value' => __('Price on request'), 'label' => __('Price'), 'small' => true],
             ['value' => $p['duration'] ? trans_choice(':count day|:count days', $p['duration'], ['count' => Money::digits($p['duration'])]) : null, 'label' => __('Duration')],
             ['value' => new Illuminate\Support\HtmlString('<span class=\'size-2.5 shrink-0 rounded-full '.($bookable ? 'bg-emerald' : ($booking['state'] === 'upcoming' ? 'bg-gold' : 'bg-red-400')).'\'></span>'.e($booking['label'])), 'label' => __('Booking'), 'small' => true],
             ['value' => $airlines ?: null, 'label' => __('Airline'), 'small' => true],
         ]"
     >
         <div class="flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
-            <x-site.button href="#prices" variant="gold" size="lg" icon-right="arrow-right">{{ __('See prices & hotels') }}</x-site.button>
+            <x-site.button href="#prices" variant="gold" size="lg" icon-right="arrow-right">{{ $p['showPrice'] ? __('See prices & hotels') : __('See options & hotels') }}</x-site.button>
             @if ($whatsapp = $enquire())
                 <x-site.button :href="$whatsapp" variant="whatsapp" size="lg" icon="whatsapp" external>{{ __('Ask on WhatsApp') }}</x-site.button>
             @endif
@@ -55,7 +57,9 @@
                     @endforeach
                 </nav>
                 <div class="hidden shrink-0 items-center gap-4 sm:flex">
-                    @if ($p['from'])
+                    @if (! $p['showPrice'])
+                        <x-site.price-request link class="text-[14px] font-semibold text-brand" />
+                    @elseif ($p['from'])
                         <p class="text-end leading-tight">
                             <span class="block text-[11px] font-semibold tracking-[0.12em] text-ink-3 uppercase">{{ __('Starting from') }}</span>
                             <span class="font-display text-[1.25rem] font-semibold text-brand">{{ Money::html($p['from']) }}</span>
@@ -75,7 +79,7 @@
             <div class="pattern-star-ink pointer-events-none absolute -inset-y-[20%] inset-x-0 -z-10 opacity-[0.025]" data-parallax="0.15" aria-hidden="true"></div>
             <div class="container-site">
                 <div class="mx-auto mb-12 max-w-2xl text-center" data-reveal>
-                    <p class="eyebrow justify-center">{{ __('Prices & hotels') }}</p>
+                    <p class="eyebrow justify-center">{{ $p['showPrice'] ? __('Prices & hotels') : __('Options & hotels') }}</p>
                     <h2 class="mt-4 text-display-lg text-brand">{{ __('Choose the option that suits you') }}</h2>
                 </div>
 
@@ -135,10 +139,14 @@
                                                 <h3 class="mt-1.5 font-display text-display-sm text-brand">{{ $price['title'] }}</h3>
                                                 @if ($price['description'])<p class="mt-2 text-[15px] text-ink-2">{{ $price['description'] }}</p>@endif
                                             </div>
-                                            <p class="text-end">
-                                                <span class="block font-display text-[2.25rem] leading-none font-semibold text-brand">{{ Money::html($price['price']) }}</span>
-                                                <span class="mt-1 block text-[13px] text-ink-3">{{ PackagePresenter::unitLabel($price['unit']) }}</span>
-                                            </p>
+                                            @if ($price['price'] !== null)
+                                                <p class="text-end">
+                                                    <span class="block font-display text-[2.25rem] leading-none font-semibold text-brand">{{ Money::html($price['price']) }}</span>
+                                                    <span class="mt-1 block text-[13px] text-ink-3">{{ PackagePresenter::unitLabel($price['unit']) }}</span>
+                                                </p>
+                                            @else
+                                                <x-site.price-request link class="font-display text-[1.375rem] leading-tight font-semibold text-brand" />
+                                            @endif
                                         </header>
 
                                         @if ($price['hotels'])

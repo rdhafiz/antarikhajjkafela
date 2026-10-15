@@ -4,7 +4,7 @@
 @section('body')
     <p style="margin:0 0 18px;font-size:16px;">A new booking was placed on the website.</p>
 
-    @include('emails.partials.booking-summary', ['locale' => 'en'])
+    @include('emails.partials.booking-summary', ['locale' => 'en', 'amounts' => true])
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;margin-top:18px;">
         @foreach (array_filter(['Name' => $booking->customer_name, 'Phone' => $booking->customer_phone, 'Email' => $booking->customer_email, 'Address' => $booking->customer_address, 'Message' => $booking->customer_note, 'Documents' => $booking->documents()->count() ?: null]) as $label => $value)

@@ -19,7 +19,8 @@ class PackagePresenter
     public function __construct(private readonly ContentProcessor $content) {}
 
     /**
-     * Everything the detail page shows.
+     * Everything the detail page shows. When the package hides its price,
+     * every amount is null and 'showPrice' is false.
      *
      * @return array<string, mixed>
      */
@@ -32,6 +33,7 @@ class PackagePresenter
         $hotelFields = collect($hotelFields)->firstWhere('key', 'hotels')->children();
 
         $media = $this->media($package);
+        $show = $package->show_price;
 
         return [
             'name' => $package->getTranslation('name', $locale),
@@ -39,7 +41,8 @@ class PackagePresenter
             'service' => $package->service,
             'banner' => $package->banner,
             'duration' => $package->duration_days,
-            'from' => $package->min_price,
+            'from' => $show ? $package->min_price : null,
+            'showPrice' => $show,
             'booking' => $this->booking($package),
             'flights' => $this->content->localize(PackageSchema::flights(), ['flights' => $package->flights], $locale, $media)['flights'],
             'types' => $package->types->map(fn ($type) => [
@@ -51,7 +54,7 @@ class PackagePresenter
                     'id' => $price->id,
                     'title' => $price->getTranslation('title', $locale),
                     'description' => $price->getTranslation('short_description', $locale),
-                    'price' => (float) $price->price,
+                    'price' => $show ? (float) $price->price : null,
                     'unit' => $price->unit,
                     'hotels' => array_map(fn ($hotel) => $this->content->localize($hotelFields, $hotel, $locale, $media), $price->hotels ?? []),
                 ])->all(),
@@ -109,12 +112,16 @@ class PackagePresenter
                     array_slice($price->hotels ?? [], 0, 2),
                 ),
             ];
-        })->filter()->sortByDesc('price')->values()->all();
+        })->filter()->sortByDesc('price')->values()
+            // Ordered by price either way; hidden prices are left out.
+            ->map(fn ($tier) => $package->show_price ? $tier : [...$tier, 'price' => null])
+            ->all();
 
         $flight = $this->content->localize($flightFields, ['flights' => array_slice($package->flights ?? [], 0, 1)], $locale, collect())['flights'][0] ?? null;
 
         return [
             'tiers' => $tiers,
+            'showPrice' => $package->show_price,
             'flight' => $flight,
             'state' => $package->bookingState(),
         ];
@@ -136,7 +143,7 @@ class PackagePresenter
      */
     public function schema(Package $package): array
     {
-        $prices = $package->prices()->pluck('price');
+        $prices = $package->show_price ? $package->prices()->pluck('price') : collect();
 
         return array_filter([
             '@type' => 'Product',

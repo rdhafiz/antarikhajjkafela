@@ -11,6 +11,7 @@ import {
     CalendarX,
     ChevronRight,
     CircleCheck,
+    EyeOff,
     Copy,
     ExternalLink,
     FileText,
@@ -32,6 +33,7 @@ export interface PackageRow {
     url: string;
     status: 'draft' | 'published';
     is_featured: boolean;
+    show_price: boolean;
     booking_state: 'open' | 'upcoming' | 'closed';
     duration_days: number | null;
     min_price: number | null;
@@ -121,6 +123,7 @@ const meta = computed(() =>
                 <span class="min-w-0">
                     <span class="pk-label">From</span>
                     <span class="block text-[19px] leading-tight font-bold whitespace-nowrap text-ink tabular-nums">{{ row.min_price !== null ? `৳${money.format(row.min_price)}` : '—' }}</span>
+                    <span v-if="!row.show_price" class="mt-0.5 flex items-center gap-1 text-[12px] font-semibold whitespace-nowrap text-amber-700"><EyeOff class="size-3.5" aria-hidden="true" />Hidden on website</span>
                 </span>
             </div>
         </div>

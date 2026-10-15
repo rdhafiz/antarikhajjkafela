@@ -14,7 +14,7 @@ use Spatie\Translatable\HasTranslations;
 
 #[Fillable([
     'service_id', 'name', 'slug', 'summary', 'banner_id', 'booking_starts_on', 'booking_ends_on',
-    'duration_days', 'status', 'is_featured', 'sort', 'advance_type', 'advance_value', 'min_price',
+    'duration_days', 'status', 'is_featured', 'show_price', 'sort', 'advance_type', 'advance_value', 'min_price',
     'flights', 'sections', 'seo', 'updated_by',
 ])]
 class Package extends Model
@@ -39,6 +39,7 @@ class Package extends Model
             'booking_ends_on' => 'date',
             'duration_days' => 'integer',
             'is_featured' => 'boolean',
+            'show_price' => 'boolean',
             'advance_value' => 'decimal:2',
             'min_price' => 'decimal:2',
             'flights' => 'array',
@@ -116,6 +117,6 @@ class Package extends Model
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logOnly(['name', 'slug', 'status', 'min_price', 'booking_starts_on', 'booking_ends_on'])->logOnlyDirty()->dontLogEmptyChanges();
+        return LogOptions::defaults()->logOnly(['name', 'slug', 'status', 'show_price', 'min_price', 'booking_starts_on', 'booking_ends_on'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

@@ -11,12 +11,14 @@ use App\Models\Booking;
 use App\Models\Package;
 use App\Models\PackagePrice;
 use App\Models\Payment;
+use App\Support\Money;
 use Database\Seeders\PageSeeder;
 use Database\Seeders\TravelSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Tests\Feature\Admin\AdminTestCase;
 
 class BookingTest extends AdminTestCase
@@ -119,6 +121,45 @@ class BookingTest extends AdminTestCase
 
         $this->get($booking->publicUrl())->assertOk()->assertSeeText($booking->reference)->assertSeeText('Your booking has been received.');
         $this->get("/bookings/{$booking->reference}")->assertForbidden();
+    }
+
+    public function test_packages_can_hide_their_price(): void
+    {
+        $this->enableSslCommerz();
+        $package = $this->package();
+        $amount = Money::html($package->min_price)->toHtml();
+
+        // Admins switch the price off; the list and the editor report it.
+        $admin = $this->asAdmin($this->superAdmin());
+        $data = $admin->getJson("/api/admin/packages/{$package->id}")->assertOk()->assertJsonPath('data.show_price', true)->json('data');
+        $admin->putJson("/api/admin/packages/{$package->id}", [...$data, 'show_price' => false, 'advance_type' => 'fixed', 'advance_value' => 20000])->assertOk();
+        $admin->getJson('/api/admin/packages')->assertOk()->assertJsonPath('data.0.show_price', false);
+        $package->refresh();
+        $this->assertFalse($package->show_price);
+
+        // The website shows "Price on request" and no amounts, also in the search data.
+        $page = $this->get($package->url())->assertOk()->assertSeeText('Price on request')->assertSeeText('See options & hotels')->getContent();
+        $this->assertStringNotContainsString($amount, $page);
+        $this->assertStringNotContainsString('AggregateOffer', $page);
+        $this->get('/umrah')->assertOk()->assertSeeText('Price on request');
+
+        // Booking: no prices on the form, no online payment, even when asked for.
+        $form = $this->get('/packages/umrah-package/book')->assertOk()->assertSeeText('Our team will call you to confirm the price and how to pay.')->getContent();
+        $this->assertStringNotContainsString($amount, $form);
+        $this->assertStringNotContainsString('Pay the advance now', $form);
+        $this->post('/packages/umrah-package/book', $this->form(['payment' => 'now']))->assertInvalid('payment');
+
+        $this->post('/packages/umrah-package/book', $this->form())->assertRedirect();
+        $booking = Booking::firstOrFail();
+        $this->assertTrue($booking->hidesPrice());
+        $this->assertGreaterThan(0, (float) $booking->total, 'The office still gets the amounts.');
+
+        $status = $this->get($booking->publicUrl())->assertOk()->assertSeeText('Price on request')->assertDontSeeText('Balance')->getContent();
+        $this->assertStringNotContainsString('Pay advance', $status);
+        $this->post(URL::signedRoute('bookings.pay', ['booking' => $booking->reference]))->assertStatus(409);
+
+        Mail::assertSent(BookingReceived::class, fn ($mail) => ! str_contains($mail->render(), 'Balance'));
+        Mail::assertSent(BookingPlaced::class, fn ($mail) => str_contains($mail->render(), 'Balance'));
     }
 
     public function test_booking_validation_and_closed_packages(): void

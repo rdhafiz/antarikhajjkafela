@@ -27,6 +27,7 @@ class OnlinePayments
     public function canPay(Booking $booking): bool
     {
         return ! $booking->isClosed()
+            && ! $booking->hidesPrice()
             && $booking->advanceDue() >= self::MINIMUM
             && $this->gateways->active() !== null;
     }

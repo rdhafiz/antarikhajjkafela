@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { ArrowDownUp, CalendarCheck, CalendarClock, Copy, ExternalLink, LayoutGrid, Layers, List, Package as PackageIcon, Pencil, Plus, Star, Trash2, Wallet } from 'lucide-vue-next';
+import { ArrowDownUp, CalendarCheck, CalendarClock, Copy, ExternalLink, EyeOff, LayoutGrid, Layers, List, Package as PackageIcon, Pencil, Plus, Star, Trash2, Wallet } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
 import AppDrawer from '@admin/components/ui/AppDrawer.vue';
@@ -34,6 +34,7 @@ interface PackageRow {
     service: Translations | null;
     status: 'draft' | 'published';
     is_featured: boolean;
+    show_price: boolean;
     booking_state: 'open' | 'upcoming' | 'closed';
     booking_ends_on: string | null;
     duration_days: number | null;
@@ -284,6 +285,7 @@ onMounted(async () => {
                     <AppBadge :tone="current.status === 'published' ? 'success' : 'neutral'">{{ current.status === 'published' ? 'Published' : 'Draft' }}</AppBadge>
                     <AppBadge :tone="bookingTone[current.booking_state]">{{ bookingLabel[current.booking_state] }}</AppBadge>
                     <AppBadge v-if="current.is_featured" tone="gold"><Star class="size-3 fill-current" />Featured</AppBadge>
+                    <AppBadge v-if="!current.show_price" tone="warning"><EyeOff class="size-3" />Price hidden on website</AppBadge>
                 </div>
 
                 <dl class="dl mt-5 rounded-2xl bg-canvas p-4">

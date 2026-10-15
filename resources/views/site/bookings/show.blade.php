@@ -79,7 +79,7 @@
 
                         <dl class="mt-6 grid grid-cols-2 gap-4 text-[15px]">
                             <div><dt class="text-[13px] text-ink-3">{{ __('Travelers') }}</dt><dd class="font-semibold text-ink">{{ Money::digits($booking->travelers) }}</dd></div>
-                            <div><dt class="text-[13px] text-ink-3">{{ __('Price') }}</dt><dd class="font-semibold text-ink">{{ Money::html($booking->unit_price) }} <span class="text-[13px] font-normal text-ink-3">{{ PackagePresenter::unitLabel($booking->snapshot['unit'] ?? 'person') }}</span></dd></div>
+                            <div><dt class="text-[13px] text-ink-3">{{ __('Price') }}</dt><dd class="font-semibold text-ink">@if ($booking->hidesPrice())<x-site.price-request link class="text-brand" />@else{{ Money::html($booking->unit_price) }} <span class="text-[13px] font-normal text-ink-3">{{ PackagePresenter::unitLabel($booking->snapshot['unit'] ?? 'person') }}</span>@endif</dd></div>
                             <div><dt class="text-[13px] text-ink-3">{{ __('Name') }}</dt><dd class="font-semibold text-ink">{{ $booking->customer_name }}</dd></div>
                             <div><dt class="text-[13px] text-ink-3">{{ __('Mobile number') }}</dt><dd class="font-semibold text-ink">{{ $booking->customer_phone }}</dd></div>
                         </dl>
@@ -87,6 +87,18 @@
 
                     {{-- Amounts --}}
                     <div class="rounded-2xl bg-sand-50 p-6 ring-1 ring-line">
+                        @if ($booking->hidesPrice())
+                            {{-- The package hides its price: the team confirms it by phone. --}}
+                            <p class="flex gap-3 text-[15px] text-ink-2">
+                                <x-site.icon name="headset" class="mt-0.5 size-5 shrink-0 text-gold-deep" />
+                                <span>{{ __('Our team will call you to confirm the price and how to pay.') }}</span>
+                            </p>
+                            @if ((float) $booking->paid_amount > 0)
+                                <dl class="mt-4 border-t border-line pt-4 text-[15px]">
+                                    <div class="flex justify-between gap-4"><dt class="text-ink-2">{{ __('Paid') }}</dt><dd class="font-semibold text-emerald">{{ Money::html($booking->paid_amount) }}</dd></div>
+                                </dl>
+                            @endif
+                        @else
                         <dl class="space-y-3 text-[15px]">
                             <div class="flex justify-between gap-4"><dt class="text-ink-2">{{ __('Total') }}</dt><dd class="font-semibold text-ink">{{ Money::html($booking->total) }}</dd></div>
                             @if ((float) $booking->advance_amount > 0)
@@ -95,6 +107,7 @@
                             <div class="flex justify-between gap-4"><dt class="text-ink-2">{{ __('Paid') }}</dt><dd class="font-semibold text-emerald">{{ Money::html($booking->paid_amount) }}</dd></div>
                             <div class="flex justify-between gap-4 border-t border-line pt-3 text-lg"><dt class="font-semibold text-ink">{{ __('Balance') }}</dt><dd class="font-display font-semibold text-brand">{{ Money::html($booking->balance()) }}</dd></div>
                         </dl>
+                        @endif
 
                         @if ($canPay)
                             <form method="POST" action="{{ URL::signedRoute('bookings.pay', ['booking' => $booking->reference]) }}" class="mt-6" x-data="{ busy: false }" @submit="busy = true">

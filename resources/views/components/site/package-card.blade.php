@@ -46,7 +46,10 @@
 
         <div class="mt-auto flex items-end justify-between gap-4 pt-6">
             <div>
-                @if ($package->min_price)
+                @if (! $package->show_price)
+                    <p class="text-[12px] font-semibold tracking-wide text-ink-3 uppercase">{{ __('Price') }}</p>
+                    <x-site.price-request class="block font-display text-[1.25rem] leading-tight font-semibold text-brand" />
+                @elseif ($package->min_price)
                     <p class="text-[12px] font-semibold tracking-wide text-ink-3 uppercase">{{ __('Starting from') }}</p>
                     <p class="font-display text-[1.6rem] leading-tight font-semibold text-brand">{{ App\Support\Money::html($package->min_price) }}</p>
                 @endif

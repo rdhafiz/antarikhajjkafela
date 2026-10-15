@@ -64,6 +64,14 @@ class Booking extends Model
         return $this->hasMany(BookingDocument::class);
     }
 
+    /**
+     * Whether the package hid its price when this booking was made.
+     */
+    public function hidesPrice(): bool
+    {
+        return (bool) ($this->snapshot['price_hidden'] ?? false);
+    }
+
     public function balance(): float
     {
         return max(0, (float) $this->total - (float) $this->paid_amount);

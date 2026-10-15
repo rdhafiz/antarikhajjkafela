@@ -53,7 +53,12 @@
             <h3 class="max-w-xl font-display text-display-md text-white">
                 <a href="{{ $package->url() }}" class="pkg-feature-title">{{ $name }}</a>
             </h3>
-            @if ($package->min_price)
+            @if (! $package->show_price)
+                <div class="shrink-0 sm:text-end">
+                    <p class="text-[12px] font-semibold tracking-[0.14em] text-white/70 uppercase">{{ __('Price') }}</p>
+                    <x-site.price-request link class="relative z-10 mt-1 font-display text-[1.5rem] leading-none font-semibold text-gold sm:text-[1.75rem]" />
+                </div>
+            @elseif ($package->min_price)
                 <div class="shrink-0 sm:text-end">
                     <p class="text-[12px] font-semibold tracking-[0.14em] text-white/70 uppercase">{{ __('Starting from') }}</p>
                     <p class="mt-1 font-display text-[2rem] leading-none font-semibold text-gold sm:text-[2.5rem]">{{ Money::html($package->min_price) }}</p>
@@ -93,8 +98,12 @@
                                     <span class="min-w-0 pt-0.5 font-semibold text-brand">{{ $tier['name'] }}</span>
                                     <span class="flex shrink-0 items-center gap-2.5 text-end">
                                         <span>
-                                            <span class="block font-display text-[1.25rem] leading-tight font-semibold text-brand">{{ Money::html($tier['price']) }}</span>
-                                            <span class="block text-[12px] text-ink-3">{{ $tier['unit'] }}</span>
+                                            @if ($tier['price'] !== null)
+                                                <span class="block font-display text-[1.25rem] leading-tight font-semibold text-brand">{{ Money::html($tier['price']) }}</span>
+                                                <span class="block text-[12px] text-ink-3">{{ $tier['unit'] }}</span>
+                                            @else
+                                                <x-site.price-request class="block text-[13px] font-semibold text-brand" />
+                                            @endif
                                         </span>
                                         <x-site.icon name="arrow-right" class="pkg-tier-arrow size-4 shrink-0 text-gold-deep rtl:rotate-180" />
                                     </span>

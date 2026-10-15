@@ -72,7 +72,7 @@ class PackageController extends Controller
             'about' => $this->splitDescription($service->getTranslation('description', $locale)),
             'stats' => [
                 'count' => $packages->count(),
-                'from' => $packages->pluck('min_price')->filter(fn ($price) => $price > 0)->min(),
+                'from' => $this->shownPrices($packages)->min(),
                 'days' => $durations->isEmpty() ? null : [$durations->min(), $durations->max()],
             ],
         ]);
@@ -165,7 +165,7 @@ class PackageController extends Controller
     private function serviceSchema(Service $service, Collection $packages): array
     {
         $locale = app()->getLocale();
-        $prices = $packages->pluck('min_price')->filter(fn ($price) => $price > 0);
+        $prices = $this->shownPrices($packages);
 
         return array_filter([
             '@type' => 'Service',
@@ -221,6 +221,17 @@ class PackageController extends Controller
     /**
      * @return Collection<int, Package>
      */
+    /**
+     * Starting prices of the packages that show their price.
+     *
+     * @param  Collection<int, Package>  $packages
+     * @return Collection<int, mixed>
+     */
+    private function shownPrices(Collection $packages): Collection
+    {
+        return $packages->where('show_price', true)->pluck('min_price')->filter(fn ($price) => $price > 0);
+    }
+
     private function listing(?int $serviceId): Collection
     {
         return Package::published()

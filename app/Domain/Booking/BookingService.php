@@ -50,6 +50,8 @@ class BookingService
                         'option' => $price->getTranslations('title'),
                         'unit' => $price->unit,
                         'duration_days' => $package->duration_days,
+                        // The customer saw no prices: their pages and emails leave the amounts out.
+                        'price_hidden' => ! $package->show_price,
                     ],
                     ...$amounts,
                     'travelers' => $data['travelers'],

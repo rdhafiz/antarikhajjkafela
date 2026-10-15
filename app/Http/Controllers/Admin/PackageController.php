@@ -62,6 +62,7 @@ class PackageController extends Controller
             'service' => $p->service ? (object) $p->service->getTranslations('name') : null,
             'status' => $p->status,
             'is_featured' => $p->is_featured,
+            'show_price' => $p->show_price,
             'booking_state' => $p->bookingState(),
             'booking_ends_on' => $p->booking_ends_on?->toDateString(),
             'duration_days' => $p->duration_days,
@@ -138,6 +139,7 @@ class PackageController extends Controller
             'duration_days' => ['nullable', 'integer', 'min:1', 'max:365'],
             'status' => ['required', Rule::in([Package::STATUS_DRAFT, Package::STATUS_PUBLISHED])],
             'is_featured' => ['boolean'],
+            'show_price' => ['boolean'],
             'advance_type' => ['required', Rule::in(array_keys(Package::ADVANCE_TYPES))],
             'advance_value' => [
                 'nullable', 'required_unless:advance_type,none', 'numeric', 'min:1',

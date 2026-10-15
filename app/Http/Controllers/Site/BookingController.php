@@ -50,7 +50,7 @@ class BookingController extends Controller
             'id' => $price->id,
             'type' => $type->getTranslation('name', $locale),
             'title' => $price->getTranslation('title', $locale),
-            'price' => (float) $price->price,
+            'price' => $package->show_price ? (float) $price->price : null,
             'unit' => $price->unit,
             'unit_label' => PackagePresenter::unitLabel($price->unit),
         ]))->values();
@@ -64,7 +64,9 @@ class BookingController extends Controller
             'name' => $name,
             'options' => $options,
             'selected' => $selected,
-            'gateway' => app(GatewayManager::class)->active(),
+            'showPrice' => $package->show_price,
+            // Packages that hide their price are booked first and priced by phone.
+            'gateway' => $package->show_price ? app(GatewayManager::class)->active() : null,
         ]);
     }
 
@@ -88,7 +90,7 @@ class BookingController extends Controller
             'passport.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
             'nid' => ['nullable', 'array', 'max:10'],
             'nid.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
-            'payment' => ['required', Rule::in(['now', 'later'])],
+            'payment' => ['required', Rule::in($package->show_price ? ['now', 'later'] : ['later'])],
             'agree' => ['accepted'],
         ], [
             'email.required' => __('Enter your email to pay online; the receipt is sent there.'),
