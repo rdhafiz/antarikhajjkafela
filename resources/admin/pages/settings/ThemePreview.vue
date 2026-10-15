@@ -28,7 +28,7 @@ const c = computed(() => {
             </div>
             <p class="relative mt-5 text-[11px] font-semibold tracking-[0.14em] uppercase" :style="{ color: c.secondary }">Hajj 2027</p>
             <p class="relative mt-1 text-[19px] leading-tight font-bold">Journey of a lifetime</p>
-            <span class="relative mt-4 inline-flex rounded-lg px-3.5 py-2 text-[12px] font-bold" :style="{ backgroundColor: c.secondary, color: c.onSecondary }">Book now</span>
+            <span class="relative mt-4 inline-flex rounded-lg px-3.5 py-2 text-[12px] font-bold" :style="{ backgroundColor: c.secondary, color: c.onSecondary }">Free Booking Now</span>
         </div>
 
         <!-- Package card -->

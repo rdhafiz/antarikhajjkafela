@@ -108,7 +108,7 @@
                                         </span>
                                     </span>
                                 @endforeach
-                                <span class="sr-only">{{ $open ? __('Book now') : __('View details') }}</span>
+                                <span class="sr-only">{{ $open ? __('Free Booking Now') : __('View details') }}</span>
                             </a>
                         </li>
                     @endforeach
@@ -118,7 +118,7 @@
 
         <div class="flex flex-col gap-3 sm:flex-row lg:col-start-1 lg:row-start-2 lg:flex-col lg:self-end xl:flex-row" data-reveal style="--reveal-delay: 150ms">
             @if ($open)
-                <x-site.button :href="route('bookings.create', $package->slug)" variant="gold" icon-right="arrow-right">{{ __('Book now') }}</x-site.button>
+                <x-site.button :href="route('bookings.create', $package->slug)" variant="gold" icon-right="arrow-right">{{ __('Free Booking Now') }}</x-site.button>
             @endif
             <x-site.button :href="$package->url()" variant="outline">{{ __('View full details') }}</x-site.button>
         </div>

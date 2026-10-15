@@ -62,7 +62,7 @@
                         </p>
                     @endif
                     @if ($bookable)
-                        <x-site.button :href="route('bookings.create', $package->slug)" variant="gold" size="sm" icon-right="arrow-right">{{ __('Book now') }}</x-site.button>
+                        <x-site.button :href="route('bookings.create', $package->slug)" variant="gold" size="sm" icon-right="arrow-right">{{ __('Free Booking Now') }}</x-site.button>
                     @endif
                 </div>
             </div>
