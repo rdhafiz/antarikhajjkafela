@@ -83,7 +83,7 @@ class HeroImagesSeeder extends Seeder
         $banners = [
             'how-to-perform-umrah' => ['hajj-regular.webp', 'Pilgrims in the courtyard of Masjid al-Haram', 'মসজিদুল হারামের আঙিনায় হাজিগণ'],
             'important-information-for-hajj-pilgrims' => ['makkah-hotels.webp', 'Hotels around the Haram in Makkah', 'মক্কায় হারামের আশপাশের হোটেল'],
-            'umrah-2025-november-group' => ['madinah-golden.webp', 'The Prophet\'s Mosque in Madinah at sunset', 'সূর্যাস্তে মদিনার মসজিদে নববী'],
+            'hajj-2028-registration' => ['madinah-golden.webp', 'The Prophet\'s Mosque in Madinah at sunset', 'সূর্যাস্তে মদিনার মসজিদে নববী'],
         ];
 
         foreach ($banners as $slug => [$file, $en, $bn]) {

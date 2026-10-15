@@ -162,7 +162,7 @@ class SeoSeeder extends Seeder
             'what-is-umrah' => 'haram-wide.webp',
             'how-to-perform-umrah' => 'hajj-regular.webp',
             'important-information-for-hajj-pilgrims' => 'makkah-hotels.webp',
-            'umrah-2025-november-group' => 'madinah-golden.webp',
+            'hajj-2028-registration' => 'madinah-golden.webp',
         ];
 
         foreach ($photos as $slug => $photo) {

@@ -29,21 +29,46 @@ class BlogSeeder extends Seeder
 
     private function seedPosts(ContentBlocks $blocks): void
     {
-        $guides = PostCategory::create(['name' => $this->t('Guides', 'গাইড'), 'slug' => 'guides', 'sort' => 0]);
-        $news = PostCategory::create(['name' => $this->t('News & briefings', 'সংবাদ ও বিজ্ঞপ্তি'), 'slug' => 'news', 'sort' => 1]);
+        $categories = [
+            'guides' => PostCategory::create(['name' => $this->t('Guides', 'গাইড'), 'slug' => 'guides', 'sort' => 0])->id,
+            'news' => PostCategory::create(['name' => $this->t('News & briefings', 'সংবাদ ও বিজ্ঞপ্তি'), 'slug' => 'news', 'sort' => 1])->id,
+        ];
         $author = $this->t('Antarik Hajj Kafela', 'আন্তরিক হজ্জ কাফেলা');
 
-        $posts = [
+        foreach ($this->posts() as $data) {
+            Post::create([
+                ...collect($data)->except(['category', 'replaces'])->all(),
+                'category_id' => $categories[$data['category']],
+                'author_name' => $author,
+                'blocks' => $blocks->sanitize($data['blocks']),
+                'status' => Post::STATUS_PUBLISHED,
+                'published_at' => Carbon::parse($data['published_at']),
+                'is_featured' => $data['is_featured'] ?? false,
+                'seo' => ['title' => [], 'description' => [], 'image' => null, 'noindex' => false],
+            ]);
+        }
+    }
+
+    /**
+     * The articles and news, current as of October 2026 (after the Hajj 2027
+     * registration window closed). The refresh_blog_posts migration copies
+     * them onto existing sites; 'replaces' is an older slug the post took over.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function posts(): array
+    {
+        return [
             [
-                'category_id' => $guides->id,
+                'category' => 'guides',
                 'slug' => 'what-is-umrah',
-                'published_at' => '2025-08-10 10:00:00',
-                'title' => $this->t('What is Umrah?', 'উমরাহ কী?'),
+                'published_at' => '2026-10-01 10:00:00',
+                'title' => $this->t('What is Umrah? Planning yours in 2026–27', 'উমরাহ কী? ২০২৬–২৭ সালে আপনার উমরাহর পরিকল্পনা'),
                 'excerpt' => $this->t(
-                    'Umrah, "a visit" to the Holy Kaaba, can be performed at any time of the year. Here is what makes it different from Hajj.',
-                    'উমরাহ অর্থ পবিত্র কাবার "যিয়ারত"; বছরের যেকোনো সময় তা পালন করা যায়। হজ থেকে এর পার্থক্য জেনে নিন।'
+                    'Umrah, "a visit" to the Holy Kaaba, can be performed at any time of the year. What sets it apart from Hajj, and how to plan your Umrah this season.',
+                    'উমরাহ অর্থ পবিত্র কাবার "যিয়ারত"; বছরের যেকোনো সময় তা পালন করা যায়। হজ থেকে এর পার্থক্য এবং এ মৌসুমে কীভাবে উমরাহর পরিকল্পনা করবেন।'
                 ),
-                'tags' => ['Umrah', 'Beginners'],
+                'tags' => ['Umrah', 'Beginners', 'Planning'],
                 'blocks' => [
                     $this->text(
                         '<p>Every year many Muslims from Bangladesh and around the world travel to Saudi Arabia to perform Umrah and fulfil a deeply personal spiritual longing.</p><p>Umrah differs from Hajj. Hajj is the annual pilgrimage to Makkah that must be completed in the first days of the Islamic month of Dhul Hijjah. Umrah, which means "a visit" to the Holy Kaaba, can be performed at any time of the year.</p>',
@@ -54,20 +79,19 @@ class BlogSeeder extends Seeder
                         '<h2>হৃদয়ের সফর</h2><p>মুসলমানরা আল্লাহকে সকল শান্তির উৎস হিসেবে স্বীকার করে, তাঁর দিকে ফিরে আসতে এবং আত্মাকে পরিশুদ্ধ করতে উমরাহ পালন করেন। এটি ইবাদত, আত্মচিন্তা ও নবজীবনের সফর।</p>'
                     ),
                     $this->text(
-                        '<p>Our Umrah packages are arranged with care, transparency and reliability. Whether you are looking for an economy, standard or custom package, Antarik Hajj Kafela is here to make your pilgrimage smooth, comfortable and spiritually rewarding.</p>',
-                        '<p>আমাদের উমরাহ প্যাকেজগুলো যত্ন, স্বচ্ছতা ও নির্ভরযোগ্যতার সাথে সাজানো। ইকোনমি, স্ট্যান্ডার্ড বা কাস্টম, যে প্যাকেজই খুঁজুন, আপনার সফরকে সহজ, আরামদায়ক ও আত্মিকভাবে পরিপূর্ণ করতে আন্তরিক হজ্জ কাফেলা পাশে আছে।</p>'
+                        '<h2>Planning your Umrah this season</h2><p>Our Umrah groups travel throughout the year, each with an experienced scholar who guides the group in Bangla. Call us for the next departure date and the seats still available.</p><p>Many of the pilgrims who are preparing for <strong>Hajj 2028</strong> perform Umrah first. It lets you learn Ihram, Tawaf and Sa\'i calmly before the crowds of Hajj, and see the hotels and the holy cities for yourself.</p><p>A passport valid for at least six months is the first thing to arrange. Whether you choose an economy, standard or custom package, Antarik Hajj Kafela is here to make your journey smooth, comfortable and spiritually rewarding.</p>',
+                        '<h2>এ মৌসুমে আপনার উমরাহর পরিকল্পনা</h2><p>আমাদের উমরাহ গ্রুপ সারা বছর সফর করে; প্রতিটি দলের সাথে থাকেন একজন অভিজ্ঞ আলেম, যিনি বাংলায় পথ দেখান। পরবর্তী যাত্রার তারিখ ও খালি আসন জানতে আমাদের ফোন করুন।</p><p><strong>হজ ২০২৮</strong>-এর প্রস্তুতি নিচ্ছেন এমন অনেকেই আগে উমরাহ করে নেন। এতে হজের ভিড়ের আগে শান্তভাবে ইহরাম, তাওয়াফ ও সাঈ শেখা যায় এবং হোটেল ও পবিত্র শহরগুলো নিজের চোখে দেখে নেওয়া যায়।</p><p>প্রথম কাজ: অন্তত ছয় মাস মেয়াদি পাসপোর্ট প্রস্তুত রাখা। ইকোনমি, স্ট্যান্ডার্ড বা কাস্টম, যে প্যাকেজই বেছে নিন, আপনার সফরকে সহজ, আরামদায়ক ও আত্মিকভাবে পরিপূর্ণ করতে আন্তরিক হজ্জ কাফেলা পাশে আছে।</p>'
                     ),
                 ],
             ],
             [
-                'category_id' => $guides->id,
+                'category' => 'guides',
                 'slug' => 'how-to-perform-umrah',
-                'published_at' => '2025-08-24 10:00:00',
-                'is_featured' => true,
+                'published_at' => '2026-10-05 10:00:00',
                 'title' => $this->t('How to perform Umrah: a step-by-step guide', 'কীভাবে উমরাহ পালন করবেন: ধাপে ধাপে নির্দেশিকা'),
                 'excerpt' => $this->t(
-                    'From the intention at the Miqat to Tawaf, Sa\'i and Taqsir: the rites of Umrah explained simply, in order.',
-                    'মিকাতে নিয়ত থেকে তাওয়াফ, সাঈ ও তাকসির পর্যন্ত: উমরাহর আমলগুলো সহজ ভাষায়, ধারাবাহিকভাবে।'
+                    'From the intention at the Miqat to Tawaf, Sa\'i and Taqsir: the rites of Umrah in order, and what to arrange before you travel.',
+                    'মিকাতে নিয়ত থেকে তাওয়াফ, সাঈ ও তাকসির পর্যন্ত: উমরাহর আমলগুলো ধারাবাহিকভাবে, আর সফরের আগে যা গুছিয়ে নেবেন।'
                 ),
                 'tags' => ['Umrah', 'Ihram', 'Tawaf'],
                 'blocks' => [
@@ -88,25 +112,39 @@ class BlogSeeder extends Seeder
                         ],
                     ],
                     $this->text(
-                        '<h2>After Umrah</h2><p>Many pilgrims travel on to Madinah to pray in the Prophet\'s Mosque (Masjid an-Nabawi) and send salam to the Prophet (peace be upon him). Our scholars guide every group through each of these steps, in Bangla.</p>',
-                        '<h2>উমরাহর পরে</h2><p>অনেক হাজি এরপর মদিনায় গিয়ে মসজিদে নববীতে নামাজ আদায় করেন এবং রাসুলুল্লাহ (সাল্লাল্লাহু আলাইহি ওয়াসাল্লাম)-এর প্রতি সালাম পেশ করেন। আমাদের আলেমগণ প্রতিটি দলকে বাংলায় প্রতিটি ধাপে পথ দেখান।</p>'
+                        '<h2>After Umrah</h2><p>Many pilgrims travel on to Madinah to pray in the Prophet\'s Mosque (Masjid an-Nabawi) and send salam to the Prophet (peace be upon him). A visit to the Rawdah needs a permit booked in the Nusuk app; our team helps every pilgrim with it.</p><h2>Learn it before you go</h2><p>Before each group departs we hold an Umrah workshop in Dhaka, where our scholars walk through every step, the duas for each stage and practical travel and health tips. Our scholars then guide the group through each rite in Makkah and Madinah, in Bangla.</p>',
+                        '<h2>উমরাহর পরে</h2><p>অনেক হাজি এরপর মদিনায় গিয়ে মসজিদে নববীতে নামাজ আদায় করেন এবং রাসুলুল্লাহ (সাল্লাল্লাহু আলাইহি ওয়াসাল্লাম)-এর প্রতি সালাম পেশ করেন। রিয়াজুল জান্নাহ (রওজা) যিয়ারতের জন্য নুসুক অ্যাপে অনুমতি নিতে হয়; এতে আমাদের টিম প্রত্যেক হাজিকে সহায়তা করে।</p><h2>যাওয়ার আগে শিখে নিন</h2><p>প্রতিটি দল রওনা হওয়ার আগে ঢাকায় আমরা উমরাহ কর্মশালা করি, যেখানে আলেমগণ প্রতিটি ধাপ, প্রতিটি পর্যায়ের দোয়া এবং ভ্রমণ ও স্বাস্থ্য বিষয়ক পরামর্শ বুঝিয়ে দেন। এরপর মক্কা ও মদিনায় প্রতিটি আমলে আলেমগণ বাংলায় দলকে পথ দেখান।</p>'
                     ),
                 ],
             ],
             [
-                'category_id' => $news->id,
+                'category' => 'news',
                 'slug' => 'important-information-for-hajj-pilgrims',
-                'published_at' => '2025-09-15 10:00:00',
-                'title' => $this->t('Important information for Hajj pilgrims', 'হজযাত্রীদের জন্য গুরুত্বপূর্ণ তথ্য'),
+                'published_at' => '2026-10-10 10:00:00',
+                'title' => $this->t('Hajj 2028: what to prepare now, and how to pay safely', 'হজ ২০২৮: এখন যা প্রস্তুত রাখবেন এবং নিরাপদে যেভাবে টাকা দেবেন'),
                 'excerpt' => $this->t(
-                    'How to pay for your package safely, when prices may change, and our refund policy.',
-                    'নিরাপদে প্যাকেজের টাকা পরিশোধের নিয়ম, কখন মূল্য পরিবর্তন হতে পারে এবং আমাদের ফেরত নীতি।'
+                    'Registration for Hajj 2027 has closed. The documents to prepare for Hajj 2028, how to pay us safely, when prices may change, and our refund policy.',
+                    'হজ ২০২৭-এর নিবন্ধন শেষ হয়েছে। হজ ২০২৮-এর জন্য যে কাগজপত্র প্রস্তুত রাখবেন, নিরাপদে টাকা পরিশোধের নিয়ম, কখন মূল্য পরিবর্তন হতে পারে এবং আমাদের ফেরত নীতি।'
                 ),
-                'tags' => ['Hajj', 'Payment'],
+                'tags' => ['Hajj 2028', 'Registration', 'Payment'],
                 'blocks' => [
                     $this->text(
-                        '<p>The full package payment must be deposited <strong>only</strong> to <strong>Antarik Travel International, Current Account No. 2711, Islami Bank Bangladesh Limited, Paltan Branch</strong>. Do not make payments to any other account or through any individual or agent.</p>',
-                        '<p>প্যাকেজের সম্পূর্ণ অর্থ <strong>শুধুমাত্র</strong> <strong>আন্তরিক ট্রাভেল ইন্টারন্যাশনাল, চলতি হিসাব নং ২৭১১, ইসলামী ব্যাংক বাংলাদেশ লিমিটেড, পল্টন শাখা</strong>-এ জমা দিতে হবে। অন্য কোনো হিসাবে বা কোনো ব্যক্তি বা এজেন্টের মাধ্যমে টাকা দেবেন না।</p>'
+                        '<h2>Where things stand</h2><p>Registration for <strong>Hajj 2027</strong> closed on 24 September 2026, and the Ministry of Religious Affairs did not extend it. The next pilgrims to register will travel for <strong>Hajj 2028</strong>, expected in early May 2028 (the exact days depend on the sighting of the moon).</p><p>The Ministry announces each year\'s registration timeline and fees. For Hajj 2027, pre-registration needed a deposit of Tk 30,000 and primary registration Tk 3.5 lakh, through the government e-Hajj system. The Hajj 2028 figures have not been announced yet; we will share them as soon as they are.</p><h2>Prepare these now</h2>',
+                        '<h2>বর্তমান অবস্থা</h2><p><strong>হজ ২০২৭</strong>-এর নিবন্ধন ২৪ সেপ্টেম্বর ২০২৬ শেষ হয়েছে; ধর্ম বিষয়ক মন্ত্রণালয় সময় বাড়ায়নি। এখন যাঁরা নিবন্ধন করবেন, তাঁরা যাবেন <strong>হজ ২০২৮</strong>-এ, যা ২০২৮ সালের মে মাসের শুরুতে হওয়ার কথা (সঠিক দিন চাঁদ দেখার ওপর নির্ভর করবে)।</p><p>প্রতি বছরের নিবন্ধনের সময়সূচি ও ফি মন্ত্রণালয় ঘোষণা করে। হজ ২০২৭-এ সরকারি ই-হজ সিস্টেমে প্রাক-নিবন্ধনে ৩০,০০০ টাকা এবং প্রাথমিক নিবন্ধনে ৩ লাখ ৫০ হাজার টাকা জমা দিতে হয়েছিল। হজ ২০২৮-এর অঙ্ক এখনো ঘোষণা হয়নি; ঘোষণা হলেই আমরা জানিয়ে দেব।</p><h2>এখনই যা প্রস্তুত রাখবেন</h2>'
+                    ),
+                    [
+                        'type' => 'list',
+                        'style' => 'bullet',
+                        'items' => [
+                            $this->t('A Bangladeshi passport, valid for at least six months after your return.', 'ফেরার পর অন্তত ছয় মাস মেয়াদ থাকবে এমন বাংলাদেশি পাসপোর্ট।'),
+                            $this->t('Your National ID card (or birth certificate) and a recent passport-size photo.', 'জাতীয় পরিচয়পত্র (অথবা জন্ম নিবন্ধন সনদ) এবং সাম্প্রতিক পাসপোর্ট সাইজের ছবি।'),
+                            $this->t('An active mobile number, and a bank account: it was required for every pilgrim in the Hajj 2027 registration (family members may share one).', 'একটি সচল মোবাইল নম্বর এবং ব্যাংক হিসাব: হজ ২০২৭-এর নিবন্ধনে প্রত্যেক হজযাত্রীর জন্য এটি বাধ্যতামূলক ছিল (পরিবারের সদস্যরা একটি হিসাব ব্যবহার করতে পারেন)।'),
+                            $this->t('Expatriate Bangladeshis also need their residence document for the e-Hajj system.', 'প্রবাসী বাংলাদেশিদের ই-হজ সিস্টেমের জন্য বসবাসের কাগজও লাগবে।'),
+                        ],
+                    ],
+                    $this->text(
+                        '<h2>Paying us safely</h2><p>The full package payment must be deposited <strong>only</strong> to <strong>Antarik Travel International, Current Account No. 2711, Islami Bank Bangladesh Limited, Paltan Branch</strong>. Do not make payments to any other account or through any individual or agent.</p><h2>Prices and refunds</h2>',
+                        '<h2>নিরাপদে টাকা পরিশোধ</h2><p>প্যাকেজের সম্পূর্ণ অর্থ <strong>শুধুমাত্র</strong> <strong>আন্তরিক ট্রাভেল ইন্টারন্যাশনাল, চলতি হিসাব নং ২৭১১, ইসলামী ব্যাংক বাংলাদেশ লিমিটেড, পল্টন শাখা</strong>-এ জমা দিতে হবে। অন্য কোনো হিসাবে বা কোনো ব্যক্তি বা এজেন্টের মাধ্যমে টাকা দেবেন না।</p><h2>মূল্য ও অর্থ ফেরত</h2>'
                     ),
                     [
                         'type' => 'list',
@@ -121,35 +159,39 @@ class BlogSeeder extends Seeder
                 ],
             ],
             [
-                'category_id' => $news->id,
-                'slug' => 'umrah-2025-november-group',
-                'published_at' => '2025-10-01 10:00:00',
-                'title' => $this->t('Umrah 2025: November group registration open', 'উমরাহ ২০২৫: নভেম্বর গ্রুপের নিবন্ধন চলছে'),
+                'category' => 'news',
+                'slug' => 'hajj-2028-registration',
+                'replaces' => 'umrah-2025-november-group',
+                'published_at' => '2026-10-14 10:00:00',
+                'is_featured' => true,
+                'title' => $this->t('Hajj 2028: registration open', 'হজ ২০২৮: নিবন্ধন চলছে'),
                 'excerpt' => $this->t(
-                    'Our November Umrah group travels from 6 to 20 November. Registration is open now.',
-                    'আমাদের নভেম্বরের উমরাহ গ্রুপ ৬ থেকে ২০ নভেম্বর সফর করবে। নিবন্ধন এখন চলছে।'
+                    'Hajj 2027 registration has closed. Start your Hajj 2028 journey with us now: we prepare your papers and register you as soon as the government window opens.',
+                    'হজ ২০২৭-এর নিবন্ধন শেষ। এখনই আমাদের সাথে হজ ২০২৮-এর যাত্রা শুরু করুন: আপনার কাগজপত্র আমরা প্রস্তুত করব এবং সরকারি নিবন্ধন খুললেই আপনাকে নিবন্ধন করিয়ে দেব।'
                 ),
-                'tags' => ['Umrah', 'Group'],
+                'tags' => ['Hajj 2028', 'Registration'],
                 'blocks' => [
                     $this->text(
-                        '<p>Registration is open now! This year\'s November Umrah group will travel from <strong>6 to 20 November</strong>, with an experienced scholar guiding the group throughout.</p><p>Call or message us on WhatsApp to reserve your seat.</p>',
-                        '<p>নিবন্ধন এখন চলছে! এ বছরের নভেম্বর উমরাহ গ্রুপ <strong>৬ থেকে ২০ নভেম্বর</strong> সফর করবে; পুরো সময় একজন অভিজ্ঞ আলেম দলকে পথ দেখাবেন।</p><p>আসন নিশ্চিত করতে আমাদের ফোন করুন বা হোয়াটসঅ্যাপে বার্তা দিন।</p>'
+                        '<p>Registration for Hajj 2027 closed on 24 September 2026. If you missed it, or you are planning ahead, <strong>Antarik Hajj Kafela is now taking registrations for Hajj 2028</strong>, expected in early May 2028.</p><h2>How it works</h2>',
+                        '<p>হজ ২০২৭-এর নিবন্ধন ২৪ সেপ্টেম্বর ২০২৬ শেষ হয়েছে। যদি সুযোগটি হাতছাড়া হয়ে থাকে, অথবা আগে থেকেই পরিকল্পনা করছেন, <strong>আন্তরিক হজ্জ কাফেলায় এখন হজ ২০২৮-এর নিবন্ধন চলছে</strong>; হজ হওয়ার কথা ২০২৮ সালের মে মাসের শুরুতে।</p><h2>যেভাবে কাজ হবে</h2>'
+                    ),
+                    [
+                        'type' => 'list',
+                        'style' => 'number',
+                        'items' => [
+                            $this->t('Register with us now: call, message us on WhatsApp or visit our office in Purana Paltan, Dhaka.', 'এখনই আমাদের কাছে নিবন্ধন করুন: ফোন করুন, হোয়াটসঅ্যাপে বার্তা দিন অথবা ঢাকার পুরানা পল্টনে আমাদের অফিসে আসুন।'),
+                            $this->t('We check your passport, NID and bank account, and help you get anything missing ready in good time.', 'আপনার পাসপোর্ট, জাতীয় পরিচয়পত্র ও ব্যাংক হিসাব আমরা যাচাই করব এবং যা বাকি আছে তা সময়মতো প্রস্তুত করতে সহায়তা করব।'),
+                            $this->t('As soon as the Ministry of Religious Affairs opens the Hajj 2028 window, we complete your pre-registration and registration in the government e-Hajj system.', 'ধর্ম বিষয়ক মন্ত্রণালয় হজ ২০২৮-এর নিবন্ধন চালু করলেই সরকারি ই-হজ সিস্টেমে আপনার প্রাক-নিবন্ধন ও নিবন্ধন আমরা সম্পন্ন করব।'),
+                            $this->t('Before departure you join our Hajj workshop, where our scholars prepare you for every rite.', 'যাত্রার আগে আমাদের হজ কর্মশালায় অংশ নেবেন, যেখানে আলেমগণ প্রতিটি আমলের জন্য আপনাকে প্রস্তুত করবেন।'),
+                        ],
+                    ],
+                    $this->text(
+                        '<p>Packages for Hajj 2028, from Regular to VIP, will be priced once the government announces the Hajj 2028 costs. Pay only through our official channels, and call us or message us on WhatsApp with any question.</p>',
+                        '<p>রেগুলার থেকে ভিআইপি পর্যন্ত হজ ২০২৮-এর প্যাকেজের মূল্য সরকার হজ ২০২৮-এর খরচ ঘোষণার পর নির্ধারণ করা হবে। শুধু আমাদের অফিসিয়াল মাধ্যমে টাকা দিন, আর যেকোনো প্রশ্নে আমাদের ফোন করুন বা হোয়াটসঅ্যাপে বার্তা দিন।</p>'
                     ),
                 ],
             ],
         ];
-
-        foreach ($posts as $data) {
-            Post::create([
-                ...$data,
-                'author_name' => $author,
-                'blocks' => $blocks->sanitize($data['blocks']),
-                'status' => Post::STATUS_PUBLISHED,
-                'published_at' => Carbon::parse($data['published_at']),
-                'is_featured' => $data['is_featured'] ?? false,
-                'seo' => ['title' => [], 'description' => [], 'image' => null, 'noindex' => false],
-            ]);
-        }
     }
 
     /**

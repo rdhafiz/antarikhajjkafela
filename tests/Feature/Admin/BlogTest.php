@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\PageSection;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\SlugRedirect;
@@ -37,12 +38,12 @@ class BlogTest extends AdminTestCase
 
         $this->get('/blog?category=news')
             ->assertOk()
-            ->assertSeeText('Important information for Hajj pilgrims')
+            ->assertSeeText('Hajj 2028: what to prepare now, and how to pay safely')
             ->assertDontSeeText('What is Umrah?');
 
         $this->get('/blog?tag=Payment')
             ->assertOk()
-            ->assertSeeText('Important information for Hajj pilgrims')
+            ->assertSeeText('Hajj 2028: what to prepare now, and how to pay safely')
             ->assertDontSeeText('How to perform Umrah');
 
         $this->get('/blog/how-to-perform-umrah')
@@ -50,6 +51,30 @@ class BlogTest extends AdminTestCase
             ->assertSeeText('The steps of Umrah')
             ->assertSee('"@type":"BlogPosting"', false)
             ->assertSeeText('Related articles');
+    }
+
+    public function test_existing_sites_get_the_hajj_2028_posts_and_old_links_redirect(): void
+    {
+        // A site seeded before the refresh: the 2025 Umrah news and the old FAQ answer.
+        $news = Post::where('slug', 'hajj-2028-registration')->firstOrFail();
+        $news->update(['slug' => 'umrah-2025-november-group', 'title' => ['en' => 'Umrah 2025: November group registration open']]);
+        Post::where('slug', 'what-is-umrah')->firstOrFail()->update(['title' => ['en' => 'What is Umrah?']]);
+        $faq = PageSection::where('component', 'faq')->firstOrFail();
+        $content = $faq->content;
+        $content['items'][3]['answer']['en'] = '<p>Bring a copy of your NID or passport, an active mobile number and the government pre-registration fee. Our team completes the rest.</p>';
+        $content['items'][0]['answer']['en'] = '<p>Edited by the admin.</p>';
+        $faq->update(['content' => $content]);
+
+        (require database_path('migrations/2026_10_20_100000_refresh_blog_posts_for_hajj_2028.php'))->up();
+
+        $this->assertSame('Hajj 2028: registration open', $news->fresh()->getTranslation('title', 'en'));
+        $this->assertSame('What is Umrah? Planning yours in 2026–27', Post::where('slug', 'what-is-umrah')->firstOrFail()->getTranslation('title', 'en'));
+        $this->get('/blog/umrah-2025-november-group')->assertRedirect('/blog/hajj-2028-registration');
+        $this->get('/blog/hajj-2028-registration')->assertOk()->assertSeeText('Antarik Hajj Kafela is now taking registrations for Hajj 2028');
+
+        $items = $faq->fresh()->content['items'];
+        $this->assertStringContainsString('Hajj 2028', $items[3]['answer']['en']);
+        $this->assertSame('<p>Edited by the admin.</p>', $items[0]['answer']['en']);
     }
 
     public function test_posts_are_shown_in_bangla(): void

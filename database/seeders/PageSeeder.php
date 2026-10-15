@@ -6,6 +6,7 @@ use App\Models\Page;
 use App\PageBuilder\ComponentRegistry;
 use App\PageBuilder\ContentProcessor;
 use App\PageBuilder\SectionStyle;
+use App\Support\Dates;
 use Illuminate\Database\Seeder;
 
 /**
@@ -391,7 +392,7 @@ class PageSeeder extends Seeder
             ['What is Umrah?', 'উমরাহ কী?', '<p>Umrah, meaning "a visit" to the Holy Kaaba, can be performed at any time of the year, unlike Hajj, which has fixed dates. It purifies the heart and brings a Muslim closer to Allah.</p>', '<p>উমরাহ অর্থ পবিত্র কাবা "যিয়ারত"। হজের নির্দিষ্ট সময়ের বিপরীতে উমরাহ বছরের যেকোনো সময় পালন করা যায়। এটি হৃদয়কে পবিত্র করে এবং আল্লাহর নৈকট্য এনে দেয়।</p>'],
             ['Who can perform Umrah?', 'কারা উমরাহ করতে পারেন?', '<p>A Muslim who has reached maturity, is physically and mentally able, and can afford the cost of travel.</p>', '<p>প্রাপ্তবয়স্ক, শারীরিক ও মানসিকভাবে সক্ষম এবং সফরের খরচ বহনে সামর্থ্যবান যেকোনো মুসলিম।</p>'],
             ['What is forbidden in the state of Ihram?', 'ইহরাম অবস্থায় কী কী নিষিদ্ধ?', '<p>Cutting hair or nails, using perfume, marital relations, hunting and, for men, wearing stitched clothing.</p>', '<p>চুল বা নখ কাটা, সুগন্ধি ব্যবহার, দাম্পত্য সম্পর্ক, শিকার এবং পুরুষদের জন্য সেলাই করা পোশাক পরা।</p>'],
-            ['How do I pre-register for Hajj?', 'হজের প্রাক-নিবন্ধন কীভাবে করব?', '<p>Bring a copy of your NID or passport, an active mobile number and the government pre-registration fee. Our team completes the rest.</p>', '<p>জাতীয় পরিচয়পত্র বা পাসপোর্টের কপি, সক্রিয় মোবাইল নম্বর ও সরকারি প্রাক-নিবন্ধন ফি নিয়ে আসুন। বাকিটা আমাদের টিম সম্পন্ন করবে।</p>'],
+            ['How do I pre-register for Hajj?', 'হজের প্রাক-নিবন্ধন কীভাবে করব?', '<p>We are now registering pilgrims for Hajj 2028. Bring a copy of your NID or passport, an active mobile number and your bank account details; we complete the government pre-registration as soon as the Ministry opens the Hajj 2028 window.</p>', '<p>আমরা এখন হজ ২০২৮-এর নিবন্ধন নিচ্ছি। জাতীয় পরিচয়পত্র বা পাসপোর্টের কপি, সক্রিয় মোবাইল নম্বর ও ব্যাংক হিসাবের তথ্য নিয়ে আসুন; মন্ত্রণালয় হজ ২০২৮-এর নিবন্ধন চালু করলেই সরকারি প্রাক-নিবন্ধন আমরা সম্পন্ন করব।</p>'],
             ['How should I make payments?', 'পেমেন্ট কীভাবে করব?', '<p>Pay only to Antarik Travel International\'s official account (Current Account No. 2711, Islami Bank Bangladesh Limited, Paltan Branch). Never pay any individual or other account.</p>', '<p>শুধুমাত্র আন্তরিক ট্রাভেল ইন্টারন্যাশনালের অফিসিয়াল অ্যাকাউন্টে (চলতি হিসাব নং ২৭১১, ইসলামী ব্যাংক বাংলাদেশ লিমিটেড, পল্টন শাখা) পেমেন্ট করুন। কোনো ব্যক্তি বা অন্য অ্যাকাউন্টে পেমেন্ট করবেন না।</p>'],
         ];
 
@@ -416,7 +417,7 @@ class PageSeeder extends Seeder
             'slug' => $slug,
             'title' => $title,
             'sections' => [
-                $this->banner($title, $this->t('Last updated '.now()->format('F Y'), 'সর্বশেষ হালনাগাদ '.now()->format('F Y'))),
+                $this->banner($title, $this->t('Last updated '.Dates::format(now(), 'F Y', 'en'), 'সর্বশেষ হালনাগাদ '.Dates::format(now(), 'F Y', 'bn'))),
                 ['rich_text', ['body' => $html, 'width' => 'narrow'], ['background' => 'white']],
             ],
         ];
@@ -433,15 +434,15 @@ class PageSeeder extends Seeder
             'type' => Page::TYPE_CAMPAIGN,
             'system_key' => null,
             'slug' => 'hajj-pre-registration',
-            'title' => $this->t('Hajj pre-registration', 'হজ প্রাক-নিবন্ধন'),
+            'title' => $this->t('Hajj 2028 pre-registration', 'হজ ২০২৮ প্রাক-নিবন্ধন'),
             'status' => Page::STATUS_DRAFT,
             'focused_layout' => true,
             'sections' => [
                 ['hero', [
                     'variant' => 'split',
-                    'eyebrow' => $this->t('Pre-registration is open', 'প্রাক-নিবন্ধন চলছে'),
+                    'eyebrow' => $this->t('Hajj 2028 registration is open', 'হজ ২০২৮-এর নিবন্ধন চলছে'),
                     'title' => $this->t('Answer the call of the House of Allah.', 'আল্লাহর ঘরের ডাকে সাড়া দিন।'),
-                    'highlight' => $this->t('Register for Hajj today.', 'আজই হজের নিবন্ধন করুন।'),
+                    'highlight' => $this->t('Register for Hajj 2028 today.', 'আজই হজ ২০২৮-এর নিবন্ধন করুন।'),
                     'text' => $this->t('17, 21, 30 and 42-day Regular, Standard, Premium and VIP packages, guided by experienced scholars.', '১৭, ২১, ৩০ ও ৪২ দিনের রেগুলার, স্ট্যান্ডার্ড, প্রিমিয়াম ও ভিআইপি প্যাকেজ—অভিজ্ঞ আলেমদের তত্ত্বাবধানে।'),
                     'primary' => $this->link('#register', 'Register now', 'এখনই নিবন্ধন করুন'),
                 ], []],
@@ -462,7 +463,8 @@ class PageSeeder extends Seeder
                     'bullets' => [
                         ['text' => $this->t('Copy of NID or passport', 'জাতীয় পরিচয়পত্র বা পাসপোর্টের কপি')],
                         ['text' => $this->t('An active mobile number', 'সক্রিয় মোবাইল নম্বর')],
-                        ['text' => $this->t('Government pre-registration fee: BDT 30,000', 'সরকারি প্রাক-নিবন্ধন ফি: ৩০,০০০ টাকা')],
+                        ['text' => $this->t('A bank account (required for Hajj 2027 registration)', 'ব্যাংক হিসাব (হজ ২০২৭-এর নিবন্ধনে বাধ্যতামূলক ছিল)')],
+                        ['text' => $this->t('Government pre-registration deposit, as the Ministry announces it', 'মন্ত্রণালয়ের ঘোষণা অনুযায়ী সরকারি প্রাক-নিবন্ধন জমা')],
                         ['text' => $this->t('VIP Mina tents and an experienced Muallim', 'ভিআইপি মিনা তাঁবু ও অভিজ্ঞ মুয়াল্লিম')],
                     ],
                 ], ['anchor' => 'register']],

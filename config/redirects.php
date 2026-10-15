@@ -46,7 +46,7 @@ return [
     'blog/I45nGtwtO2MI' => '/blog/how-to-perform-umrah',
     'news-briefings' => '/blog?category=news',
     'news-briefings/CizKix94hmCM' => '/blog/important-information-for-hajj-pilgrims',
-    'news-briefings/esFroce26EqN' => '/blog/umrah-2025-november-group',
+    'news-briefings/esFroce26EqN' => '/blog/hajj-2028-registration',
 
     // Empty placeholder pages on the old site.
     'hajj--umrah-guides' => '/blog?category=guides',
