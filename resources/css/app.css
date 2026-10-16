@@ -1857,7 +1857,7 @@
     .book-agree {
         border-radius: 1rem;
         background: rgb(255 255 255 / 0.06);
-        padding: 0.9rem 1rem;
+        padding: 0.7rem 0.85rem;
         box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
         transition: box-shadow 250ms var(--ease-out-soft);
 
