@@ -11,6 +11,7 @@
         __('Package', [], $locale) => $booking->snap('package', $locale),
         __('Option', [], $locale) => trim($booking->snap('type', $locale).' – '.$booking->snap('option', $locale), ' –'),
         __('Travelers', [], $locale) => Money::digits($booking->travelers, $locale),
+        __('Travel', [], $locale) => App\Domain\Booking\TravelDates::label($booking->travel_month, $booking->travel_year, $locale),
         __('Price', [], $locale) => $amounts ? Money::format($booking->unit_price, $locale).' '.PackagePresenter::unitLabel($booking->snapshot['unit'] ?? 'person') : __('Price on request', [], $locale),
         __('Total', [], $locale) => $amounts ? Money::format($booking->total, $locale) : null,
         __('Advance', [], $locale) => $amounts && (float) $booking->advance_amount > 0 ? Money::format($booking->advance_amount, $locale) : null,

@@ -36,7 +36,7 @@ class AdminListsTest extends AdminTestCase
             ->firstOrFail();
 
         $this->post('/packages/umrah-package/book', [
-            'option' => $price->id,
+            'travel_month' => now()->month, 'travel_year' => now()->year, 'option' => $price->id,
             'travelers' => 2,
             'name' => 'Abdul Karim',
             'phone' => '01711-000000',

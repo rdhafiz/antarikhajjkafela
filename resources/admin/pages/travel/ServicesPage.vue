@@ -38,6 +38,7 @@ interface ServiceRow {
     icon: string | null;
     image_id: number | null;
     is_active: boolean;
+    travel_date: 'none' | 'month_year' | 'hajj_year';
     seo: { title: Translations; description: Translations; image: number | null };
     packages_count: number;
     live_packages_count: number;
@@ -130,7 +131,7 @@ function preview(service: ServiceRow): void {
     drawerOpen.value = true;
 }
 
-const blank = { name: {} as Translations, slug: '', summary: {} as Translations, headline: {} as Translations, highlight: {} as Translations, description: {} as Translations, icon: null as string | null, image_id: null as number | null, is_active: true, seo: { title: {} as Translations, description: {} as Translations, image: null as number | null } };
+const blank = { name: {} as Translations, slug: '', summary: {} as Translations, headline: {} as Translations, highlight: {} as Translations, description: {} as Translations, icon: null as string | null, image_id: null as number | null, is_active: true, travel_date: 'none' as ServiceRow['travel_date'], seo: { title: {} as Translations, description: {} as Translations, image: null as number | null } };
 const form = useForm({ ...blank });
 
 async function load(): Promise<void> {
@@ -330,6 +331,13 @@ onMounted(load);
                 <div class="rounded-lg border border-line p-3.5">
                     <AppSwitch v-model="form.data.is_active" label="Show on the website" description="Hidden services and their packages are not visible to visitors." />
                 </div>
+                <FormField label="Booking form asks for" for="service-travel-date" :error="form.error('travel_date')" hint="When the pilgrim wants to travel. The Hajj year starts from the first Hajj still open for registration.">
+                    <select id="service-travel-date" v-model="form.data.travel_date" class="control">
+                        <option value="none">Nothing</option>
+                        <option value="month_year">Travel month and year (Umrah)</option>
+                        <option value="hajj_year">Hajj year (Hajj)</option>
+                    </select>
+                </FormField>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <TranslatableInput v-model="form.data.seo.title" label="SEO title" :errors="form.errors" error-key="seo.title" />
                     <TranslatableInput v-model="form.data.seo.description" label="SEO description" :errors="form.errors" error-key="seo.description" />

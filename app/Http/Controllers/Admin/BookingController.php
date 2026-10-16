@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Booking\BookingService;
+use App\Domain\Booking\TravelDates;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingDocument;
@@ -151,14 +152,14 @@ class BookingController extends Controller
         return response()->streamDownload(function () use ($filters) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Reference', 'Date', 'Status', 'Package', 'Option', 'Travelers', 'Total', 'Advance', 'Paid', 'Balance', 'Name', 'Phone', 'Email']);
+            fputcsv($out, ['Reference', 'Date', 'Status', 'Package', 'Option', 'Travelers', 'Travel date', 'Total', 'Advance', 'Paid', 'Balance', 'Name', 'Phone', 'Email']);
 
             $this->query($filters)->latest('id')->chunk(500, function ($bookings) use ($out) {
                 foreach ($bookings as $b) {
                     fputcsv($out, Csv::row([
                         $b->reference, $b->created_at?->format('Y-m-d H:i'), Booking::STATUSES[$b->status] ?? $b->status,
                         $b->snap('package', 'en'), trim($b->snap('type', 'en').' – '.$b->snap('option', 'en'), ' –'),
-                        $b->travelers, $b->total, $b->advance_amount, $b->paid_amount, number_format($b->balance(), 2, '.', ''),
+                        $b->travelers, TravelDates::label($b->travel_month, $b->travel_year, 'en'), $b->total, $b->advance_amount, $b->paid_amount, number_format($b->balance(), 2, '.', ''),
                         $b->customer_name, $b->customer_phone, $b->customer_email,
                     ]));
                 }
@@ -221,6 +222,7 @@ class BookingController extends Controller
             'package' => $booking->snap('package', 'en'),
             'option' => trim($booking->snap('type', 'en').' – '.$booking->snap('option', 'en'), ' –'),
             'travelers' => $booking->travelers,
+            'travel_date' => TravelDates::label($booking->travel_month, $booking->travel_year, 'en'),
             'total' => (float) $booking->total,
             'paid_amount' => (float) $booking->paid_amount,
             'balance' => $booking->balance(),

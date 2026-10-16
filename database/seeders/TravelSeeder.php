@@ -64,6 +64,7 @@ class TravelSeeder extends Seeder
         $hajj = Service::create([
             'name' => $this->t('Hajj', 'হজ'),
             'slug' => 'hajj',
+            'travel_date' => 'hajj_year',
             'icon' => 'kaaba',
             'sort' => 0,
             'headline' => $this->t('Answer the call of Hajj,', 'হজের ডাকে সাড়া দিন,'),
@@ -81,6 +82,7 @@ class TravelSeeder extends Seeder
         $umrah = Service::create([
             'name' => $this->t('Umrah', 'উমরাহ'),
             'slug' => 'umrah',
+            'travel_date' => 'month_year',
             'icon' => 'mosque',
             'sort' => 1,
             'headline' => $this->t('Umrah, any time of the year,', 'যেকোনো সময় উমরাহ,'),

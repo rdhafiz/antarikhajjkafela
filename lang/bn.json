@@ -301,5 +301,11 @@
     "Open": "খুলুন",
     "Price on request": "মূল্য জানতে কল করুন",
     "Our team will call you to confirm the price and how to pay.": "মূল্য ও পরিশোধের নিয়ম জানাতে আমাদের টিম আপনাকে কল করবে।",
-    "See options & hotels": "অপশন ও হোটেল দেখুন"
+    "See options & hotels": "অপশন ও হোটেল দেখুন",
+    "Travel month": "যাত্রার মাস",
+    "Travel year": "যাত্রার বছর",
+    "Hajj year": "হজের বছর",
+    "Choose a month": "মাস বেছে নিন",
+    "Hajj :year": "হজ :year",
+    "Registration for Hajj :year has closed; the next Hajj open for registration is :next.": "হজ :year-এর নিবন্ধন শেষ হয়েছে; এখন নিবন্ধন চলছে হজ :next-এর জন্য।"
 }

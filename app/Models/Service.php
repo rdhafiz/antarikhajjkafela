@@ -12,7 +12,7 @@ use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Translatable\HasTranslations;
 
-#[Fillable(['name', 'slug', 'summary', 'headline', 'highlight', 'description', 'icon', 'image_id', 'is_active', 'sort', 'seo'])]
+#[Fillable(['name', 'slug', 'summary', 'headline', 'highlight', 'description', 'icon', 'image_id', 'is_active', 'travel_date', 'sort', 'seo'])]
 class Service extends Model
 {
     use HasTranslations, LogsActivity, Trashable;

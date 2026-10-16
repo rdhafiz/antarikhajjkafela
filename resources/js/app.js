@@ -172,6 +172,14 @@ Alpine.data('bookingForm', (config) => ({
         return Math.round(this.selected.price * this.quantity * 100) / 100;
     },
 
+    /** The chosen travel date for the summary, e.g. "November 2026". */
+    get travelDate() {
+        const year = this.yearLabels?.[this.travelYear] ?? '';
+        if (this.travelMode === 'hajj_year') return year;
+        const month = this.monthNames?.[this.travelMonth];
+        return month && year ? `${month} ${year}` : '';
+    },
+
     get advanceAmount() {
         const travelers = Math.max(1, Number(this.travelers) || 1);
         const amount = this.advance.type === 'fixed'

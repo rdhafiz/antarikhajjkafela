@@ -12,7 +12,7 @@ use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
 #[Fillable([
-    'reference', 'package_id', 'package_price_id', 'snapshot', 'unit_price', 'travelers', 'quantity', 'total',
+    'reference', 'package_id', 'package_price_id', 'snapshot', 'unit_price', 'travelers', 'travel_month', 'travel_year', 'quantity', 'total',
     'advance_type', 'advance_value', 'advance_amount', 'paid_amount', 'currency', 'status',
     'customer_name', 'customer_phone', 'customer_email', 'customer_address', 'customer_note',
     'admin_notes', 'locale', 'ip', 'read_at',

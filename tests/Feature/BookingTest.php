@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Domain\Booking\BookingCalculator;
+use App\Domain\Booking\TravelDates;
 use App\Domain\Payments\Gateways\DgePayGateway;
 use App\Mail\BookingPlaced;
 use App\Mail\BookingReceived;
@@ -15,6 +16,7 @@ use App\Support\Money;
 use Database\Seeders\PageSeeder;
 use Database\Seeders\TravelSeeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -49,6 +51,9 @@ class BookingTest extends AdminTestCase
         return array_replace([
             'option' => $this->price()->id,
             'travelers' => 2,
+            // Umrah asks for the month and year; the current month is the earliest.
+            'travel_month' => now()->month,
+            'travel_year' => now()->year,
             'name' => 'Abdul Karim',
             'phone' => '01711-000000',
             'email' => 'karim@example.com',
@@ -121,6 +126,62 @@ class BookingTest extends AdminTestCase
 
         $this->get($booking->publicUrl())->assertOk()->assertSeeText($booking->reference)->assertSeeText('Your booking has been received.');
         $this->get("/bookings/{$booking->reference}")->assertForbidden();
+    }
+
+    public function test_travel_years_follow_the_season(): void
+    {
+        $dates = app(TravelDates::class);
+
+        // Umrah: this year on. Hajj: Hajj 2027 registration closed in September 2026.
+        $this->assertSame([2026, 2027, 2028], $dates->years('month_year', Carbon::parse('2026-10-16')));
+        $this->assertSame([2027, 2028, 2029], $dates->years('hajj_year', Carbon::parse('2026-09-20')));
+        $this->assertSame([2028, 2029, 2030], $dates->years('hajj_year', Carbon::parse('2026-10-16')));
+        $this->assertSame([], $dates->years('none', Carbon::parse('2026-10-16')));
+    }
+
+    public function test_umrah_bookings_ask_for_the_month_and_year(): void
+    {
+        Carbon::setTestNow('2026-10-16 12:00:00');
+
+        $this->get('/packages/umrah-package/book')->assertOk()->assertSeeText('Travel month')->assertSeeText('Travel year')->assertDontSeeText('Hajj year');
+
+        // A month already past this year, or no month at all, is refused.
+        $this->post('/packages/umrah-package/book', $this->form(['travel_month' => 9, 'travel_year' => 2026]))->assertSessionHasErrors('travel_month');
+        $this->post('/packages/umrah-package/book', $this->form(['travel_month' => null]))->assertSessionHasErrors('travel_month');
+        $this->post('/packages/umrah-package/book', $this->form(['travel_year' => 2030]))->assertSessionHasErrors('travel_year');
+
+        $this->post('/packages/umrah-package/book', $this->form(['travel_month' => 2, 'travel_year' => 2027]))->assertRedirect();
+        $booking = Booking::firstOrFail();
+        $this->assertSame([2, 2027], [$booking->travel_month, $booking->travel_year]);
+
+        $this->get($booking->publicUrl())->assertSeeText('February 2027');
+        $this->asAdmin($this->superAdmin())->getJson("/api/admin/bookings/{$booking->id}")->assertJsonPath('data.travel_date', 'February 2027');
+        Mail::assertSent(BookingReceived::class, fn ($mail) => str_contains($mail->render(), 'February 2027'));
+
+        Carbon::setTestNow();
+    }
+
+    public function test_hajj_bookings_ask_for_a_hajj_year_from_2028(): void
+    {
+        Carbon::setTestNow('2026-10-16 12:00:00');
+        $package = Package::where('slug', 'hajj-regular-package')->firstOrFail();
+        $form = $this->form(['option' => $this->price($package)->id, 'travel_month' => null]);
+
+        $this->get('/packages/hajj-regular-package/book')->assertOk()
+            ->assertSeeText('Hajj year')
+            ->assertSeeText('Hajj 2028')
+            ->assertSee('<option value="2028">', false)
+            ->assertDontSee('<option value="2027">', false)
+            ->assertDontSeeText('Travel month');
+
+        $this->post('/packages/hajj-regular-package/book', [...$form, 'travel_year' => 2027])->assertSessionHasErrors('travel_year');
+        $this->post('/packages/hajj-regular-package/book', [...$form, 'travel_year' => 2028])->assertRedirect();
+
+        $booking = Booking::firstOrFail();
+        $this->assertSame([null, 2028], [$booking->travel_month, $booking->travel_year]);
+        $this->get($booking->publicUrl())->assertSeeText('Hajj 2028');
+
+        Carbon::setTestNow();
     }
 
     public function test_packages_can_hide_their_price(): void

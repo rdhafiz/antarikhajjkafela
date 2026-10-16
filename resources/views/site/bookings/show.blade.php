@@ -79,6 +79,9 @@
 
                         <dl class="mt-6 grid grid-cols-2 gap-4 text-[15px]">
                             <div><dt class="text-[13px] text-ink-3">{{ __('Travelers') }}</dt><dd class="font-semibold text-ink">{{ Money::digits($booking->travelers) }}</dd></div>
+                            @if ($when = App\Domain\Booking\TravelDates::label($booking->travel_month, $booking->travel_year))
+                                <div><dt class="text-[13px] text-ink-3">{{ __('Travel') }}</dt><dd class="font-semibold text-ink">{{ $when }}</dd></div>
+                            @endif
                             <div><dt class="text-[13px] text-ink-3">{{ __('Price') }}</dt><dd class="font-semibold text-ink">@if ($booking->hidesPrice())<x-site.price-request link class="text-brand" />@else{{ Money::html($booking->unit_price) }} <span class="text-[13px] font-normal text-ink-3">{{ PackagePresenter::unitLabel($booking->snapshot['unit'] ?? 'person') }}</span>@endif</dd></div>
                             <div><dt class="text-[13px] text-ink-3">{{ __('Name') }}</dt><dd class="font-semibold text-ink">{{ $booking->customer_name }}</dd></div>
                             <div><dt class="text-[13px] text-ink-3">{{ __('Mobile number') }}</dt><dd class="font-semibold text-ink">{{ $booking->customer_phone }}</dd></div>

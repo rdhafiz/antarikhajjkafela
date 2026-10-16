@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Site;
 
 use App\Domain\Booking\BookingService;
+use App\Domain\Booking\TravelDates;
 use App\Domain\Forms\Recaptcha;
 use App\Domain\Payments\GatewayException;
 use App\Domain\Payments\GatewayManager;
@@ -64,6 +65,7 @@ class BookingController extends Controller
             'name' => $name,
             'options' => $options,
             'selected' => $selected,
+            'travel' => app(TravelDates::class)->form($package->service),
             'showPrice' => $package->show_price,
             // Packages that hide their price are booked first and priced by phone.
             'gateway' => $package->show_price ? app(GatewayManager::class)->active() : null,
@@ -92,12 +94,15 @@ class BookingController extends Controller
             'nid.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
             'payment' => ['required', Rule::in($package->show_price ? ['now', 'later'] : ['later'])],
             'agree' => ['accepted'],
+            ...app(TravelDates::class)->rules(app(TravelDates::class)->mode($package->service), $request->integer('travel_year') ?: null),
         ], [
             'email.required' => __('Enter your email to pay online; the receipt is sent there.'),
             'agree.accepted' => __('Please accept the booking terms.'),
         ], [
             'option' => __('Package option'),
             'travelers' => __('Number of travelers'),
+            'travel_month' => __('Travel month'),
+            'travel_year' => $package->service?->travel_date === 'hajj_year' ? __('Hajj year') : __('Travel year'),
             'rooms' => __('Number of rooms'),
             'name' => __('Full name'),
             'phone' => __('Mobile number'),

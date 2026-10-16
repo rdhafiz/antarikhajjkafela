@@ -138,6 +138,7 @@ onMounted(load);
                     <p class="text-sm text-ink-soft">{{ booking.option }}</p>
                     <dl class="mt-5 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
                         <div><dt class="text-[12px] text-ink-muted">Travelers</dt><dd class="font-semibold text-ink">{{ booking.travelers }}</dd></div>
+                        <div v-if="booking.travel_date"><dt class="text-[12px] text-ink-muted">Wants to travel</dt><dd class="font-semibold text-ink">{{ booking.travel_date }}</dd></div>
                         <div><dt class="text-[12px] text-ink-muted">Price</dt><dd class="font-semibold text-ink">{{ money(booking.unit_price) }} <span class="font-normal text-ink-muted">{{ unitLabel[booking.unit] }}</span></dd></div>
                         <div v-if="booking.unit === 'room'"><dt class="text-[12px] text-ink-muted">Rooms</dt><dd class="font-semibold text-ink">{{ booking.quantity }}</dd></div>
                         <div><dt class="text-[12px] text-ink-muted">Advance rule</dt><dd class="font-semibold text-ink">{{ booking.advance_type === 'fixed' ? `${money(booking.advance_value ?? 0)} per traveler` : booking.advance_type === 'percentage' ? `${booking.advance_value}% of total` : 'None' }}</dd></div>

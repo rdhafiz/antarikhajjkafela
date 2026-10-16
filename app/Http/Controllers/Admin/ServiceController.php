@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Booking\TravelDates;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\PageSaveRequest;
 use App\Models\Media;
@@ -92,6 +93,7 @@ class ServiceController extends Controller
             'icon' => ['nullable', Rule::in(Icons::CONTENT)],
             'image_id' => ['nullable', 'integer', Rule::exists(Media::class, 'id')->whereNull('deleted_at')],
             'is_active' => ['boolean'],
+            'travel_date' => ['nullable', Rule::in(array_keys(TravelDates::MODES))],
             'seo.title.*' => ['nullable', 'string', 'max:70'],
             'seo.description.*' => ['nullable', 'string', 'max:200'],
             'seo.image' => ['nullable', 'integer', Rule::exists(Media::class, 'id')->whereNull('deleted_at')],
@@ -111,6 +113,7 @@ class ServiceController extends Controller
             'icon' => $data['icon'] ?? null,
             'image_id' => $data['image_id'] ?? null,
             'is_active' => (bool) ($data['is_active'] ?? true),
+            'travel_date' => $data['travel_date'] ?? $service?->travel_date ?? 'none',
             'seo' => ['title' => array_filter($data['seo']['title'] ?? []), 'description' => array_filter($data['seo']['description'] ?? []), 'image' => $data['seo']['image'] ?? null],
         ];
     }
@@ -132,6 +135,7 @@ class ServiceController extends Controller
             'icon' => $service->icon,
             'image_id' => $service->image_id,
             'is_active' => $service->is_active,
+            'travel_date' => $service->travel_date ?? 'none',
             'seo' => ['title' => (object) ($service->seo['title'] ?? []), 'description' => (object) ($service->seo['description'] ?? []), 'image' => $service->seo['image'] ?? null],
             'packages_count' => $service->packages_count ?? 0,
             'live_packages_count' => $service->live_packages_count ?? 0,

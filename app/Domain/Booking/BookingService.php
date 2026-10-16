@@ -55,6 +55,8 @@ class BookingService
                     ],
                     ...$amounts,
                     'travelers' => $data['travelers'],
+                    'travel_month' => $data['travel_month'] ?? null,
+                    'travel_year' => $data['travel_year'] ?? null,
                     'currency' => settings('localization.currency') ?: 'BDT',
                     'status' => 'pending',
                     'customer_name' => $data['name'],

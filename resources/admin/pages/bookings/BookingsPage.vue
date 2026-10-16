@@ -258,7 +258,7 @@ onMounted(async () => {
                     <dt class="flex items-center gap-2"><PackageIcon class="size-4 text-violet-600" />Package</dt>
                     <dd>{{ current.package ?? '—' }}<template v-if="current.option"><br /><span class="text-ink-muted">{{ current.option }}</span></template></dd>
                     <dt class="flex items-center gap-2"><Users class="size-4 text-teal-600" />Travellers</dt>
-                    <dd>{{ current.travelers }}</dd>
+                    <dd>{{ current.travelers }}<template v-if="current.travel_date"><br /><span class="text-ink-muted">Wants to travel: {{ current.travel_date }}</span></template></dd>
                     <dt class="flex items-center gap-2"><CalendarDays class="size-4 text-amber-600" />Booked</dt>
                     <dd>{{ formatDate(current.created_at, true) }}</dd>
                 </dl>

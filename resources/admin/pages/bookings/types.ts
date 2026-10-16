@@ -22,6 +22,8 @@ export interface BookingRow {
     package: string | null;
     option: string;
     travelers: number;
+    /** "November 2026" or "Hajj 2028". */
+    travel_date: string | null;
     total: number;
     paid_amount: number;
     balance: number;

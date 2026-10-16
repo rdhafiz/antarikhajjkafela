@@ -9,6 +9,11 @@
         'option' => (int) old('option', $selected['id']),
         'travelers' => (int) old('travelers', 1),
         'rooms' => (int) old('rooms', 1),
+        'travelMonth' => (int) old('travel_month') ?: '',
+        'travelYear' => (int) old('travel_year', $travel['years'][0] ?? 0) ?: '',
+        'travelMode' => $travel['mode'],
+        'monthNames' => $travel['months'],
+        'yearLabels' => collect($travel['years'])->mapWithKeys(fn ($y) => [$y => Money::digits($y)])->all(),
         'payment' => old('payment', $canPayOnline ? 'now' : 'later'),
         'advance' => $advance,
         'recaptcha' => $recaptcha,
@@ -134,6 +139,38 @@
                                     @error('rooms')<p class="error-site">{{ $message }}</p>@enderror
                                 </div>
                             </div>
+
+                            {{-- When they want to travel: month and year (Umrah) or the Hajj year. --}}
+                            @if ($travel['mode'] !== 'none')
+                                <div class="mt-5 grid gap-5 sm:grid-cols-2" data-reveal style="--reveal-delay: 160ms">
+                                    @if ($travel['mode'] === 'month_year')
+                                        <div>
+                                            <label for="travel_month" class="label-site">{{ __('Travel month') }}<span class="text-red-600">*</span></label>
+                                            <select id="travel_month" name="travel_month" x-model.number="travelMonth" required class="input-site"
+                                                    x-effect="if (travelYear === {{ $travel['currentYear'] }} && travelMonth && travelMonth < {{ $travel['currentMonth'] }}) travelMonth = ''"
+                                                    {!! $invalid('travel_month') !!}>
+                                                <option value="">{{ __('Choose a month') }}</option>
+                                                @foreach ($travel['months'] as $number => $month)
+                                                    <option value="{{ $number }}" :disabled="travelYear === {{ $travel['currentYear'] }} && {{ $number }} < {{ $travel['currentMonth'] }}">{{ $month }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('travel_month')<p id="travel_month-error" class="error-site">{{ $message }}</p>@enderror
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <label for="travel_year" class="label-site">{{ $travel['mode'] === 'hajj_year' ? __('Hajj year') : __('Travel year') }}<span class="text-red-600">*</span></label>
+                                        <select id="travel_year" name="travel_year" x-model.number="travelYear" required class="input-site" {!! $invalid('travel_year') !!}>
+                                            @foreach ($travel['years'] as $year)
+                                                <option value="{{ $year }}">{{ $travel['mode'] === 'hajj_year' ? __('Hajj :year', ['year' => Money::digits($year)]) : Money::digits($year) }}</option>
+                                            @endforeach
+                                        </select>
+                                        @if ($travel['mode'] === 'hajj_year')
+                                            <p class="mt-1.5 text-[13px] text-ink-3">{{ __('Registration for Hajj :year has closed; the next Hajj open for registration is :next.', ['year' => Money::digits($travel['years'][0] - 1), 'next' => Money::digits($travel['years'][0])]) }}</p>
+                                        @endif
+                                        @error('travel_year')<p id="travel_year-error" class="error-site">{{ $message }}</p>@enderror
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </fieldset>
 
@@ -257,6 +294,9 @@
                         <dl class="space-y-3 border-t border-white/10 p-6 text-[15px]">
                             @if ($showPrice)
                             <div class="flex justify-between gap-4"><dt class="text-white/65">{{ __('Price') }}</dt><dd class="text-end" x-text="money(selected.price) + ' ' + selected.unit_label"></dd></div>
+                            @endif
+                            @if ($travel['mode'] !== 'none')
+                            <div class="flex justify-between gap-4"><dt class="text-white/65">{{ $travel['mode'] === 'hajj_year' ? __('Hajj year') : __('Travel') }}</dt><dd class="text-end" x-text="travelDate || '—'"></dd></div>
                             @endif
                             <div class="flex justify-between gap-4"><dt class="text-white/65" x-text="selected.unit === 'room' ? @js(__('Rooms')) : @js(__('Travelers'))"></dt><dd x-text="digits(selected.unit === 'room' ? rooms : (selected.unit === 'group' ? 1 : travelers))"></dd></div>
                             @if ($showPrice)
