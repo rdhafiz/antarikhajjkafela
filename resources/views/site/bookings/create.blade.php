@@ -28,7 +28,8 @@
         ['id' => 'step-option', 'label' => __('Option')],
         ['id' => 'step-details', 'label' => __('Your details')],
         ['id' => 'step-documents', 'label' => __('Documents')],
-        ['id' => 'step-payment', 'label' => __('Payment')],
+        // Only when there is a choice to make: without online payment every booking is "pay later".
+        ...($canPayOnline ? [['id' => 'step-payment', 'label' => __('Payment')]] : []),
     ];
     $pad = fn (int $n) => Money::digits(str_pad((string) $n, 2, '0', STR_PAD_LEFT));
 @endphp
@@ -259,7 +260,8 @@
                         </div>
                     </fieldset>
 
-                    {{-- 4. Payment --}}
+                    {{-- 4. Payment: only when the visitor can choose to pay online --}}
+                    @if ($canPayOnline)
                     <fieldset id="step-payment" class="book-card scroll-mt-40">
                         <legend class="sr-only">{{ __('Payment') }}</legend>
                         <div class="book-card-head" data-reveal aria-hidden="true">
@@ -301,6 +303,19 @@
                             @error('agree')<p id="agree-error" class="error-site">{{ $message }}</p>@enderror
                         </div>
                     </fieldset>
+                    @else
+                        {{-- No online payment: the booking is "pay later", so only the terms are left to accept. --}}
+                        <input type="hidden" name="payment" value="later">
+                        <div class="book-card">
+                            <div class="book-card-body">
+                                <label class="flex items-start gap-3 rounded-2xl bg-sand-50 p-4 text-[14px] text-ink-2 ring-1 ring-line" data-reveal>
+                                    <input type="checkbox" name="agree" value="1" @checked(old('agree')) class="mt-0.5 size-5 shrink-0 rounded accent-[var(--color-brand)]" {!! $invalid('agree') !!}>
+                                    <span>{{ __('I agree to the') }} <a href="{{ url('terms-and-conditions') }}" target="_blank" class="font-semibold text-brand underline">{{ __('booking terms and conditions') }}</a>{{ __(', including that prices may change with Saudi government or airline fees.') }}</span>
+                                </label>
+                                @error('agree')<p id="agree-error" class="error-site">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Summary --}}

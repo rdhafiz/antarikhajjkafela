@@ -128,6 +128,24 @@ class BookingTest extends AdminTestCase
         $this->get("/bookings/{$booking->reference}")->assertForbidden();
     }
 
+    public function test_the_payment_step_only_shows_when_online_payment_is_possible(): void
+    {
+        // No gateway or no advance: every booking is "pay later", so the step and its tab are hidden.
+        $this->get('/packages/umrah-package/book')->assertOk()
+            ->assertDontSee('id="step-payment"', false)
+            ->assertDontSeeText('Choose how you would like to pay.')
+            ->assertSee('<input type="hidden" name="payment" value="later">', false)
+            ->assertSeeText('booking terms and conditions');
+
+        $this->enableSslCommerz();
+        $this->package()->update(['advance_type' => 'fixed', 'advance_value' => 20000]);
+
+        $this->get('/packages/umrah-package/book')->assertOk()
+            ->assertSee('id="step-payment"', false)
+            ->assertSeeText('Pay the advance now')
+            ->assertSeeText('Book now, pay later');
+    }
+
     public function test_travel_years_follow_the_season(): void
     {
         $dates = app(TravelDates::class);
