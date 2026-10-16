@@ -33,17 +33,16 @@ class RichTextComponent extends Component
     {
         return [
             ...$this->headingFields(intro: false),
-            Field::richtext('body', 'Text')->required(),
+            Field::richtext('body', 'Text')->required()->hint('Start writing your content here.'),
             Field::select('width', 'Width', ['narrow' => 'Narrow (best for reading)', 'wide' => 'Wide']),
         ];
     }
 
     public function defaults(): array
     {
-        return [
-            ...parent::defaults(),
-            'body' => ['en' => '<p>Start writing your content here.</p>'],
-        ];
+        // No seeded body: text left in one language only would publish as if
+        // it were content, and the empty-locale fallback would never kick in.
+        return parent::defaults();
     }
 
     public function defaultStyle(): array

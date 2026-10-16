@@ -29,17 +29,21 @@ class ContentProcessor
     /**
      * Validation rules for content stored under $prefix (e.g. "sections.3.content").
      *
+     * $requireContent off lets a half-written draft save: a new page starts
+     * with empty sections, and nobody should have to finish them in one go.
+     * Required fields are enforced when the page is published.
+     *
      * @param  list<Field>  $fields
      * @return array<string, mixed>
      */
-    public function rules(array $fields, string $prefix): array
+    public function rules(array $fields, string $prefix, bool $requireContent = true): array
     {
         $rules = [$prefix => ['nullable', 'array']];
         $requiredLocale = $this->locales->default();
 
         foreach ($fields as $field) {
             $path = "{$prefix}.{$field->key}";
-            $required = (bool) $field->option('required');
+            $required = $requireContent && (bool) $field->option('required');
 
             switch ($field->type) {
                 case Field::TEXT:
@@ -48,7 +52,9 @@ class ContentProcessor
                     $base = ['nullable', 'string', 'max:'.$field->option('max')];
 
                     if ($field->isTranslatable()) {
-                        $rules[$path] = [$required ? 'required' : 'nullable', 'array'];
+                        // Required-ness lives on the default locale below, so
+                        // one empty field reports one error, not two.
+                        $rules[$path] = ['nullable', 'array'];
                         foreach ($this->locales->codes() as $locale) {
                             $rules["{$path}.{$locale}"] = $base;
                         }
@@ -109,10 +115,10 @@ class ContentProcessor
 
                 case Field::REPEATER:
                     $rules[$path] = [$required ? 'required' : 'nullable', 'array', 'max:'.$field->option('max', 12)];
-                    if ($field->option('min')) {
+                    if ($requireContent && $field->option('min')) {
                         $rules[$path][] = 'min:'.$field->option('min');
                     }
-                    $rules = [...$rules, ...$this->rules($field->children(), "{$path}.*")];
+                    $rules = [...$rules, ...$this->rules($field->children(), "{$path}.*", $requireContent)];
                     unset($rules["{$path}.*"]);
                     $rules["{$path}.*"] = ['array'];
                     $rules["{$path}.*._id"] = ['nullable', 'string', 'max:40'];
@@ -121,6 +127,49 @@ class ContentProcessor
         }
 
         return $rules;
+    }
+
+    /**
+     * Readable names for the paths rules() generates, so a failed save says
+     * "Text → Body (Bangla)" instead of "sections.3.content.body.bn".
+     *
+     * @param  list<Field>  $fields
+     * @return array<string, string>
+     */
+    public function attributes(array $fields, string $prefix, string $section): array
+    {
+        $names = [];
+
+        foreach ($fields as $field) {
+            $path = "{$prefix}.{$field->key}";
+            $label = "{$section} → {$field->label}";
+            $names[$path] = $label;
+
+            switch ($field->type) {
+                case Field::TEXT:
+                case Field::TEXTAREA:
+                case Field::RICHTEXT:
+                    if ($field->isTranslatable()) {
+                        foreach ($this->locales->available() as $code => $locale) {
+                            $names["{$path}.{$code}"] = "{$label} ({$locale['name']})";
+                        }
+                    }
+                    break;
+
+                case Field::LINK:
+                    $names["{$path}.url"] = "{$label} address";
+                    foreach ($this->locales->available() as $code => $locale) {
+                        $names["{$path}.label.{$code}"] = "{$label} text ({$locale['name']})";
+                    }
+                    break;
+
+                case Field::REPEATER:
+                    $names = [...$names, ...$this->attributes($field->children(), "{$path}.*", $section)];
+                    break;
+            }
+        }
+
+        return $names;
     }
 
     /**

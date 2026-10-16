@@ -46,6 +46,7 @@ class RoleController extends Controller
 
         $role = Role::create([
             'name' => Str::slug($data['name']),
+            'label' => $data['name'],
             'guard_name' => config('access.guard'),
         ]);
         $role->syncPermissions($data['permissions'] ?? []);
@@ -59,8 +60,10 @@ class RoleController extends Controller
 
         $data = $this->validated($request, $role);
 
+        // Renaming changes only what staff see. The slug in "name" is what
+        // config/access.php and the permission checks match on, so it stays.
         if (! array_key_exists($role->name, config('access.roles'))) {
-            $role->update(['name' => Str::slug($data['name'])]);
+            $role->update(['label' => $data['name']]);
         }
 
         $role->syncPermissions($data['permissions'] ?? []);
@@ -93,12 +96,21 @@ class RoleController extends Controller
     {
         $request->merge(['slug' => Str::slug((string) $request->input('name'))]);
 
-        return $request->validate([
-            'name' => ['required', 'string', 'max:60'],
-            'slug' => ['required', Rule::unique('roles', 'name')->ignore($role?->id)],
+        $rules = [
+            'name' => ['required', 'string', 'max:60', Rule::unique('roles', 'label')->ignore($role?->id)],
+            'slug' => ['required'],
             'permissions' => ['array'],
             'permissions.*' => ['string', Rule::in(AccessSynchronizer::permissionNames())],
-        ], [
+        ];
+
+        // The slug is set once and never changes, so it only has to be free
+        // when the role is created.
+        if ($role === null) {
+            $rules['slug'][] = Rule::unique('roles', 'name');
+        }
+
+        return $request->validate($rules, [
+            'name.unique' => 'A role with this name already exists.',
             'slug.unique' => 'A role with this name already exists.',
             'slug.required' => 'The name must contain letters or numbers.',
         ]);

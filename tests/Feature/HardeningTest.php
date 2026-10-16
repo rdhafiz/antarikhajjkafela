@@ -60,7 +60,14 @@ class HardeningTest extends AdminTestCase
         $csv = $this->asAdmin($this->superAdmin())->get('/api/admin/inquiries/export')->assertOk()->streamedContent();
 
         $this->assertStringContainsString("'=HYPERLINK", $csv);
-        $this->assertStringContainsString("'+8801711000000", $csv);
+
+        // Phone numbers go out as ="…" so Excel keeps the leading zero. Only
+        // phone characters survive the wrapper, so it cannot carry a formula.
+        $row = str_getcsv(explode("\n", trim($csv))[1]);
+        $this->assertSame('="+8801711000000"', $row[4]);
+
+        Inquiry::create(['source' => 'contact_form', 'name' => 'Formula in the phone', 'phone' => '=HYPERLINK("http://evil.test","x")', 'data' => []]);
+        $this->assertStringNotContainsString('HYPERLINK("http', $this->asAdmin($this->superAdmin())->get('/api/admin/inquiries/export')->streamedContent());
     }
 
     public function test_language_switch_only_returns_to_this_site(): void

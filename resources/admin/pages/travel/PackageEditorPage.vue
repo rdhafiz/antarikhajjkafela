@@ -195,7 +195,8 @@ const bookingTone = { open: 'success', upcoming: 'warning', closed: 'danger' } a
                         <p class="-mt-1 mb-3 text-[12px] text-ink-muted">What customers pay online when they book (used by the booking system).</p>
                         <div class="grid gap-4 sm:grid-cols-2">
                             <FormField label="Type" for="pkg-adv-type">
-                                <select id="pkg-adv-type" v-model="data.advance_type" class="control">
+                                <!-- The number means something different per type: 100 as taka is not 100 per cent. -->
+                                <select id="pkg-adv-type" v-model="data.advance_type" class="control" @change="data.advance_value = null">
                                     <option v-for="(label, value) in schema.advance_types" :key="value" :value="value">{{ label }}</option>
                                 </select>
                             </FormField>

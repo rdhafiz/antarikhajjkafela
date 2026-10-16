@@ -22,6 +22,7 @@ const router = useRouter();
 const paidPercent = computed(() => (props.row.total > 0 ? Math.min(100, Math.round((props.row.paid_amount / props.row.total) * 100)) : 0));
 /** Colour and words for how much is paid. */
 const payment = computed(() => {
+    if (props.row.overpaid > 0) return { label: `${money(props.row.overpaid)} overpaid`, tone: '#fb923c' };
     if (props.row.total > 0 && props.row.balance <= 0) return { label: 'Paid in full', tone: '#34d399' };
     if (props.row.paid_amount > 0) return { label: `${paidPercent.value}% paid`, tone: '#fbbf24' };
     return { label: 'Nothing paid yet', tone: '#60a5fa' };

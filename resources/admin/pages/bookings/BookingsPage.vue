@@ -236,7 +236,8 @@ onMounted(async () => {
                 <div class="flex flex-wrap gap-2">
                     <AppBadge :tone="statusTone[current.status]">{{ statusLabel(current.status) }}</AppBadge>
                     <AppBadge v-if="current.is_unread" tone="brand">New</AppBadge>
-                    <AppBadge v-if="current.total > 0 && current.balance <= 0" tone="success">Paid in full</AppBadge>
+                    <AppBadge v-if="current.overpaid > 0" tone="warning">{{ money(current.overpaid) }} overpaid</AppBadge>
+                    <AppBadge v-else-if="current.total > 0 && current.balance <= 0" tone="success">Paid in full</AppBadge>
                 </div>
 
                 <div class="mt-5 rounded-2xl border border-line p-4">
