@@ -338,28 +338,11 @@
                                     <span class="book-choice-check absolute top-4 end-4 flex size-6 items-center justify-center rounded-full" aria-hidden="true"><x-site.icon name="check" class="size-3.5" /></span>
                                 </label>
                             </div>
-
-                            <div data-field>
-                            <label class="mt-6 flex items-start gap-3 rounded-2xl bg-sand-50 p-4 text-[14px] text-ink-2 ring-1 ring-line" data-reveal>
-                                <input type="checkbox" name="agree" value="1" @checked(old('agree')) required data-message="{{ __('Please accept the booking terms.') }}" class="mt-0.5 size-5 shrink-0 rounded accent-[var(--color-brand)]" {!! $invalid('agree') !!}>
-                                <span>{{ __('I agree to the') }} <a href="{{ url('terms-and-conditions') }}" target="_blank" class="font-semibold text-brand underline">{{ __('booking terms and conditions') }}</a>{{ __(', including that prices may change with Saudi government or airline fees.') }}</span>
-                            </label>
-                            @error('agree')<p id="agree-error" class="error-site">{{ $message }}</p>@enderror
-                            </div>
                         </div>
                     </fieldset>
                     @else
-                        {{-- No online payment: the booking is "pay later", so only the terms are left to accept. --}}
+                        {{-- No online payment: every booking is "pay later". --}}
                         <input type="hidden" name="payment" value="later">
-                        <div class="book-card">
-                            <div class="book-card-body" data-field>
-                                <label class="flex items-start gap-3 rounded-2xl bg-sand-50 p-4 text-[14px] text-ink-2 ring-1 ring-line" data-reveal>
-                                    <input type="checkbox" name="agree" value="1" @checked(old('agree')) required data-message="{{ __('Please accept the booking terms.') }}" class="mt-0.5 size-5 shrink-0 rounded accent-[var(--color-brand)]" {!! $invalid('agree') !!}>
-                                    <span>{{ __('I agree to the') }} <a href="{{ url('terms-and-conditions') }}" target="_blank" class="font-semibold text-brand underline">{{ __('booking terms and conditions') }}</a>{{ __(', including that prices may change with Saudi government or airline fees.') }}</span>
-                                </label>
-                                @error('agree')<p id="agree-error" class="error-site">{{ $message }}</p>@enderror
-                            </div>
-                        </div>
                     @endif
                 </div>
 
@@ -396,6 +379,14 @@
                             @endif
                         </dl>
                         <div class="p-6 pt-0">
+                            {{-- The terms, accepted right where the booking is confirmed. --}}
+                            <div class="book-agree mb-5" data-field>
+                                <label class="flex items-start gap-3 text-[13.5px] leading-relaxed text-white/80">
+                                    <input type="checkbox" name="agree" value="1" @checked(old('agree')) required data-message="{{ __('Please accept the booking terms.') }}" class="mt-0.5 size-5 shrink-0 cursor-pointer rounded accent-[var(--color-gold)]" {!! $invalid('agree') !!}>
+                                    <span>{{ __('I agree to the') }} <a href="{{ url('terms-and-conditions') }}" target="_blank" class="font-semibold text-gold underline underline-offset-2 hover:text-white">{{ __('booking terms and conditions') }}</a>{{ __(', including that prices may change with Saudi government or airline fees.') }}</span>
+                                </label>
+                                @error('agree')<p id="agree-error" class="error-site">{{ $message }}</p>@enderror
+                            </div>
                             <button type="submit" class="btn btn-gold btn-lg w-full" :disabled="busy">
                                 <svg x-show="busy" x-cloak class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".25" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
                                 <span x-text="payment === 'now' ? @js(__('Book and pay advance')) : @js(__('Confirm booking'))">{{ __('Confirm booking') }}</span>
