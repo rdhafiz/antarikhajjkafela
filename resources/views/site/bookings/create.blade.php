@@ -184,7 +184,7 @@
                                                     {!! $invalid('travel_month') !!}>
                                                 <option value="">{{ __('Choose a month') }}</option>
                                                 @foreach ($travel['months'] as $number => $month)
-                                                    <option value="{{ $number }}" :disabled="travelYear === {{ $travel['currentYear'] }} && {{ $number }} < {{ $travel['currentMonth'] }}">{{ $month }}</option>
+                                                    <option value="{{ $number }}" :disabled="travelYear === {{ $travel['currentYear'] }} && {{ $number }} < {{ $travel['currentMonth'] }}" :hidden="travelYear === {{ $travel['currentYear'] }} && {{ $number }} < {{ $travel['currentMonth'] }}" @if ($number < $travel['currentMonth']) hidden disabled @endif>{{ $month }}</option>
                                                 @endforeach
                                             </select>
                                             <x-site.icon name="chevron-down" class="book-picker-chevron" />
@@ -400,7 +400,7 @@
                             </div>
                             <button type="submit" class="btn btn-gold min-h-12 w-full" :disabled="busy">
                                 <svg x-show="busy" x-cloak class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".25" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-                                <span x-text="payment === 'now' ? @js(__('Book and pay advance')) : @js(__('Confirm booking'))">{{ __('Confirm booking') }}</span>
+                                <span x-text="payment === 'now' ? @js(__('Book and pay advance')) : @js(__('Confirm free booking'))">{{ __('Confirm free booking') }}</span>
                             </button>
                             <p class="mt-2 text-center text-[12px] text-white/60">{{ __('Final amounts are confirmed by our team.') }}@if ($recaptcha) {{ __('Protected by reCAPTCHA.') }}@endif</p>
                         </div>
