@@ -23,9 +23,10 @@
     </style>
 
     @inject('branding', App\Support\Branding::class)
-    @if ($favicon = $branding->favicon())
-        <link rel="icon" type="image/webp" href="{{ $favicon->url('32') }}">
-    @endif
+    {{-- Same icon as the website: the uploaded favicon, or the brand icon when there is none. --}}
+    <link rel="icon" type="image/webp" sizes="32x32" href="{{ $branding->faviconUrl(32) }}">
+    <link rel="icon" type="image/webp" sizes="192x192" href="{{ $branding->faviconUrl(192) }}">
+    <link rel="apple-touch-icon" href="{{ $branding->iconUrl(192) }}">
 
     <link rel="preload" as="font" type="font/woff2" href="{{ Vite::asset('resources/fonts/plus-jakarta-sans-latin-400.woff2') }}" crossorigin>
     {{-- Base of the client router: the admin portal sits under /{admin_prefix}/. --}}
