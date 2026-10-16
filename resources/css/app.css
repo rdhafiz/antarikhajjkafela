@@ -1735,6 +1735,43 @@
         }
     }
 
+    /* Step 2: contact fields with an icon, two columns from tablets. */
+    .book-fields {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.25rem 1.5rem;
+
+        @media (width >= 40rem) {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .book-input {
+        cursor: text;
+
+        &::placeholder {
+            color: color-mix(in srgb, var(--color-ink-3) 75%, transparent);
+        }
+
+        &:is(textarea) {
+            height: auto;
+            min-height: 8rem;
+            padding-block: 0.95rem;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        .book-picker > &[dir='ltr'] {
+            text-align: start;
+        }
+    }
+
+    /* An icon beside the first line of a text area. */
+    .book-picker-top .book-picker-icon {
+        top: 1.1rem;
+        translate: none;
+    }
+
     .book-step .book-step-num {
         background: var(--color-sand-100);
         color: var(--color-gold-deep);

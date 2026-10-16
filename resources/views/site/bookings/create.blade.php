@@ -192,32 +192,43 @@
                     {{-- 2. Contact --}}
                     <fieldset id="step-details" class="book-card scroll-mt-40">
                         <legend class="sr-only">{{ __('Your details') }}</legend>
-                        <div class="book-card-head" data-reveal aria-hidden="true">
+                        <div class="book-card-head book-head-scene" data-reveal aria-hidden="true">
+                            {{-- The Prophet's Mosque, fading in behind the heading. --}}
+                            <img src="{{ asset('images/booking/madinah-scene.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
                             <span class="book-card-num">{{ $pad(2) }}</span>
-                            <div>
-                                <p class="font-display text-display-sm text-brand">{{ __('Your details') }}</p>
-                                <p class="mt-1 text-[14.5px] text-ink-2">{{ __('We call this number to confirm your booking.') }}</p>
+                            <span class="book-head-rule" aria-hidden="true"></span>
+                            <div class="relative min-w-0">
+                                <p class="book-head-title">{{ __('Your details') }}</p>
+                                <p class="book-head-text">{{ __('We call this number to confirm your booking.') }}</p>
                             </div>
                         </div>
-                        <div class="book-card-body grid gap-5 sm:grid-cols-2">
-                            @foreach ([
-                                ['name', __('Full name'), 'text', true, 'name'],
-                                ['phone', __('Mobile number'), 'tel', true, 'tel'],
-                                ['email', __('Email'), 'email', false, 'email'],
-                                ['address', __('Address'), 'text', false, 'street-address'],
-                            ] as $i => [$key, $label, $type, $required, $autocomplete])
-                                <div data-reveal style="--reveal-delay: {{ ($i % 2) * 80 }}ms">
-                                    <label for="{{ $key }}" class="label-site">{{ $label }}@if ($required)<span class="text-red-600">*</span>@endif
-                                        @if ($key === 'email')<span class="font-normal text-ink-3" x-text="payment === 'now' ? @js(' ('.__('needed for online payment').')') : ''"></span>@endif
-                                    </label>
-                                    <input id="{{ $key }}" name="{{ $key }}" type="{{ $type }}" value="{{ old($key) }}" autocomplete="{{ $autocomplete }}" @required($required) @if ($type === 'tel') inputmode="tel" @endif class="input-site" {!! $invalid($key) !!}>
-                                    @error($key)<p id="{{ $key }}-error" class="error-site">{{ $message }}</p>@enderror
+                        <div class="book-card-body">
+                            <div class="book-fields">
+                                @foreach ([
+                                    ['name', __('Full name'), 'text', true, 'name', 'user'],
+                                    ['phone', __('Mobile number'), 'tel', true, 'tel', 'phone'],
+                                    ['email', __('Email'), 'email', false, 'email', 'mail'],
+                                    ['address', __('Address'), 'text', false, 'street-address', 'map-pin'],
+                                ] as $i => [$key, $label, $type, $required, $autocomplete, $icon])
+                                    <div data-reveal style="--reveal-delay: {{ ($i % 2) * 80 }}ms">
+                                        <label for="{{ $key }}" class="book-label">{{ $label }}@if ($required) <span class="text-red-600">*</span>@else <span class="font-normal text-ink-3">({{ __('optional') }})</span>@endif
+                                            @if ($key === 'email')<span class="font-normal text-ink-3" x-text="payment === 'now' ? @js(' – '.__('needed for online payment')) : ''"></span>@endif
+                                        </label>
+                                        <div class="book-picker">
+                                            <x-site.icon :name="$icon" class="book-picker-icon" />
+                                            <input id="{{ $key }}" name="{{ $key }}" type="{{ $type }}" value="{{ old($key) }}" autocomplete="{{ $autocomplete }}" @required($required) @if ($type === 'tel') inputmode="tel" dir="ltr" placeholder="01XXXXXXXXX" @endif class="book-select book-input" {!! $invalid($key) !!}>
+                                        </div>
+                                        @error($key)<p id="{{ $key }}-error" class="error-site">{{ $message }}</p>@enderror
+                                    </div>
+                                @endforeach
+                                <div class="sm:col-span-2" data-reveal>
+                                    <label for="note" class="book-label">{{ __('Message') }} <span class="font-normal text-ink-3">({{ __('optional') }})</span></label>
+                                    <div class="book-picker book-picker-top">
+                                        <x-site.icon name="document" class="book-picker-icon" />
+                                        <textarea id="note" name="note" rows="4" class="book-select book-input" placeholder="{{ __('Names of the travelers, special needs, questions…') }}">{{ old('note') }}</textarea>
+                                    </div>
+                                    @error('note')<p class="error-site">{{ $message }}</p>@enderror
                                 </div>
-                            @endforeach
-                            <div class="sm:col-span-2" data-reveal>
-                                <label for="note" class="label-site">{{ __('Message') }} <span class="font-normal text-ink-3">({{ __('optional') }})</span></label>
-                                <textarea id="note" name="note" rows="3" class="input-site" placeholder="{{ __('Names of the travelers, special needs, questions…') }}">{{ old('note') }}</textarea>
-                                @error('note')<p class="error-site">{{ $message }}</p>@enderror
                             </div>
                         </div>
                     </fieldset>

@@ -14,7 +14,7 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | haram-wide.webp | Default page banner; Umrah fallback; admin Packages header (cropped copy in `resources/admin/assets/packages-header.webp`) | Jubair Hossain | https://unsplash.com/photos/WuIroq-Q1hY |
 | madinah-golden.webp | About; admin Inquiries and Profile headers (cropped copies in `resources/admin/assets/inquiries-header.webp` and `profile-header.webp`) | Sulthan Auliya | https://unsplash.com/photos/rzzS0_pMsD0 |
 | makkah-hotels.webp | Services; admin Services header (cropped copy in `resources/admin/assets/services-header.webp`) | Sikiru Salami | https://unsplash.com/photos/jZp68sRx2w4 |
-| madinah-umbrellas.webp | Contact; admin Bookings header (cropped copy in `resources/admin/assets/bookings-header.webp`) | Haidan | https://unsplash.com/photos/RhkbHU14MoA |
+| madinah-umbrellas.webp | Contact; booking form step 2 (cropped, mirrored copy in `public/images/booking/madinah-scene.webp`); admin Bookings header (cropped copy in `resources/admin/assets/bookings-header.webp`) | Haidan | https://unsplash.com/photos/RhkbHU14MoA |
 | haram-courtyard.webp | Gallery; booking form step 1 (cropped copy in `public/images/booking/haram-scene.webp`); admin Gallery header (cropped copy in `resources/admin/assets/gallery-header.webp`) | Sam Riz | https://unsplash.com/photos/ceNCWYqL8DY |
 | green-dome.webp | Reviews; admin Blog and Settings headers (cropped copies in `resources/admin/assets/blog-header.webp` and `settings-header.webp`) | A Miah | https://unsplash.com/photos/hJXiPheKFus |
 | quran.webp | Blog & news; admin Reviews header (cropped copy in `resources/admin/assets/reviews-header.webp`) | Abdullah Arif | https://unsplash.com/photos/Dxi6KbpvUgA |
