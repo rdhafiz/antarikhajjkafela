@@ -38,9 +38,21 @@
         <div class="section-light">
             <div class="container-site py-14 sm:py-20">
                 <div class="mx-auto max-w-[760px] text-[1.0625rem]">
+                    @php
+                        // A Hajj or Umrah post invites the reader to book, halfway through.
+                        $half = $p['cta'] ? (int) ceil(count($p['blocks']) / 2) : count($p['blocks']);
+                    @endphp
                     <div data-reveal-children>
-                        @include('partials.content-blocks', ['blocks' => $p['blocks']])
+                        @include('partials.content-blocks', ['blocks' => array_slice($p['blocks'], 0, $half)])
                     </div>
+                    @if ($p['cta'])
+                        @include('partials.booking-cta', ['cta' => $p['cta']])
+                        @if (count($p['blocks']) > $half)
+                            <div class="mt-6" data-reveal-children>
+                                @include('partials.content-blocks', ['blocks' => array_slice($p['blocks'], $half)])
+                            </div>
+                        @endif
+                    @endif
 
                     <footer class="mt-14 space-y-6 border-t border-line pt-8" data-reveal>
                         @if ($post->tags)

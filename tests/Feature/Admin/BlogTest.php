@@ -8,6 +8,7 @@ use App\Models\PostCategory;
 use App\Models\SlugRedirect;
 use Database\Seeders\BlogSeeder;
 use Database\Seeders\PageSeeder;
+use Database\Seeders\TravelSeeder;
 use Illuminate\Support\Facades\URL;
 
 class BlogTest extends AdminTestCase
@@ -75,6 +76,21 @@ class BlogTest extends AdminTestCase
         $items = $faq->fresh()->content['items'];
         $this->assertStringContainsString('Hajj 2028', $items[3]['answer']['en']);
         $this->assertSame('<p>Edited by the admin.</p>', $items[0]['answer']['en']);
+    }
+
+    public function test_long_posts_read_in_five_minutes_and_invite_hajj_and_umrah_readers_to_book(): void
+    {
+        $this->seed(TravelSeeder::class);
+
+        foreach (['what-is-umrah' => '/umrah#packages', 'hajj-2028-registration' => '/hajj#packages'] as $slug => $target) {
+            $response = $this->get("/blog/{$slug}")->assertOk()->assertSeeText('Free Booking Now')->assertSee(url($target), false);
+            preg_match('/(\d+) min read/', strip_tags($response->getContent()), $match);
+            $this->assertGreaterThanOrEqual(5, (int) ($match[1] ?? 0), "{$slug} reads in five minutes or more");
+        }
+
+        // A post without a Hajj or Umrah tag has no booking box.
+        Post::where('slug', 'what-is-umrah')->first()->update(['tags' => ['Beginners']]);
+        $this->get('/blog/what-is-umrah')->assertOk()->assertDontSee('post-cta', false);
     }
 
     public function test_posts_are_shown_in_bangla(): void

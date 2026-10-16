@@ -4,6 +4,7 @@ namespace App\Domain\Blog;
 
 use App\Models\Media;
 use App\Models\Post;
+use App\Models\Service;
 use App\PageBuilder\ContentBlocks;
 use App\PageBuilder\ContentProcessor;
 use App\Support\Branding;
@@ -38,7 +39,33 @@ class PostPresenter
             'blocks' => $blocks,
             'minutes' => self::readingMinutes($blocks),
             'date' => self::date($post->published_at),
+            'cta' => $this->bookingCta($post),
         ];
+    }
+
+    /**
+     * Posts tagged Hajj or Umrah invite the reader to book (free) with the
+     * matching service, when it is on the website and has packages.
+     *
+     * @return array{kind: string, url: string}|null
+     */
+    public function bookingCta(Post $post): ?array
+    {
+        $tags = mb_strtolower(implode(' ', $post->tags ?? []));
+        $kind = str_contains($tags, 'hajj') ? 'hajj' : (str_contains($tags, 'umrah') ? 'umrah' : null);
+
+        if (! $kind) {
+            return null;
+        }
+
+        $service = Service::query()
+            ->where('is_active', true)
+            ->where('travel_date', $kind === 'hajj' ? 'hajj_year' : 'month_year')
+            ->whereHas('packages', fn ($q) => $q->published())
+            ->orderBy('sort')
+            ->first();
+
+        return $service ? ['kind' => $kind, 'url' => $service->url().'#packages'] : null;
     }
 
     /**
