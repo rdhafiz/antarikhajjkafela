@@ -10,7 +10,9 @@ const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
-const form = useForm({ email: '', password: '', remember: true });
+// Off by default: the office shares machines, and a long-lived session
+// should be something staff choose rather than something they inherit.
+const form = useForm({ email: '', password: '', remember: false });
 const showPassword = ref(false);
 const capsLock = ref(false);
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Admin\CurrentUserResource;
 use App\Models\Booking;
 use App\Models\Inquiry;
 use App\Models\Media;
@@ -17,6 +18,10 @@ class BootstrapController extends Controller
     public function __invoke(Locales $locales): JsonResponse
     {
         return response()->json([
+            // The signed-in user rides along so the SPA does not have to ask
+            // who it is and then ask what the install looks like, one after
+            // the other, before it can load the page it was asked for.
+            'user' => new CurrentUserResource(request()->user()),
             'app' => [
                 'name' => setting_t('branding.site_name', 'en'),
                 'url' => url('/'),

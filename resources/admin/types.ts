@@ -96,6 +96,8 @@ export interface AdminTheme {
 }
 
 export interface Bootstrap {
+    /** The signed-in user, so booting takes one request instead of two. */
+    user: CurrentUser;
     app: { name: string; url: string; logo: string | null; icon: string | null };
     locales: Locale[];
     default_locale: string;

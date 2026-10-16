@@ -74,14 +74,14 @@
                     <p class="mt-1.5 text-[15px] text-ink-2">{{ __('Leave your details and our team will call you, In Sha Allah.') }}</p>
                 </div>
 
-                {{-- Topic chips fill in the subject. --}}
+                {{-- Topic chips fill in the subject, unless the visitor typed their own. --}}
                 <div class="mt-6" data-reveal style="--reveal-delay: 80ms">
                     <p class="mb-2.5 text-[14px] font-semibold text-ink" id="topic-label-{{ $section->id }}">{{ __('What is it about?') }}</p>
                     <div class="flex flex-wrap gap-2" role="group" aria-labelledby="topic-label-{{ $section->id }}">
                         @foreach ($topics as $topic)
                             <button type="button" class="concierge-chip rounded-full px-4 py-2 text-[14px] font-semibold"
                                     :class="topic === @js($topic) && 'is-active'" :aria-pressed="(topic === @js($topic)).toString()"
-                                    @click="topic = @js($topic); const f = document.getElementById('f-{{ $section->id }}-subject'); if (f) f.value = topic">{{ $topic }}</button>
+                                    @click="const f = document.getElementById('f-{{ $section->id }}-subject'); if (f && (!f.value.trim() || f.value === topic)) f.value = @js($topic); topic = @js($topic)">{{ $topic }}</button>
                         @endforeach
                     </div>
                 </div>

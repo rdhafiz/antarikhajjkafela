@@ -9,20 +9,14 @@ export const useAuthStore = defineStore('auth', () => {
 
     const isAuthenticated = computed(() => user.value !== null);
 
-    /** Load the signed-in user once; resolves to false when not signed in. */
-    async function check(): Promise<boolean> {
-        if (checked.value) return isAuthenticated.value;
-
-        try {
-            const { data } = await http.get<{ data: CurrentUser }>('/auth/me');
-            user.value = data.data;
-        } catch {
-            user.value = null;
-        } finally {
-            checked.value = true;
-        }
-
-        return isAuthenticated.value;
+    /**
+     * Take the user the bootstrap request carried, or null when it found
+     * nobody signed in. The router does the asking so that booting the
+     * admin costs one round trip rather than two.
+     */
+    function adopt(current: CurrentUser | null): void {
+        user.value = current;
+        checked.value = true;
     }
 
     async function login(credentials: { email: string; password: string; remember: boolean }): Promise<void> {
@@ -56,5 +50,5 @@ export const useAuthStore = defineStore('auth', () => {
         return user.value.permissions.includes('*') || user.value.permissions.includes(permission);
     }
 
-    return { user, checked, isAuthenticated, check, login, logout, clear, setUser, can };
+    return { user, checked, isAuthenticated, adopt, login, logout, clear, setUser, can };
 });

@@ -59,7 +59,16 @@ export const router = createRouter({
 
 router.beforeEach(async (to) => {
     const auth = useAuthStore();
-    const signedIn = await auth.check();
+    const app = useAppStore();
+
+    // Bootstrap carries the signed-in user, so one request answers both
+    // "who is this?" and "what does this install look like?" before the
+    // page itself is free to ask for its own data.
+    if (!auth.checked) {
+        auth.adopt(await app.load());
+    }
+
+    const signedIn = auth.isAuthenticated;
     const isGuestPage = to.matched.some((record) => record.meta.guest);
 
     if (!signedIn && !isGuestPage) {
@@ -70,8 +79,9 @@ router.beforeEach(async (to) => {
         return { name: 'dashboard' };
     }
 
+    // Signing in skips the block above, so the shell still needs loading.
     if (signedIn) {
-        await useAppStore().load();
+        await app.load();
     }
 
     if (to.meta.permission && !auth.can(to.meta.permission)) {

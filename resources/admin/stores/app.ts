@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { http } from '@admin/lib/http';
-import type { AdminTheme, Bootstrap, Locale } from '@admin/types';
+import type { AdminTheme, Bootstrap, CurrentUser, Locale } from '@admin/types';
 
 const themeVariables: Record<keyof AdminTheme, string> = {
     primary_color: '--admin-primary',
@@ -28,10 +28,21 @@ export const useAppStore = defineStore('app', () => {
     const inquiriesUnread = ref(0);
     const bookingsUnread = ref(0);
 
-    async function load(force = false): Promise<void> {
-        if (loaded.value && !force) return;
+    /**
+     * One request for everything the shell needs. Returns the signed-in
+     * user it carries, or null when nobody is: /bootstrap needs a session,
+     * so a rejection here is the answer to "is anyone signed in?".
+     */
+    async function load(force = false): Promise<CurrentUser | null> {
+        if (loaded.value && !force) return null;
 
-        const { data } = await http.get<Bootstrap>('/bootstrap');
+        let data: Bootstrap;
+
+        try {
+            ({ data } = await http.get<Bootstrap>('/bootstrap'));
+        } catch {
+            return null;
+        }
 
         name.value = data.app.name;
         siteUrl.value = data.app.url;
@@ -46,6 +57,8 @@ export const useAppStore = defineStore('app', () => {
         applyTheme(data.admin_theme);
 
         loaded.value = true;
+
+        return data.user;
     }
 
     /** Apply admin theme colors live (e.g. right after saving settings). */

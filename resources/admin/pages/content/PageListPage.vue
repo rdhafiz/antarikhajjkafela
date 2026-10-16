@@ -184,7 +184,7 @@ async function duplicate(page: PageSummary): Promise<void> {
 async function remove(page: PageSummary): Promise<void> {
     const ok = await confirm({
         title: `Delete "${title(page)}"?`,
-        message: 'The page and all its sections will be removed. Menu links to it will stop working.',
+        message: 'It goes to the Trash with all its sections, where a super admin can restore it. Menu links to it stop working in the meantime.',
         confirmLabel: 'Delete page',
     });
     if (!ok) return;
