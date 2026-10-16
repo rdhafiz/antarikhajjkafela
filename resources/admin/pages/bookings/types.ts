@@ -27,6 +27,8 @@ export interface BookingRow {
     total: number;
     paid_amount: number;
     balance: number;
+    /** Paid above the total. Zero unless a payment predates the cap. */
+    overpaid: number;
     customer_name: string;
     customer_phone: string;
     customer_email?: string | null;

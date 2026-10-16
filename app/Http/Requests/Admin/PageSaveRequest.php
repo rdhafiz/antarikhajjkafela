@@ -66,12 +66,15 @@ class PageSaveRequest extends FormRequest
             ];
         }
 
-        // Content rules depend on each section's component.
+        // Content rules depend on each section's component. Required fields
+        // are only enforced when the page goes live; a draft may be half done.
+        $publishing = $this->input('status') === Page::STATUS_PUBLISHED;
+
         foreach ((array) $this->input('sections', []) as $index => $section) {
             $key = is_array($section) ? ($section['component'] ?? null) : null;
 
             if (is_string($key) && $registry->has($key)) {
-                $rules = [...$rules, ...$processor->rules($registry->get($key)->fields(), "sections.{$index}.content")];
+                $rules = [...$rules, ...$processor->rules($registry->get($key)->fields(), "sections.{$index}.content", $publishing)];
             }
 
             foreach (SectionStyle::fields() as $field) {
@@ -125,6 +128,38 @@ class PageSaveRequest extends FormRequest
                 $validator->errors()->add('sections', 'This page has no listing section.');
             }
         }];
+    }
+
+    /**
+     * Name every generated section path after the section and field an
+     * editor actually sees, so the message points at something findable.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        $locales = app(Locales::class);
+        $registry = app(ComponentRegistry::class);
+        $processor = app(ContentProcessor::class);
+
+        $names = [
+            'title' => 'Page title',
+            "title.{$locales->default()}" => 'Page title ('.($locales->available()[$locales->default()]['name'] ?? $locales->default()).')',
+            'slug' => 'Web address',
+        ];
+
+        foreach ((array) $this->input('sections', []) as $index => $section) {
+            $key = is_array($section) ? ($section['component'] ?? null) : null;
+
+            if (is_string($key) && $registry->has($key)) {
+                $component = $registry->get($key);
+                $names["sections.{$index}"] = $component->name();
+                $names["sections.{$index}.content"] = $component->name();
+                $names = [...$names, ...$processor->attributes($component->fields(), "sections.{$index}.content", $component->name())];
+            }
+        }
+
+        return $names;
     }
 
     /**

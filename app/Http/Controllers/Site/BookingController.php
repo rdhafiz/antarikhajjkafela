@@ -98,6 +98,11 @@ class BookingController extends Controller
         ], [
             'email.required' => __('Enter your email to pay online; the receipt is sent there.'),
             'agree.accepted' => __('Please accept the booking terms.'),
+            // Laravel words file sizes in kilobytes; staff and pilgrims think in MB.
+            'passport.*.max' => __(':attribute must be 5 MB or smaller.'),
+            'nid.*.max' => __(':attribute must be 5 MB or smaller.'),
+            'passport.max' => __('Upload up to 10 passport copies.'),
+            'nid.max' => __('Upload up to 10 NID copies.'),
         ], [
             'option' => __('Package option'),
             'travelers' => __('Number of travelers'),
@@ -108,7 +113,9 @@ class BookingController extends Controller
             'phone' => __('Mobile number'),
             'email' => __('Email'),
             'address' => __('Address'),
+            'passport' => __('Passport copies'),
             'passport.*' => __('Passport copy'),
+            'nid' => __('NID copies'),
             'nid.*' => __('NID copy'),
         ]);
 

@@ -87,7 +87,7 @@ class InquiryController extends Controller
                         $inquiry->source,
                         $inquiry->page?->getTranslation('title', 'en'),
                         $inquiry->name,
-                        $inquiry->phone,
+                        Csv::phone($inquiry->phone),
                         $inquiry->email,
                         collect($inquiry->data)->except('page')->map(fn ($v, $k) => "{$k}: {$v}")->implode(' | '),
                         $inquiry->status,

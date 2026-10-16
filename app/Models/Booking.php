@@ -79,6 +79,15 @@ class Booking extends Model
     }
 
     /**
+     * Paid above the total. Normally zero: payments are capped at the
+     * balance, so anything here is a correction waiting to be made.
+     */
+    public function overpaid(): float
+    {
+        return max(0, (float) $this->paid_amount - (float) $this->total);
+    }
+
+    /**
      * Advance still to pay online (zero once the advance is covered).
      */
     public function advanceDue(): float

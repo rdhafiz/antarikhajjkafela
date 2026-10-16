@@ -14,5 +14,5 @@ class Role extends SpatieRole
     use Trashable;
 
     /** Freed while in the Trash, given back on restore. */
-    protected array $releaseOnTrash = ['name' => 'suffix'];
+    protected array $releaseOnTrash = ['name' => 'suffix', 'label' => 'suffix'];
 }

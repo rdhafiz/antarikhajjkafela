@@ -214,7 +214,17 @@ class PageBuilderTest extends AdminTestCase
         $this->get('/refund-policy')->assertNotFound(); // still a draft
 
         $page = Page::findOrFail($id);
-        $this->asAdmin($admin)->putJson("/api/admin/pages/{$id}", $this->payload($page, ['status' => 'published']))->assertOk();
+
+        // A new page starts with empty sections, so it saves as a draft but
+        // cannot go live until the required content is written.
+        $draft = $this->payload($page);
+        $this->asAdmin($admin)->putJson("/api/admin/pages/{$id}", $draft)->assertOk();
+        $this->asAdmin($admin)->putJson("/api/admin/pages/{$id}", array_replace($draft, ['status' => 'published']))
+            ->assertJsonValidationErrors('sections.1.content.body.en');
+
+        $sections = $draft['sections'];
+        $sections[1]['content']['body'] = ['en' => '<p>Our refund terms.</p>'];
+        $this->asAdmin($admin)->putJson("/api/admin/pages/{$id}", array_replace($draft, ['status' => 'published', 'sections' => $sections]))->assertOk();
         $this->get('/refund-policy')->assertOk()->assertSeeText('Refund policy');
 
         $this->asAdmin($admin)->deleteJson("/api/admin/pages/{$this->page('about')->id}")->assertStatus(422);

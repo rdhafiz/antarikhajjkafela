@@ -166,7 +166,11 @@ async function save(): Promise<boolean> {
             } else if (!firstKey.startsWith('sections')) {
                 selected.value = 'settings';
             }
-            toast.error('Please fix the highlighted fields', validation[firstKey]?.[0]);
+            const messages = [...new Set(Object.values(validation).flat())];
+            toast.error(
+                messages.length === 1 ? 'One field needs fixing' : `${messages.length} fields need fixing`,
+                messages.slice(0, 4).join(' ') + (messages.length > 4 ? ` …and ${messages.length - 4} more.` : ''),
+            );
         } else {
             toast.error('Could not save the page', errorMessage(e));
         }

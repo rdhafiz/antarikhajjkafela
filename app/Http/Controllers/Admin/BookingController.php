@@ -9,12 +9,14 @@ use App\Models\Booking;
 use App\Models\BookingDocument;
 use App\Models\Payment;
 use App\Support\Csv;
+use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BookingController extends Controller
@@ -88,15 +90,33 @@ class BookingController extends Controller
      */
     public function storePayment(Request $request, Booking $booking): JsonResponse
     {
+        // A payment can never be more than what is still owed. The total is
+        // fixed when the booking is made, so this balance cannot go stale.
+        if ($booking->balance() <= 0) {
+            throw ValidationException::withMessages(['amount' => 'This booking is already paid in full.']);
+        }
+
         $data = $request->validate([
-            'amount' => ['required', 'numeric', 'min:1', 'max:99999999'],
+            'amount' => ['required', 'numeric', 'min:1', 'max:'.$booking->balance()],
             'method' => ['required', Rule::in(array_keys(Payment::OFFLINE_METHODS))],
             'paid_at' => ['required', 'date', 'before_or_equal:now'],
             'reference' => ['nullable', 'string', 'max:120'],
             'note' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'amount.max' => 'Only '.Money::format($booking->balance(), 'en').' is still due on this booking.',
         ]);
 
         DB::transaction(function () use ($booking, $data, $request) {
+            // Re-check against a locked row: two people recording at once
+            // would otherwise both pass the rule above.
+            $fresh = Booking::whereKey($booking->id)->lockForUpdate()->first();
+
+            if ((float) $data['amount'] > $fresh->balance()) {
+                throw ValidationException::withMessages([
+                    'amount' => 'Only '.Money::format($fresh->balance(), 'en').' is still due on this booking.',
+                ]);
+            }
+
             $booking->payments()->create([
                 ...$data,
                 'is_online' => false,
@@ -160,7 +180,7 @@ class BookingController extends Controller
                         $b->reference, $b->created_at?->format('Y-m-d H:i'), Booking::STATUSES[$b->status] ?? $b->status,
                         $b->snap('package', 'en'), trim($b->snap('type', 'en').' – '.$b->snap('option', 'en'), ' –'),
                         $b->travelers, TravelDates::label($b->travel_month, $b->travel_year, 'en'), $b->total, $b->advance_amount, $b->paid_amount, number_format($b->balance(), 2, '.', ''),
-                        $b->customer_name, $b->customer_phone, $b->customer_email,
+                        $b->customer_name, Csv::phone($b->customer_phone), $b->customer_email,
                     ]));
                 }
             });
@@ -226,6 +246,7 @@ class BookingController extends Controller
             'total' => (float) $booking->total,
             'paid_amount' => (float) $booking->paid_amount,
             'balance' => $booking->balance(),
+            'overpaid' => $booking->overpaid(),
             'customer_name' => $booking->customer_name,
             'customer_phone' => $booking->customer_phone,
             'customer_email' => $booking->customer_email,

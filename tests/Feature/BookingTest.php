@@ -411,7 +411,11 @@ class BookingTest extends AdminTestCase
         $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => 20000, 'method' => 'bank', 'paid_at' => now()->subHour()->toDateTimeString(), 'reference' => 'SLIP-9'])
             ->assertCreated()->assertJsonPath('data.status', 'advance_paid');
 
-        $payment = $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => $booking->balance(), 'method' => 'cash', 'paid_at' => now()->toDateTimeString()])
+        // More than the balance is refused; the exact balance is not.
+        $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => $booking->fresh()->balance() + 1, 'method' => 'cash', 'paid_at' => now()->toDateTimeString()])
+            ->assertJsonValidationErrors('amount');
+
+        $payment = $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => $booking->fresh()->balance(), 'method' => 'cash', 'paid_at' => now()->toDateTimeString()])
             ->assertCreated()->assertJsonPath('data.status', 'fully_paid')->assertJsonPath('data.balance', 0)->json('data.payments.0.id');
 
         $this->asAdmin($admin)->deleteJson("/api/admin/bookings/{$booking->id}/payments/{$payment}")->assertOk()->assertJsonPath('data.paid_amount', 20000);

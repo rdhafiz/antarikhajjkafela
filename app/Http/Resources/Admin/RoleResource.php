@@ -19,7 +19,10 @@ class RoleResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'label' => config("access.roles.{$this->name}.label") ?? str($this->name)->replace('-', ' ')->title()->toString(),
+            // Built-in roles are named by config; the rest keep what was typed.
+            'label' => config("access.roles.{$this->name}.label")
+                ?? $this->label
+                ?? str($this->name)->replace('-', ' ')->title()->toString(),
             'is_super_admin' => $this->name === config('access.super_admin_role'),
             'is_system' => array_key_exists($this->name, config('access.roles')),
             'permissions' => $this->whenLoaded('permissions', fn () => $this->permissions->pluck('name')),

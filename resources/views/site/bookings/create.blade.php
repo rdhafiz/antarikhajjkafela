@@ -289,7 +289,7 @@
                                         <span class="book-option-art book-doc-art" aria-hidden="true"><x-site.icon :name="$icon" class="size-9" /></span>
                                         <span class="book-option-body min-w-0 flex-1">
                                             <span class="book-option-title !mt-0">{{ $label }}</span>
-                                            <span class="book-doc-hint">{{ __('JPG, PNG or PDF · up to 5 MB each') }}</span>
+                                            <span class="book-doc-hint">{{ __('JPG, PNG, WebP or PDF · up to 5 MB each') }}</span>
                                             <span class="book-doc-files" x-show="files.length" x-cloak>
                                                 <template x-for="name in files" :key="name"><span class="book-doc-file" x-text="name"></span></template>
                                             </span>

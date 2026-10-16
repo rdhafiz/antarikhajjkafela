@@ -219,6 +219,7 @@ onMounted(load);
                         <div class="flex justify-between"><dt class="text-ink-soft">Advance</dt><dd class="text-ink">{{ money(booking.advance_amount) }}</dd></div>
                         <div class="flex justify-between"><dt class="text-ink-soft">Paid</dt><dd class="font-semibold text-emerald-700">{{ money(booking.paid_amount) }}</dd></div>
                         <div class="flex justify-between border-t border-line pt-2.5 text-base"><dt class="font-semibold text-ink">Balance</dt><dd class="font-bold text-ink">{{ money(booking.balance) }}</dd></div>
+                        <div v-if="booking.overpaid > 0" class="flex justify-between rounded-lg bg-amber-50 px-3 py-2 text-amber-900"><dt class="font-semibold">Overpaid</dt><dd class="font-bold">{{ money(booking.overpaid) }}</dd></div>
                     </dl>
                     <div class="mt-4 h-2 overflow-hidden rounded-full bg-canvas" role="progressbar" :aria-valuenow="paidPercent" aria-valuemin="0" aria-valuemax="100" aria-label="Paid"><div class="h-full rounded-full bg-emerald-600" :style="{ width: `${paidPercent}%` }" /></div>
                     <p class="mt-1.5 text-right text-[12px] text-ink-muted">{{ paidPercent }}% paid</p>
@@ -243,8 +244,8 @@ onMounted(load);
         <AppModal v-model:open="paymentOpen" title="Record a payment" description="A payment received at the office: bank deposit, mobile banking or cash." :persistent="paymentForm.processing">
             <form id="payment-form" class="space-y-4" novalidate @submit.prevent="recordPayment">
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <FormField label="Amount (BDT)" for="p-amount" :error="paymentForm.error('amount')" required>
-                        <input id="p-amount" v-model.number="paymentForm.data.amount" type="number" min="1" step="0.01" class="control" />
+                    <FormField label="Amount (BDT)" for="p-amount" :error="paymentForm.error('amount')" :hint="`${money(booking.balance)} still due`" required>
+                        <input id="p-amount" v-model.number="paymentForm.data.amount" type="number" min="1" :max="booking.balance" step="0.01" class="control" />
                     </FormField>
                     <FormField label="Method" for="p-method" :error="paymentForm.error('method')" required>
                         <select id="p-method" v-model="paymentForm.data.method" class="control">
