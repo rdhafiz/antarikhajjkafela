@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import {
-    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
@@ -19,6 +18,9 @@ const { pending, settle } = useConfirm();
 const shown = ref(pending.value);
 watch(pending, (value) => value && (shown.value = value));
 
+// Closing the dialog any other way — Cancel, Escape, the overlay — is a "no".
+// Confirming is the one path that must not come through here, so the confirm
+// button calls settle(true) itself and the close follows from pending emptying.
 const open = computed({
     get: () => pending.value !== null,
     set: (value) => !value && settle(false),
@@ -54,13 +56,20 @@ const open = computed({
                     >
                         Cancel
                     </AlertDialogCancel>
-                    <AlertDialogAction
+                    <!--
+                        A plain button, not AlertDialogAction: that component closes
+                        the dialog as part of its own click handling, which resolved
+                        the promise false before this handler could answer true, and
+                        every confirmed action quietly did nothing.
+                    -->
+                    <button
+                        type="button"
                         class="h-10 rounded-lg px-4 text-sm font-semibold text-white"
                         :class="shown.tone === 'danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-brand hover:opacity-90'"
                         @click="settle(true)"
                     >
                         {{ shown.confirmLabel }}
-                    </AlertDialogAction>
+                    </button>
                 </div>
             </AlertDialogContent>
         </AlertDialogPortal>
