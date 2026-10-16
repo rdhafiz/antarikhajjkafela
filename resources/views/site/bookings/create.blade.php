@@ -369,21 +369,21 @@
                             @endif
                             <p class="text-[12px] font-semibold tracking-wider text-gold uppercase">{{ __('Your booking') }}</p>
                             <p class="mt-1 font-display text-[1.25rem] leading-snug">{{ $name }}</p>
-                            <p class="mt-0.5 text-[13.5px] text-white/75" x-text="selected.type + ' · ' + selected.title"></p>
+                            <p class="mt-0.5 text-[13.5px] text-white" x-text="selected.type + ' · ' + selected.title"></p>
                         </div>
                         <dl class="space-y-2 border-t border-white/10 px-5 py-4 text-[14.5px]">
                             @if ($showPrice)
-                            <div class="flex justify-between gap-4"><dt class="text-white/65">{{ __('Price') }}</dt><dd class="text-end" x-text="money(selected.price) + ' ' + selected.unit_label"></dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-white">{{ __('Price') }}</dt><dd class="text-end" x-text="money(selected.price) + ' ' + selected.unit_label"></dd></div>
                             @endif
                             @if ($travel['mode'] !== 'none')
-                            <div class="flex justify-between gap-4"><dt class="text-white/65">{{ $travel['mode'] === 'hajj_year' ? __('Hajj year') : __('Travel') }}</dt><dd class="text-end" x-text="travelDate || '—'"></dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-white">{{ $travel['mode'] === 'hajj_year' ? __('Hajj year') : __('Travel') }}</dt><dd class="text-end" x-text="travelDate || '—'"></dd></div>
                             @endif
-                            <div class="flex justify-between gap-4"><dt class="text-white/65" x-text="selected.unit === 'room' ? @js(__('Rooms')) : @js(__('Travelers'))"></dt><dd x-text="digits(selected.unit === 'room' ? rooms : (selected.unit === 'group' ? 1 : travelers))"></dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-white" x-text="selected.unit === 'room' ? @js(__('Rooms')) : @js(__('Travelers'))"></dt><dd x-text="digits(selected.unit === 'room' ? rooms : (selected.unit === 'group' ? 1 : travelers))"></dd></div>
                             @if ($showPrice)
                             <div class="flex items-baseline justify-between gap-4 border-t border-white/10 pt-3"><dt class="font-semibold">{{ __('Total') }}</dt><dd class="text-[1.5rem] leading-none font-bold text-gold tabular-nums" x-text="money(total)"></dd></div>
-                            <div x-show="advanceAmount > 0" class="flex justify-between gap-4 text-[14px]"><dt class="text-white/65">{{ __('Advance to confirm') }}</dt><dd x-text="money(advanceAmount)"></dd></div>
+                            <div x-show="advanceAmount > 0" class="flex justify-between gap-4 text-[14px]"><dt class="text-white">{{ __('Advance to confirm') }}</dt><dd x-text="money(advanceAmount)"></dd></div>
                             @else
-                            <div class="flex gap-3 border-t border-white/10 pt-3 text-[13.5px] text-white/80">
+                            <div class="flex gap-3 border-t border-white/10 pt-3 text-[13.5px] text-white">
                                 <x-site.icon name="headset" class="mt-0.5 size-5 shrink-0 text-gold" />
                                 <p>{{ __('Our team will call you to confirm the price and how to pay.') }}</p>
                             </div>
@@ -392,7 +392,7 @@
                         <div class="px-5 pb-5">
                             {{-- The terms, accepted right where the booking is confirmed. --}}
                             <div id="book-confirm" class="book-agree mb-3.5 scroll-mt-40" data-field>
-                                <label class="flex items-start gap-2.5 text-[13px] leading-normal text-white/80">
+                                <label class="flex items-start gap-2.5 text-[13px] leading-normal text-white">
                                     <input type="checkbox" name="agree" value="1" @checked(old('agree')) required data-message="{{ __('Please accept the booking terms.') }}" class="mt-0.5 size-[1.125rem] shrink-0 cursor-pointer rounded accent-[var(--color-gold)]" {!! $invalid('agree') !!}>
                                     <span>{{ __('I agree to the') }} <a href="{{ url('terms-and-conditions') }}" target="_blank" class="font-semibold text-gold underline underline-offset-2 hover:text-white">{{ __('booking terms and conditions') }}</a>{{ __(', including that prices may change with Saudi government or airline fees.') }}</span>
                                 </label>
@@ -402,13 +402,13 @@
                                 <svg x-show="busy" x-cloak class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".25" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
                                 <span x-text="payment === 'now' ? @js(__('Book and pay advance')) : @js(__('Confirm free booking'))">{{ __('Confirm free booking') }}</span>
                             </button>
-                            <p class="mt-2 text-center text-[12px] text-white/60">{{ __('Final amounts are confirmed by our team.') }}@if ($recaptcha) {{ __('Protected by reCAPTCHA.') }}@endif</p>
+                            <p class="mt-2 text-center text-[12px] text-white">{{ __('Final amounts are confirmed by our team.') }}@if ($recaptcha) {{ __('Protected by reCAPTCHA.') }}@endif</p>
                         </div>
                     </div>
 
                     {{-- What happens next, and help. --}}
                     <div class="rounded-[1.75rem] border border-line bg-white p-5">
-                        <ul class="space-y-2 text-[13.5px] leading-snug text-ink-2">
+                        <ul class="space-y-2 text-[13.5px] leading-snug text-ink">
                             <li class="flex gap-3"><x-site.icon name="headset" class="mt-0.5 size-4.5 shrink-0 text-gold-deep" />{{ __('Our team will call you shortly to confirm.') }}</li>
                             <li class="flex gap-3"><x-site.icon name="shield" class="mt-0.5 size-4.5 shrink-0 text-gold-deep" />{{ __('Your documents are seen only by our staff.') }}</li>
                             <li class="flex gap-3"><x-site.icon name="wallet" class="mt-0.5 size-4.5 shrink-0 text-gold-deep" />{{ __('Please pay only through our official channels.') }}</li>
@@ -416,7 +416,7 @@
                         @if ($phones)
                             <a href="{{ $phones[0]['href'] }}" class="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-sand-50 px-4 py-2.5 ring-1 ring-line transition-colors hover:bg-sand-100">
                                 <span>
-                                    <span class="block text-[12px] font-semibold tracking-wider text-ink-3 uppercase">{{ __('Need help?') }}</span>
+                                    <span class="block text-[12px] font-semibold tracking-wider text-ink uppercase">{{ __('Need help?') }}</span>
                                     <span class="font-semibold text-brand" dir="ltr">{{ $phones[0]['display'] }}</span>
                                 </span>
                                 <span class="flex size-9 items-center justify-center rounded-full bg-brand text-white"><x-site.icon name="phone" class="size-4" /></span>
