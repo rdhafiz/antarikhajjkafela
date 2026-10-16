@@ -10,7 +10,7 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | hajj-campaign.webp | Hajj pre-registration campaign; admin Campaign pages header (cropped copy in `resources/admin/assets/campaigns-header.webp`) | ibrahim uz | https://unsplash.com/photos/3Z3RvzpVAqM |
 | hajj-crowd.webp | Hajj service, other Hajj packages; admin Media library header (cropped copy in `resources/admin/assets/media-header.webp`) | ekrem osmanoglu | https://unsplash.com/photos/0bdDM8n8wYw |
 | hajj-premium.webp | Hajj Premium Package; admin Roles header (cropped copy in `resources/admin/assets/roles-header.webp`) | Haidan | https://unsplash.com/photos/8Kg-2kK97Xc |
-| hajj-regular.webp | Hajj Regular Package; admin Users header (cropped copy in `resources/admin/assets/users-header.webp`) | tasnim umar | https://unsplash.com/photos/blbwkwHPItE |
+| hajj-regular.webp | Hajj Regular Package; booking form step 4 (cropped copy in `public/images/booking/haram-dusk.webp`); admin Users header (cropped copy in `resources/admin/assets/users-header.webp`) | tasnim umar | https://unsplash.com/photos/blbwkwHPItE |
 | haram-wide.webp | Default page banner; Umrah fallback; admin Packages header (cropped copy in `resources/admin/assets/packages-header.webp`) | Jubair Hossain | https://unsplash.com/photos/WuIroq-Q1hY |
 | madinah-golden.webp | About; admin Inquiries and Profile headers (cropped copies in `resources/admin/assets/inquiries-header.webp` and `profile-header.webp`) | Sulthan Auliya | https://unsplash.com/photos/rzzS0_pMsD0 |
 | makkah-hotels.webp | Services; admin Services header (cropped copy in `resources/admin/assets/services-header.webp`) | Sikiru Salami | https://unsplash.com/photos/jZp68sRx2w4 |

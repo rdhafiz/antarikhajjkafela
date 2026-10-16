@@ -307,36 +307,35 @@
                     @if ($canPayOnline)
                     <fieldset id="step-payment" class="book-card scroll-mt-40">
                         <legend class="sr-only">{{ __('Payment') }}</legend>
-                        <div class="book-card-head" data-reveal aria-hidden="true">
+                        <div class="book-card-head book-head-scene" data-reveal aria-hidden="true">
+                            {{-- The Haram at dusk, fading in behind the heading. --}}
+                            <img src="{{ asset('images/booking/haram-dusk.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
                             <span class="book-card-num">{{ $pad(4) }}</span>
-                            <div>
-                                <p class="font-display text-display-sm text-brand">{{ __('Payment') }}</p>
-                                <p class="mt-1 text-[14.5px] text-ink-2">{{ __('Choose how you would like to pay.') }}</p>
+                            <span class="book-head-rule" aria-hidden="true"></span>
+                            <div class="relative min-w-0">
+                                <p class="book-head-title">{{ __('Payment') }}</p>
+                                <p class="book-head-text">{{ __('Choose how you would like to pay.') }}</p>
                             </div>
                         </div>
                         <div class="book-card-body">
-                            <div class="grid gap-3 sm:grid-cols-2">
-                                @if ($canPayOnline)
-                                    <label class="book-choice relative flex cursor-pointer gap-4 p-5" :class="payment === 'now' && 'is-selected'" data-reveal>
-                                        <input type="radio" name="payment" value="now" x-model="payment" class="sr-only">
-                                        <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-sand-100 text-gold-deep"><x-site.icon name="wallet" class="size-5" /></span>
-                                        <span class="min-w-0 pe-6">
-                                            <span class="block font-semibold text-ink">{{ __('Pay the advance now') }}</span>
-                                            <span class="mt-1 block text-[14px] text-ink-2">{{ __('Secure online payment by card or mobile banking through :gateway.', ['gateway' => $gateway->label()]) }}</span>
-                                            <span class="mt-2 block font-display text-lg font-semibold text-brand" x-text="money(advanceAmount)"></span>
+                            <div class="grid gap-4 lg:grid-cols-2">
+                                @foreach ([
+                                    ['now', 'wallet', __('Pay the advance now'), __('Secure online payment by card or mobile banking through :gateway.', ['gateway' => $gateway->label()])],
+                                    ['later', 'headset', __('Book now, pay later'), __('We reserve your place and call you to arrange the payment.')],
+                                ] as $i => [$value, $icon, $title, $text])
+                                    <label class="book-option book-pay" :class="payment === '{{ $value }}' && 'is-selected'" @class(['is-selected' => $config['payment'] === $value]) data-reveal style="--reveal-delay: {{ $i * 80 }}ms">
+                                        <input type="radio" name="payment" value="{{ $value }}" x-model="payment" class="sr-only" @checked($config['payment'] === $value)>
+                                        <span class="book-option-art book-doc-art" aria-hidden="true"><x-site.icon :name="$icon" class="size-9" /></span>
+                                        <span class="book-option-body min-w-0 flex-1">
+                                            <span class="book-option-title !mt-0">{{ $title }}</span>
+                                            <span class="book-pay-text">{{ $text }}</span>
+                                            @if ($value === 'now')
+                                                <span class="book-option-price"><span x-text="money(advanceAmount)"></span> <span class="book-option-unit">{{ __('advance') }}</span></span>
+                                            @endif
                                         </span>
-                                        <span class="book-choice-check absolute top-4 end-4 flex size-6 items-center justify-center rounded-full" aria-hidden="true"><x-site.icon name="check" class="size-3.5" /></span>
+                                        <span class="book-option-check" aria-hidden="true"><x-site.icon name="check" class="size-4" stroke-width="3" /></span>
                                     </label>
-                                @endif
-                                <label class="book-choice relative flex cursor-pointer gap-4 p-5" :class="payment === 'later' && 'is-selected'" data-reveal style="--reveal-delay: 80ms">
-                                    <input type="radio" name="payment" value="later" x-model="payment" class="sr-only">
-                                    <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-sand-100 text-gold-deep"><x-site.icon name="headset" class="size-5" /></span>
-                                    <span class="min-w-0 pe-6">
-                                        <span class="block font-semibold text-ink">{{ __('Book now, pay later') }}</span>
-                                        <span class="mt-1 block text-[14px] text-ink-2">{{ __('We reserve your place and call you to arrange the payment.') }}</span>
-                                    </span>
-                                    <span class="book-choice-check absolute top-4 end-4 flex size-6 items-center justify-center rounded-full" aria-hidden="true"><x-site.icon name="check" class="size-3.5" /></span>
-                                </label>
+                                @endforeach
                             </div>
                         </div>
                     </fieldset>

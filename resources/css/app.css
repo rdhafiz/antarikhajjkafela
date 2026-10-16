@@ -1853,6 +1853,20 @@
         color: var(--color-ink-3);
     }
 
+    /* Step 4: payment choices in the option card style. */
+    .book-pay {
+        align-items: flex-start;
+        padding-inline-end: 3.4rem;
+    }
+
+    .book-pay-text {
+        display: block;
+        margin-top: 0.35rem;
+        font-size: 13.5px;
+        line-height: 1.55;
+        color: var(--color-ink-2);
+    }
+
     /* The terms on the navy summary card: a light frame and a readable error. */
     .book-agree {
         border-radius: 1rem;
