@@ -74,7 +74,7 @@ class BookingController extends Controller
     public function destroy(Booking $booking): JsonResponse
     {
         DB::transaction(function () use ($booking) {
-            // Through the models, so the private files are removed too.
+            // To the Trash with its documents; the files stay on the private disk.
             $booking->documents->each->delete();
             $booking->delete();
         });

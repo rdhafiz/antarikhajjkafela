@@ -201,7 +201,7 @@ async function preview(row: PostRow): Promise<void> {
 }
 
 async function remove(row: PostRow): Promise<void> {
-    if (!(await confirm({ title: `Delete "${pickText(row.title)}"?`, message: 'The post will be removed from the website. This cannot be undone.', confirmLabel: 'Delete post' }))) return;
+    if (!(await confirm({ title: `Delete "${pickText(row.title)}"?`, message: 'The post will be removed from the website. It goes to the Trash, where a super admin can restore it.', confirmLabel: 'Delete post' }))) return;
     try {
         await http.delete(`/posts/${row.id}`);
         toast.success('Post deleted');

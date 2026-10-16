@@ -38,7 +38,7 @@ class PostCategoryController extends Controller
 
     public function reorder(Request $request): JsonResponse
     {
-        $ids = $request->validate(['ids' => ['required', 'array'], 'ids.*' => ['integer', 'exists:post_categories,id']])['ids'];
+        $ids = $request->validate(['ids' => ['required', 'array'], 'ids.*' => ['integer', 'exists:post_categories,id,deleted_at,NULL']])['ids'];
 
         foreach (array_values($ids) as $sort => $id) {
             PostCategory::whereKey($id)->update(['sort' => $sort]);

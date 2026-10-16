@@ -177,7 +177,7 @@ async function save(): Promise<void> {
 }
 
 async function remove(service: ServiceRow): Promise<void> {
-    if (!(await confirm({ title: `Delete "${pickText(service.name)}"?`, message: 'This cannot be undone.', confirmLabel: 'Delete' }))) return;
+    if (!(await confirm({ title: `Delete "${pickText(service.name)}"?`, message: 'It goes to the Trash, where a super admin can restore it.', confirmLabel: 'Delete' }))) return;
     try {
         await http.delete(`/services/${service.id}`);
         toast.success('Service deleted');

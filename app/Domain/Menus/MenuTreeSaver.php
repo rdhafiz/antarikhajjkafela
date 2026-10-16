@@ -20,7 +20,7 @@ class MenuTreeSaver
             $kept = [];
             $this->saveLevel($menu, $items, null, $kept);
 
-            $menu->items()->whereNotIn('id', $kept)->delete();
+            $menu->items()->whereNotIn('id', $kept)->get()->each->delete();
         });
 
         app(MenuRepository::class)->flush($menu->location);

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Trashable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Spatie\Translatable\HasTranslations;
 #[Fillable(['name', 'intro', 'text', 'video_url', 'photo_id', 'rating', 'is_featured', 'is_published', 'sort'])]
 class Review extends Model
 {
-    use HasTranslations;
+    use HasTranslations, Trashable;
 
     /** @var list<string> */
     public array $translatable = ['name', 'intro', 'text'];

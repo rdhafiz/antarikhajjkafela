@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Trashable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,10 @@ use Spatie\Translatable\HasTranslations;
 #[Fillable(['name', 'slug', 'summary', 'headline', 'highlight', 'description', 'icon', 'image_id', 'is_active', 'sort', 'seo'])]
 class Service extends Model
 {
-    use HasTranslations, LogsActivity;
+    use HasTranslations, LogsActivity, Trashable;
+
+    /** Freed while in the Trash, given back on restore. */
+    protected array $releaseOnTrash = ['slug' => 'suffix'];
 
     /** @var list<string> */
     public array $translatable = ['name', 'summary', 'headline', 'highlight', 'description'];

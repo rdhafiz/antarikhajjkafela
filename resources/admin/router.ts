@@ -45,6 +45,7 @@ const routes: RouteRecordRaw[] = [
             { path: 'settings/:group?', name: 'settings', component: () => import('@admin/pages/settings/SettingsPage.vue'), meta: { title: 'Settings', permission: 'settings.view' } },
             { path: 'users', name: 'users', component: () => import('@admin/pages/users/UsersPage.vue'), meta: { title: 'Users', permission: 'users.view' } },
             { path: 'roles', name: 'roles', component: () => import('@admin/pages/roles/RolesPage.vue'), meta: { title: 'Roles & permissions', permission: 'roles.view' } },
+            { path: 'trash', name: 'trash', component: () => import('@admin/pages/TrashPage.vue'), meta: { title: 'Trash', permission: 'trash.view' } },
             { path: ':pathMatch(.*)*', name: 'not-found', component: () => import('@admin/pages/NotFoundPage.vue'), meta: { title: 'Not found' } },
         ],
     },

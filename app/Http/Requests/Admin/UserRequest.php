@@ -25,7 +25,7 @@ class UserRequest extends FormRequest
             'password' => [$creating ? 'required' : 'nullable', 'confirmed', Password::defaults()],
             'is_active' => ['boolean'],
             'roles' => ['array'],
-            'roles.*' => ['string', Rule::exists('roles', 'name'), $this->onlySuperAdminsGrantSuperAdmin()],
+            'roles.*' => ['string', Rule::exists('roles', 'name')->whereNull('deleted_at'), $this->onlySuperAdminsGrantSuperAdmin()],
         ];
     }
 

@@ -188,9 +188,12 @@ class BlogTest extends AdminTestCase
         $news = PostCategory::where('slug', 'news')->first();
         $this->asAdmin($admin)->deleteJson("/api/admin/post-categories/{$news->id}")->assertNoContent();
 
-        // Posts of a deleted category stay, without a category.
-        $this->assertSame(2, Post::whereNull('category_id')->count());
-        $this->asAdmin($admin)->getJson('/api/admin/posts/meta')->assertOk()->assertJsonCount(2, 'categories');
+        // Posts of a deleted category stay, shown without a category; it moves to the Trash and frees its address.
+        $this->assertSame(2, Post::where('category_id', $news->id)->count());
+        $this->assertNull(Post::where('category_id', $news->id)->first()->category);
+        $this->assertSoftDeleted($news);
+        $this->asAdmin($admin)->postJson('/api/admin/post-categories', ['name' => ['en' => 'News again'], 'slug' => 'news'])->assertCreated();
+        $this->asAdmin($admin)->getJson('/api/admin/posts/meta')->assertOk()->assertJsonCount(3, 'categories');
     }
 
     public function test_sitemap_lists_live_posts(): void

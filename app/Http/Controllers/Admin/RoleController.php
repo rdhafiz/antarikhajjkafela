@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Domain\Access\AccessSynchronizer;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\RoleResource;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,7 +15,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class RoleController extends Controller
@@ -75,7 +76,8 @@ class RoleController extends Controller
             throw ValidationException::withMessages(['role' => 'Default roles cannot be deleted.']);
         }
 
-        if (DB::table(config('permission.table_names.model_has_roles'))->where(app(PermissionRegistrar::class)->pivotRole, $role->id)->exists()) {
+        // Users in the Trash keep their roles for a restore, but do not block this.
+        if ($role->users()->exists()) {
             throw ValidationException::withMessages(['role' => 'This role is still assigned to users.']);
         }
 
@@ -113,6 +115,7 @@ class RoleController extends Controller
     {
         $counts = DB::table(config('permission.table_names.model_has_roles'))
             ->whereIn(app(PermissionRegistrar::class)->pivotRole, $roles->modelKeys())
+            ->whereIn(config('permission.column_names.model_morph_key'), User::query()->select('id'))
             ->selectRaw(app(PermissionRegistrar::class)->pivotRole.' as role_id, count(*) as total')
             ->groupBy(app(PermissionRegistrar::class)->pivotRole)
             ->pluck('total', 'role_id');

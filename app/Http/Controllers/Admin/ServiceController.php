@@ -60,7 +60,7 @@ class ServiceController extends Controller
      */
     public function reorder(Request $request): JsonResponse
     {
-        $ids = $request->validate(['ids' => ['required', 'array'], 'ids.*' => ['integer', 'exists:services,id']])['ids'];
+        $ids = $request->validate(['ids' => ['required', 'array'], 'ids.*' => ['integer', 'exists:services,id,deleted_at,NULL']])['ids'];
 
         foreach (array_values($ids) as $sort => $id) {
             Service::whereKey($id)->update(['sort' => $sort]);
@@ -90,11 +90,11 @@ class ServiceController extends Controller
             'highlight.*' => ['nullable', 'string', 'max:90'],
             'description.*' => ['nullable', 'string', 'max:3000'],
             'icon' => ['nullable', Rule::in(Icons::CONTENT)],
-            'image_id' => ['nullable', 'integer', Rule::exists(Media::class, 'id')],
+            'image_id' => ['nullable', 'integer', Rule::exists(Media::class, 'id')->whereNull('deleted_at')],
             'is_active' => ['boolean'],
             'seo.title.*' => ['nullable', 'string', 'max:70'],
             'seo.description.*' => ['nullable', 'string', 'max:200'],
-            'seo.image' => ['nullable', 'integer', Rule::exists(Media::class, 'id')],
+            'seo.image' => ['nullable', 'integer', Rule::exists(Media::class, 'id')->whereNull('deleted_at')],
         ], ['slug.regex' => 'Use lowercase letters, numbers and single hyphens only.']);
 
         if (Page::where('slug', $data['slug'])->exists()) {

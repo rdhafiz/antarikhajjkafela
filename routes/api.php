@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\TrashController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -138,6 +139,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('bookings/{booking}/payments/{payment}', [BookingController::class, 'destroyPayment'])->middleware('can:payments.create')->name('bookings.payments.destroy');
 
         // Inquiries
+        Route::get('trash', [TrashController::class, 'index'])->middleware('can:trash.view')->name('trash.index');
+        Route::post('trash/{type}/{id}/restore', [TrashController::class, 'restore'])->whereNumber('id')->middleware('can:trash.restore')->name('trash.restore');
+
         Route::get('inquiries', [InquiryController::class, 'index'])->middleware('can:inquiries.view')->name('inquiries.index');
         Route::get('inquiries/export', [InquiryController::class, 'export'])->middleware('can:inquiries.view')->name('inquiries.export');
         Route::get('inquiries/{inquiry}', [InquiryController::class, 'show'])->middleware('can:inquiries.view')->name('inquiries.show');

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Trashable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -19,7 +20,10 @@ use Spatie\Translatable\HasTranslations;
 ])]
 class Package extends Model
 {
-    use HasTranslations, LogsActivity;
+    use HasTranslations, LogsActivity, Trashable;
+
+    /** Freed while in the Trash, given back on restore. */
+    protected array $releaseOnTrash = ['slug' => 'suffix'];
 
     public const STATUS_DRAFT = 'draft';
 

@@ -179,7 +179,7 @@ async function toggle(album: AlbumRow): Promise<void> {
 }
 
 async function remove(album: AlbumRow): Promise<void> {
-    const ok = await confirm({ title: `Delete "${title(album)}"?`, message: 'The album and its photos and videos will be removed. This cannot be undone.', confirmLabel: 'Delete album' });
+    const ok = await confirm({ title: `Delete "${title(album)}"?`, message: 'The album and its photos and videos will be removed. It goes to the Trash, where a super admin can restore it.', confirmLabel: 'Delete album' });
     if (!ok) return;
     try {
         await http.delete(`/gallery/${album.id}`);

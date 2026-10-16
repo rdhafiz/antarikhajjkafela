@@ -41,7 +41,7 @@ class ReviewController extends Controller
 
     public function reorder(Request $request): JsonResponse
     {
-        $ids = $request->validate(['ids' => ['required', 'array'], 'ids.*' => ['integer', 'exists:reviews,id']])['ids'];
+        $ids = $request->validate(['ids' => ['required', 'array'], 'ids.*' => ['integer', 'exists:reviews,id,deleted_at,NULL']])['ids'];
 
         foreach (array_values($ids) as $sort => $id) {
             Review::whereKey($id)->update(['sort' => $sort]);
@@ -64,7 +64,7 @@ class ReviewController extends Controller
             'intro.*' => ['nullable', 'string', 'max:120'],
             'text.*' => ['nullable', 'string', 'max:2000'],
             'video_url' => ['nullable', 'string', 'max:300', 'regex:'.ContentProcessor::YOUTUBE_PATTERN],
-            'photo_id' => ['nullable', 'integer', 'exists:media,id'],
+            'photo_id' => ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'],
             'rating' => ['nullable', 'integer', 'between:1,5'],
             'is_featured' => ['boolean'],
             'is_published' => ['boolean'],

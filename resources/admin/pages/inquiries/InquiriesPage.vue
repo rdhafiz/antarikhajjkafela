@@ -160,7 +160,7 @@ async function saveDetail(): Promise<void> {
 }
 
 async function remove(row: InquiryRow): Promise<void> {
-    const ok = await confirm({ title: 'Delete this inquiry?', message: 'This cannot be undone.', confirmLabel: 'Delete' });
+    const ok = await confirm({ title: 'Delete this inquiry?', message: 'It goes to the Trash, where a super admin can restore it.', confirmLabel: 'Delete' });
     if (!ok) return;
     try {
         await http.delete(`/inquiries/${row.id}`);

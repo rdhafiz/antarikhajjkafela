@@ -101,7 +101,7 @@ class PackageController extends Controller
         $default = app(Locales::class)->default();
 
         $data = $request->validate([
-            'service_id' => ['required', 'integer', 'exists:services,id'],
+            'service_id' => ['required', 'integer', 'exists:services,id,deleted_at,NULL'],
             'name' => ['required', 'array'],
             "name.{$default}" => ['required', 'string', 'max:160'],
             'name.en' => ['required', 'string', 'max:160'],
@@ -127,13 +127,13 @@ class PackageController extends Controller
         $default = app(Locales::class)->default();
 
         $data = $request->validate([
-            'service_id' => ['required', 'integer', 'exists:services,id'],
+            'service_id' => ['required', 'integer', 'exists:services,id,deleted_at,NULL'],
             'name' => ['required', 'array'],
             "name.{$default}" => ['required', 'string', 'max:160'],
             'name.en' => ['required', 'string', 'max:160'],
             'name.*' => ['nullable', 'string', 'max:160'],
             'summary.*' => ['nullable', 'string', 'max:400'],
-            'banner_id' => ['nullable', 'integer', 'exists:media,id'],
+            'banner_id' => ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'],
             'booking_starts_on' => ['nullable', 'date'],
             'booking_ends_on' => ['nullable', 'date', 'after_or_equal:booking_starts_on'],
             'duration_days' => ['nullable', 'integer', 'min:1', 'max:365'],
@@ -147,7 +147,7 @@ class PackageController extends Controller
             ],
             'seo.title.*' => ['nullable', 'string', 'max:70'],
             'seo.description.*' => ['nullable', 'string', 'max:200'],
-            'seo.image' => ['nullable', 'integer', 'exists:media,id'],
+            'seo.image' => ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'],
             'seo.noindex' => ['nullable', 'boolean'],
             ...$this->editor->nestedRules(),
         ], [

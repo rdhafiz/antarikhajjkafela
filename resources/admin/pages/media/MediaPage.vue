@@ -127,7 +127,7 @@ async function copyLink(media: Media): Promise<void> {
 }
 
 async function remove(media: Media): Promise<void> {
-    const ok = await confirm({ title: `Delete "${media.original_name}"?`, message: 'Pages, packages and posts using it will show no image. This cannot be undone.', confirmLabel: 'Delete image' });
+    const ok = await confirm({ title: `Delete "${media.original_name}"?`, message: 'Pages, packages and posts using it will show no image. It goes to the Trash, where a super admin can restore it.', confirmLabel: 'Delete image' });
     if (!ok) return;
     try {
         await http.delete(`/media/${media.id}`);

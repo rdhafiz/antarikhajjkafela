@@ -18,7 +18,7 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | haram-courtyard.webp | Gallery; admin Gallery header (cropped copy in `resources/admin/assets/gallery-header.webp`) | Sam Riz | https://unsplash.com/photos/ceNCWYqL8DY |
 | green-dome.webp | Reviews; admin Blog and Settings headers (cropped copies in `resources/admin/assets/blog-header.webp` and `settings-header.webp`) | A Miah | https://unsplash.com/photos/hJXiPheKFus |
 | quran.webp | Blog & news; admin Reviews header (cropped copy in `resources/admin/assets/reviews-header.webp`) | Abdullah Arif | https://unsplash.com/photos/Dxi6KbpvUgA |
-| nabawi-colonnade.webp | Terms & conditions, Privacy policy; admin Pages header (cropped copy in `resources/admin/assets/pages-header.webp`) | djonk creative | https://unsplash.com/photos/XqO6H6ikj1w |
+| nabawi-colonnade.webp | Terms & conditions, Privacy policy; admin Pages and Trash headers (cropped copies in `resources/admin/assets/pages-header.webp` and `trash-header.webp`) | djonk creative | https://unsplash.com/photos/XqO6H6ikj1w |
 
 ## Social share images
 
@@ -33,7 +33,7 @@ These are seeded by `HeroImagesSeeder` from `database/seeders/images/heroes/`. E
 | haram-courtyard.webp | Gallery; admin Gallery header (cropped copy in `resources/admin/assets/gallery-header.webp`) |
 | quran.webp | Blog & news |
 | green-dome.webp | Reviews; Umrah Package; admin Blog and Settings headers (cropped copies in `resources/admin/assets/blog-header.webp` and `settings-header.webp`) |
-| nabawi-colonnade.webp | Terms & conditions, Privacy policy; admin Pages header (cropped copy in `resources/admin/assets/pages-header.webp`) |
+| nabawi-colonnade.webp | Terms & conditions, Privacy policy; admin Pages and Trash headers (cropped copies in `resources/admin/assets/pages-header.webp` and `trash-header.webp`) |
 | hajj-campaign.webp | Hajj pre-registration campaign; admin Campaign pages header (cropped copy in `resources/admin/assets/campaigns-header.webp`) |
 | hajj-crowd.webp | Hajj |
 | haram-wide.webp | Umrah; post "What is Umrah?" |

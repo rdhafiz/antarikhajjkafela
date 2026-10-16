@@ -147,8 +147,8 @@ class PackageEditor
         }
 
         $typeIds = $package->types()->pluck('id');
-        PackagePrice::whereIn('package_type_id', $typeIds)->whereNotIn('id', $keptPrices)->delete();
-        PackageType::where('package_id', $package->id)->whereNotIn('id', $keptTypes)->delete();
+        PackagePrice::whereIn('package_type_id', $typeIds)->whereNotIn('id', $keptPrices)->get()->each->delete();
+        PackageType::where('package_id', $package->id)->whereNotIn('id', $keptTypes)->get()->each->delete();
     }
 
     private function uniqueSlug(string $base, ?int $ignoreId): string

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Trashable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['page_id', 'component', 'sort', 'is_visible', 'content', 'style'])]
 class PageSection extends Model
 {
+    use Trashable;
+
     protected function casts(): array
     {
         return [

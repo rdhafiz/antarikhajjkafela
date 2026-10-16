@@ -91,7 +91,7 @@ async function removePayment(id: number): Promise<void> {
 }
 
 async function remove(): Promise<void> {
-    if (!(await confirm({ title: `Delete booking ${booking.value!.reference}?`, message: 'Its payments and uploaded documents are deleted too. This cannot be undone.', confirmLabel: 'Delete booking' }))) return;
+    if (!(await confirm({ title: `Delete booking ${booking.value!.reference}?`, message: 'Its payments and uploaded documents go to the Trash with it, where a super admin can restore them.', confirmLabel: 'Delete booking' }))) return;
     try {
         await http.delete(`/bookings/${booking.value!.id}`);
         toast.success('Booking deleted');

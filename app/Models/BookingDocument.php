@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Trashable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * A passport, NID or other file uploaded with a booking. Stored on the
@@ -14,14 +14,11 @@ use Illuminate\Support\Facades\Storage;
 #[Fillable(['booking_id', 'kind', 'path', 'original_name', 'mime_type', 'size'])]
 class BookingDocument extends Model
 {
+    use Trashable;
+
     public const DISK = 'local';
 
     public const KINDS = ['passport' => 'Passport', 'nid' => 'National ID', 'other' => 'Other document'];
-
-    protected static function booted(): void
-    {
-        static::deleted(fn (BookingDocument $document) => Storage::disk(self::DISK)->delete($document->path));
-    }
 
     public function booking(): BelongsTo
     {

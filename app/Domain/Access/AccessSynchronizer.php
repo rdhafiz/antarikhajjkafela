@@ -2,8 +2,8 @@
 
 namespace App\Domain\Access;
 
+use App\Models\Role;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 /**

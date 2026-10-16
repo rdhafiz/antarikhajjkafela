@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Trashable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,7 +19,7 @@ use Spatie\Activitylog\Support\LogOptions;
 ])]
 class Booking extends Model
 {
-    use LogsActivity;
+    use LogsActivity, Trashable;
 
     public const STATUSES = [
         'pending' => 'Pending',

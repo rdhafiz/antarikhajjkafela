@@ -197,8 +197,11 @@ class BookingTest extends AdminTestCase
         $this->asAdmin($this->adminWith(['bookings.view']))->get($url)->assertOk()->assertHeader('Cache-Control');
         $this->asAdmin($this->adminWith(['inquiries.view']))->get($url)->assertForbidden();
 
+        // Deleting moves the booking and its documents to the Trash; the files stay.
         $this->asAdmin($this->superAdmin())->deleteJson("/api/admin/bookings/{$booking->id}")->assertNoContent();
-        Storage::disk('local')->assertMissing($document->path);
+        $this->assertSoftDeleted($booking);
+        $this->assertSoftDeleted($document);
+        Storage::disk('local')->assertExists($document->path);
     }
 
     public function test_sslcommerz_advance_payment_is_verified_with_the_gateway(): void

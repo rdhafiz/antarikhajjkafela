@@ -93,7 +93,7 @@ class MediaTest extends AdminTestCase
         ])->assertJsonValidationErrors('usage');
     }
 
-    public function test_deleting_media_removes_its_files(): void
+    public function test_deleting_media_keeps_its_files_for_a_restore(): void
     {
         $admin = $this->superAdmin();
         $this->asAdmin($admin)->post('/api/admin/media', ['file' => UploadedFile::fake()->image('a.jpg', 800, 600), 'usage' => 'general']);
@@ -101,8 +101,10 @@ class MediaTest extends AdminTestCase
 
         $this->asAdmin($admin)->deleteJson("/api/admin/media/{$media->id}")->assertNoContent();
 
-        Storage::disk('public')->assertMissing($media->variants['lg']['path']);
-        Storage::disk('local')->assertMissing("{$media->directory}/original.jpg");
+        $this->assertSoftDeleted($media);
+        Storage::disk('public')->assertExists($media->variants['lg']['path']);
+        Storage::disk('local')->assertExists("{$media->directory}/original.jpg");
+        $this->assertSame($admin->id, $media->fresh()->deleted_by);
     }
 
     public function test_media_permissions_are_enforced(): void

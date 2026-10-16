@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Trashable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,10 @@ use Spatie\Translatable\HasTranslations;
 #[Fillable(['title', 'slug', 'description', 'cover_id', 'event_date', 'is_published'])]
 class GalleryAlbum extends Model
 {
-    use HasTranslations;
+    use HasTranslations, Trashable;
+
+    /** Freed while in the Trash, given back on restore. */
+    protected array $releaseOnTrash = ['slug' => 'suffix'];
 
     /** @var list<string> */
     public array $translatable = ['title', 'description'];

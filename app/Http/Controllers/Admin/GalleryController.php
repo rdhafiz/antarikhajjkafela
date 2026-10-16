@@ -128,7 +128,7 @@ class GalleryController extends Controller
     {
         $data = $request->validate([
             'media_ids' => ['required_without:video_url', 'array', 'max:100'],
-            'media_ids.*' => ['integer', 'exists:media,id'],
+            'media_ids.*' => ['integer', 'exists:media,id,deleted_at,NULL'],
             'video_url' => ['required_without:media_ids', 'nullable', 'string', 'max:300', 'regex:'.ContentProcessor::YOUTUBE_PATTERN],
             'caption.*' => ['nullable', 'string', 'max:200'],
         ], ['video_url.regex' => 'Enter a YouTube video link.']);
@@ -168,7 +168,7 @@ class GalleryController extends Controller
     {
         $ids = $request->validate(['ids' => ['required', 'array'], 'ids.*' => ['integer']])['ids'];
 
-        $album->items()->whereIn('id', $ids)->delete();
+        $album->items()->whereIn('id', $ids)->get()->each->delete();
 
         return response()->json(status: 204);
     }
@@ -186,7 +186,7 @@ class GalleryController extends Controller
             'title.*' => ['nullable', 'string', 'max:120'],
             'slug' => ['nullable', 'string', 'max:160', 'regex:'.PageSaveRequest::SLUG_PATTERN, Rule::unique('gallery_albums', 'slug')->ignore($album?->id)],
             'description.*' => ['nullable', 'string', 'max:600'],
-            'cover_id' => ['nullable', 'integer', 'exists:media,id'],
+            'cover_id' => ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'],
             'event_date' => ['nullable', 'date'],
             'is_published' => ['boolean'],
         ], ['slug.regex' => 'Use lowercase letters, numbers and single hyphens only.']);

@@ -210,7 +210,7 @@ async function save(): Promise<void> {
 }
 
 async function remove(review: ReviewRow): Promise<void> {
-    if (!(await confirm({ title: `Delete the review by ${pickText(review.name)}?`, message: 'This cannot be undone.', confirmLabel: 'Delete' }))) return;
+    if (!(await confirm({ title: `Delete the review by ${pickText(review.name)}?`, message: 'It goes to the Trash, where a super admin can restore it.', confirmLabel: 'Delete' }))) return;
     try {
         await http.delete(`/reviews/${review.id}`);
         toast.success('Review deleted');

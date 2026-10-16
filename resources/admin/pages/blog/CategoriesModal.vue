@@ -61,7 +61,7 @@ async function save(): Promise<void> {
 async function remove(category: PostCategory): Promise<void> {
     const message = category.posts_count
         ? `Its ${category.posts_count} post(s) stay on the website without a category.`
-        : 'This cannot be undone.';
+        : 'It goes to the Trash, where a super admin can restore it.';
     if (!(await confirm({ title: `Delete "${pickText(category.name)}"?`, message, confirmLabel: 'Delete' }))) return;
     try {
         await http.delete(`/post-categories/${category.id}`);

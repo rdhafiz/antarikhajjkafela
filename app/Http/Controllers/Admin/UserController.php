@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UserRequest;
 use App\Http\Resources\Admin\RoleResource;
 use App\Http\Resources\Admin\UserResource;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,6 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -57,6 +57,7 @@ class UserController extends Controller
                 'roles' => DB::table(config('permission.table_names.model_has_roles').' as assigned')
                     ->join(config('permission.table_names.roles').' as r', 'r.id', '=', 'assigned.role_id')
                     ->where('assigned.model_type', (new User)->getMorphClass())
+                    ->whereIn('assigned.'.config('permission.column_names.model_morph_key'), User::query()->select('id'))
                     ->selectRaw('r.name as role, count(*) as n')
                     ->groupBy('r.name')
                     ->pluck('n', 'role')

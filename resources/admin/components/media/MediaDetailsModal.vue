@@ -49,7 +49,7 @@ async function remove(): Promise<void> {
 
     const ok = await confirm({
         title: 'Delete this image?',
-        message: 'It will be removed everywhere it is used on the website. This cannot be undone.',
+        message: 'It will be removed everywhere it is used on the website. It goes to the Trash, where a super admin can restore it.',
         confirmLabel: 'Delete image',
     });
     if (!ok) return;

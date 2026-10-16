@@ -65,7 +65,7 @@ class SettingsValidator
             'url' => ['url:http,https', 'max:255'],
             'color' => ['regex:/^#[0-9a-fA-F]{6}$/'],
             'boolean' => ['boolean'],
-            'media' => ['integer', Rule::exists('media', 'id')],
+            'media' => ['integer', Rule::exists('media', 'id')->whereNull('deleted_at')],
             'timezone' => ['timezone:all'],
             'select' => $this->selectRules($field),
             default => [],
@@ -80,7 +80,7 @@ class SettingsValidator
     {
         return match ($field['options']) {
             'locales' => [Rule::in($this->locales->codes())],
-            'pages' => ['integer', Rule::exists('pages', 'id')],
+            'pages' => ['integer', Rule::exists('pages', 'id')->whereNull('deleted_at')],
             default => [Rule::in(array_keys($field['options']))],
         };
     }

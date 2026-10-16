@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Trashable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class Payment extends Model
 {
+    use Trashable;
+
     public const OFFLINE_METHODS = ['bank' => 'Bank deposit / transfer', 'mobile_banking' => 'Mobile banking (bKash, Nagad…)', 'cash' => 'Cash', 'other' => 'Other'];
 
     public const GATEWAYS = ['sslcommerz' => 'SSLCommerz', 'dgepay' => 'DGePay'];

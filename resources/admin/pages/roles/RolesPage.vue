@@ -142,7 +142,7 @@ async function createRole(): Promise<void> {
 }
 
 async function removeRole(role: Role): Promise<void> {
-    const ok = await confirm({ title: `Delete the ${role.label} role?`, message: 'This cannot be undone.', confirmLabel: 'Delete role' });
+    const ok = await confirm({ title: `Delete the ${role.label} role?`, message: 'It goes to the Trash, where a super admin can restore it.', confirmLabel: 'Delete role' });
     if (!ok) return;
 
     try {

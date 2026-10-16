@@ -147,7 +147,7 @@ class PageEditor
             $kept[] = $section->id;
         }
 
-        $page->sections()->whereNotIn('id', $kept)->delete();
+        $page->sections()->whereNotIn('id', $kept)->get()->each->delete();
     }
 
     /**

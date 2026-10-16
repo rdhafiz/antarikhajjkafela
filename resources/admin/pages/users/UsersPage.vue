@@ -149,7 +149,7 @@ async function toggleActive(user: AdminUser): Promise<void> {
 async function remove(user: AdminUser): Promise<void> {
     const ok = await confirm({
         title: `Delete ${user.name}?`,
-        message: 'They will lose access to the admin portal immediately. This cannot be undone.',
+        message: 'They will lose access to the admin portal immediately. It goes to the Trash, where a super admin can restore it.',
         confirmLabel: 'Delete user',
     });
     if (!ok) return;

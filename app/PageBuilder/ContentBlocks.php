@@ -41,7 +41,7 @@ class ContentBlocks
             "{$path}.*.rows.*" => ['array', 'max:8'],
             "{$path}.*.style" => ['nullable', 'in:'.implode(',', self::LIST_STYLES)],
             "{$path}.*.items" => ['nullable', 'array', 'max:50'],
-            "{$path}.*.image" => ['nullable', 'integer', 'exists:media,id'],
+            "{$path}.*.image" => ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'],
             "{$path}.*.url" => ['nullable', 'string', 'max:300', 'regex:'.ContentProcessor::YOUTUBE_PATTERN],
         ];
 

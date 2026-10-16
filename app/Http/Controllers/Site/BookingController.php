@@ -78,7 +78,7 @@ class BookingController extends Controller
         abort_if(filled($request->input('website')), 422);
 
         $data = $request->validate([
-            'option' => ['required', 'integer', Rule::exists('package_prices', 'id')->whereIn('package_type_id', $package->types()->pluck('id'))],
+            'option' => ['required', 'integer', Rule::exists('package_prices', 'id')->whereNull('deleted_at')->whereIn('package_type_id', $package->types()->pluck('id'))],
             'travelers' => ['required', 'integer', 'min:1', 'max:'.self::MAX_TRAVELERS],
             'rooms' => ['nullable', 'integer', 'min:1', 'max:'.self::MAX_TRAVELERS],
             'name' => ['required', 'string', 'max:120'],

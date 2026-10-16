@@ -188,7 +188,7 @@ async function duplicate(row: PackageRow): Promise<void> {
 }
 
 async function remove(row: PackageRow): Promise<void> {
-    if (!(await confirm({ title: `Delete "${pickText(row.name)}"?`, message: 'Its prices and page content will be deleted. This cannot be undone.', confirmLabel: 'Delete package' }))) return;
+    if (!(await confirm({ title: `Delete "${pickText(row.name)}"?`, message: 'Its prices and page content will be deleted. It goes to the Trash, where a super admin can restore it.', confirmLabel: 'Delete package' }))) return;
     try {
         await http.delete(`/packages/${row.id}`);
         toast.success('Package deleted');

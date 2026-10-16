@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Trashable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,18 +15,10 @@ use Spatie\Translatable\HasTranslations;
 ])]
 class Media extends Model
 {
-    use HasTranslations;
+    use HasTranslations, Trashable;
 
     /** @var list<string> */
     public array $translatable = ['alt'];
-
-    protected static function booted(): void
-    {
-        static::deleted(function (Media $media) {
-            Storage::disk($media->disk)->deleteDirectory($media->directory);
-            Storage::disk(config('media.originals_disk', 'local'))->deleteDirectory($media->directory);
-        });
-    }
 
     protected function casts(): array
     {

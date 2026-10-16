@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Trashable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Spatie\Translatable\HasTranslations;
 #[Fillable(['album_id', 'type', 'media_id', 'video_url', 'caption'])]
 class GalleryItem extends Model
 {
-    use HasTranslations;
+    use HasTranslations, Trashable;
 
     /** @var list<string> */
     public array $translatable = ['caption'];

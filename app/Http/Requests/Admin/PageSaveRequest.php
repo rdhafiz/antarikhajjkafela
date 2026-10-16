@@ -36,7 +36,7 @@ class PageSaveRequest extends FormRequest
             'seo' => ['nullable', 'array'],
             'seo.title.*' => ['nullable', 'string', 'max:70'],
             'seo.description.*' => ['nullable', 'string', 'max:200'],
-            'seo.image' => ['nullable', 'integer', 'exists:media,id'],
+            'seo.image' => ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'],
             'seo.noindex' => ['nullable', 'boolean'],
             'sections' => ['present', 'array', 'max:40'],
             'sections.*' => ['array'],
@@ -79,7 +79,7 @@ class PageSaveRequest extends FormRequest
                     $rules["sections.{$index}.style.{$field->key}"] = ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'];
                 }
             }
-            $rules["sections.{$index}.style.background_image"] = ['nullable', 'integer', 'exists:media,id'];
+            $rules["sections.{$index}.style.background_image"] = ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'];
         }
 
         return $rules;

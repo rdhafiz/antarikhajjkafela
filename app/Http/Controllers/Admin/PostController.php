@@ -89,7 +89,7 @@ class PostController extends Controller
             'title' => ['required', 'array'],
             "title.{$default}" => ['required', 'string', 'max:180'],
             'title.*' => ['nullable', 'string', 'max:180'],
-            'category_id' => ['nullable', 'integer', 'exists:post_categories,id'],
+            'category_id' => ['nullable', 'integer', 'exists:post_categories,id,deleted_at,NULL'],
         ]);
 
         $post = $this->editor->save(new Post, [
