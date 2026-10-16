@@ -204,10 +204,72 @@ Alpine.data('bookingForm', (config) => ({
         loadRecaptcha(this.recaptcha);
     },
 
+    /**
+     * Check the required fields before sending, with a message under each
+     * field in the page's language (the form is `novalidate`, so the browser
+     * shows none of its own). The server checks everything again.
+     */
+    check(form) {
+        form.querySelectorAll('.error-client').forEach((el) => el.remove());
+        let first = null;
+
+        for (const el of form.elements) {
+            if (el.dataset.clientInvalid) this.unflag(el);
+            if (!el.willValidate || el.checkValidity()) continue;
+            // A radio group gets one message.
+            if (el.type === 'radio' && form.querySelector(`.error-client[data-for="${el.name}"]`)) continue;
+            this.flag(el);
+            first ??= el;
+        }
+
+        if (!first) return true;
+        first.closest('[data-field]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        first.focus({ preventScroll: true });
+        return false;
+    },
+
+    flag(el) {
+        const box = el.closest('[data-field]');
+        const v = el.validity;
+        const choice = el.type === 'radio' || el.type === 'checkbox';
+        const text = v.valueMissing
+            ? (choice ? (el.dataset.message ?? this.messages.choose) : this.messages.required)
+            : v.typeMismatch && el.type === 'email' ? this.messages.email : (el.dataset.message ?? this.messages.invalid);
+        const id = `${el.id || el.name}-client-error`;
+
+        el.setAttribute('aria-invalid', 'true');
+        el.setAttribute('aria-describedby', id);
+        el.dataset.clientInvalid = '1';
+        if (!box) return;
+
+        const p = document.createElement('p');
+        p.className = 'error-site error-client';
+        p.id = id;
+        p.dataset.for = el.name;
+        p.textContent = text;
+        box.append(p);
+    },
+
+    unflag(el) {
+        el.removeAttribute('aria-invalid');
+        el.removeAttribute('aria-describedby');
+        delete el.dataset.clientInvalid;
+    },
+
+    /** Drop a field's message once it is valid. */
+    clearError(el) {
+        if (!el?.name || !el.form) return;
+        const group = el.type === 'radio' ? [...el.form.querySelectorAll(`[name="${el.name}"]`)] : [el];
+        if (!group.some((g) => g.dataset.clientInvalid) || !el.checkValidity()) return;
+        group.forEach((g) => this.unflag(g));
+        el.form.querySelector(`.error-client[data-for="${el.name}"]`)?.remove();
+    },
+
     async submit(event) {
         if (this.verified) return;
         event.preventDefault();
         if (this.busy) return;
+        if (!this.check(event.target)) return;
         this.busy = true;
 
         const token = await recaptchaToken(this.recaptcha);

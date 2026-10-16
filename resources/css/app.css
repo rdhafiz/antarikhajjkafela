@@ -1772,6 +1772,87 @@
         translate: none;
     }
 
+    /* Step 3: upload cards share the option card look. */
+    .book-doc {
+        cursor: default;
+
+        &.is-dragging {
+            border-style: dashed;
+            border-color: var(--color-gold);
+            background: #fffbeb;
+        }
+    }
+
+    .book-doc-art {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-brand);
+    }
+
+    .book-doc-hint {
+        display: block;
+        margin-top: 0.3rem;
+        font-size: 13px;
+        color: var(--color-ink-3);
+    }
+
+    .book-doc-files {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-top: 0.6rem;
+    }
+
+    .book-doc-file {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        border-radius: 999px;
+        background: #fff;
+        padding: 0.2rem 0.65rem;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--color-brand);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-gold) 45%, var(--color-line));
+    }
+
+    .book-doc-button {
+        display: inline-flex;
+        min-height: 2.5rem;
+        cursor: pointer;
+        align-items: center;
+        gap: 0.45rem;
+        border-radius: 999px;
+        background: linear-gradient(180deg, color-mix(in srgb, var(--color-brand) 80%, #3b82f6), var(--color-brand));
+        padding: 0 1rem;
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        box-shadow: 0 10px 20px -14px var(--color-brand);
+        transition: background-color 250ms var(--ease-out-soft);
+
+        &:hover {
+            background: var(--color-brand-900);
+        }
+    }
+
+    .book-doc-clear {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #b91c1c;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .book-doc-drop {
+        font-size: 13px;
+        color: var(--color-ink-3);
+    }
+
     .book-step .book-step-num {
         background: var(--color-sand-100);
         color: var(--color-gold-deep);

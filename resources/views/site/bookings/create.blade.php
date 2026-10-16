@@ -18,6 +18,12 @@
         'advance' => $advance,
         'recaptcha' => $recaptcha,
         'locale' => app()->getLocale(),
+        'messages' => [
+            'required' => __('Please fill in this field.'),
+            'choose' => __('Please choose one.'),
+            'email' => __('Enter a valid email address.'),
+            'invalid' => __('Please check this field.'),
+        ],
     ];
     $invalid = fn (string $name) => $errors->has($name) ? 'aria-invalid="true" aria-describedby="'.e($name).'-error"' : '';
 @endphp
@@ -77,7 +83,7 @@
         <div class="pattern-star-ink pointer-events-none absolute inset-0 -z-10 opacity-[0.02]" aria-hidden="true"></div>
         <div class="container-site">
             <form method="POST" action="{{ route('bookings.store', $package->slug) }}" enctype="multipart/form-data" novalidate
-                  x-data="bookingForm(@js($config))" @submit="submit($event)" @focusin.once="loadRecaptcha()"
+                  x-data="bookingForm(@js($config))" @submit="submit($event)" @input="clearError($event.target)" @change="clearError($event.target)" @focusin.once="loadRecaptcha()"
                   class="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
                 @csrf
                 <input type="hidden" name="recaptcha_token" x-ref="token">
@@ -110,10 +116,10 @@
                             </div>
                         </div>
                         <div class="book-card-body">
-                            <div class="grid gap-4 lg:grid-cols-2">
+                            <div class="grid gap-4 lg:grid-cols-2" data-field>
                                 @foreach ($options as $i => $option)
                                     <label class="book-option" :class="option === {{ $option['id'] }} && 'is-selected'" @class(['is-selected' => $option['id'] === $selected['id']]) data-reveal style="--reveal-delay: {{ ($i % 4) * 80 }}ms">
-                                        <input type="radio" name="option" value="{{ $option['id'] }}" x-model.number="option" class="sr-only" @checked($option['id'] === $selected['id'])>
+                                        <input type="radio" name="option" value="{{ $option['id'] }}" x-model.number="option" class="sr-only" required data-message="{{ __('Choose a package option.') }}" @checked($option['id'] === $selected['id'])>
                                         <span class="book-option-art" aria-hidden="true"><x-site.hotel-art :variant="$i" class="size-full" /></span>
                                         <span class="book-option-body min-w-0 flex-1">
                                             <span class="book-option-type">{{ $option['type'] }}</span>
@@ -132,26 +138,26 @@
 
                             {{-- How many, and when. --}}
                             <div class="book-plan" data-reveal style="--reveal-delay: 120ms">
-                                <div>
+                                <div data-field>
                                     <label for="travelers" class="book-label">{{ __('Number of travelers') }} <span class="text-red-600">*</span></label>
                                     <div class="book-count">
                                         <div class="book-count-field">
                                             <button type="button" class="book-count-minus" @click="travelers = Math.max(1, travelers - 1)" :disabled="travelers <= 1" aria-label="{{ __('Fewer travelers') }}"><span aria-hidden="true"></span></button>
-                                            <input id="travelers" name="travelers" type="number" min="1" max="50" inputmode="numeric" x-model.number="travelers" {!! $invalid('travelers') !!}>
+                                            <input id="travelers" name="travelers" type="number" min="1" max="50" inputmode="numeric" x-model.number="travelers" required {!! $invalid('travelers') !!}>
                                         </div>
                                         <button type="button" class="book-count-plus" @click="travelers = Math.min(50, travelers + 1)" :disabled="travelers >= 50" aria-label="{{ __('More travelers') }}"><span aria-hidden="true"></span></button>
                                     </div>
                                     @error('travelers')<p id="travelers-error" class="error-site">{{ $message }}</p>@enderror
                                 </div>
-                                <div x-show="selected.unit === 'room'" x-cloak>
+                                <div x-show="selected.unit === 'room'" x-cloak data-field>
                                     <label for="rooms" class="book-label">{{ __('Number of rooms') }}</label>
-                                    <input id="rooms" name="rooms" type="number" min="1" max="50" inputmode="numeric" x-model.number="rooms" class="book-select" :disabled="selected.unit !== 'room'">
+                                    <input id="rooms" name="rooms" type="number" min="1" max="50" inputmode="numeric" x-model.number="rooms" class="book-select" :disabled="selected.unit !== 'room'" :required="selected.unit === 'room'">
                                     @error('rooms')<p class="error-site">{{ $message }}</p>@enderror
                                 </div>
 
                                 {{-- When they want to travel: the year first (it decides which months are open), then the month for Umrah. --}}
                                 @if ($travel['mode'] !== 'none')
-                                    <div>
+                                    <div data-field>
                                         <label for="travel_year" class="book-label">{{ $travel['mode'] === 'hajj_year' ? __('Hajj year') : __('Travel year') }} <span class="text-red-600">*</span></label>
                                         <div class="book-picker">
                                             <x-site.icon name="calendar" class="book-picker-icon" />
@@ -169,7 +175,7 @@
                                     </div>
                                 @endif
                                 @if ($travel['mode'] === 'month_year')
-                                    <div>
+                                    <div data-field>
                                         <label for="travel_month" class="book-label">{{ __('Travel month') }} <span class="text-red-600">*</span></label>
                                         <div class="book-picker">
                                             <x-site.icon name="calendar" class="book-picker-icon" />
@@ -211,13 +217,14 @@
                                     ['email', __('Email'), 'email', false, 'email', 'mail'],
                                     ['address', __('Address'), 'text', false, 'street-address', 'map-pin'],
                                 ] as $i => [$key, $label, $type, $required, $autocomplete, $icon])
-                                    <div data-reveal style="--reveal-delay: {{ ($i % 2) * 80 }}ms">
+                                    <div data-field data-reveal style="--reveal-delay: {{ ($i % 2) * 80 }}ms">
                                         <label for="{{ $key }}" class="book-label">{{ $label }}@if ($required) <span class="text-red-600">*</span>@else <span class="font-normal text-ink-3">({{ __('optional') }})</span>@endif
                                             @if ($key === 'email')<span class="font-normal text-ink-3" x-text="payment === 'now' ? @js(' – '.__('needed for online payment')) : ''"></span>@endif
                                         </label>
                                         <div class="book-picker">
                                             <x-site.icon :name="$icon" class="book-picker-icon" />
-                                            <input id="{{ $key }}" name="{{ $key }}" type="{{ $type }}" value="{{ old($key) }}" autocomplete="{{ $autocomplete }}" @required($required) @if ($type === 'tel') inputmode="tel" dir="ltr" placeholder="01XXXXXXXXX" @endif class="book-select book-input" {!! $invalid($key) !!}>
+                                            <input id="{{ $key }}" name="{{ $key }}" type="{{ $type }}" value="{{ old($key) }}" autocomplete="{{ $autocomplete }}" @required($required) @if ($type === 'tel') inputmode="tel" dir="ltr" placeholder="01XXXXXXXXX" pattern="[0-9+\-\s\(\)]{7,20}" data-message="{{ __('Enter a valid mobile number.') }}" @endif
+                                                   @if ($key === 'email') :required="payment === 'now'" @endif class="book-select book-input" {!! $invalid($key) !!}>
                                         </div>
                                         @error($key)<p id="{{ $key }}-error" class="error-site">{{ $message }}</p>@enderror
                                     </div>
@@ -237,26 +244,62 @@
                     {{-- 3. Documents --}}
                     <fieldset id="step-documents" class="book-card scroll-mt-40">
                         <legend class="sr-only">{{ __('Documents') }}</legend>
-                        <div class="book-card-head" data-reveal aria-hidden="true">
+                        <div class="book-card-head book-head-scene" data-reveal aria-hidden="true">
+                            {{-- The Green Dome, fading in behind the heading. --}}
+                            <img src="{{ asset('images/booking/dome-scene.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
                             <span class="book-card-num">{{ $pad(3) }}</span>
-                            <div>
-                                <p class="font-display text-display-sm text-brand">{{ __('Documents') }} <span class="font-sans text-[14px] font-normal text-ink-3">({{ __('optional') }})</span></p>
-                                <p class="mt-1 text-[14.5px] text-ink-2">{{ __('You can upload passport and NID copies now or give them to us later. JPG, PNG or PDF, up to 5 MB each. Only our staff can see them.') }}</p>
+                            <span class="book-head-rule" aria-hidden="true"></span>
+                            <div class="relative min-w-0">
+                                <p class="book-head-title">{{ __('Documents') }} <span class="font-sans text-[15px] font-normal text-ink-3">({{ __('optional') }})</span></p>
+                                <p class="book-head-text">{{ __('Upload passport and NID copies now, or give them to us later.') }}</p>
                             </div>
                         </div>
-                        <div class="book-card-body grid gap-4 sm:grid-cols-2">
-                            @foreach (['passport' => [__('Passport copies'), 'passport'], 'nid' => [__('NID copies'), 'document']] as $key => [$label, $icon])
-                                <div x-data="{ files: [] }" data-reveal style="--reveal-delay: {{ $loop->index * 80 }}ms">
-                                    <label for="{{ $key }}" class="book-drop group flex cursor-pointer flex-col items-center px-5 py-7 text-center">
-                                        <span class="flex size-12 items-center justify-center rounded-2xl bg-brand text-gold transition-[scale] duration-500 group-hover:scale-105"><x-site.icon :name="$icon" class="size-6" /></span>
-                                        <span class="mt-3 font-semibold text-brand">{{ $label }}</span>
-                                        <span class="mt-1 text-[13px] text-ink-3" x-text="files.length ? files.join(', ') : @js(__('Choose files'))">{{ __('Choose files') }}</span>
-                                    </label>
-                                    <input id="{{ $key }}" name="{{ $key }}[]" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf" class="sr-only"
-                                           @change="files = [...$event.target.files].map((f) => f.name)">
-                                    @error($key.'.*')<p class="error-site">{{ $message }}</p>@enderror
-                                </div>
-                            @endforeach
+                        <div class="book-card-body">
+                            <div class="grid gap-4 lg:grid-cols-2">
+                                @foreach (['passport' => [__('Passport copies'), 'passport'], 'nid' => [__('NID copies'), 'document']] as $key => [$label, $icon])
+                                    {{-- Pick or drop files; the card turns gold once it holds some. --}}
+                                    <div class="book-option book-doc"
+                                         x-data="{
+                                            files: [],
+                                            dragging: false,
+                                            pick(list) { this.files = [...list].map((f) => f.name) },
+                                            drop(event) {
+                                                this.dragging = false;
+                                                if (!event.dataTransfer.files.length) return;
+                                                this.$refs.input.files = event.dataTransfer.files;
+                                                this.pick(event.dataTransfer.files);
+                                            },
+                                            clear() { this.$refs.input.value = ''; this.files = [] },
+                                         }"
+                                         :class="{ 'is-selected': files.length, 'is-dragging': dragging }"
+                                         @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false" @drop.prevent="drop($event)"
+                                         data-reveal style="--reveal-delay: {{ $loop->index * 80 }}ms">
+                                        <span class="book-option-art book-doc-art" aria-hidden="true"><x-site.icon :name="$icon" class="size-9" /></span>
+                                        <span class="book-option-body min-w-0 flex-1">
+                                            <span class="book-option-title !mt-0">{{ $label }}</span>
+                                            <span class="book-doc-hint">{{ __('JPG, PNG or PDF · up to 5 MB each') }}</span>
+                                            <span class="book-doc-files" x-show="files.length" x-cloak>
+                                                <template x-for="name in files" :key="name"><span class="book-doc-file" x-text="name"></span></template>
+                                            </span>
+                                            <span class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+                                                <label for="{{ $key }}" class="book-doc-button">
+                                                    <x-site.icon name="upload" class="size-4" />
+                                                    <span x-text="files.length ? @js(__('Change files')) : @js(__('Choose files'))">{{ __('Choose files') }}</span>
+                                                </label>
+                                                <button type="button" class="book-doc-clear" x-show="files.length" x-cloak @click="clear()">{{ __('Remove') }}</button>
+                                                <span class="book-doc-drop" x-show="!files.length">{{ __('or drop them here') }}</span>
+                                            </span>
+                                        </span>
+                                        <span class="book-option-check" aria-hidden="true"><x-site.icon name="check" class="size-4" stroke-width="3" /></span>
+                                        <input id="{{ $key }}" x-ref="input" name="{{ $key }}[]" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf" class="sr-only" aria-label="{{ $label }}"
+                                               @change="pick($event.target.files)">
+                                    </div>
+                                    @error($key.'.*')<p class="error-site lg:col-span-2">{{ $message }}</p>@enderror
+                                @endforeach
+                            </div>
+                            <p class="mt-5 flex items-center gap-2 text-[14px] text-ink-2" data-reveal>
+                                <x-site.icon name="shield" class="size-4.5 shrink-0 text-emerald" />{{ __('Your documents are seen only by our staff.') }}
+                            </p>
                         </div>
                     </fieldset>
 
@@ -296,20 +339,22 @@
                                 </label>
                             </div>
 
+                            <div data-field>
                             <label class="mt-6 flex items-start gap-3 rounded-2xl bg-sand-50 p-4 text-[14px] text-ink-2 ring-1 ring-line" data-reveal>
-                                <input type="checkbox" name="agree" value="1" @checked(old('agree')) class="mt-0.5 size-5 shrink-0 rounded accent-[var(--color-brand)]" {!! $invalid('agree') !!}>
+                                <input type="checkbox" name="agree" value="1" @checked(old('agree')) required data-message="{{ __('Please accept the booking terms.') }}" class="mt-0.5 size-5 shrink-0 rounded accent-[var(--color-brand)]" {!! $invalid('agree') !!}>
                                 <span>{{ __('I agree to the') }} <a href="{{ url('terms-and-conditions') }}" target="_blank" class="font-semibold text-brand underline">{{ __('booking terms and conditions') }}</a>{{ __(', including that prices may change with Saudi government or airline fees.') }}</span>
                             </label>
                             @error('agree')<p id="agree-error" class="error-site">{{ $message }}</p>@enderror
+                            </div>
                         </div>
                     </fieldset>
                     @else
                         {{-- No online payment: the booking is "pay later", so only the terms are left to accept. --}}
                         <input type="hidden" name="payment" value="later">
                         <div class="book-card">
-                            <div class="book-card-body">
+                            <div class="book-card-body" data-field>
                                 <label class="flex items-start gap-3 rounded-2xl bg-sand-50 p-4 text-[14px] text-ink-2 ring-1 ring-line" data-reveal>
-                                    <input type="checkbox" name="agree" value="1" @checked(old('agree')) class="mt-0.5 size-5 shrink-0 rounded accent-[var(--color-brand)]" {!! $invalid('agree') !!}>
+                                    <input type="checkbox" name="agree" value="1" @checked(old('agree')) required data-message="{{ __('Please accept the booking terms.') }}" class="mt-0.5 size-5 shrink-0 rounded accent-[var(--color-brand)]" {!! $invalid('agree') !!}>
                                     <span>{{ __('I agree to the') }} <a href="{{ url('terms-and-conditions') }}" target="_blank" class="font-semibold text-brand underline">{{ __('booking terms and conditions') }}</a>{{ __(', including that prices may change with Saudi government or airline fees.') }}</span>
                                 </label>
                                 @error('agree')<p id="agree-error" class="error-site">{{ $message }}</p>@enderror
