@@ -418,7 +418,13 @@ class BookingTest extends AdminTestCase
         $payment = $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => $booking->fresh()->balance(), 'method' => 'cash', 'paid_at' => now()->toDateTimeString()])
             ->assertCreated()->assertJsonPath('data.status', 'fully_paid')->assertJsonPath('data.balance', 0)->json('data.payments.0.id');
 
-        $this->asAdmin($admin)->deleteJson("/api/admin/bookings/{$booking->id}/payments/{$payment}")->assertOk()->assertJsonPath('data.paid_amount', 20000);
+        // Removing a payment steps the status back down with the money.
+        $this->asAdmin($admin)->deleteJson("/api/admin/bookings/{$booking->id}/payments/{$payment}")
+            ->assertOk()->assertJsonPath('data.paid_amount', 20000)->assertJsonPath('data.status', 'advance_paid');
+
+        $first = $this->asAdmin($admin)->getJson("/api/admin/bookings/{$booking->id}")->json('data.payments.0.id');
+        $this->asAdmin($admin)->deleteJson("/api/admin/bookings/{$booking->id}/payments/{$first}")
+            ->assertOk()->assertJsonPath('data.paid_amount', 0)->assertJsonPath('data.status', 'pending');
 
         $this->asAdmin($admin)->putJson("/api/admin/bookings/{$booking->id}", ['status' => 'cancelled', 'admin_notes' => 'Customer changed plans'])
             ->assertOk()->assertJsonPath('data.status', 'cancelled');
