@@ -100,7 +100,9 @@ class AuthTest extends AdminTestCase
     public function test_the_admin_spa_shell_is_served_for_any_admin_path(): void
     {
         $this->get('/ahk/admin/login')->assertOk()->assertSee('id="admin"', false)->assertSee('--admin-primary: #012a51', false)
-            ->assertSee("window.adminBase = '\\/ahk\\/'", false);
+            ->assertSee("window.adminBase = '\\/ahk\\/'", false)
+            // The tab icon shows even before a favicon is uploaded.
+            ->assertSee('<link rel="icon" type="image/webp" sizes="32x32" href="'.url('images/brand/icon-96.webp').'">', false);
         $this->get('/ahk/admin/users/anything')->assertOk();
         $this->assertSame(url('/ahk/admin/bookings/12'), admin_url('bookings/12'));
 
