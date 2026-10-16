@@ -96,57 +96,83 @@
                     @endif
 
                     {{-- 1. Option --}}
-                    <fieldset id="step-option" class="book-card scroll-mt-40">
+                    <fieldset id="step-option" class="book-card book-card-option scroll-mt-40">
                         <legend class="sr-only">{{ __('Choose your package option') }}</legend>
-                        <div class="book-card-head" data-reveal aria-hidden="true">
+                        <div class="book-card-head book-head-scene" data-reveal aria-hidden="true">
+                            {{-- The Haram, fading in behind the heading. --}}
+                            <img src="{{ asset('images/booking/haram-scene.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
                             <span class="book-card-num">{{ $pad(1) }}</span>
-                            <div>
-                                <p class="font-display text-display-sm text-brand">{{ __('Choose your package option') }}</p>
-                                <p class="mt-1 text-[14.5px] text-ink-2">{{ __('Pick a room option and how many people are travelling.') }}</p>
+                            <span class="book-head-rule" aria-hidden="true"></span>
+                            <div class="relative min-w-0">
+                                <p class="book-head-title">{{ __('Choose your package option') }}</p>
+                                <p class="book-head-text">{{ __('Pick a room option and how many people are travelling.') }}</p>
                             </div>
                         </div>
                         <div class="book-card-body">
-                            <div class="grid gap-3 sm:grid-cols-2">
+                            <div class="grid gap-4 lg:grid-cols-2">
                                 @foreach ($options as $i => $option)
-                                    <label class="book-choice relative flex cursor-pointer flex-col p-5" :class="option === {{ $option['id'] }} && 'is-selected'" data-reveal style="--reveal-delay: {{ ($i % 4) * 80 }}ms">
-                                        <input type="radio" name="option" value="{{ $option['id'] }}" x-model.number="option" class="sr-only">
-                                        <span class="text-[12px] font-semibold tracking-[0.12em] text-gold-deep uppercase">{{ $option['type'] }}</span>
-                                        <span class="mt-1.5 pe-8 font-semibold text-ink">{{ $option['title'] }}</span>
-                                        @if ($showPrice)
-                                            <span class="mt-3 font-display text-[1.375rem] leading-none font-semibold text-brand">{{ Money::html($option['price']) }} <span class="font-sans text-[13px] font-normal text-ink-3">{{ $option['unit_label'] }}</span></span>
-                                        @else
-                                            <x-site.price-request class="mt-3 text-[14px] font-semibold text-brand" />
-                                        @endif
-                                        <span class="book-choice-check absolute top-4 end-4 flex size-6 items-center justify-center rounded-full" aria-hidden="true"><x-site.icon name="check" class="size-3.5" /></span>
+                                    <label class="book-option" :class="option === {{ $option['id'] }} && 'is-selected'" @class(['is-selected' => $option['id'] === $selected['id']]) data-reveal style="--reveal-delay: {{ ($i % 4) * 80 }}ms">
+                                        <input type="radio" name="option" value="{{ $option['id'] }}" x-model.number="option" class="sr-only" @checked($option['id'] === $selected['id'])>
+                                        <span class="book-option-art" aria-hidden="true"><x-site.hotel-art :variant="$i" class="size-full" /></span>
+                                        <span class="book-option-body min-w-0 flex-1">
+                                            <span class="book-option-type">{{ $option['type'] }}</span>
+                                            <span class="book-option-title">{{ $option['title'] }}</span>
+                                            @if ($showPrice)
+                                                <span class="book-option-price">{{ Money::html($option['price']) }} <span class="book-option-unit">{{ $option['unit_label'] }}</span></span>
+                                            @else
+                                                <x-site.price-request class="mt-2 block text-[15px] font-semibold text-brand" />
+                                            @endif
+                                        </span>
+                                        <span class="book-option-check" aria-hidden="true"><x-site.icon name="check" class="size-4" stroke-width="3" /></span>
                                     </label>
                                 @endforeach
                             </div>
                             @error('option')<p class="error-site">{{ $message }}</p>@enderror
 
-                            <div class="mt-6 grid gap-5 sm:grid-cols-2" data-reveal style="--reveal-delay: 120ms">
+                            {{-- How many, and when. --}}
+                            <div class="book-plan" data-reveal style="--reveal-delay: 120ms">
                                 <div>
-                                    <label for="travelers" class="label-site">{{ __('Number of travelers') }}<span class="text-red-600">*</span></label>
-                                    <div class="book-stepper flex items-stretch">
-                                        <button type="button" @click="travelers = Math.max(1, travelers - 1)" aria-label="{{ __('Fewer travelers') }}">−</button>
-                                        <input id="travelers" name="travelers" type="number" min="1" max="50" inputmode="numeric" x-model.number="travelers" class="input-site rounded-none border-x-0 text-center font-semibold" {!! $invalid('travelers') !!}>
-                                        <button type="button" @click="travelers = Math.min(50, travelers + 1)" aria-label="{{ __('More travelers') }}">+</button>
+                                    <label for="travelers" class="book-label">{{ __('Number of travelers') }} <span class="text-red-600">*</span></label>
+                                    <div class="book-count">
+                                        <div class="book-count-field">
+                                            <button type="button" class="book-count-minus" @click="travelers = Math.max(1, travelers - 1)" :disabled="travelers <= 1" aria-label="{{ __('Fewer travelers') }}"><span aria-hidden="true"></span></button>
+                                            <input id="travelers" name="travelers" type="number" min="1" max="50" inputmode="numeric" x-model.number="travelers" {!! $invalid('travelers') !!}>
+                                        </div>
+                                        <button type="button" class="book-count-plus" @click="travelers = Math.min(50, travelers + 1)" :disabled="travelers >= 50" aria-label="{{ __('More travelers') }}"><span aria-hidden="true"></span></button>
                                     </div>
                                     @error('travelers')<p id="travelers-error" class="error-site">{{ $message }}</p>@enderror
                                 </div>
                                 <div x-show="selected.unit === 'room'" x-cloak>
-                                    <label for="rooms" class="label-site">{{ __('Number of rooms') }}</label>
-                                    <input id="rooms" name="rooms" type="number" min="1" max="50" inputmode="numeric" x-model.number="rooms" class="input-site" :disabled="selected.unit !== 'room'">
+                                    <label for="rooms" class="book-label">{{ __('Number of rooms') }}</label>
+                                    <input id="rooms" name="rooms" type="number" min="1" max="50" inputmode="numeric" x-model.number="rooms" class="book-select" :disabled="selected.unit !== 'room'">
                                     @error('rooms')<p class="error-site">{{ $message }}</p>@enderror
                                 </div>
-                            </div>
 
-                            {{-- When they want to travel: month and year (Umrah) or the Hajj year. --}}
-                            @if ($travel['mode'] !== 'none')
-                                <div class="mt-5 grid gap-5 sm:grid-cols-2" data-reveal style="--reveal-delay: 160ms">
-                                    @if ($travel['mode'] === 'month_year')
-                                        <div>
-                                            <label for="travel_month" class="label-site">{{ __('Travel month') }}<span class="text-red-600">*</span></label>
-                                            <select id="travel_month" name="travel_month" x-model.number="travelMonth" required class="input-site"
+                                {{-- When they want to travel: the year first (it decides which months are open), then the month for Umrah. --}}
+                                @if ($travel['mode'] !== 'none')
+                                    <div>
+                                        <label for="travel_year" class="book-label">{{ $travel['mode'] === 'hajj_year' ? __('Hajj year') : __('Travel year') }} <span class="text-red-600">*</span></label>
+                                        <div class="book-picker">
+                                            <x-site.icon name="calendar" class="book-picker-icon" />
+                                            <select id="travel_year" name="travel_year" x-model.number="travelYear" required class="book-select" {!! $invalid('travel_year') !!}>
+                                                @foreach ($travel['years'] as $year)
+                                                    <option value="{{ $year }}">{{ $travel['mode'] === 'hajj_year' ? __('Hajj :year', ['year' => Money::digits($year)]) : Money::digits($year) }}</option>
+                                                @endforeach
+                                            </select>
+                                            <x-site.icon name="chevron-down" class="book-picker-chevron" />
+                                        </div>
+                                        @if ($travel['mode'] === 'hajj_year')
+                                            <p class="mt-1.5 text-[13px] text-ink-3">{{ __('Registration for Hajj :year has closed; the next Hajj open for registration is :next.', ['year' => Money::digits($travel['years'][0] - 1), 'next' => Money::digits($travel['years'][0])]) }}</p>
+                                        @endif
+                                        @error('travel_year')<p id="travel_year-error" class="error-site">{{ $message }}</p>@enderror
+                                    </div>
+                                @endif
+                                @if ($travel['mode'] === 'month_year')
+                                    <div>
+                                        <label for="travel_month" class="book-label">{{ __('Travel month') }} <span class="text-red-600">*</span></label>
+                                        <div class="book-picker">
+                                            <x-site.icon name="calendar" class="book-picker-icon" />
+                                            <select id="travel_month" name="travel_month" x-model.number="travelMonth" required class="book-select"
                                                     x-effect="if (travelYear === {{ $travel['currentYear'] }} && travelMonth && travelMonth < {{ $travel['currentMonth'] }}) travelMonth = ''"
                                                     {!! $invalid('travel_month') !!}>
                                                 <option value="">{{ __('Choose a month') }}</option>
@@ -154,23 +180,12 @@
                                                     <option value="{{ $number }}" :disabled="travelYear === {{ $travel['currentYear'] }} && {{ $number }} < {{ $travel['currentMonth'] }}">{{ $month }}</option>
                                                 @endforeach
                                             </select>
-                                            @error('travel_month')<p id="travel_month-error" class="error-site">{{ $message }}</p>@enderror
+                                            <x-site.icon name="chevron-down" class="book-picker-chevron" />
                                         </div>
-                                    @endif
-                                    <div>
-                                        <label for="travel_year" class="label-site">{{ $travel['mode'] === 'hajj_year' ? __('Hajj year') : __('Travel year') }}<span class="text-red-600">*</span></label>
-                                        <select id="travel_year" name="travel_year" x-model.number="travelYear" required class="input-site" {!! $invalid('travel_year') !!}>
-                                            @foreach ($travel['years'] as $year)
-                                                <option value="{{ $year }}">{{ $travel['mode'] === 'hajj_year' ? __('Hajj :year', ['year' => Money::digits($year)]) : Money::digits($year) }}</option>
-                                            @endforeach
-                                        </select>
-                                        @if ($travel['mode'] === 'hajj_year')
-                                            <p class="mt-1.5 text-[13px] text-ink-3">{{ __('Registration for Hajj :year has closed; the next Hajj open for registration is :next.', ['year' => Money::digits($travel['years'][0] - 1), 'next' => Money::digits($travel['years'][0])]) }}</p>
-                                        @endif
-                                        @error('travel_year')<p id="travel_year-error" class="error-site">{{ $message }}</p>@enderror
+                                        @error('travel_month')<p id="travel_month-error" class="error-site">{{ $message }}</p>@enderror
                                     </div>
-                                </div>
-                            @endif
+                                @endif
+                            </div>
                         </div>
                     </fieldset>
 
