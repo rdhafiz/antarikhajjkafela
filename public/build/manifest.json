@@ -1,144 +1,167 @@
 {
-  "_AppBadge-CfnpjP6C.js": {
-    "file": "assets/AppBadge-CfnpjP6C.js",
+  "_AppBadge-iAe7obUU.js": {
+    "file": "assets/AppBadge-iAe7obUU.js",
     "name": "AppBadge",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js"
+      "_admin-vendor-BWltDA8c.js"
     ]
   },
-  "_AppButton-DcVeJVmu.js": {
-    "file": "assets/AppButton-DcVeJVmu.js",
+  "_AppButton-R1Q4vFfX.js": {
+    "file": "assets/AppButton-R1Q4vFfX.js",
     "name": "AppButton",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "__plugin-vue_export-helper-BDNMzG2s.js"
     ]
   },
-  "_AppCheckbox-BmrS_86L.js": {
-    "file": "assets/AppCheckbox-BmrS_86L.js",
+  "_AppCheckbox-ByEfGUHo.js": {
+    "file": "assets/AppCheckbox-ByEfGUHo.js",
     "name": "AppCheckbox",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js"
+      "_admin-vendor-BWltDA8c.js"
     ]
   },
-  "_AppDatePicker-CU5jTx37.js": {
-    "file": "assets/AppDatePicker-CU5jTx37.js",
+  "_AppDatePicker-CFnx6iQM.js": {
+    "file": "assets/AppDatePicker-CFnx6iQM.js",
     "name": "AppDatePicker",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "_date-picker-BGvugm9h.js"
     ]
   },
-  "_AppDrawer-B0WpIGI4.js": {
-    "file": "assets/AppDrawer-B0WpIGI4.js",
+  "_AppDrawer-DhGft6er.js": {
+    "file": "assets/AppDrawer-DhGft6er.js",
     "name": "AppDrawer",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
-      "_navigation-lzy_AsFJ.js"
+      "_admin-vendor-BWltDA8c.js",
+      "_navigation-CFh4efja.js"
     ]
   },
-  "_AppInput-CayCkame.js": {
-    "file": "assets/AppInput-CayCkame.js",
+  "_AppInput-BZAk9Yj_.js": {
+    "file": "assets/AppInput-BZAk9Yj_.js",
     "name": "AppInput",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
-      "_FormField-Db43VN0t.js"
+      "_admin-vendor-BWltDA8c.js",
+      "_FormField-DjXyRHAe.js"
     ]
   },
-  "_AppModal-CZidpAOU.js": {
-    "file": "assets/AppModal-CZidpAOU.js",
+  "_AppModal-BlgA53gO.js": {
+    "file": "assets/AppModal-BlgA53gO.js",
     "name": "AppModal",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js"
+      "_admin-vendor-BWltDA8c.js"
     ]
   },
-  "_AppPagination-DiyKwILc.js": {
-    "file": "assets/AppPagination-DiyKwILc.js",
+  "_AppPagination-DYph1rBT.js": {
+    "file": "assets/AppPagination-DYph1rBT.js",
     "name": "AppPagination",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js"
+      "_admin-vendor-BWltDA8c.js"
     ]
   },
-  "_AppSwitch-ChSCBnDT.js": {
-    "file": "assets/AppSwitch-ChSCBnDT.js",
+  "_AppSwitch-CUB4p3O6.js": {
+    "file": "assets/AppSwitch-CUB4p3O6.js",
     "name": "AppSwitch",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js"
+      "_admin-vendor-BWltDA8c.js"
     ]
   },
   "_BlocksEditor-B5MMiwBY.css": {
     "file": "assets/BlocksEditor-B5MMiwBY.css",
     "src": "_BlocksEditor-B5MMiwBY.css"
   },
+<<<<<<< HEAD
   "_BlocksEditor-Pg7Xm6bs.js": {
     "file": "assets/BlocksEditor-Pg7Xm6bs.js",
+=======
+  "_BlocksEditor-DjEpcFAA.js": {
+    "file": "assets/BlocksEditor-DjEpcFAA.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "BlocksEditor",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
+<<<<<<< HEAD
       "_MediaField-CatyKeHm.js",
+=======
+      "_MediaField-DZqYSPIk.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
       "_types-Be5jS4lB.js"
     ],
     "css": [
       "assets/BlocksEditor-B5MMiwBY.css"
     ]
   },
-  "_ColorInput-CYygwvnJ.js": {
-    "file": "assets/ColorInput-CYygwvnJ.js",
+  "_ColorInput-yPDFlXYO.js": {
+    "file": "assets/ColorInput-yPDFlXYO.js",
     "name": "ColorInput",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
-      "_FormField-Db43VN0t.js"
+      "_admin-vendor-BWltDA8c.js",
+      "_FormField-DjXyRHAe.js"
     ]
   },
-  "_EmptyState-Lvp41-uB.js": {
-    "file": "assets/EmptyState-Lvp41-uB.js",
+  "_EmptyState-F151dnKK.js": {
+    "file": "assets/EmptyState-F151dnKK.js",
     "name": "EmptyState",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js"
+      "_admin-vendor-BWltDA8c.js"
     ]
   },
+<<<<<<< HEAD
   "_FieldList-UVtEXGw_.js": {
     "file": "assets/FieldList-UVtEXGw_.js",
+=======
+  "_FieldList-Ds4tt9Yk.js": {
+    "file": "assets/FieldList-Ds4tt9Yk.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "FieldList",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
+<<<<<<< HEAD
       "_FormField-Db43VN0t.js",
       "_AppDatePicker-CU5jTx37.js",
       "_AppSwitch-ChSCBnDT.js",
       "_TranslatableInput-DzHP2PCa.js",
       "_MediaField-CatyKeHm.js",
       "_BlocksEditor-Pg7Xm6bs.js",
+=======
+      "_FormField-DjXyRHAe.js",
+      "_AppDatePicker-CFnx6iQM.js",
+      "_AppSwitch-CUB4p3O6.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_MediaField-DZqYSPIk.js",
+      "_BlocksEditor-DjEpcFAA.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
       "_types-Be5jS4lB.js",
-      "_ColorInput-CYygwvnJ.js",
-      "_IconPicker-eJy6hit5.js"
+      "_ColorInput-yPDFlXYO.js",
+      "_IconPicker-DQjJEl-t.js"
     ]
   },
-  "_FormField-Db43VN0t.js": {
-    "file": "assets/FormField-Db43VN0t.js",
+  "_FormField-DjXyRHAe.js": {
+    "file": "assets/FormField-DjXyRHAe.js",
     "name": "FormField",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js"
+      "_admin-vendor-BWltDA8c.js"
     ]
   },
-  "_IconPicker-eJy6hit5.js": {
-    "file": "assets/IconPicker-eJy6hit5.js",
+  "_IconPicker-DQjJEl-t.js": {
+    "file": "assets/IconPicker-DQjJEl-t.js",
     "name": "IconPicker",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
-      "_FormField-Db43VN0t.js"
+      "_admin-vendor-BWltDA8c.js",
+      "_FormField-DjXyRHAe.js"
     ]
   },
   "_ListHero-B-Mh-lDI.css": {
     "file": "assets/ListHero-B-Mh-lDI.css",
     "src": "_ListHero-B-Mh-lDI.css"
   },
-  "_ListHero-CJNf-P9G.js": {
-    "file": "assets/ListHero-CJNf-P9G.js",
+  "_ListHero-CN-8l5YT.js": {
+    "file": "assets/ListHero-CN-8l5YT.js",
     "name": "ListHero",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "__plugin-vue_export-helper-BDNMzG2s.js"
     ],
     "css": [
@@ -149,46 +172,73 @@
     "file": "assets/ListToolbar-B8Trk0Cj.css",
     "src": "_ListToolbar-B8Trk0Cj.css"
   },
+<<<<<<< HEAD
   "_ListToolbar-bGJgSUZI.js": {
     "file": "assets/ListToolbar-bGJgSUZI.js",
+=======
+  "_ListToolbar-fGVUTly4.js": {
+    "file": "assets/ListToolbar-fGVUTly4.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "ListToolbar",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
-      "_AppButton-DcVeJVmu.js",
-      "_AppDrawer-B0WpIGI4.js"
+      "_AppButton-R1Q4vFfX.js",
+      "_AppDrawer-DhGft6er.js"
     ],
     "css": [
       "assets/ListToolbar-B8Trk0Cj.css"
     ]
   },
+<<<<<<< HEAD
   "_MediaField-CatyKeHm.js": {
     "file": "assets/MediaField-CatyKeHm.js",
+=======
+  "_MediaField-Cllqb4at.css": {
+    "file": "assets/MediaField-Cllqb4at.css",
+    "src": "_MediaField-Cllqb4at.css"
+  },
+  "_MediaField-DZqYSPIk.js": {
+    "file": "assets/MediaField-DZqYSPIk.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "MediaField",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_format-CAUGkN_3.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_FormField-Db43VN0t.js",
       "_AppPagination-DiyKwILc.js",
       "_AppModal-CZidpAOU.js",
       "_useMediaList-BH7YZ7W3.js"
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_FormField-DjXyRHAe.js",
+      "_AppPagination-DYph1rBT.js",
+      "_AppModal-BlgA53gO.js",
+      "_useMediaList-ctWNM1Q_.js"
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     ],
     "css": [
       "assets/MediaField-CxGalioX.css"
     ]
   },
+<<<<<<< HEAD
   "_MediaField-CxGalioX.css": {
     "file": "assets/MediaField-CxGalioX.css",
     "src": "_MediaField-CxGalioX.css"
   },
   "_PhoneInput-BREGysMS.js": {
     "file": "assets/PhoneInput-BREGysMS.js",
+=======
+  "_PhoneInput-BhmYKoWq.js": {
+    "file": "assets/PhoneInput-BhmYKoWq.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "PhoneInput",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_phone-input-B8ZWJTWI.js"
     ],
@@ -196,21 +246,26 @@
       "_phone-utils-C8oT1UK0.js"
     ]
   },
+<<<<<<< HEAD
   "_TranslatableInput-DzHP2PCa.js": {
     "file": "assets/TranslatableInput-DzHP2PCa.js",
+=======
+  "_TranslatableInput-kpEsuOu3.js": {
+    "file": "assets/TranslatableInput-kpEsuOu3.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "TranslatableInput",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
-      "_FormField-Db43VN0t.js"
+      "_FormField-DjXyRHAe.js"
     ]
   },
   "__plugin-vue_export-helper-BDNMzG2s.js": {
     "file": "assets/_plugin-vue_export-helper-BDNMzG2s.js",
     "name": "_plugin-vue_export-helper"
   },
-  "_admin-vendor-BvYYYS5Z.js": {
-    "file": "assets/admin-vendor-BvYYYS5Z.js",
+  "_admin-vendor-BWltDA8c.js": {
+    "file": "assets/admin-vendor-BWltDA8c.js",
     "name": "admin-vendor",
     "imports": [
       "_rolldown-runtime-hePW80VL.js"
@@ -252,11 +307,11 @@
     "file": "assets/format-CAUGkN_3.js",
     "name": "format"
   },
-  "_navigation-lzy_AsFJ.js": {
-    "file": "assets/navigation-lzy_AsFJ.js",
+  "_navigation-CFh4efja.js": {
+    "file": "assets/navigation-CFh4efja.js",
     "name": "navigation",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js"
+      "_admin-vendor-BWltDA8c.js"
     ]
   },
   "_phone-input-B8ZWJTWI.js": {
@@ -297,31 +352,46 @@
     "file": "assets/types-CNn_ug4j.js",
     "name": "types"
   },
+<<<<<<< HEAD
   "_useForm-IVLLNxI1.js": {
     "file": "assets/useForm-IVLLNxI1.js",
+=======
+  "_useForm-DHnEF0vb.js": {
+    "file": "assets/useForm-DHnEF0vb.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "useForm",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts"
     ]
   },
+<<<<<<< HEAD
   "_useListQuery-wF82hDsE.js": {
     "file": "assets/useListQuery-wF82hDsE.js",
+=======
+  "_useListQuery-CGmsIjNA.js": {
+    "file": "assets/useListQuery-CGmsIjNA.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "useListQuery",
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts"
     ]
   },
+<<<<<<< HEAD
   "_useMediaList-BH7YZ7W3.js": {
     "file": "assets/useMediaList-BH7YZ7W3.js",
+=======
+  "_useMediaList-ctWNM1Q_.js": {
+    "file": "assets/useMediaList-ctWNM1Q_.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "useMediaList",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
-      "_AppButton-DcVeJVmu.js",
-      "_AppModal-CZidpAOU.js",
+      "_AppButton-R1Q4vFfX.js",
+      "_AppModal-BlgA53gO.js",
       "_cropper-DsvnUS1V.js"
     ]
   },
@@ -402,35 +472,43 @@
     "src": "resources/admin/assets/users-header.webp"
   },
   "resources/admin/layouts/AdminLayout.vue": {
+<<<<<<< HEAD
     "file": "assets/AdminLayout-BPHwb3Yx.js",
+=======
+    "file": "assets/AdminLayout-YCI3HggV.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "AdminLayout",
     "src": "resources/admin/layouts/AdminLayout.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_brand-icon-CSgwsZlp.js",
-      "_navigation-lzy_AsFJ.js",
+      "_navigation-CFh4efja.js",
       "_format-CAUGkN_3.js"
     ]
   },
   "resources/admin/layouts/AuthLayout.vue": {
-    "file": "assets/AuthLayout-BnUBmjnV.js",
+    "file": "assets/AuthLayout-KAXbqYjC.js",
     "name": "AuthLayout",
     "src": "resources/admin/layouts/AuthLayout.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "_brand-icon-CSgwsZlp.js"
     ]
   },
   "resources/admin/main.ts": {
+<<<<<<< HEAD
     "file": "assets/main-bGy8h-rz.js",
+=======
+    "file": "assets/main-gzgfhU_4.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "main",
     "src": "resources/admin/main.ts",
     "isEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js"
+      "_admin-vendor-BWltDA8c.js"
     ],
     "dynamicImports": [
       "resources/admin/layouts/AuthLayout.vue",
@@ -475,16 +553,20 @@
     ]
   },
   "resources/admin/pages/DashboardPage.vue": {
+<<<<<<< HEAD
     "file": "assets/DashboardPage-XVN4Iud5.js",
+=======
+    "file": "assets/DashboardPage-hYKZIugi.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "DashboardPage",
     "src": "resources/admin/pages/DashboardPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
-      "_navigation-lzy_AsFJ.js",
+      "_navigation-CFh4efja.js",
       "_format-CAUGkN_3.js",
-      "_AppBadge-CfnpjP6C.js",
+      "_AppBadge-iAe7obUU.js",
       "_types-CNn_ug4j.js",
       "__plugin-vue_export-helper-BDNMzG2s.js"
     ],
@@ -493,33 +575,46 @@
     ]
   },
   "resources/admin/pages/NotFoundPage.vue": {
-    "file": "assets/NotFoundPage-COWcsMxn.js",
+    "file": "assets/NotFoundPage-BEWYXUoC.js",
     "name": "NotFoundPage",
     "src": "resources/admin/pages/NotFoundPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
-      "_AppButton-DcVeJVmu.js",
-      "_EmptyState-Lvp41-uB.js"
+      "_admin-vendor-BWltDA8c.js",
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js"
     ]
   },
   "resources/admin/pages/ProfilePage.vue": {
+<<<<<<< HEAD
     "file": "assets/ProfilePage-BdabRMcl.js",
+=======
+    "file": "assets/ProfilePage-rEBSi6Qq.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "ProfilePage",
     "src": "resources/admin/pages/ProfilePage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
-      "_navigation-lzy_AsFJ.js",
+      "_navigation-CFh4efja.js",
       "_format-CAUGkN_3.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_FormField-Db43VN0t.js",
       "_AppInput-CayCkame.js",
       "_ListHero-CJNf-P9G.js",
       "_PhoneInput-BREGysMS.js",
       "_useForm-IVLLNxI1.js"
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_FormField-DjXyRHAe.js",
+      "_AppInput-BZAk9Yj_.js",
+      "_ListHero-CN-8l5YT.js",
+      "_PhoneInput-BhmYKoWq.js",
+      "_useForm-DHnEF0vb.js"
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     ],
     "css": [
       "assets/ProfilePage-MvRl4kR8.css"
@@ -529,21 +624,34 @@
     ]
   },
   "resources/admin/pages/TrashPage.vue": {
+<<<<<<< HEAD
     "file": "assets/TrashPage-CT7V-i6h.js",
+=======
+    "file": "assets/TrashPage-B-AenXoY.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "TrashPage",
     "src": "resources/admin/pages/TrashPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_format-CAUGkN_3.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_EmptyState-Lvp41-uB.js",
       "_ListHero-CJNf-P9G.js",
       "_AppPagination-DiyKwILc.js",
       "_ListToolbar-bGJgSUZI.js",
       "_useListQuery-wF82hDsE.js"
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js",
+      "_ListHero-CN-8l5YT.js",
+      "_AppPagination-DYph1rBT.js",
+      "_ListToolbar-fGVUTly4.js",
+      "_useListQuery-CGmsIjNA.js"
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     ],
     "css": [
       "assets/TrashPage-cV8O3xvE.css"
@@ -553,25 +661,39 @@
     ]
   },
   "resources/admin/pages/auth/LoginPage.vue": {
+<<<<<<< HEAD
     "file": "assets/LoginPage-axdTXk3w.js",
+=======
+    "file": "assets/LoginPage-DWUw87nN.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "LoginPage",
     "src": "resources/admin/pages/auth/LoginPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
+<<<<<<< HEAD
       "_useForm-IVLLNxI1.js",
       "_AppCheckbox-BmrS_86L.js"
     ]
   },
   "resources/admin/pages/blog/PostEditorPage.vue": {
     "file": "assets/PostEditorPage-JMuedEnL.js",
+=======
+      "_useForm-DHnEF0vb.js",
+      "_AppCheckbox-ByEfGUHo.js"
+    ]
+  },
+  "resources/admin/pages/blog/PostEditorPage.vue": {
+    "file": "assets/PostEditorPage-Cw490eY2.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "PostEditorPage",
     "src": "resources/admin/pages/blog/PostEditorPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
+<<<<<<< HEAD
       "_AppBadge-CfnpjP6C.js",
       "_AppButton-DcVeJVmu.js",
       "_FormField-Db43VN0t.js",
@@ -580,20 +702,35 @@
       "_TranslatableInput-DzHP2PCa.js",
       "_MediaField-CatyKeHm.js",
       "_BlocksEditor-Pg7Xm6bs.js",
+=======
+      "_AppBadge-iAe7obUU.js",
+      "_AppButton-R1Q4vFfX.js",
+      "_FormField-DjXyRHAe.js",
+      "_AppDatePicker-CFnx6iQM.js",
+      "_AppSwitch-CUB4p3O6.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_MediaField-DZqYSPIk.js",
+      "_BlocksEditor-DjEpcFAA.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
       "_types-Be5jS4lB.js"
     ]
   },
   "resources/admin/pages/blog/PostsPage.vue": {
+<<<<<<< HEAD
     "file": "assets/PostsPage-ChstEG4D.js",
+=======
+    "file": "assets/PostsPage-DrGfN_KO.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "PostsPage",
     "src": "resources/admin/pages/blog/PostsPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_format-CAUGkN_3.js",
-      "_AppBadge-CfnpjP6C.js",
+      "_AppBadge-iAe7obUU.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_EmptyState-Lvp41-uB.js",
       "_FormField-Db43VN0t.js",
@@ -605,6 +742,19 @@
       "_useListQuery-wF82hDsE.js",
       "_TranslatableInput-DzHP2PCa.js",
       "_AppModal-CZidpAOU.js",
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js",
+      "_FormField-DjXyRHAe.js",
+      "_ListHero-CN-8l5YT.js",
+      "_useForm-DHnEF0vb.js",
+      "_AppPagination-DYph1rBT.js",
+      "_AppDrawer-DhGft6er.js",
+      "_ListToolbar-fGVUTly4.js",
+      "_useListQuery-CGmsIjNA.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_AppModal-BlgA53gO.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
       "_types-Be5jS4lB.js"
     ],
     "css": [
@@ -615,16 +765,21 @@
     ]
   },
   "resources/admin/pages/bookings/BookingPage.vue": {
+<<<<<<< HEAD
     "file": "assets/BookingPage-BN2NQvQ7.js",
+=======
+    "file": "assets/BookingPage-iVDPRcR3.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "BookingPage",
     "src": "resources/admin/pages/bookings/BookingPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_format-CAUGkN_3.js",
-      "_AppBadge-CfnpjP6C.js",
+      "_AppBadge-iAe7obUU.js",
       "_types-CNn_ug4j.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_FormField-Db43VN0t.js",
       "_useForm-IVLLNxI1.js",
@@ -634,16 +789,28 @@
   },
   "resources/admin/pages/bookings/BookingsPage.vue": {
     "file": "assets/BookingsPage-B-mOordZ.js",
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_FormField-DjXyRHAe.js",
+      "_useForm-DHnEF0vb.js",
+      "_AppDatePicker-CFnx6iQM.js",
+      "_AppModal-BlgA53gO.js"
+    ]
+  },
+  "resources/admin/pages/bookings/BookingsPage.vue": {
+    "file": "assets/BookingsPage-BEtnG6mt.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "BookingsPage",
     "src": "resources/admin/pages/bookings/BookingsPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_format-CAUGkN_3.js",
-      "_AppBadge-CfnpjP6C.js",
+      "_AppBadge-iAe7obUU.js",
       "_types-CNn_ug4j.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_EmptyState-Lvp41-uB.js",
       "_ListHero-CJNf-P9G.js",
@@ -652,6 +819,16 @@
       "_ListToolbar-bGJgSUZI.js",
       "_useListQuery-wF82hDsE.js",
       "_AppDatePicker-CU5jTx37.js",
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js",
+      "_ListHero-CN-8l5YT.js",
+      "_AppPagination-DYph1rBT.js",
+      "_AppDrawer-DhGft6er.js",
+      "_ListToolbar-fGVUTly4.js",
+      "_useListQuery-CGmsIjNA.js",
+      "_AppDatePicker-CFnx6iQM.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
       "_types-Be5jS4lB.js"
     ],
     "css": [
@@ -662,13 +839,18 @@
     ]
   },
   "resources/admin/pages/content/PageEditorPage.vue": {
+<<<<<<< HEAD
     "file": "assets/PageEditorPage-A_agQaak.js",
+=======
+    "file": "assets/PageEditorPage-CsMYaKjy.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "PageEditorPage",
     "src": "resources/admin/pages/content/PageEditorPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
+<<<<<<< HEAD
       "_AppBadge-CfnpjP6C.js",
       "_AppButton-DcVeJVmu.js",
       "_FormField-Db43VN0t.js",
@@ -683,15 +865,32 @@
   },
   "resources/admin/pages/content/PageListPage.vue": {
     "file": "assets/PageListPage-kryHeeTT.js",
+=======
+      "_AppBadge-iAe7obUU.js",
+      "_AppButton-R1Q4vFfX.js",
+      "_FormField-DjXyRHAe.js",
+      "_AppDatePicker-CFnx6iQM.js",
+      "_AppSwitch-CUB4p3O6.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_AppModal-BlgA53gO.js",
+      "_MediaField-DZqYSPIk.js",
+      "_types-Be5jS4lB.js",
+      "_FieldList-Ds4tt9Yk.js"
+    ]
+  },
+  "resources/admin/pages/content/PageListPage.vue": {
+    "file": "assets/PageListPage-1rIEzwc8.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "PageListPage",
     "src": "resources/admin/pages/content/PageListPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_format-CAUGkN_3.js",
-      "_AppBadge-CfnpjP6C.js",
+      "_AppBadge-iAe7obUU.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_EmptyState-Lvp41-uB.js",
       "_FormField-Db43VN0t.js",
@@ -703,6 +902,19 @@
       "_useListQuery-wF82hDsE.js",
       "_TranslatableInput-DzHP2PCa.js",
       "_AppModal-CZidpAOU.js",
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js",
+      "_FormField-DjXyRHAe.js",
+      "_ListHero-CN-8l5YT.js",
+      "_useForm-DHnEF0vb.js",
+      "_AppPagination-DYph1rBT.js",
+      "_AppDrawer-DhGft6er.js",
+      "_ListToolbar-fGVUTly4.js",
+      "_useListQuery-CGmsIjNA.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_AppModal-BlgA53gO.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
       "_types-Be5jS4lB.js"
     ],
     "css": [
@@ -714,13 +926,18 @@
     ]
   },
   "resources/admin/pages/gallery/AlbumEditorPage.vue": {
+<<<<<<< HEAD
     "file": "assets/AlbumEditorPage-avok2hSc.js",
+=======
+    "file": "assets/AlbumEditorPage-CguupQfH.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "AlbumEditorPage",
     "src": "resources/admin/pages/gallery/AlbumEditorPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
+<<<<<<< HEAD
       "_AppBadge-CfnpjP6C.js",
       "_AppButton-DcVeJVmu.js",
       "_FormField-Db43VN0t.js",
@@ -732,20 +949,38 @@
       "_AppModal-CZidpAOU.js",
       "_useMediaList-BH7YZ7W3.js",
       "_MediaField-CatyKeHm.js",
+=======
+      "_AppBadge-iAe7obUU.js",
+      "_AppButton-R1Q4vFfX.js",
+      "_FormField-DjXyRHAe.js",
+      "_useForm-DHnEF0vb.js",
+      "_AppDrawer-DhGft6er.js",
+      "_AppDatePicker-CFnx6iQM.js",
+      "_AppSwitch-CUB4p3O6.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_AppModal-BlgA53gO.js",
+      "_useMediaList-ctWNM1Q_.js",
+      "_MediaField-DZqYSPIk.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
       "_types-Be5jS4lB.js"
     ]
   },
   "resources/admin/pages/gallery/AlbumsPage.vue": {
+<<<<<<< HEAD
     "file": "assets/AlbumsPage-CnYMHHo6.js",
+=======
+    "file": "assets/AlbumsPage-QSn7jqMT.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "AlbumsPage",
     "src": "resources/admin/pages/gallery/AlbumsPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_format-CAUGkN_3.js",
-      "_AppBadge-CfnpjP6C.js",
+      "_AppBadge-iAe7obUU.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_EmptyState-Lvp41-uB.js",
       "_FormField-Db43VN0t.js",
@@ -758,6 +993,20 @@
       "_AppDatePicker-CU5jTx37.js",
       "_TranslatableInput-DzHP2PCa.js",
       "_AppModal-CZidpAOU.js",
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js",
+      "_FormField-DjXyRHAe.js",
+      "_ListHero-CN-8l5YT.js",
+      "_useForm-DHnEF0vb.js",
+      "_AppPagination-DYph1rBT.js",
+      "_AppDrawer-DhGft6er.js",
+      "_ListToolbar-fGVUTly4.js",
+      "_useListQuery-CGmsIjNA.js",
+      "_AppDatePicker-CFnx6iQM.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_AppModal-BlgA53gO.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
       "_types-Be5jS4lB.js"
     ],
     "css": [
@@ -768,16 +1017,21 @@
     ]
   },
   "resources/admin/pages/inquiries/InquiriesPage.vue": {
+<<<<<<< HEAD
     "file": "assets/InquiriesPage-D7-xQq1x.js",
+=======
+    "file": "assets/InquiriesPage-D8yedBaP.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "InquiriesPage",
     "src": "resources/admin/pages/inquiries/InquiriesPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_format-CAUGkN_3.js",
-      "_AppBadge-CfnpjP6C.js",
+      "_AppBadge-iAe7obUU.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_EmptyState-Lvp41-uB.js",
       "_FormField-Db43VN0t.js",
@@ -787,6 +1041,17 @@
       "_ListToolbar-bGJgSUZI.js",
       "_useListQuery-wF82hDsE.js",
       "_AppDatePicker-CU5jTx37.js"
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js",
+      "_FormField-DjXyRHAe.js",
+      "_ListHero-CN-8l5YT.js",
+      "_AppPagination-DYph1rBT.js",
+      "_AppDrawer-DhGft6er.js",
+      "_ListToolbar-fGVUTly4.js",
+      "_useListQuery-CGmsIjNA.js",
+      "_AppDatePicker-CFnx6iQM.js"
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     ],
     "css": [
       "assets/InquiriesPage-736ENsdo.css"
@@ -796,15 +1061,20 @@
     ]
   },
   "resources/admin/pages/media/MediaPage.vue": {
+<<<<<<< HEAD
     "file": "assets/MediaPage-bNu04okE.js",
+=======
+    "file": "assets/MediaPage-BCnCDXFF.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "MediaPage",
     "src": "resources/admin/pages/media/MediaPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_format-CAUGkN_3.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_EmptyState-Lvp41-uB.js",
       "_ListHero-CJNf-P9G.js",
@@ -814,6 +1084,17 @@
       "_TranslatableInput-DzHP2PCa.js",
       "_AppModal-CZidpAOU.js",
       "_useMediaList-BH7YZ7W3.js"
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js",
+      "_ListHero-CN-8l5YT.js",
+      "_useForm-DHnEF0vb.js",
+      "_AppPagination-DYph1rBT.js",
+      "_ListToolbar-fGVUTly4.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_AppModal-BlgA53gO.js",
+      "_useMediaList-ctWNM1Q_.js"
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     ],
     "css": [
       "assets/MediaPage-CAv42A7e.css"
@@ -823,15 +1104,20 @@
     ]
   },
   "resources/admin/pages/menus/MenusPage.vue": {
+<<<<<<< HEAD
     "file": "assets/MenusPage-CrvRL5OH.js",
+=======
+    "file": "assets/MenusPage-QukmsGgs.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "MenusPage",
     "src": "resources/admin/pages/menus/MenusPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
-      "_AppBadge-CfnpjP6C.js",
+      "_AppBadge-iAe7obUU.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_EmptyState-Lvp41-uB.js",
       "_FormField-Db43VN0t.js",
@@ -841,6 +1127,17 @@
       "_AppSwitch-ChSCBnDT.js",
       "_TranslatableInput-DzHP2PCa.js",
       "_AppModal-CZidpAOU.js"
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js",
+      "_FormField-DjXyRHAe.js",
+      "_AppInput-BZAk9Yj_.js",
+      "_ListHero-CN-8l5YT.js",
+      "_AppDrawer-DhGft6er.js",
+      "_AppSwitch-CUB4p3O6.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_AppModal-BlgA53gO.js"
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     ],
     "css": [
       "assets/MenusPage-Bgxs4kqL.css"
@@ -850,16 +1147,21 @@
     ]
   },
   "resources/admin/pages/reviews/ReviewsPage.vue": {
+<<<<<<< HEAD
     "file": "assets/ReviewsPage-BnPscyYQ.js",
+=======
+    "file": "assets/ReviewsPage-C0y_8LtI.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "ReviewsPage",
     "src": "resources/admin/pages/reviews/ReviewsPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_format-CAUGkN_3.js",
-      "_AppBadge-CfnpjP6C.js",
+      "_AppBadge-iAe7obUU.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_EmptyState-Lvp41-uB.js",
       "_FormField-Db43VN0t.js",
@@ -871,6 +1173,19 @@
       "_TranslatableInput-DzHP2PCa.js",
       "_AppModal-CZidpAOU.js",
       "_MediaField-CatyKeHm.js",
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js",
+      "_FormField-DjXyRHAe.js",
+      "_ListHero-CN-8l5YT.js",
+      "_useForm-DHnEF0vb.js",
+      "_AppDrawer-DhGft6er.js",
+      "_ListToolbar-fGVUTly4.js",
+      "_AppSwitch-CUB4p3O6.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_AppModal-BlgA53gO.js",
+      "_MediaField-DZqYSPIk.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
       "_types-Be5jS4lB.js"
     ],
     "css": [
@@ -881,21 +1196,33 @@
     ]
   },
   "resources/admin/pages/roles/RolesPage.vue": {
+<<<<<<< HEAD
     "file": "assets/RolesPage-Cl9bM9j6.js",
+=======
+    "file": "assets/RolesPage-4bqOEQhq.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "RolesPage",
     "src": "resources/admin/pages/roles/RolesPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
-      "_navigation-lzy_AsFJ.js",
+      "_navigation-CFh4efja.js",
       "_format-CAUGkN_3.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_AppInput-CayCkame.js",
       "_ListHero-CJNf-P9G.js",
       "_useForm-IVLLNxI1.js",
       "_AppModal-CZidpAOU.js"
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_AppInput-BZAk9Yj_.js",
+      "_ListHero-CN-8l5YT.js",
+      "_useForm-DHnEF0vb.js",
+      "_AppModal-BlgA53gO.js"
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     ],
     "css": [
       "assets/RolesPage-DRNfHbGK.css"
@@ -905,14 +1232,19 @@
     ]
   },
   "resources/admin/pages/settings/SettingsPage.vue": {
+<<<<<<< HEAD
     "file": "assets/SettingsPage-Vc4khx9h.js",
+=======
+    "file": "assets/SettingsPage-DgRPgs9Q.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "SettingsPage",
     "src": "resources/admin/pages/settings/SettingsPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_FormField-Db43VN0t.js",
       "_AppInput-CayCkame.js",
@@ -925,6 +1257,20 @@
       "_TranslatableInput-DzHP2PCa.js",
       "_MediaField-CatyKeHm.js",
       "_ColorInput-CYygwvnJ.js"
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_FormField-DjXyRHAe.js",
+      "_AppInput-BZAk9Yj_.js",
+      "_ListHero-CN-8l5YT.js",
+      "_PhoneInput-BhmYKoWq.js",
+      "_useForm-DHnEF0vb.js",
+      "_AppDrawer-DhGft6er.js",
+      "_ListToolbar-fGVUTly4.js",
+      "_AppSwitch-CUB4p3O6.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_MediaField-DZqYSPIk.js",
+      "_ColorInput-yPDFlXYO.js"
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     ],
     "css": [
       "assets/SettingsPage-37Rs6wCv.css"
@@ -934,13 +1280,18 @@
     ]
   },
   "resources/admin/pages/travel/PackageEditorPage.vue": {
+<<<<<<< HEAD
     "file": "assets/PackageEditorPage-BllJ-Z9r.js",
+=======
+    "file": "assets/PackageEditorPage-CbeTOgYS.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "PackageEditorPage",
     "src": "resources/admin/pages/travel/PackageEditorPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
+<<<<<<< HEAD
       "_AppBadge-CfnpjP6C.js",
       "_AppButton-DcVeJVmu.js",
       "_FormField-Db43VN0t.js",
@@ -955,15 +1306,32 @@
   },
   "resources/admin/pages/travel/PackagesPage.vue": {
     "file": "assets/PackagesPage-lwkmkQ1m.js",
+=======
+      "_AppBadge-iAe7obUU.js",
+      "_AppButton-R1Q4vFfX.js",
+      "_FormField-DjXyRHAe.js",
+      "_AppDrawer-DhGft6er.js",
+      "_AppDatePicker-CFnx6iQM.js",
+      "_AppSwitch-CUB4p3O6.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_MediaField-DZqYSPIk.js",
+      "_types-Be5jS4lB.js",
+      "_FieldList-Ds4tt9Yk.js"
+    ]
+  },
+  "resources/admin/pages/travel/PackagesPage.vue": {
+    "file": "assets/PackagesPage-B4U0ag8D.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "PackagesPage",
     "src": "resources/admin/pages/travel/PackagesPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_format-CAUGkN_3.js",
-      "_AppBadge-CfnpjP6C.js",
+      "_AppBadge-iAe7obUU.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_EmptyState-Lvp41-uB.js",
       "_FormField-Db43VN0t.js",
@@ -975,6 +1343,19 @@
       "_useListQuery-wF82hDsE.js",
       "_TranslatableInput-DzHP2PCa.js",
       "_AppModal-CZidpAOU.js",
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js",
+      "_FormField-DjXyRHAe.js",
+      "_ListHero-CN-8l5YT.js",
+      "_useForm-DHnEF0vb.js",
+      "_AppPagination-DYph1rBT.js",
+      "_AppDrawer-DhGft6er.js",
+      "_ListToolbar-fGVUTly4.js",
+      "_useListQuery-CGmsIjNA.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_AppModal-BlgA53gO.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
       "_types-Be5jS4lB.js"
     ],
     "css": [
@@ -985,15 +1366,20 @@
     ]
   },
   "resources/admin/pages/travel/ServicesPage.vue": {
+<<<<<<< HEAD
     "file": "assets/ServicesPage-DIvkkghj.js",
+=======
+    "file": "assets/ServicesPage-fcjbdKuO.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "ServicesPage",
     "src": "resources/admin/pages/travel/ServicesPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
-      "_AppBadge-CfnpjP6C.js",
+      "_AppBadge-iAe7obUU.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_EmptyState-Lvp41-uB.js",
       "_FormField-Db43VN0t.js",
@@ -1005,8 +1391,21 @@
       "_TranslatableInput-DzHP2PCa.js",
       "_AppModal-CZidpAOU.js",
       "_MediaField-CatyKeHm.js",
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js",
+      "_FormField-DjXyRHAe.js",
+      "_ListHero-CN-8l5YT.js",
+      "_useForm-DHnEF0vb.js",
+      "_AppDrawer-DhGft6er.js",
+      "_ListToolbar-fGVUTly4.js",
+      "_AppSwitch-CUB4p3O6.js",
+      "_TranslatableInput-kpEsuOu3.js",
+      "_AppModal-BlgA53gO.js",
+      "_MediaField-DZqYSPIk.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
       "_types-Be5jS4lB.js",
-      "_IconPicker-eJy6hit5.js"
+      "_IconPicker-DQjJEl-t.js"
     ],
     "css": [
       "assets/ServicesPage-BYoyKm63.css"
@@ -1016,16 +1415,21 @@
     ]
   },
   "resources/admin/pages/users/UsersPage.vue": {
+<<<<<<< HEAD
     "file": "assets/UsersPage-DMIY40qw.js",
+=======
+    "file": "assets/UsersPage-C8rz5HLD.js",
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     "name": "UsersPage",
     "src": "resources/admin/pages/users/UsersPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_admin-vendor-BvYYYS5Z.js",
+      "_admin-vendor-BWltDA8c.js",
       "resources/admin/main.ts",
       "_format-CAUGkN_3.js",
-      "_AppBadge-CfnpjP6C.js",
+      "_AppBadge-iAe7obUU.js",
       "__plugin-vue_export-helper-BDNMzG2s.js",
+<<<<<<< HEAD
       "_AppButton-DcVeJVmu.js",
       "_EmptyState-Lvp41-uB.js",
       "_FormField-Db43VN0t.js",
@@ -1040,6 +1444,22 @@
       "_AppCheckbox-BmrS_86L.js",
       "_AppSwitch-ChSCBnDT.js",
       "_AppModal-CZidpAOU.js"
+=======
+      "_AppButton-R1Q4vFfX.js",
+      "_EmptyState-F151dnKK.js",
+      "_FormField-DjXyRHAe.js",
+      "_AppInput-BZAk9Yj_.js",
+      "_ListHero-CN-8l5YT.js",
+      "_PhoneInput-BhmYKoWq.js",
+      "_useForm-DHnEF0vb.js",
+      "_AppPagination-DYph1rBT.js",
+      "_AppDrawer-DhGft6er.js",
+      "_ListToolbar-fGVUTly4.js",
+      "_useListQuery-CGmsIjNA.js",
+      "_AppCheckbox-ByEfGUHo.js",
+      "_AppSwitch-CUB4p3O6.js",
+      "_AppModal-BlgA53gO.js"
+>>>>>>> acc4e3f (Make confirmation dialogs confirm)
     ],
     "css": [
       "assets/UsersPage-BDW5RdsU.css"

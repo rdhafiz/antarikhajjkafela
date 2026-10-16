@@ -1,1 +1,5 @@
+<<<<<<<< HEAD:public/build/assets/useForm-IVLLNxI1.js
 import{_i as e,gi as t,hi as n}from"./admin-vendor-BvYYYS5Z.js";import{c as r,i,o as a}from"./main-bGy8h-rz.js";function o(o){let s=n(structuredClone(e(o))),c=t({}),l=t(!1);function u(e){return c.value[e]?.[0]}function d(t=o){Object.assign(s,structuredClone(e(t))),c.value={}}async function f(e){l.value=!0,c.value={};try{return await e()}catch(e){let t=a(e);return t?c.value=t:r().error(i(e)),null}finally{l.value=!1}}return n({data:s,errors:c,processing:l,error:u,reset:d,submit:f})}export{o as t};
+========
+import{gi as e,hi as t,mi as n}from"./admin-vendor-BWltDA8c.js";import{c as r,i,o as a}from"./main-gzgfhU_4.js";function o(o){let s=n(structuredClone(e(o))),c=t({}),l=t(!1);function u(e){return c.value[e]?.[0]}function d(t=o){Object.assign(s,structuredClone(e(t))),c.value={}}async function f(e){l.value=!0,c.value={};try{return await e()}catch(e){let t=a(e);return t?c.value=t:r().error(i(e)),null}finally{l.value=!1}}return n({data:s,errors:c,processing:l,error:u,reset:d,submit:f})}export{o as t};
+>>>>>>>> acc4e3f (Make confirmation dialogs confirm):public/build/assets/useForm-DHnEF0vb.js

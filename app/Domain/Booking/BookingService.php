@@ -108,11 +108,22 @@ class BookingService
         $paid = round((float) $booking->payments()->where('status', 'paid')->sum('amount'), 2);
         $booking->paid_amount = $paid;
 
+        // The status follows the money both ways. Removing a payment used to
+        // leave the old one behind, so a booking could read "Fully paid" with
+        // nothing recorded against it. Completed and cancelled are left alone,
+        // and so is a booking still in the workflow whose payments justify no
+        // payment status — pending and confirmed are not ours to overwrite.
         if (! $booking->isClosed()) {
-            if ($paid >= (float) $booking->total && (float) $booking->total > 0) {
-                $booking->status = 'fully_paid';
-            } elseif ($paid > 0 && $paid >= (float) $booking->advance_amount && in_array($booking->status, ['pending', 'confirmed'], true)) {
-                $booking->status = 'advance_paid';
+            $earned = match (true) {
+                $paid >= (float) $booking->total && (float) $booking->total > 0 => 'fully_paid',
+                $paid > 0 && $paid >= (float) $booking->advance_amount => 'advance_paid',
+                default => null,
+            };
+
+            if ($earned !== null) {
+                $booking->status = $earned;
+            } elseif (in_array($booking->status, ['advance_paid', 'fully_paid'], true)) {
+                $booking->status = 'pending';
             }
         }
 
