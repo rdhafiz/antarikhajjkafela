@@ -250,11 +250,23 @@
                             <span class="book-card-num">{{ $pad(3) }}</span>
                             <span class="book-head-rule" aria-hidden="true"></span>
                             <div class="relative min-w-0">
-                                <p class="book-head-title">{{ __('Documents') }} <span class="font-sans text-[15px] font-normal text-ink-3">({{ __('optional') }})</span></p>
-                                <p class="book-head-text">{{ __('Upload passport and NID copies now, or give them to us later.') }}</p>
+                                <p class="book-head-title flex flex-wrap items-center gap-x-3 gap-y-1">{{ __('Documents') }} <span class="book-optional">{{ __('optional') }}</span></p>
+                                <p class="book-head-text">{{ __('Passport and NID copies for your visa.') }}</p>
                             </div>
                         </div>
                         <div class="book-card-body">
+                            {{-- Make it plain that this step can be skipped. --}}
+                            <div class="book-skip" data-reveal>
+                                <span class="book-skip-icon" aria-hidden="true"><x-site.icon name="check-circle" class="size-5" /></span>
+                                <p class="min-w-0 flex-1">
+                                    <strong class="font-semibold text-ink">{{ __('This step is optional.') }}</strong>
+                                    {{ __('You can skip it and complete your booking now; giving us the copies later is fine.') }}
+                                </p>
+                                <a href="#{{ $canPayOnline ? 'step-payment' : 'book-confirm' }}" class="book-skip-link"
+                                   @click.prevent="const to = document.getElementById(@js($canPayOnline ? 'step-payment' : 'book-confirm')); to.scrollIntoView({ behavior: 'smooth', block: 'center' }); to.querySelector('input')?.focus({ preventScroll: true })">
+                                    {{ __('Skip this step') }}<x-site.icon name="arrow-right" class="size-4 rtl:rotate-180" />
+                                </a>
+                            </div>
                             <div class="grid gap-4 lg:grid-cols-2">
                                 @foreach (['passport' => [__('Passport copies'), 'passport'], 'nid' => [__('NID copies'), 'document']] as $key => [$label, $icon])
                                     {{-- Pick or drop files; the card turns gold once it holds some. --}}
@@ -379,7 +391,7 @@
                         </dl>
                         <div class="px-5 pb-5">
                             {{-- The terms, accepted right where the booking is confirmed. --}}
-                            <div class="book-agree mb-3.5" data-field>
+                            <div id="book-confirm" class="book-agree mb-3.5 scroll-mt-40" data-field>
                                 <label class="flex items-start gap-2.5 text-[13px] leading-normal text-white/80">
                                     <input type="checkbox" name="agree" value="1" @checked(old('agree')) required data-message="{{ __('Please accept the booking terms.') }}" class="mt-0.5 size-[1.125rem] shrink-0 cursor-pointer rounded accent-[var(--color-gold)]" {!! $invalid('agree') !!}>
                                     <span>{{ __('I agree to the') }} <a href="{{ url('terms-and-conditions') }}" target="_blank" class="font-semibold text-gold underline underline-offset-2 hover:text-white">{{ __('booking terms and conditions') }}</a>{{ __(', including that prices may change with Saudi government or airline fees.') }}</span>
