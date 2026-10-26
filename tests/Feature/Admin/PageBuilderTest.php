@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\Inquiry;
 use App\Models\Media;
 use App\Models\Page;
+use App\PageBuilder\SectionStyle;
 use Database\Seeders\PageSeeder;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -54,6 +55,31 @@ class PageBuilderTest extends AdminTestCase
         $this->get('/terms-and-conditions')->assertOk()->assertSeeText('Visa processing');
         $this->get('/air-tickets')->assertOk()->assertSeeText('Request a fare quote')->assertSee('name="from_city"', false);
         $this->get('/visa')->assertOk()->assertSeeText('Which visa do you need?')->assertSee('name="visa_country"', false);
+    }
+
+    public function test_home_sections_use_soft_shades_shapes_colourful_icons_and_photo_cards(): void
+    {
+        $html = $this->get('/')->assertOk()
+            // Neighbouring sections get their own shades and floating shapes.
+            ->assertSee('bg-sky-soft', false)
+            ->assertSee('bg-mint-soft', false)
+            ->assertSee('class="decor pointer-events-none', false)
+            // Each service card gets its own icon colour; the visa regions are photo cards.
+            ->assertSee('ic-tone ic-1', false)
+            ->assertSee('ic-tone ic-4', false)
+            ->assertSee('photo-card group', false)
+            // The fare quote's dates become calendars, and the footer credits the developer.
+            ->assertSee('data-datepicker', false)
+            ->assertSee('href="https://codevioso.com"', false)
+            ->getContent();
+
+        $this->assertStringContainsString('Designed and Developed by', $html);
+
+        // An unknown background or shape style falls back to the defaults.
+        $this->assertSame(['default', 'none'], array_values(array_intersect_key(
+            SectionStyle::sanitize(['background' => 'neon', 'decor' => 'stars']),
+            array_flip(['background', 'decor']),
+        )));
     }
 
     public function test_inner_page_banners_use_the_shared_centered_hero(): void

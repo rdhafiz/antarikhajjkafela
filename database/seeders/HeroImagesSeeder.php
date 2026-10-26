@@ -59,6 +59,23 @@ class HeroImagesSeeder extends Seeder
         'hajj-pre-registration' => [['heroes/hajj-campaign.webp', 'Pilgrims in ihram before the Kaaba', 'কাবার সামনে ইহরাম পরিহিত হাজিগণ']],
     ];
 
+    /**
+     * Card photos for feature items, by their English title (service cards,
+     * visa regions).
+     *
+     * @var array<string, array{0: string, 1: string, 2: string}>
+     */
+    private const ITEM_PHOTOS = [
+        'Hajj & Umrah' => ['heroes/haram-wide.webp', 'Masjid al-Haram in Makkah', 'মক্কার মসজিদুল হারাম'],
+        'Air tickets' => self::SKY,
+        'Visa processing' => self::PASSPORT,
+        'Tour packages' => ['travel/maldives.webp', 'Overwater villas above a turquoise lagoon in the Maldives', 'মালদ্বীপে ফিরোজা লেগুনের ওপর ওয়াটার ভিলা'],
+        'Middle East' => ['travel/dubai.webp', 'The Burj Khalifa above the Dubai skyline', 'দুবাইয়ের স্কাইলাইনের ওপরে বুর্জ খলিফা'],
+        'Asia' => ['travel/singapore.webp', 'Marina Bay Sands and the Singapore skyline at night', 'রাতে মেরিনা বে স্যান্ডস ও সিঙ্গাপুরের স্কাইলাইন'],
+        'Europe & UK' => ['travel/europe.webp', 'The Eiffel Tower in Paris', 'প্যারিসের আইফেল টাওয়ার'],
+        'North America & Oceania' => ['travel/sydney.webp', 'The Sydney Opera House and Harbour Bridge', 'সিডনি অপেরা হাউস ও হারবার ব্রিজ'],
+    ];
+
     public function run(): void
     {
         foreach (Page::with('sections')->get() as $page) {
@@ -74,6 +91,7 @@ class HeroImagesSeeder extends Seeder
             }
 
             $this->imageSections($key, $page->sections);
+            $this->itemImages($page->sections);
         }
 
         $this->travelImages();
@@ -153,6 +171,36 @@ class HeroImagesSeeder extends Seeder
         foreach ($sections as $section) {
             if ($section->component === 'image_text') {
                 $this->fillSectionImage($section, 'image', fn () => $this->photo($photo, 'content'));
+            }
+        }
+    }
+
+    /**
+     * Feature items without an image get the photo for their title.
+     *
+     * @param  iterable<PageSection>  $sections
+     */
+    private function itemImages(iterable $sections): void
+    {
+        foreach ($sections as $section) {
+            if ($section->component !== 'features') {
+                continue;
+            }
+
+            $content = $section->fresh()->content ?? [];
+            $changed = false;
+
+            foreach ($content['items'] ?? [] as $i => $item) {
+                $photo = self::ITEM_PHOTOS[$item['title']['en'] ?? ''] ?? null;
+
+                if ($photo && empty($item['image'])) {
+                    $content['items'][$i]['image'] = $this->photo($photo, 'card')->id;
+                    $changed = true;
+                }
+            }
+
+            if ($changed) {
+                $section->update(['content' => $content]);
             }
         }
     }

@@ -53,7 +53,7 @@ Unsplash photos (free to use under the Unsplash License) for the travel agency p
 | airport.webp | Home slide "Air tickets"; Services, Terms and Privacy banners; booking step 2 for tours (`airport-scene.webp`) | Albert Stoynov | https://unsplash.com/photos/Yil5cKBbS5M |
 | passport-visa.webp | Home slide "Visa"; Visa banner and documents section; booking step 3 for tours (`passport-scene.webp`) | Global Residence Index | https://unsplash.com/photos/addEU6TScGI |
 | travellers.webp | Home hero; Tours service; default share image | Westwind Air Service | https://unsplash.com/photos/yRp1lQSnbk0 |
-| maldives.webp | Home slide "Tours"; Maldives tour; booking step 4 for tours (`island-scene.webp`) | Matheen Faiz | https://unsplash.com/photos/iwZqmickJxA |
+| maldives.webp | Home slide "Tours"; Maldives tour; "Tour packages" service card; booking step 4 for tours (`island-scene.webp`) | Matheen Faiz | https://unsplash.com/photos/iwZqmickJxA |
 | thailand.webp | Thailand tour | Evan Krause | https://unsplash.com/photos/BU6lABNbTpA |
 | malaysia.webp | Malaysia tour | Vlad Shapochnikov | https://unsplash.com/photos/uPJzWWhPcP4 |
 | singapore.webp | Singapore tour | Hu Chen | https://unsplash.com/photos/__cBlRzLSTg |
@@ -67,6 +67,7 @@ Unsplash photos (free to use under the Unsplash License) for the travel agency p
 | japan.webp | Japan tour | Aditya Anjagi | https://unsplash.com/photos/KZSDCocsOEE |
 | al-aqsa.webp | Al-Aqsa & Jordan tour | Thales Botelho de Sousa | https://unsplash.com/photos/oJMwapMuApk |
 | uzbekistan.webp | Uzbekistan tour | LKHTK | https://unsplash.com/photos/pQMkpG36644 |
+| sydney.webp | Visa card "North America & Oceania" | April Pethybridge | https://unsplash.com/photos/KeDdztmEqVc |
 
 ## From the previous website
 

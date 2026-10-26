@@ -684,6 +684,12 @@ Alpine.data('dhakaClock', (locale = 'en-GB') => ({
 window.Alpine = Alpine;
 Alpine.start();
 
+// Date fields become flatpickr calendars; the picker is only downloaded where a form has one.
+const dateFields = document.querySelectorAll('input[data-datepicker]');
+if (dateFields.length) {
+    import('./datepicker.js').then(({ default: datepickers }) => datepickers(dateFields));
+}
+
 /**
  * Scroll motion for the page sections. Skipped for visitors who prefer
  * reduced motion; without JavaScript everything simply stays visible.

@@ -7,7 +7,8 @@ use Illuminate\Support\Collection;
 
 /**
  * Per-section appearance: background (preset or custom color), optional
- * background image with a color overlay, text color, spacing and anchor.
+ * background image with a color overlay, floating background shapes, text
+ * color, spacing and anchor.
  * Every component placement can be styled independently.
  */
 class SectionStyle
@@ -20,8 +21,14 @@ class SectionStyle
         'navy' => 'Navy',
         'navy-deep' => 'Deep navy',
         'gold-soft' => 'Soft gold',
+        'sky-soft' => 'Soft sky blue',
+        'mint-soft' => 'Soft mint',
+        'peach-soft' => 'Soft peach',
+        'lilac-soft' => 'Soft lilac',
         'custom' => 'Custom color',
     ];
+
+    public const DECORS = ['none' => 'None', 'shapes' => 'Floating shapes that move while scrolling'];
 
     public const SPACINGS = ['none' => 'None', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large'];
 
@@ -34,6 +41,10 @@ class SectionStyle
         'navy' => 'bg-brand',
         'navy-deep' => 'bg-brand-950',
         'gold-soft' => 'bg-gold-soft',
+        'sky-soft' => 'bg-sky-soft',
+        'mint-soft' => 'bg-mint-soft',
+        'peach-soft' => 'bg-peach-soft',
+        'lilac-soft' => 'bg-lilac-soft',
     ];
 
     private const SPACING_CLASSES = [
@@ -56,6 +67,7 @@ class SectionStyle
             Field::image('background_image', 'Background image', 'hero')->hint('Shown behind the section, under the overlay color.'),
             Field::color('overlay_color', 'Overlay color')->hint('Tints the background image. Leave empty for a dark navy overlay.'),
             Field::number('overlay_opacity', 'Overlay strength (%)', 0, 95)->default(70),
+            Field::select('decor', 'Background shapes', self::DECORS)->default('none')->hint('Soft circles, rings and dots behind the content, moving at different speeds.'),
             Field::color('text_color', 'Text color')->hint('Leave empty to choose automatically from the background.'),
             Field::select('spacing', 'Vertical spacing', self::SPACINGS)->default('lg'),
             Field::text('anchor', 'Anchor ID')->notTranslatable()->max(40)->hint('Lets menus link to this section, e.g. #packages.'),
@@ -68,7 +80,7 @@ class SectionStyle
      * @param  array<string, mixed>  $style  stored style
      * @param  array<string, mixed>  $defaults  component default style
      * @param  Collection<int, Media>  $media
-     * @return array{class: string, style: string, tone: string, image: Media|null, overlay: string|null, id: string|null}
+     * @return array{class: string, style: string, tone: string, image: Media|null, overlay: string|null, decor: string, id: string|null}
      */
     public static function resolve(array $style, array $defaults, Collection $media): array
     {
@@ -114,6 +126,7 @@ class SectionStyle
             'tone' => $tone,
             'image' => $image,
             'overlay' => $overlay,
+            'decor' => ($style['decor'] ?? 'none') === 'shapes' ? 'shapes' : 'none',
             'id' => filled($style['anchor'] ?? null) ? str($style['anchor'])->slug()->toString() : null,
         ];
     }
@@ -133,6 +146,7 @@ class SectionStyle
             'overlay_color' => self::hex($style['overlay_color'] ?? null),
             'overlay_opacity' => isset($style['overlay_opacity']) ? max(0, min(95, (int) $style['overlay_opacity'])) : 70,
             'text_color' => self::hex($style['text_color'] ?? null),
+            'decor' => array_key_exists($style['decor'] ?? '', self::DECORS) ? $style['decor'] : 'none',
             'spacing' => array_key_exists($style['spacing'] ?? '', self::SPACINGS) ? $style['spacing'] : null,
             'anchor' => filled($style['anchor'] ?? null) ? str($style['anchor'])->slug()->limit(40, '')->toString() : null,
         ];

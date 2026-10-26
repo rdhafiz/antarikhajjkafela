@@ -6,6 +6,8 @@
     $sticky = $layout === 'sticky';
     $grid = ['2' => 'sm:grid-cols-2', '3' => 'sm:grid-cols-2 lg:grid-cols-3', '4' => 'sm:grid-cols-2 lg:grid-cols-4'][$columns] ?? 'sm:grid-cols-2 lg:grid-cols-3';
     $cards = $layout === 'cards';
+    // Colourful icons: each item gets the next colour of the palette (.ic-1 … .ic-6).
+    $tone = fn (int $index) => ($c['icon_style'] ?? 'brand') === 'colorful' ? 'ic-tone ic-'.($index % 6 + 1) : '';
 @endphp
 <x-site.block :style="$style" :section="$section">
     @if ($layout === 'numbered')
@@ -45,7 +47,7 @@
                     <li class="feature-cell group relative flex items-start gap-4 border-r border-b border-[var(--sec-border)] p-5 sm:flex-col sm:items-stretch sm:gap-0 sm:p-6 lg:p-7">
                         <div class="flex shrink-0 items-center justify-between gap-4">
                             @if ($item['icon'])
-                                <span class="sec-icon size-11 shrink-0 rounded-xl transition-[rotate] duration-500 group-hover:-rotate-6">
+                                <span class="sec-icon {{ $tone($index) }} size-11 shrink-0 rounded-xl transition-[rotate] duration-500 group-hover:-rotate-6">
                                     <x-site.icon :name="$item['icon']" class="size-5" />
                                 </span>
                             @endif
@@ -83,7 +85,7 @@
                     <div class="svc-tile group relative isolate flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-line bg-white p-7 shadow-[var(--shadow-soft)]">
                         <span class="svc-tile-num absolute top-5 end-6 font-display text-[2.75rem] leading-none font-semibold" aria-hidden="true">{{ App\Support\Money::digits(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) }}</span>
                         @if ($item['icon'])
-                            <span class="svc-tile-icon flex size-14 items-center justify-center rounded-2xl">
+                            <span class="svc-tile-icon {{ $tone($index) }} flex size-14 items-center justify-center rounded-2xl">
                                 <x-site.icon :name="$item['icon']" class="size-6" />
                             </span>
                         @endif
@@ -106,6 +108,40 @@
                 </li>
             @endforeach
         </ul>
+    @elseif ($layout === 'photos')
+        {{-- Photo cards: the image fills the card, the text sits on a dark fade at the bottom. --}}
+        <x-site.block-heading :c="$c" class="mb-14" />
+        <div class="grid gap-5 {{ $grid }}">
+            @foreach ($items as $index => $item)
+                @php($tag = $item['link'] ? 'a' : 'div')
+                <{{ $tag }}
+                    @if ($item['link']) href="{{ $item['link']['url'] }}" @if ($item['link']['external']) target="_blank" rel="noopener" @endif @endif
+                    class="photo-card group relative isolate flex min-h-[22rem] flex-col justify-end overflow-hidden rounded-[1.75rem] bg-brand-950 p-6 text-white shadow-[var(--shadow-lift)] sm:p-7"
+                    data-reveal
+                    style="--reveal-delay: {{ ($index % 4) * 90 }}ms"
+                >
+                    @if ($item['image'])
+                        <img src="{{ $item['image']->url('md') }}" srcset="{{ $item['image']->srcset() }}" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" alt="" loading="lazy" decoding="async" class="photo-card-img absolute inset-0 -z-20 size-full object-cover">
+                    @else
+                        <span class="absolute inset-0 -z-20 bg-gradient-to-br from-brand to-brand-950" aria-hidden="true"></span>
+                    @endif
+                    <span class="photo-card-fade absolute inset-0 -z-10" aria-hidden="true"></span>
+                    @if ($item['icon'])
+                        <span class="sec-icon {{ $tone($index) }} absolute top-6 start-6 size-12 rounded-2xl shadow-lg sm:top-7 sm:start-7">
+                            <x-site.icon :name="$item['icon']" class="size-6" />
+                        </span>
+                    @endif
+                    <h3 class="font-display text-[1.5rem] leading-tight font-semibold text-white">{{ $item['title'] }}</h3>
+                    @if (filled($item['text']))<p class="mt-2.5 text-[15px] leading-relaxed text-white/85">{{ $item['text'] }}</p>@endif
+                    @if ($item['link'] && filled($item['link']['label']))
+                        <span class="mt-4 inline-flex items-center gap-1.5 text-[14px] font-semibold text-gold">
+                            {{ $item['link']['label'] }}
+                            <x-site.icon name="arrow-right" class="size-4 transition-transform group-hover:translate-x-1 rtl:rotate-180" />
+                        </span>
+                    @endif
+                </{{ $tag }}>
+            @endforeach
+        </div>
     @else
         <div>
             <x-site.block-heading :c="$c" class="mb-14" />
@@ -116,15 +152,22 @@
                         @if ($item['link']) href="{{ $item['link']['url'] }}" @if ($item['link']['external']) target="_blank" rel="noopener" @endif @endif
                         @class([
                             'group relative block',
-                            'sec-card p-7 transition-[box-shadow,border-color] duration-300' => $cards,
+                            'sec-card p-7 transition-[box-shadow,border-color,translate] duration-300' => $cards,
+                            'overflow-hidden hover:-translate-y-1' => $cards && $item['image'],
                             'hover:shadow-[var(--shadow-lift)]' => $cards && $item['link'],
                             'flex gap-5' => $layout === 'list',
                         ])
                         data-reveal
                         style="--reveal-delay: {{ ($index % 4) * 90 }}ms"
                     >
+                        @if ($cards && $item['image'])
+                            {{-- The photo across the top of the card; the icon overlaps its lower edge. --}}
+                            <div class="-mx-7 -mt-7 mb-0 aspect-[16/10] overflow-hidden">
+                                <img src="{{ $item['image']->url('md') }}" srcset="{{ $item['image']->srcset() }}" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" alt="" loading="lazy" decoding="async" class="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]">
+                            </div>
+                        @endif
                         @if ($item['icon'])
-                            <span @class(['sec-icon shrink-0 transition-[rotate] duration-500 group-hover:-rotate-6', 'size-14' => $cards, 'size-12' => $layout === 'list'])>
+                            <span @class(['sec-icon '.$tone($index).' shrink-0 transition-[rotate] duration-500 group-hover:-rotate-6', 'size-14' => $cards, 'size-12' => $layout === 'list', 'relative -mt-7 ring-4 ring-[var(--sec-surface)]' => $cards && $item['image']])>
                                 <x-site.icon :name="$item['icon']" class="size-6" />
                             </span>
                         @endif
