@@ -50,13 +50,13 @@ class Branding
 
     public function logoUrl(): string
     {
-        return $this->logo()?->url('md') ?? asset('images/brand/logo-880.webp');
+        return $this->logo()?->url('md') ?? $this->bundled('logo-880.webp');
     }
 
     public function logoSrcset(): string
     {
         return $this->logo()?->srcset()
-            ?: asset('images/brand/logo-360.webp').' 360w, '.asset('images/brand/logo-440.webp').' 440w, '.asset('images/brand/logo-880.webp').' 880w';
+            ?: $this->bundled('logo-360.webp').' 360w, '.$this->bundled('logo-440.webp').' 440w, '.$this->bundled('logo-880.webp').' 880w';
     }
 
     /**
@@ -80,12 +80,25 @@ class Branding
             default => 'icon-512.webp',
         };
 
-        return asset("images/brand/{$bundled}");
+        return $this->bundled($bundled);
     }
 
     public function faviconUrl(int $size = 32): string
     {
         return $this->favicon()?->url($size <= 32 ? '32' : '192') ?? $this->iconUrl($size);
+    }
+
+    /**
+     * A bundled brand file, versioned by its content: the files keep their
+     * names, so browsers would otherwise show a cached old logo or favicon.
+     */
+    private function bundled(string $file): string
+    {
+        static $versions = [];
+
+        $versions[$file] ??= substr((string) @md5_file(public_path("images/brand/{$file}")), 0, 8);
+
+        return asset("images/brand/{$file}").($versions[$file] !== '' ? "?v={$versions[$file]}" : '');
     }
 
     private function media(string $path): ?Media
