@@ -102,10 +102,10 @@
                             <div class="hero-media" data-parallax-bg aria-hidden="true">
                                 <img src="{{ $image->url('lg') }}" srcset="{{ $image->srcset() }}" sizes="100vw" alt="" @if ($index === 0) fetchpriority="high" @else loading="lazy" decoding="async" @endif>
                             </div>
-                            <div class="absolute inset-0 -z-10 bg-gradient-to-b from-brand-950/80 via-brand-950/70 to-brand-950/90" aria-hidden="true"></div>
+                            <div class="hs-scrim absolute inset-0 -z-10" aria-hidden="true"></div>
                         @endif
                         <div @class(['container-site flex h-full flex-col items-center justify-center pb-28 text-center', 'pt-32' => $first, 'pt-16' => ! $first])>
-                            <div class="max-w-3xl" data-parallax-content>
+                            <div class="hs-copy max-w-3xl" data-parallax-content>
                                 @if (filled($slide['eyebrow']))<p class="hs-line eyebrow eyebrow-light justify-center" style="--i: 0">{{ $slide['eyebrow'] }}</p>@endif
                                 @if (filled($slide['title']) || filled($slide['highlight']))
                                     <{{ $heading }} @class(['text-display-xl text-white', 'mt-5' => filled($slide['eyebrow'])])>
@@ -113,7 +113,7 @@
                                         @if (filled($slide['highlight']))<span class="hs-line block text-gold italic" style="--i: 2">{{ $slide['highlight'] }}</span>@endif
                                     </{{ $heading }}>
                                 @endif
-                                @if (filled($slide['text']))<p class="hs-line mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/80" style="--i: 3">{{ $slide['text'] }}</p>@endif
+                                @if (filled($slide['text']))<p class="hs-line mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white" style="--i: 3">{{ $slide['text'] }}</p>@endif
                                 @if ($slide['primary'] || $slide['secondary'])
                                     <div class="hs-line mt-9 flex flex-col justify-center gap-3 sm:flex-row" style="--i: 4">
                                         <x-site.link-button :link="$slide['primary']" variant="gold" size="lg" icon-right="arrow-right" />
