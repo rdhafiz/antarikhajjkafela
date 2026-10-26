@@ -42,7 +42,11 @@ class TravelTest extends AdminTestCase
             ->assertSeeText('with scholars beside you.')
             ->assertSeeText('35–40 days')
             ->assertSeeText('About Hajj')
-            ->assertSeeTextInOrder(['with scholars beside you.', 'Choose your Hajj package', 'Surah Al-Hajj 22:27', 'About Hajj'])
+            ->assertSeeTextInOrder(['with scholars beside you.', 'Choose your Hajj package', 'What your Hajj package includes', 'From Dhaka to the two Holy Mosques', 'Surah Al-Hajj 22:27', 'About Hajj'])
+            ->assertSeeText('Mina–Arafah–Muzdalifah')
+            ->assertSee('images/pilgrimage/makkah.webp', false)
+            ->assertSee('ic-tone ic-1', false)
+            ->assertSee('class="decor ', false)
             ->assertSeeText('Surah Al-Hajj 22:27')
             ->assertSee('<blockquote', false)
             ->assertDontSee('aria-label="Filter packages"', false);
@@ -59,6 +63,7 @@ class TravelTest extends AdminTestCase
 
         // The hadith keeps its lead-in above the quote.
         $this->get('/umrah')->assertOk()->assertSeeText('The Prophet Muhammad (peace be upon him) said')->assertSeeText('Sahih Bukhari & Muslim');
+        $this->get('/umrah')->assertOk()->assertSeeText('What your Umrah package includes')->assertSeeText('More than 15 sites in Makkah')->assertDontSeeText('Mina–Arafah–Muzdalifah');
 
         // The all-packages page keeps its filter and uses the same wide cards, with the service named.
         $this->get('/packages')->assertOk()->assertSee('aria-label="Filter packages"', false)
@@ -265,7 +270,8 @@ class TravelTest extends AdminTestCase
             ->assertJsonValidationErrors('slug'); // used by a page
 
         $this->asAdmin($admin)->postJson('/api/admin/services', ['name' => ['en' => 'Ziyarah tours'], 'slug' => 'ziyarah-tours'])->assertCreated();
-        $this->get('/ziyarah-tours')->assertOk()->assertSeeText('New packages are being prepared');
+        $this->get('/ziyarah-tours')->assertOk()->assertSeeText('New packages are being prepared')
+            ->assertDontSeeText('From Dhaka to the two Holy Mosques');
 
         $ziyarah = Service::where('slug', 'ziyarah-tours')->firstOrFail();
         $this->asAdmin($admin)->putJson("/api/admin/services/{$ziyarah->id}", [

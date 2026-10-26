@@ -1,4 +1,5 @@
 @inject('site', App\Support\SiteContext::class)
+@inject('guide', App\Domain\Travel\PilgrimageGuide::class)
 @php
     use App\Support\Money;
 
@@ -36,10 +37,9 @@
         </div>
     </x-site.hero>
 
-    {{-- Packages: a centered grid over a slowly moving pattern. --}}
-    <section id="packages" class="relative isolate scroll-mt-20 overflow-hidden bg-sand-50 py-20 sm:py-24 lg:py-28">
-        <div class="pattern-star-ink pointer-events-none absolute -inset-y-[20%] inset-x-0 -z-10 opacity-[0.025]" data-parallax="0.2" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -top-40 -right-40 -z-10 size-[520px] rounded-full bg-gold/10 blur-3xl" data-parallax="-0.15" aria-hidden="true"></div>
+    {{-- Packages: a soft sky band with shapes drifting behind the cards. --}}
+    <section id="packages" class="section-light relative isolate scroll-mt-20 overflow-hidden bg-sky-soft py-20 sm:py-24 lg:py-28">
+        <x-site.decor />
         <div class="container-site">
             <div class="mx-auto mb-14 max-w-2xl text-center" data-reveal>
                 <p class="eyebrow justify-center">{{ __('Packages') }}</p>
@@ -62,12 +62,65 @@
             @endif
         </div>
     </section>
-    {{-- Quoted verses or hadith from the description, in the home page's verse style. --}}
+
+    @if ($pilgrimage)
+        {{-- What the packages include: colourful icon cards on white. --}}
+        <section class="section-light relative isolate overflow-hidden bg-white py-20 sm:py-24 lg:py-28">
+            <x-site.decor />
+            <div class="container-site">
+                <x-site.block-heading :c="[
+                    'eyebrow' => __('Included'),
+                    'title' => __('What your :name package includes', ['name' => $name]),
+                    'intro' => __('Every package is arranged by our licensed Hajj and Umrah division, Antarik Hajj Kafela.'),
+                ]" class="mb-14" />
+                <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($guide->included($service) as $index => $item)
+                        <li class="sec-card group p-7" data-reveal style="--reveal-delay: {{ ($index % 3) * 90 }}ms">
+                            <span class="sec-icon ic-tone ic-{{ $index % 6 + 1 }} size-14 transition-[rotate] duration-500 group-hover:-rotate-6">
+                                <x-site.icon :name="$item['icon']" class="size-6" />
+                            </span>
+                            <h3 class="sec-heading mt-6 text-display-sm">{{ $item['title'] }}</h3>
+                            <p class="sec-text mt-3 leading-relaxed">{{ $item['text'] }}</p>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </section>
+
+        {{-- The journey: photo cards for the preparation, Makkah and Madinah. --}}
+        <section class="section-light relative isolate overflow-hidden bg-peach-soft py-20 sm:py-24 lg:py-28">
+            <x-site.decor />
+            <div class="container-site">
+                <x-site.block-heading :c="[
+                    'eyebrow' => __('Your journey'),
+                    'title' => __('From Dhaka to the two Holy Mosques'),
+                    'intro' => $service->slug === 'hajj'
+                        ? __('Prepared before you leave, guided through every rite, and looked after until you are home.')
+                        : __('Prepared before you leave, guided through your Umrah, and looked after until you are home.'),
+                ]" class="mb-14" />
+                <ul class="grid gap-5 md:grid-cols-3">
+                    @foreach ($guide->journey($service) as $index => $card)
+                        <li class="photo-card group relative isolate flex min-h-[24rem] flex-col justify-end overflow-hidden rounded-[1.75rem] bg-brand-950 p-6 text-white shadow-[var(--shadow-lift)] sm:p-7 lg:min-h-[28rem]" data-reveal style="--reveal-delay: {{ $index * 90 }}ms">
+                            <img src="{{ asset($card['image']) }}" alt="{{ $card['alt'] }}" width="800" height="1000" loading="lazy" decoding="async" class="photo-card-img absolute inset-0 -z-20 size-full object-cover">
+                            <span class="photo-card-fade absolute inset-0 -z-10" aria-hidden="true"></span>
+                            <span class="sec-icon ic-tone ic-{{ $index + 1 }} absolute top-6 start-6 size-12 rounded-2xl shadow-lg sm:top-7 sm:start-7">
+                                <x-site.icon :name="$card['icon']" class="size-6" />
+                            </span>
+                            <span class="absolute top-7 end-6 font-display text-[1.5rem] leading-none font-semibold text-white/80 sm:end-7" aria-hidden="true">{{ App\Support\Money::digits(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) }}</span>
+                            <h3 class="font-display text-[1.5rem] leading-tight font-semibold text-white">{{ $card['title'] }}</h3>
+                            <p class="mt-2.5 text-[15px] leading-relaxed text-white/85">{{ $card['text'] }}</p>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </section>
+    @endif
+
+    {{-- Quoted verses or hadith from the description, on navy with drifting shapes. --}}
     @foreach ($about['quotes'] as $quote)
-        <section class="relative isolate overflow-hidden bg-brand py-20 text-white sm:py-24">
+        <section class="section-dark relative isolate overflow-hidden bg-brand py-20 text-white sm:py-24">
             <div class="pattern-star pointer-events-none absolute -inset-y-[30%] inset-x-0 -z-10 opacity-[0.05]" data-parallax="0.3" aria-hidden="true"></div>
-            <div class="pointer-events-none absolute top-1/2 -left-24 -z-10 size-[420px] -translate-y-1/2 rounded-full border-[28px] border-gold/[0.07]" data-parallax="-0.25" aria-hidden="true"></div>
-            <div class="pointer-events-none absolute -right-16 -bottom-24 -z-10 size-72 rounded-full bg-gold/10 blur-3xl" data-parallax="0.2" aria-hidden="true"></div>
+            <x-site.decor />
             <div class="container-site">
                 <figure class="mx-auto max-w-3xl text-center" data-reveal="wipe">
                     <x-site.icon name="moon" class="mx-auto size-8 text-gold" />
@@ -85,10 +138,10 @@
         </section>
     @endforeach
 
-    {{-- About: the description's plain paragraphs, centered and set large. --}}
+    {{-- About: the description's plain paragraphs, centered and set large on a soft lilac band. --}}
     @if ($about['paragraphs'])
-        <section class="relative isolate overflow-hidden bg-white py-20 sm:py-24 lg:py-28">
-            <div class="pattern-star-ink pointer-events-none absolute -inset-y-[25%] inset-x-0 -z-10 opacity-[0.015]" data-parallax="0.2" aria-hidden="true"></div>
+        <section class="section-light relative isolate overflow-hidden bg-lilac-soft py-20 sm:py-24 lg:py-28">
+            <x-site.decor />
             <div class="container-site">
                 <div class="mx-auto max-w-3xl text-center">
                     <h2 class="eyebrow justify-center" data-reveal>{{ __('About :name', ['name' => $name]) }}</h2>
