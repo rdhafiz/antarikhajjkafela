@@ -196,10 +196,10 @@ class PageSeeder extends Seeder
             ['hero', [
                 'variant' => 'centered',
                 'slides' => [
-                    $this->slide('Hajj & Umrah · Air tickets · Visa · Tours', 'হজ ও উমরাহ · এয়ার টিকেট · ভিসা · ট্যুর', 'Trusted international travel,', 'বিশ্বস্ত আন্তর্জাতিক ট্রাভেল সেবা,', 'from Dhaka to the world.', 'ঢাকা থেকে সারা বিশ্বে।',
-                        'Air tickets, visa processing, holiday tours and scholar-guided Hajj and Umrah, arranged by one licensed team since 2016.',
-                        'এয়ার টিকেট, ভিসা প্রসেসিং, হলিডে ট্যুর এবং আলেমদের তত্ত্বাবধানে হজ ও উমরাহ—২০১৬ সাল থেকে একটি লাইসেন্সপ্রাপ্ত টিমের মাধ্যমে।',
-                        $this->link('/air-tickets', 'Get a fare quote', 'ভাড়া জানতে চান'), $this->link('/tours', 'Explore tours', 'ট্যুর দেখুন')),
+                    $this->slide('Hajj & Umrah · Air Tickets · Visa Processing · Tour Packages', 'হজ ও উমরাহ · এয়ার টিকেট · ভিসা প্রসেসিং · ট্যুর প্যাকেজ', 'Trusted travel services,', 'বিশ্বস্ত ট্রাভেল সেবা,', 'for every journey you make.', 'আপনার প্রতিটি যাত্রায়।',
+                        'From the sacred journey of Hajj and Umrah to air tickets, visas and holidays around the world, one licensed team in Dhaka plans every step with you.',
+                        'হজ ও উমরাহর পবিত্র সফর থেকে এয়ার টিকেট, ভিসা ও বিশ্বজুড়ে ছুটির ভ্রমণ—ঢাকার একটি লাইসেন্সপ্রাপ্ত টিম প্রতিটি ধাপ আপনার সাথে সাজিয়ে দেয়।',
+                        $this->link('/services', 'Explore our services', 'আমাদের সেবাসমূহ'), $this->link('/air-tickets', 'Get a fare quote', 'ভাড়া জানতে চান')),
                     $this->slide('Air tickets', 'এয়ার টিকেট', 'Fly anywhere,', 'যেকোনো গন্তব্যে উড়ুন,', 'at the right fare.', 'সঠিক ভাড়ায়।',
                         'Fares from every major airline compared for you, with date changes and group bookings handled by our ticketing team.',
                         'সব বড় এয়ারলাইনের ভাড়া তুলনা করে দিই; তারিখ পরিবর্তন ও গ্রুপ বুকিং দেখে আমাদের টিকেটিং টিম।',

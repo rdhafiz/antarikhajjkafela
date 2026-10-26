@@ -48,6 +48,7 @@ Unsplash photos (free to use under the Unsplash License) for the travel agency p
 
 | File | Used for | Photographer | Source |
 | --- | --- | --- | --- |
+| panorama.webp | Home hero, first slide | Supplied by the client (not from Unsplash) | — |
 | airplane-sky.webp | Air Tickets banner; home call-to-action and default page banner; booking step 1 for tours (cropped copy in `public/images/booking/sky-scene.webp`) | Marco Tjokro | https://unsplash.com/photos/cvj8Li-amfw |
 | airport.webp | Home slide "Air tickets"; Services, Terms and Privacy banners; booking step 2 for tours (`airport-scene.webp`) | Albert Stoynov | https://unsplash.com/photos/Yil5cKBbS5M |
 | passport-visa.webp | Home slide "Visa"; Visa banner and documents section; booking step 3 for tours (`passport-scene.webp`) | Global Residence Index | https://unsplash.com/photos/addEU6TScGI |

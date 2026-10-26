@@ -50,7 +50,7 @@ class HeroImagesSeeder extends Seeder
     private const HERO_SLIDES = [
         // The brand slide, then air tickets, visa, tours and Hajj & Umrah.
         'home' => [
-            ['travel/travellers.webp', 'A family walking to a small plane on a sunny airstrip', 'রোদেলা এয়ারস্ট্রিপে ছোট বিমানের দিকে হেঁটে যাওয়া একটি পরিবার'],
+            ['travel/panorama.webp', 'The Kaaba, world landmarks and an airliner above a globe', 'কাবা, বিশ্বের দর্শনীয় স্থাপনা ও গ্লোবের ওপর উড়োজাহাজ'],
             self::AIRPORT,
             self::PASSPORT,
             ['travel/maldives.webp', 'Overwater villas above a turquoise lagoon in the Maldives', 'মালদ্বীপে ফিরোজা লেগুনের ওপর ওয়াটার ভিলা'],
