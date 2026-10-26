@@ -48,13 +48,13 @@ class HeroImagesSeeder extends Seeder
      * @var array<string, list<array{0: string, 1: string, 2: string}>>
      */
     private const HERO_SLIDES = [
-        // The brand slide, then air tickets, visa, tours and Hajj & Umrah.
+        // The agency slide, then Hajj & Umrah, air tickets, visa and tours.
         'home' => [
             ['travel/panorama.webp', 'The Kaaba, world landmarks and an airliner above a globe', 'কাবা, বিশ্বের দর্শনীয় স্থাপনা ও গ্লোবের ওপর উড়োজাহাজ'],
+            ['heroes/home-haram.webp', 'Masjid al-Haram and the Kaaba in Makkah', 'মক্কায় মসজিদুল হারাম ও কাবা'],
             self::AIRPORT,
             self::PASSPORT,
             ['travel/maldives.webp', 'Overwater villas above a turquoise lagoon in the Maldives', 'মালদ্বীপে ফিরোজা লেগুনের ওপর ওয়াটার ভিলা'],
-            ['heroes/home-haram.webp', 'Masjid al-Haram and the Kaaba in Makkah', 'মক্কায় মসজিদুল হারাম ও কাবা'],
         ],
         'hajj-pre-registration' => [['heroes/hajj-campaign.webp', 'Pilgrims in ihram before the Kaaba', 'কাবার সামনে ইহরাম পরিহিত হাজিগণ']],
     ];

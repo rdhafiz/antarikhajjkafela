@@ -186,7 +186,8 @@ class PageSeeder extends Seeder
 
     /**
      * The home page: the agency's four services, with Hajj & Umrah as one
-     * slide and one section.
+     * slide and one section. Slides: the agency, Hajj & Umrah, air tickets,
+     * visa processing, tour packages.
      *
      * @return list<array>
      */
@@ -200,6 +201,10 @@ class PageSeeder extends Seeder
                         'From the sacred journey of Hajj and Umrah to air tickets, visas and holidays around the world, one licensed team in Dhaka plans every step with you.',
                         'হজ ও উমরাহর পবিত্র সফর থেকে এয়ার টিকেট, ভিসা ও বিশ্বজুড়ে ছুটির ভ্রমণ—ঢাকার একটি লাইসেন্সপ্রাপ্ত টিম প্রতিটি ধাপ আপনার সাথে সাজিয়ে দেয়।',
                         $this->link('/services', 'Explore our services', 'আমাদের সেবাসমূহ'), $this->link('/air-tickets', 'Get a fare quote', 'ভাড়া জানতে চান')),
+                    $this->slide('Hajj & Umrah · Antarik Hajj Kafela', 'হজ ও উমরাহ · আন্তরিক হজ্জ কাফেলা', 'Hajj and Umrah,', 'হজ ও উমরাহ,', 'with scholars beside you.', 'আলেমদের সান্নিধ্যে।',
+                        'Our Hajj and Umrah division has guided pilgrims from Bangladesh since 2016: Hajj licence 602, Umrah licence 411.',
+                        '২০১৬ সাল থেকে আমাদের হজ ও উমরাহ বিভাগ বাংলাদেশের হাজিদের সেবা দিচ্ছে: হজ লাইসেন্স ৬০২, উমরাহ লাইসেন্স ৪১১।',
+                        $this->link('/hajj', 'Hajj packages', 'হজ প্যাকেজ'), $this->link('/umrah', 'Umrah packages', 'উমরাহ প্যাকেজ')),
                     $this->slide('Air tickets', 'এয়ার টিকেট', 'Fly anywhere,', 'যেকোনো গন্তব্যে উড়ুন,', 'at the right fare.', 'সঠিক ভাড়ায়।',
                         'Fares from every major airline compared for you, with date changes and group bookings handled by our ticketing team.',
                         'সব বড় এয়ারলাইনের ভাড়া তুলনা করে দিই; তারিখ পরিবর্তন ও গ্রুপ বুকিং দেখে আমাদের টিকেটিং টিম।',
@@ -212,10 +217,6 @@ class PageSeeder extends Seeder
                         'Thailand, Malaysia, Dubai, the Maldives, Türkiye, Europe and more, with flights, hotels and sightseeing in one price.',
                         'থাইল্যান্ড, মালয়েশিয়া, দুবাই, মালদ্বীপ, তুরস্ক, ইউরোপসহ আরও অনেক গন্তব্য—ফ্লাইট, হোটেল ও দর্শনীয় স্থান এক মূল্যে।',
                         $this->link('/tours', 'Explore tours', 'ট্যুর দেখুন')),
-                    $this->slide('Hajj & Umrah · Antarik Hajj Kafela', 'হজ ও উমরাহ · আন্তরিক হজ্জ কাফেলা', 'Hajj and Umrah,', 'হজ ও উমরাহ,', 'with scholars beside you.', 'আলেমদের সান্নিধ্যে।',
-                        'Our Hajj and Umrah division has guided pilgrims from Bangladesh since 2016: Hajj licence 602, Umrah licence 411.',
-                        '২০১৬ সাল থেকে আমাদের হজ ও উমরাহ বিভাগ বাংলাদেশের হাজিদের সেবা দিচ্ছে: হজ লাইসেন্স ৬০২, উমরাহ লাইসেন্স ৪১১।',
-                        $this->link('/hajj', 'Hajj packages', 'হজ প্যাকেজ'), $this->link('/umrah', 'Umrah packages', 'উমরাহ প্যাকেজ')),
                 ],
                 'highlights' => [
                     ['value' => '2016', 'label' => $this->t('Serving since', 'সেবা দিয়ে আসছি')],
