@@ -110,9 +110,7 @@ const saved = computed(() => {
     position: relative;
     aspect-ratio: 4 / 3;
     overflow: hidden;
-    background-color: #f8fafc;
-    background-image: repeating-conic-gradient(#eef1f5 0 25%, transparent 0 50%);
-    background-size: 16px 16px;
+    background-color: #fff;
 }
 
 .md-photo {

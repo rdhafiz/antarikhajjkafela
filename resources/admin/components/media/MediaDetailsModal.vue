@@ -69,7 +69,7 @@ async function remove(): Promise<void> {
     <AppModal v-model:open="open" title="Image details" size="lg" :persistent="form.processing">
         <div v-if="media" class="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <div>
-                <div class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-[repeating-conic-gradient(#eef1f5_0_25%,#fff_0_50%)] bg-[length:20px_20px] ring-1 ring-line">
+                <div class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-line">
                     <img :src="media.url ?? ''" :alt="media.alt.en ?? ''" class="max-h-full max-w-full object-contain" />
                 </div>
                 <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2.5 text-[13px]">

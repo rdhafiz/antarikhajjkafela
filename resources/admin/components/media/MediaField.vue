@@ -147,9 +147,7 @@ function select(selected: Media): void {
 
 <style scoped>
 .mf-stage {
-    background-color: #f8fafc;
-    background-image: repeating-conic-gradient(#eef1f5 0 25%, transparent 0 50%);
-    background-size: 18px 18px;
+    background-color: #fff;
     cursor: pointer;
 }
 

@@ -17,7 +17,7 @@ const emit = defineEmits<{ select: [media: Media] }>();
                 :aria-pressed="selectedId === item.id"
                 @click="emit('select', item)"
             >
-                <span class="block aspect-square bg-[repeating-conic-gradient(#eef1f5_0_25%,#fff_0_50%)] bg-[length:16px_16px]">
+                <span class="block aspect-square bg-white">
                     <img
                         :src="item.thumb_url ?? ''"
                         :alt="item.alt.en ?? item.original_name"
