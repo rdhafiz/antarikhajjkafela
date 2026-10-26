@@ -6,11 +6,15 @@
     // At the top of a page the hero fills the screen (home) or three quarters of it (like other pages), with parallax.
     $height = $first ? ($page->isHome() ? 'hero-full' : 'hero-75') : null;
 
-    // The centered hero is the first slide; extra slides make it a slider.
+    // The centered layout is a list of slides; one shows on its own, two or more make a slider.
     $slides = [];
     if ($variant === 'centered') {
-        $slides[] = ['type' => 'text', 'link' => null, ...Illuminate\Support\Arr::only($c, ['image', 'eyebrow', 'title', 'highlight', 'text', 'primary', 'secondary'])];
-        foreach ($c['slides'] ?? [] as $slide) {
+        $source = $c['slides'] ?? [];
+        // A hero switched from the split layout before any slide was added shows its own text and image.
+        if ($source === [] && (filled($c['title']) || $c['image'])) {
+            $source = [['type' => 'text', 'image_mobile' => null, 'link' => null, ...Illuminate\Support\Arr::only($c, ['image', 'eyebrow', 'title', 'highlight', 'text', 'primary', 'secondary'])]];
+        }
+        foreach ($source as $slide) {
             // Either image stands in for a missing other one; an image-only slide without
             // any image is skipped, a text slide without one shows the brand background.
             $wide = $slide['image'] ?? null;
@@ -22,37 +26,46 @@
         }
     }
     $isSlider = count($slides) > 1;
+    // The page heading: the first slide's headline, or a hidden one when that slide is an image.
+    $hiddenHeading = $slides && $slides[0]['type'] === 'image'
+        ? ($page->isHome() ? app(App\Support\SiteContext::class)->name() : $page->getTranslation('title', app()->getLocale()))
+        : null;
 @endphp
 
 <x-site.block :style="$style" :section="$section" :container="false" :data-hero="$first ? true : null" @class([$first ? 'pt-20' : '', $height, 'flex flex-col' => $height, 'bg-gradient-to-br from-brand via-brand-900 to-brand-950' => ! $style['image'] && str_contains($style['class'], 'bg-brand-950')])>
-    @unless ($style['image'] || ($variant === 'centered' && $c['image']) || $isSlider)
+    @unless ($style['image'] || $slides)
         <div class="pattern-star absolute inset-0 -z-10 opacity-[0.06]" aria-hidden="true"></div>
         <div class="absolute top-1/4 -right-48 -z-10 size-[620px] rounded-full bg-gold/12 blur-3xl" aria-hidden="true"></div>
         <div class="absolute -bottom-56 -left-40 -z-10 size-[520px] rounded-full bg-emerald/20 blur-3xl" aria-hidden="true"></div>
     @endunless
 
-    @if ($isSlider)
+    @if ($slides)
+        @if ($hiddenHeading)<h1 class="sr-only">{{ $hiddenHeading }}</h1>@endif
         <div
-            x-data="heroSlider({{ count($slides) }})"
             @class(['hs relative min-h-[560px] sm:min-h-[620px]', '-mt-20' => $first, 'flex-1' => $height, 'lg:min-h-[680px]' => ! $height])
-            role="region" aria-roledescription="carousel" aria-label="{{ __('Highlights') }}"
-            @pointerenter="$event.pointerType === 'mouse' && hold('hover', true)" @pointerleave="hold('hover', false)"
-            @focusin="hold('focus', $event.target.matches(':focus-visible'))" @focusout="hold('focus', $el.contains($event.relatedTarget) && $event.relatedTarget.matches(':focus-visible'))"
-            @keydown.left="step(-1)" @keydown.right="step(1)"
-            @touchstart.passive="swipeStart($event)" @touchend.passive="swipeEnd($event)"
+            @if ($isSlider)
+                x-data="heroSlider({{ count($slides) }})"
+                role="region" aria-roledescription="carousel" aria-label="{{ __('Highlights') }}"
+                @pointerenter="$event.pointerType === 'mouse' && hold('hover', true)" @pointerleave="hold('hover', false)"
+                @focusin="hold('focus', $event.target.matches(':focus-visible'))" @focusout="hold('focus', $el.contains($event.relatedTarget) && $event.relatedTarget.matches(':focus-visible'))"
+                @keydown.left="step(-1)" @keydown.right="step(1)"
+                @touchstart.passive="swipeStart($event)" @touchend.passive="swipeEnd($event)"
+            @endif
         >
             @foreach ($slides as $index => $slide)
                 @php
                     $image = $slide['image'];
                     $alt = $image?->getTranslation('alt', app()->getLocale());
-                    $heading = $index === 0 ? 'h1' : 'h2';
+                    $heading = $index === 0 && ! $hiddenHeading ? 'h1' : 'h2';
                 @endphp
                 <div
                     @class(['hs-slide', 'is-active' => $index === 0])
-                    :class="{ 'is-active': i === {{ $index }}, 'is-leaving': leaving === {{ $index }} }"
-                    x-effect="$el.inert = i !== {{ $index }}"
-                    @if ($index > 0) inert @endif
-                    role="group" aria-roledescription="slide" aria-label="{{ __(':n of :total', ['n' => $index + 1, 'total' => count($slides)]) }}"
+                    @if ($isSlider)
+                        :class="{ 'is-active': i === {{ $index }}, 'is-leaving': leaving === {{ $index }} }"
+                        x-effect="$el.inert = i !== {{ $index }}"
+                        @if ($index > 0) inert @endif
+                        role="group" aria-roledescription="slide" aria-label="{{ __(':n of :total', ['n' => $index + 1, 'total' => count($slides)]) }}"
+                    @endif
                 >
                     @if ($slide['type'] === 'image' || ! $image)
                         {{-- Same backdrop as the footer, so space around a full image looks intended. --}}
@@ -114,6 +127,7 @@
             @endforeach
 
             {{-- Controls: dots showing the time left on the current slide, pause, previous and next. --}}
+            @if ($isSlider)
             <div class="absolute inset-x-0 bottom-6 z-10 sm:bottom-8">
                 <div class="container-site flex items-center gap-3">
                     <div class="flex items-center">
@@ -133,28 +147,7 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-    @elseif ($variant === 'centered')
-        @if ($c['image'])
-            <div class="hero-media" data-parallax-bg aria-hidden="true">
-                <img src="{{ $c['image']->url('lg') }}" srcset="{{ $c['image']->srcset() }}" sizes="100vw" alt="" fetchpriority="high">
-            </div>
-            <div class="absolute inset-0 -z-10 bg-gradient-to-b from-brand-950/80 via-brand-950/70 to-brand-950/90" aria-hidden="true"></div>
-        @endif
-        <div @class(['container-site flex flex-col items-center justify-center py-24 text-center', 'flex-1' => $height, 'min-h-[560px] sm:min-h-[620px]' => ! $height])>
-            <div class="hero-reveal max-w-3xl" data-parallax-content>
-                @if (filled($c['eyebrow']))<p class="eyebrow eyebrow-light justify-center">{{ $c['eyebrow'] }}</p>@endif
-                <h1 @class(['text-display-xl text-white', 'mt-5' => filled($c['eyebrow'])])>
-                    {{ $c['title'] }}
-                    @if (filled($c['highlight']))<span class="hero-line text-gold italic">{{ $c['highlight'] }}</span>@endif
-                </h1>
-                @if (filled($c['text']))<p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/80">{{ $c['text'] }}</p>@endif
-                <div class="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-                    <x-site.link-button :link="$c['primary']" variant="gold" size="lg" icon-right="arrow-right" />
-                    <x-site.link-button :link="$c['secondary']" variant="outline-light" size="lg" />
-                </div>
-            </div>
+            @endif
         </div>
 
     @else

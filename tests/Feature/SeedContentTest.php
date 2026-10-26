@@ -61,7 +61,10 @@ class SeedContentTest extends AdminTestCase
                 continue;
             }
 
-            $this->assertNotEmpty($first->content['image'] ?? null, "{$page->slug} has no top image");
+            $image = $first->component === 'hero' && ($first->content['variant'] ?? null) === 'centered'
+                ? ($first->content['slides'][0]['image'] ?? null)
+                : ($first->content['image'] ?? null);
+            $this->assertNotEmpty($image, "{$page->slug} has no top image");
         }
 
         $this->assertSame('about', Page::where('system_key', 'about')->first()->sections()->orderBy('sort')->first()->component);

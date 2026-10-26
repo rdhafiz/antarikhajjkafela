@@ -73,7 +73,7 @@ class PageBuilderTest extends AdminTestCase
             ->assertSee('data-transparent="true"', false);
     }
 
-    public function test_hero_slides_turn_the_centered_hero_into_a_slider(): void
+    public function test_hero_slides_can_each_be_an_image_with_text_or_an_image_only(): void
     {
         $image = fn (string $name) => Media::create([
             'uuid' => (string) Str::uuid(), 'usage' => 'hero', 'disk' => 'public', 'original_name' => $name,
@@ -86,8 +86,9 @@ class PageBuilderTest extends AdminTestCase
         $index = collect($payload['sections'])->search(fn ($s) => $s['component'] === 'hero');
         $payload['sections'][$index]['content']['variant'] = 'centered';
         $payload['sections'][$index]['content']['slides'] = [
-            ['type' => 'text', 'image' => $image('makkah.webp'), 'title' => ['en' => 'Hajj 2027 registration'], 'highlight' => ['en' => 'is open.'], 'primary' => ['label' => ['en' => 'See packages'], 'url' => '/hajj']],
+            // The first slide can be an image only, with a phone version.
             ['type' => 'image', 'image' => $image('poster.webp'), 'image_mobile' => $image('poster-tall.webp'), 'link' => ['label' => ['en' => 'Our offer'], 'url' => '/umrah']],
+            ['type' => 'text', 'image' => $image('makkah.webp'), 'title' => ['en' => 'Hajj 2028 registration'], 'highlight' => ['en' => 'is open.'], 'primary' => ['label' => ['en' => 'See packages'], 'url' => '/hajj']],
             // Only the mobile image: it is used on every screen.
             ['type' => 'image', 'image' => null, 'image_mobile' => $image('only-tall.webp')],
             // A text slide without an image shows the brand background; an empty image slide is skipped.
@@ -97,31 +98,54 @@ class PageBuilderTest extends AdminTestCase
 
         // The type is one of the two kinds.
         $broken = $payload;
-        $broken['sections'][$index]['content']['slides'][1] = ['type' => 'video', 'image' => null, 'image_mobile' => null];
+        $broken['sections'][$index]['content']['slides'][1]['type'] = 'video';
         $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $broken)
             ->assertJsonValidationErrors(["sections.{$index}.content.slides.1.type"]);
 
         $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $payload)->assertOk();
 
         $html = $this->get('/')->assertOk()
-            ->assertSee('heroSlider(5)', false)
-            ->assertSeeText('Visa processing')
+            ->assertSee('heroSlider(4)', false)
             ->assertSee('<source media="(max-width: 767px)" srcset="'.url('storage/media/test/poster-tall.webp').' 1600w"', false)
             ->assertSee('src="'.url('storage/media/test/only-tall.webp').'"', false)
-            ->assertSeeText('Hajj 2027 registration')
+            ->assertSeeText('Hajj 2028 registration')
+            ->assertSeeText('Visa processing')
             ->assertSee('href="'.url('/umrah').'"', false)
             ->assertSee('aria-label="Our offer"', false)
             ->getContent();
 
-        // One h1 (the hero's own slide); the image-only slide has no parallax layer.
+        // The image-only first slide leaves the page heading to a hidden h1; text slides use h2.
         $this->assertSame(1, substr_count($html, '<h1'));
+        $this->assertStringContainsString('<h1 class="sr-only">', $html);
+        $this->assertStringContainsString('<h2 class="text-display-xl text-white">', $html);
+        // Image-only slides have no parallax layer.
         $onlyImage = Str::after($html, 'hs-full');
-        $this->assertStringNotContainsString('data-parallax-bg', Str::before($onlyImage, 'hs-dot'));
+        $this->assertStringNotContainsString('data-parallax-bg', Str::before($onlyImage, '</picture>'));
 
-        // Without extra slides the hero is a plain hero again.
-        $payload['sections'][$index]['content']['slides'] = [];
+        // A single slide shows on its own: no slider, no controls.
+        $payload['sections'][$index]['content']['slides'] = [$payload['sections'][$index]['content']['slides'][1]];
         $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $payload)->assertOk();
-        $this->get('/')->assertOk()->assertDontSee('heroSlider', false);
+        $html = $this->get('/')->assertOk()->assertDontSee('heroSlider', false)->assertDontSee('hs-dot', false)->assertSeeText('Hajj 2028 registration')->getContent();
+        $this->assertStringContainsString('<h1 class="text-display-xl text-white">', $html);
+    }
+
+    public function test_heroes_saved_before_slides_keep_their_text_as_the_first_slide(): void
+    {
+        $hero = $this->page('home')->sections()->where('component', 'hero')->firstOrFail();
+        $hero->update(['content' => [
+            'variant' => 'centered',
+            'title' => ['en' => 'Old headline'],
+            'image' => null,
+            'slides' => [['type' => 'text', 'title' => ['en' => 'Second slide']]],
+        ]]);
+
+        (require database_path('migrations/2026_10_26_100000_make_hero_text_the_first_slide.php'))->up();
+
+        $slides = $hero->fresh()->content['slides'];
+        $this->assertSame(['Old headline', 'Second slide'], array_map(fn ($s) => $s['title']['en'], $slides));
+        // It gets a repeater id like every other slide, so opening the editor changes nothing.
+        $this->assertMatchesRegularExpression('/^[A-Za-z0-9_-]{4,40}$/', $slides[0]['_id']);
+        $this->get('/')->assertOk()->assertSee('heroSlider(2)', false);
     }
 
     public function test_drafts_are_hidden_but_signed_previews_show_them(): void

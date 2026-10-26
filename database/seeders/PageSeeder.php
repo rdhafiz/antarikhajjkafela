@@ -195,16 +195,11 @@ class PageSeeder extends Seeder
         return [
             ['hero', [
                 'variant' => 'centered',
-                'eyebrow' => $this->t('Hajj & Umrah · Air tickets · Visa · Tours', 'হজ ও উমরাহ · এয়ার টিকেট · ভিসা · ট্যুর'),
-                'title' => $this->t('Trusted international travel,', 'বিশ্বস্ত আন্তর্জাতিক ট্রাভেল সেবা,'),
-                'highlight' => $this->t('from Dhaka to the world.', 'ঢাকা থেকে সারা বিশ্বে।'),
-                'text' => $this->t(
-                    'Air tickets, visa processing, holiday tours and scholar-guided Hajj and Umrah, arranged by one licensed team since 2016.',
-                    'এয়ার টিকেট, ভিসা প্রসেসিং, হলিডে ট্যুর এবং আলেমদের তত্ত্বাবধানে হজ ও উমরাহ—২০১৬ সাল থেকে একটি লাইসেন্সপ্রাপ্ত টিমের মাধ্যমে।'
-                ),
-                'primary' => $this->link('/air-tickets', 'Get a fare quote', 'ভাড়া জানতে চান'),
-                'secondary' => $this->link('/tours', 'Explore tours', 'ট্যুর দেখুন'),
                 'slides' => [
+                    $this->slide('Hajj & Umrah · Air tickets · Visa · Tours', 'হজ ও উমরাহ · এয়ার টিকেট · ভিসা · ট্যুর', 'Trusted international travel,', 'বিশ্বস্ত আন্তর্জাতিক ট্রাভেল সেবা,', 'from Dhaka to the world.', 'ঢাকা থেকে সারা বিশ্বে।',
+                        'Air tickets, visa processing, holiday tours and scholar-guided Hajj and Umrah, arranged by one licensed team since 2016.',
+                        'এয়ার টিকেট, ভিসা প্রসেসিং, হলিডে ট্যুর এবং আলেমদের তত্ত্বাবধানে হজ ও উমরাহ—২০১৬ সাল থেকে একটি লাইসেন্সপ্রাপ্ত টিমের মাধ্যমে।',
+                        $this->link('/air-tickets', 'Get a fare quote', 'ভাড়া জানতে চান'), $this->link('/tours', 'Explore tours', 'ট্যুর দেখুন')),
                     $this->slide('Air tickets', 'এয়ার টিকেট', 'Fly anywhere,', 'যেকোনো গন্তব্যে উড়ুন,', 'at the right fare.', 'সঠিক ভাড়ায়।',
                         'Fares from every major airline compared for you, with date changes and group bookings handled by our ticketing team.',
                         'সব বড় এয়ারলাইনের ভাড়া তুলনা করে দিই; তারিখ পরিবর্তন ও গ্রুপ বুকিং দেখে আমাদের টিকেটিং টিম।',
@@ -310,7 +305,7 @@ class PageSeeder extends Seeder
     }
 
     /**
-     * A text slide of the home hero slider.
+     * A text slide of the home hero.
      *
      * @return array<string, mixed>
      */

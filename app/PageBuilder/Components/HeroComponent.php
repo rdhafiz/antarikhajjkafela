@@ -19,7 +19,7 @@ class HeroComponent extends Component
 
     public function description(): string
     {
-        return 'Large opening section with headline, buttons and an image; add slides to make it a slider.';
+        return 'Large opening section: text beside an image, or one or more full-width slides (image with text, or image only).';
     }
 
     public function category(): string
@@ -34,22 +34,23 @@ class HeroComponent extends Component
 
     public function fields(): array
     {
+        $split = ['split'];
         $text = ['text'];
 
         return [
             Field::select('variant', 'Layout', [
                 'split' => 'Text with image beside it',
-                'centered' => 'Centered text over a background image',
+                'centered' => 'Slides: full-width images, with or without text',
             ]),
-            Field::text('eyebrow', 'Eyebrow')->max(60),
-            Field::text('title', 'Headline')->max(120),
-            Field::text('highlight', 'Highlighted words')->max(80)->hint('Shown in gold on a second line.'),
-            Field::textarea('text', 'Supporting text')->max(400)->rows(3),
-            Field::image('image', 'Image', 'hero'),
-            Field::link('primary', 'Primary button'),
-            Field::link('secondary', 'Secondary button'),
-            // The hero above is the first slide; adding slides turns it into a slider.
-            Field::repeater('slides', 'Extra slides', [
+            Field::text('eyebrow', 'Eyebrow')->max(60)->showIf('variant', $split),
+            Field::text('title', 'Headline')->max(120)->showIf('variant', $split),
+            Field::text('highlight', 'Highlighted words')->max(80)->hint('Shown in gold on a second line.')->showIf('variant', $split),
+            Field::textarea('text', 'Supporting text')->max(400)->rows(3)->showIf('variant', $split),
+            Field::image('image', 'Image', 'hero')->showIf('variant', $split),
+            Field::link('primary', 'Primary button')->showIf('variant', $split),
+            Field::link('secondary', 'Secondary button')->showIf('variant', $split),
+            // One slide shows on its own; two or more play as a slider.
+            Field::repeater('slides', 'Slides', [
                 Field::select('type', 'Slide type', [
                     'text' => 'Image with text',
                     'image' => 'Image only (shown in full)',
@@ -63,7 +64,7 @@ class HeroComponent extends Component
                 Field::link('primary', 'Primary button')->showIf('type', $text),
                 Field::link('secondary', 'Secondary button')->showIf('type', $text),
                 Field::link('link', 'Link (optional)')->hint('Makes the whole image clickable.')->showIf('type', ['image']),
-            ])->max(6)->itemLabel('title')->hint('The hero above is the first slide. Add slides to turn it into a slider that changes every few seconds.')->showIf('variant', ['centered']),
+            ])->max(8)->itemLabel('title')->hint('Each slide is an image with text or an image only. One slide shows on its own; with two or more they change every few seconds.')->showIf('variant', ['centered']),
             Field::repeater('highlights', 'Trust figures', [
                 Field::text('value', 'Value')->notTranslatable()->max(12)->placeholder('1500+'),
                 Field::text('label', 'Label')->max(40),

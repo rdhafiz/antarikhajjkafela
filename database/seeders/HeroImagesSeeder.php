@@ -10,6 +10,8 @@ use App\Models\Post;
 use App\Models\Service;
 use Database\Seeders\Concerns\ImportsSeedImages;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 /**
  * Photos for the top of every page, the home slides and image sections, from
@@ -41,25 +43,20 @@ class HeroImagesSeeder extends Seeder
     ];
 
     /**
-     * Full-width hero photo for pages that open with a hero section.
+     * Slide photos, in order, for pages that open with a hero section.
      *
-     * @var array<string, array{0: string, 1: string, 2: string}>
+     * @var array<string, list<array{0: string, 1: string, 2: string}>>
      */
-    private const HEROES = [
-        'home' => ['travel/travellers.webp', 'A family walking to a small plane on a sunny airstrip', 'রোদেলা এয়ারস্ট্রিপে ছোট বিমানের দিকে হেঁটে যাওয়া একটি পরিবার'],
-        'hajj-pre-registration' => ['heroes/hajj-campaign.webp', 'Pilgrims in ihram before the Kaaba', 'কাবার সামনে ইহরাম পরিহিত হাজিগণ'],
-    ];
-
-    /**
-     * Photos of the home hero's extra slides, in order: air tickets, visa, tours, Hajj & Umrah.
-     *
-     * @var list<array{0: string, 1: string, 2: string}>
-     */
-    private const HOME_SLIDES = [
-        self::AIRPORT,
-        self::PASSPORT,
-        ['travel/maldives.webp', 'Overwater villas above a turquoise lagoon in the Maldives', 'মালদ্বীপে ফিরোজা লেগুনের ওপর ওয়াটার ভিলা'],
-        ['heroes/home-haram.webp', 'Masjid al-Haram and the Kaaba in Makkah', 'মক্কায় মসজিদুল হারাম ও কাবা'],
+    private const HERO_SLIDES = [
+        // The brand slide, then air tickets, visa, tours and Hajj & Umrah.
+        'home' => [
+            ['travel/travellers.webp', 'A family walking to a small plane on a sunny airstrip', 'রোদেলা এয়ারস্ট্রিপে ছোট বিমানের দিকে হেঁটে যাওয়া একটি পরিবার'],
+            self::AIRPORT,
+            self::PASSPORT,
+            ['travel/maldives.webp', 'Overwater villas above a turquoise lagoon in the Maldives', 'মালদ্বীপে ফিরোজা লেগুনের ওপর ওয়াটার ভিলা'],
+            ['heroes/home-haram.webp', 'Masjid al-Haram and the Kaaba in Makkah', 'মক্কায় মসজিদুল হারাম ও কাবা'],
+        ],
+        'hajj-pre-registration' => [['heroes/hajj-campaign.webp', 'Pilgrims in ihram before the Kaaba', 'কাবার সামনে ইহরাম পরিহিত হাজিগণ']],
     ];
 
     public function run(): void
@@ -72,13 +69,8 @@ class HeroImagesSeeder extends Seeder
                 $this->fillSectionImage($first, 'image', fn () => $this->photo(self::BANNERS[$key], 'banner'));
             }
 
-            if ($first?->component === 'hero' && isset(self::HEROES[$key])) {
-                // The photo goes behind the text, so the hero switches to its centered layout.
-                $this->fillSectionImage($first, 'image', fn () => $this->photo(self::HEROES[$key], 'hero'), ['variant' => 'centered']);
-            }
-
-            if ($key === 'home' && $first?->component === 'hero') {
-                $this->slideImages($first);
+            if ($first?->component === 'hero' && isset(self::HERO_SLIDES[$key])) {
+                $this->slideImages($first, self::HERO_SLIDES[$key]);
             }
 
             $this->imageSections($key, $page->sections);
@@ -108,16 +100,28 @@ class HeroImagesSeeder extends Seeder
     }
 
     /**
-     * Empty text slides of the home hero get their photo.
+     * Slides without an image get their photo. A split hero without an image
+     * becomes one full-width slide, its text over the photo.
+     *
+     * @param  list<array{0: string, 1: string, 2: string}>  $photos
      */
-    private function slideImages(PageSection $hero): void
+    private function slideImages(PageSection $hero, array $photos): void
     {
         $content = $hero->fresh()->content ?? [];
         $changed = false;
 
+        if (($content['variant'] ?? 'split') === 'split') {
+            if (! empty($content['image'])) {
+                return;
+            }
+
+            $content['variant'] = 'centered';
+            $content['slides'] = [['_id' => Str::random(10), 'type' => 'text', 'image_mobile' => null, 'link' => null, ...Arr::only($content, ['eyebrow', 'title', 'highlight', 'text', 'primary', 'secondary']), 'image' => null]];
+        }
+
         foreach ($content['slides'] ?? [] as $i => $slide) {
-            if (empty($slide['image']) && isset(self::HOME_SLIDES[$i])) {
-                $content['slides'][$i]['image'] = $this->photo(self::HOME_SLIDES[$i], 'hero')->id;
+            if (empty($slide['image']) && empty($slide['image_mobile']) && isset($photos[$i])) {
+                $content['slides'][$i]['image'] = $this->photo($photos[$i], 'hero')->id;
                 $changed = true;
             }
         }
