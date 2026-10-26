@@ -122,6 +122,16 @@ cd ~/antarik/current && php artisan optimize
 
 Migrations are not undone automatically. Database changes are written to be backward compatible, so the previous release keeps working.
 
+### Switching an existing site to Antarik Travel International
+
+Sites set up before the rebrand run this once after deploying it:
+
+```bash
+cd ~/antarik/current && php artisan site:rebrand
+```
+
+It sets the new name, SEO defaults and logo (uploaded logos are cleared so the bundled new logo shows), adds the Tours service with its sample packages, rebuilds the home, about, services, contact, terms and privacy pages, adds the Air Tickets and Visa pages and replaces the menus. Bookings, inquiries, the Hajj and Umrah packages, the blog, gallery and reviews stay as they are, and every replaced section or menu item goes to the trash. Review the sample tour prices before announcing the site.
+
 ### Maintenance mode
 
 ```bash

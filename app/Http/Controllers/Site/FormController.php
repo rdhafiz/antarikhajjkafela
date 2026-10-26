@@ -85,16 +85,26 @@ class FormController extends Controller
             }
         }
 
-        if (isset($rules['package'])) {
-            $options = collect(preg_split('/\r?\n/', (string) collect($section->content['package_options'] ?? [])->filter()->implode("\n")))
+        // Choices typed in the admin, one per line (in any language).
+        foreach (['package' => 'package_options', 'visa_country' => 'country_options'] as $key => $source) {
+            if (! isset($rules[$key])) {
+                continue;
+            }
+
+            $options = collect(preg_split('/\r?\n/', (string) collect($section->content[$source] ?? [])->filter()->implode("\n")))
                 ->map(fn ($o) => trim($o))
                 ->filter()
                 ->values()
                 ->all();
 
             if ($options !== []) {
-                $rules['package'][] = Rule::in($options);
+                $rules[$key][] = Rule::in($options);
             }
+        }
+
+        // A return flight cannot come back before it leaves.
+        if (isset($rules['return_date'], $rules['departure_date'])) {
+            $rules['return_date'][] = 'after_or_equal:departure_date';
         }
 
         return $rules;
@@ -115,6 +125,8 @@ class FormController extends Controller
             'package' => __('Package of interest'),
             'travelers' => __('Number of travelers'),
             'travel_month' => __('Preferred travel month'),
+            ...collect(LeadFields::all())->except(['name', 'phone', 'email', 'message', 'district', 'thana', 'package', 'travelers', 'travel_month'])
+                ->map(fn ($field) => __($field['label']))->all(),
         ];
     }
 

@@ -11,11 +11,12 @@
     if ($variant === 'centered') {
         $slides[] = ['type' => 'text', 'link' => null, ...Illuminate\Support\Arr::only($c, ['image', 'eyebrow', 'title', 'highlight', 'text', 'primary', 'secondary'])];
         foreach ($c['slides'] ?? [] as $slide) {
-            // Either image stands in for a missing other one.
+            // Either image stands in for a missing other one; an image-only slide without
+            // any image is skipped, a text slide without one shows the brand background.
             $wide = $slide['image'] ?? null;
             $tall = $slide['image_mobile'] ?? null;
-            if ($wide || $tall) {
-                $only = ($slide['type'] ?? 'text') === 'image';
+            $only = ($slide['type'] ?? 'text') === 'image';
+            if ($wide || $tall || (! $only && filled($slide['title'] ?? null))) {
                 $slides[] = [...$slide, 'type' => $only ? 'image' : 'text', 'image' => $wide ?? $tall, 'image_mobile' => $only && $wide && $tall ? $tall : null];
             }
         }

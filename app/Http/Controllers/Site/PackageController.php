@@ -25,8 +25,8 @@ class PackageController extends Controller
         $services = Service::active()->orderBy('sort')->get();
         $current = $services->firstWhere('slug', $request->query('service'));
 
-        seo()->title(__('Hajj & Umrah packages'))
-            ->description(__('Compare our Hajj and Umrah packages from Bangladesh: hotels, flights, durations and prices.'))
+        seo()->title(__('All packages'))
+            ->description(__('Hajj, Umrah and holiday tour packages from Dhaka: compare flights, hotels, durations and prices.'))
             ->canonical(route('packages.index'))
             ->breadcrumb(__('Home'), url('/'))
             ->breadcrumb(__('Packages'), route('packages.index'));

@@ -3,6 +3,10 @@
 
     $recaptcha = settings('tracking.recaptcha_site_key') && settings('tracking.recaptcha_secret_key') ? settings('tracking.recaptcha_site_key') : null;
     $advance = ['type' => $package->advance_type ?: 'none', 'value' => (float) $package->advance_value];
+    // Photos behind the step headings: the holy cities for Hajj and Umrah, travel scenes for tours.
+    $scenes = $package->service?->isPilgrimage() !== false
+        ? ['haram-scene', 'madinah-scene', 'dome-scene', 'haram-dusk']
+        : ['sky-scene', 'airport-scene', 'passport-scene', 'island-scene'];
     $canPayOnline = $gateway && $advance['type'] !== 'none';
     $config = [
         'options' => $options,
@@ -106,8 +110,7 @@
                     <fieldset id="step-option" class="book-card book-card-option scroll-mt-40">
                         <legend class="sr-only">{{ __('Choose your package option') }}</legend>
                         <div class="book-card-head book-head-scene" data-reveal aria-hidden="true">
-                            {{-- The Haram, fading in behind the heading. --}}
-                            <img src="{{ asset('images/booking/haram-scene.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
+                            <img src="{{ asset('images/booking/'.$scenes[0].'.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
                             <span class="book-card-num">{{ $pad(1) }}</span>
                             <span class="book-head-rule" aria-hidden="true"></span>
                             <div class="relative min-w-0">
@@ -200,8 +203,7 @@
                     <fieldset id="step-details" class="book-card scroll-mt-40">
                         <legend class="sr-only">{{ __('Your details') }}</legend>
                         <div class="book-card-head book-head-scene" data-reveal aria-hidden="true">
-                            {{-- The Prophet's Mosque, fading in behind the heading. --}}
-                            <img src="{{ asset('images/booking/madinah-scene.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
+                            <img src="{{ asset('images/booking/'.$scenes[1].'.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
                             <span class="book-card-num">{{ $pad(2) }}</span>
                             <span class="book-head-rule" aria-hidden="true"></span>
                             <div class="relative min-w-0">
@@ -245,8 +247,7 @@
                     <fieldset id="step-documents" class="book-card scroll-mt-40">
                         <legend class="sr-only">{{ __('Documents') }}</legend>
                         <div class="book-card-head book-head-scene" data-reveal aria-hidden="true">
-                            {{-- The Green Dome, fading in behind the heading. --}}
-                            <img src="{{ asset('images/booking/dome-scene.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
+                            <img src="{{ asset('images/booking/'.$scenes[2].'.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
                             <span class="book-card-num">{{ $pad(3) }}</span>
                             <span class="book-head-rule" aria-hidden="true"></span>
                             <div class="relative min-w-0">
@@ -320,8 +321,7 @@
                     <fieldset id="step-payment" class="book-card scroll-mt-40">
                         <legend class="sr-only">{{ __('Payment') }}</legend>
                         <div class="book-card-head book-head-scene" data-reveal aria-hidden="true">
-                            {{-- The Haram at dusk, fading in behind the heading. --}}
-                            <img src="{{ asset('images/booking/haram-dusk.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
+                            <img src="{{ asset('images/booking/'.$scenes[3].'.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
                             <span class="book-card-num">{{ $pad(4) }}</span>
                             <span class="book-head-rule" aria-hidden="true"></span>
                             <div class="relative min-w-0">
@@ -394,7 +394,7 @@
                             <div id="book-confirm" class="book-agree mb-3.5 scroll-mt-40" data-field>
                                 <label class="flex items-start gap-2.5 text-[13px] leading-normal text-white">
                                     <input type="checkbox" name="agree" value="1" @checked(old('agree')) required data-message="{{ __('Please accept the booking terms.') }}" class="mt-0.5 size-[1.125rem] shrink-0 cursor-pointer rounded accent-[var(--color-gold)]" {!! $invalid('agree') !!}>
-                                    <span>{{ __('I agree to the') }} <a href="{{ url('terms-and-conditions') }}" target="_blank" class="font-semibold text-gold underline underline-offset-2 hover:text-white">{{ __('booking terms and conditions') }}</a>{{ __(', including that prices may change with Saudi government or airline fees.') }}</span>
+                                    <span>{{ __('I agree to the') }} <a href="{{ url('terms-and-conditions') }}" target="_blank" class="font-semibold text-gold underline underline-offset-2 hover:text-white">{{ __('booking terms and conditions') }}</a>{{ ($package->service?->isPilgrimage() !== false ? __(', including that prices may change with Saudi government or airline fees.') : __(', including that prices may change with airline fares or exchange rates.')) }}</span>
                                 </label>
                                 @error('agree')<p id="agree-error" class="error-site">{{ $message }}</p>@enderror
                             </div>

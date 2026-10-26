@@ -51,7 +51,9 @@ class PageBuilderTest extends AdminTestCase
         $this->get('/about')->assertOk()->assertSeeText('Vision & mission');
         $this->get('/contact')->assertOk()->assertSee('/forms/', false);
         $this->get('/home')->assertRedirect('/');
-        $this->get('/terms-and-conditions')->assertOk()->assertSeeText('Booking and registration');
+        $this->get('/terms-and-conditions')->assertOk()->assertSeeText('Visa processing');
+        $this->get('/air-tickets')->assertOk()->assertSeeText('Request a fare quote')->assertSee('name="from_city"', false);
+        $this->get('/visa')->assertOk()->assertSeeText('Which visa do you need?')->assertSee('name="visa_country"', false);
     }
 
     public function test_inner_page_banners_use_the_shared_centered_hero(): void
@@ -88,20 +90,22 @@ class PageBuilderTest extends AdminTestCase
             ['type' => 'image', 'image' => $image('poster.webp'), 'image_mobile' => $image('poster-tall.webp'), 'link' => ['label' => ['en' => 'Our offer'], 'url' => '/umrah']],
             // Only the mobile image: it is used on every screen.
             ['type' => 'image', 'image' => null, 'image_mobile' => $image('only-tall.webp')],
+            // A text slide without an image shows the brand background; an empty image slide is skipped.
+            ['type' => 'text', 'image' => null, 'title' => ['en' => 'Visa processing']],
+            ['type' => 'image', 'image' => null, 'image_mobile' => null],
         ];
 
-        // Every slide needs an image, and the type is one of the two kinds.
+        // The type is one of the two kinds.
         $broken = $payload;
         $broken['sections'][$index]['content']['slides'][1] = ['type' => 'video', 'image' => null, 'image_mobile' => null];
-        $errors = $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $broken)
-            ->assertJsonValidationErrors(["sections.{$index}.content.slides.1.type"])
-            ->json('errors');
-        $this->assertSame('Add an image (image-only slides can use a mobile image instead).', $errors["sections.{$index}.content.slides.1.image"][0] ?? null);
+        $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $broken)
+            ->assertJsonValidationErrors(["sections.{$index}.content.slides.1.type"]);
 
         $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $payload)->assertOk();
 
         $html = $this->get('/')->assertOk()
-            ->assertSee('heroSlider(4)', false)
+            ->assertSee('heroSlider(5)', false)
+            ->assertSeeText('Visa processing')
             ->assertSee('<source media="(max-width: 767px)" srcset="'.url('storage/media/test/poster-tall.webp').' 1600w"', false)
             ->assertSee('src="'.url('storage/media/test/only-tall.webp').'"', false)
             ->assertSeeText('Hajj 2027 registration')
@@ -136,7 +140,7 @@ class PageBuilderTest extends AdminTestCase
     {
         $page = $this->page('services');
         $payload = $this->payload($page);
-        [$banner, $features, $process, $cta] = $payload['sections'];
+        [$banner, $features, , , $cta] = $payload['sections'];
         $features['is_visible'] = false;
 
         $this->asAdmin($this->superAdmin())
@@ -277,6 +281,31 @@ class PageBuilderTest extends AdminTestCase
         $this->assertSame('lead_form', $inquiry->source);
         $this->assertSame('Dhaka', $inquiry->data['district']);
         $this->assertSame($campaign->id, $inquiry->page_id);
+    }
+
+    public function test_air_ticket_and_visa_forms_check_their_choices_and_dates(): void
+    {
+        $air = Page::where('slug', 'air-tickets')->firstOrFail()->sections()->where('component', 'lead_form')->firstOrFail();
+        $trip = ['trip_type' => 'Return', 'from_city' => 'Dhaka', 'to_city' => 'Dubai', 'adults' => 2, 'name' => 'Karim', 'phone' => '01711000000'];
+
+        $this->postJson(route('forms.submit', $air), [...$trip, 'trip_type' => 'Rocket', 'cabin_class' => 'Cargo', 'departure_date' => now()->subDay()->toDateString()])
+            ->assertJsonValidationErrors(['trip_type', 'cabin_class', 'departure_date']);
+        $this->postJson(route('forms.submit', $air), [...$trip, 'departure_date' => now()->addDays(10)->toDateString(), 'return_date' => now()->addDays(5)->toDateString()])
+            ->assertJsonValidationErrors(['return_date']);
+        $this->postJson(route('forms.submit', $air), [...$trip, 'cabin_class' => 'Business', 'departure_date' => now()->addDays(10)->toDateString(), 'return_date' => now()->addDays(20)->toDateString()])
+            ->assertOk();
+        $this->assertSame('Dubai', Inquiry::latest('id')->first()->data['to_city']);
+
+        // The visa form only takes the countries typed in the admin, in either language.
+        $visa = Page::where('slug', 'visa')->firstOrFail()->sections()->where('component', 'lead_form')->firstOrFail();
+        $person = ['visa_type' => 'Student', 'name' => 'Rahima', 'phone' => '01711000001'];
+        $this->postJson(route('forms.submit', $visa), [...$person, 'visa_country' => 'Atlantis'])->assertJsonValidationErrors(['visa_country']);
+        $this->postJson(route('forms.submit', $visa), [...$person, 'visa_country' => 'কানাডা'])->assertOk();
+
+        // Fixed choices are shown translated and the quote form starts with sensible defaults.
+        $this->withUnencryptedCookie('locale', 'bn')->get('/air-tickets')->assertOk()
+            ->assertSee('<option value="Return" selected>রিটার্ন</option>', false)
+            ->assertSee('name="adults" type="number"', false);
     }
 
     public function test_honeypot_submissions_are_silently_dropped(): void

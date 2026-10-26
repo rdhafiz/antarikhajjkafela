@@ -37,7 +37,7 @@ class LayoutTest extends TestCase
     {
         $html = $this->get('/')->assertOk()->getContent();
 
-        $this->assertStringContainsString('<title>Antarik Hajj Kafela | Trusted Hajj &amp; Umrah Agency in Bangladesh</title>', $html);
+        $this->assertStringContainsString('<title>Antarik Travel International | Hajj, Umrah, Air Tickets, Visa &amp; Tours</title>', $html);
         $this->assertStringContainsString('<link rel="canonical" href="'.url('/').'">', $html);
         $this->assertStringContainsString('<meta property="og:title"', $html);
         $this->assertStringContainsString('<meta name="robots" content="index, follow', $html);
@@ -46,7 +46,7 @@ class LayoutTest extends TestCase
         $graph = json_decode($match[1], true)['@graph'];
 
         $this->assertSame('TravelAgency', $graph[0]['@type']);
-        $this->assertSame('Antarik Hajj Kafela', $graph[0]['name']);
+        $this->assertSame('Antarik Travel International', $graph[0]['name']);
         $this->assertSame('BD', $graph[0]['address']['addressCountry']);
         $this->assertSame('WebSite', $graph[1]['@type']);
     }
@@ -65,7 +65,7 @@ class LayoutTest extends TestCase
             ->assertOk()
             ->assertSee('<html lang="bn"', false)
             ->assertSeeText('উমরাহ')
-            ->assertSeeText('হজ প্যাকেজ দেখুন')
+            ->assertSeeText('ট্যুর দেখুন')
             ->assertSee('<meta property="og:locale" content="bn_BD">', false);
     }
 

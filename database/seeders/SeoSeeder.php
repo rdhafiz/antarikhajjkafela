@@ -14,7 +14,7 @@ use Illuminate\Database\Seeder;
 
 /**
  * Search titles, descriptions and social share images (1200×630 JPEG, cropped
- * from the Unsplash-licensed photos in images/heroes, see docs/content/image-credits.md)
+ * from the Unsplash-licensed photos in images/heroes and images/travel, see docs/content/image-credits.md)
  * for every page, service, package and post. Only empty values are filled,
  * so anything edited in the admin is kept.
  */
@@ -41,6 +41,10 @@ class SeoSeeder extends Seeder
         'haram-wide.webp' => ['Masjid al-Haram in Makkah', 'মক্কার মসজিদুল হারাম'],
         'hajj-regular.webp' => ['Pilgrims in the courtyard of Masjid al-Haram', 'মসজিদুল হারামের আঙিনায় হাজিগণ'],
         'hajj-premium.webp' => ['The Kaaba with pilgrims around it', 'কাবা ও চারপাশে হাজিগণ'],
+        'travel/travellers.webp' => ['A family walking to a small plane on a sunny airstrip', 'রোদেলা এয়ারস্ট্রিপে ছোট বিমানের দিকে হেঁটে যাওয়া একটি পরিবার'],
+        'travel/airport.webp' => ['Travellers in a bright airport terminal', 'উজ্জ্বল এয়ারপোর্ট টার্মিনালে ভ্রমণকারীরা'],
+        'travel/airplane-sky.webp' => ['An airliner wing above the clouds', 'মেঘের ওপরে উড়োজাহাজের ডানা'],
+        'travel/passport-visa.webp' => ['Passports ready for a visa application', 'ভিসা আবেদনের জন্য প্রস্তুত পাসপোর্ট'],
     ];
 
     public function run(Settings $settings): void
@@ -52,41 +56,41 @@ class SeoSeeder extends Seeder
 
         // Default share image for pages without their own.
         if (blank($settings->get('seo.og_image'))) {
-            $settings->set('seo', ['og_image' => $this->share('home-haram.webp')->id]);
+            $settings->set('seo', ['og_image' => $this->share('travel/travellers.webp')->id]);
         }
     }
 
     private function pages(): void
     {
         $pages = [
-            'home' => ['home-haram.webp',
-                ['Hajj & Umrah Packages from Bangladesh', 'বাংলাদেশ থেকে হজ ও উমরাহ প্যাকেজ'],
-                ['Scholar-guided Hajj and Umrah packages from Dhaka since 2016, with hotels near the Haram, flights, visas and Bangladeshi meals. Book or call our team.',
-                    '২০১৬ সাল থেকে ঢাকা থেকে আলেমদের তত্ত্বাবধানে হজ ও উমরাহ প্যাকেজ—হারামের কাছে হোটেল, ফ্লাইট, ভিসা ও বাংলাদেশি খাবারসহ। বুক করুন বা আমাদের টিমকে কল করুন।']],
-            'about' => ['madinah-golden.webp',
-                ['About Us: Our Story, Team & Mission', 'আমাদের সম্পর্কে: গল্প, টিম ও লক্ষ্য'],
-                ['Since 2016 Antarik Hajj Kafela has guided pilgrims from Bangladesh with comfort, transparent dealings and experienced scholars. Meet our team and mission.',
-                    '২০১৬ সাল থেকে আন্তরিক হজ্জ কাফেলা আরাম, স্বচ্ছ লেনদেন ও অভিজ্ঞ আলেমদের সাথে বাংলাদেশের হাজিদের সেবা দিয়ে আসছে। আমাদের টিম ও লক্ষ্য জানুন।']],
-            'services' => ['makkah-hotels.webp',
-                ['Hajj & Umrah Services', 'হজ ও উমরাহ সেবাসমূহ'],
-                ['Umrah visa processing, air tickets, hotels near the Haram, transport, Hajj pre-registration and scholar-led workshops, arranged by one dedicated team.',
-                    'উমরাহ ভিসা, এয়ার টিকেট, হারামের কাছে হোটেল, পরিবহন, হজ প্রাক-নিবন্ধন ও আলেমদের কর্মশালা—সবকিছু একটি নিবেদিত টিমের মাধ্যমে।']],
-            'contact' => ['madinah-umbrellas.webp',
+            'home' => ['travel/travellers.webp',
+                ['Hajj, Umrah, Air Tickets, Visa & Tour Packages from Dhaka', 'ঢাকা থেকে হজ, উমরাহ, এয়ার টিকেট, ভিসা ও ট্যুর প্যাকেজ'],
+                ['Trusted international travel agency in Dhaka since 2016: air tickets on every airline, visa processing, holiday tours and scholar-guided Hajj and Umrah.',
+                    '২০১৬ সাল থেকে ঢাকার বিশ্বস্ত আন্তর্জাতিক ট্রাভেল এজেন্সি: সব এয়ারলাইনের টিকেট, ভিসা প্রসেসিং, হলিডে ট্যুর এবং আলেমদের তত্ত্বাবধানে হজ ও উমরাহ।']],
+            'about' => ['travel/travellers.webp',
+                ['About Us: Our Story, Team & Licences', 'আমাদের সম্পর্কে: গল্প, টিম ও লাইসেন্স'],
+                ['Antarik Travel International began in Dhaka in 2016 as a Hajj and Umrah agency and now arranges air tickets, visas and tours worldwide. Meet our team.',
+                    'আন্তরিক ট্রাভেল ইন্টারন্যাশনাল ২০১৬ সালে ঢাকায় হজ ও উমরাহ এজেন্সি হিসেবে যাত্রা শুরু করে, এখন সারা বিশ্বের এয়ার টিকেট, ভিসা ও ট্যুরের ব্যবস্থা করে। আমাদের টিমকে জানুন।']],
+            'services' => ['travel/airport.webp',
+                ['Travel Services: Air Tickets, Visa, Tours, Hajj & Umrah', 'ট্রাভেল সেবা: এয়ার টিকেট, ভিসা, ট্যুর, হজ ও উমরাহ'],
+                ['Air tickets, visa processing, tour packages, Hajj and Umrah, plus hotels, transfers and support on the road, arranged by one licensed team in Dhaka.',
+                    'এয়ার টিকেট, ভিসা প্রসেসিং, ট্যুর প্যাকেজ, হজ ও উমরাহ, সাথে হোটেল, ট্রান্সফার ও সফরে সহায়তা—ঢাকার একটি লাইসেন্সপ্রাপ্ত টিমের মাধ্যমে।']],
+            'contact' => ['travel/airport.webp',
                 ['Contact Us: Call, WhatsApp or Visit', 'যোগাযোগ: কল, হোয়াটসঅ্যাপ বা অফিসে আসুন'],
-                ['Talk to our team about Hajj and Umrah packages, pre-registration or visas. Call, WhatsApp, email or visit our office on Box Culvert Road, Dhaka.',
-                    'হজ ও উমরাহ প্যাকেজ, প্রাক-নিবন্ধন বা ভিসা নিয়ে আমাদের টিমের সাথে কথা বলুন। কল, হোয়াটসঅ্যাপ, ইমেইল করুন বা ঢাকার বক্স কালভার্ট রোডে আমাদের অফিসে আসুন।']],
+                ['Talk to our team about air tickets, visas, tours, Hajj or Umrah. Call, WhatsApp, email or visit our office on Box Culvert Road, Dhaka.',
+                    'এয়ার টিকেট, ভিসা, ট্যুর, হজ বা উমরাহ নিয়ে আমাদের টিমের সাথে কথা বলুন। কল, হোয়াটসঅ্যাপ, ইমেইল করুন বা ঢাকার বক্স কালভার্ট রোডে আমাদের অফিসে আসুন।']],
             'gallery' => ['haram-courtyard.webp',
-                ['Gallery: Hajj & Umrah Moments', 'গ্যালারি: হজ ও উমরাহর মুহূর্ত'],
-                ['Photos from our Hajj workshops, Umrah groups and gatherings, as we prepare pilgrims from Bangladesh for their journey.',
-                    'আমাদের হজ কর্মশালা, উমরাহ গ্রুপ ও আয়োজনের ছবি—বাংলাদেশের হাজিদের সফরের প্রস্তুতির মুহূর্তগুলো।']],
+                ['Gallery: Moments from Our Journeys', 'গ্যালারি: আমাদের সফরের মুহূর্ত'],
+                ['Photos from our tours, Hajj workshops, Umrah groups and gatherings.',
+                    'আমাদের ট্যুর, হজ কর্মশালা, উমরাহ গ্রুপ ও আয়োজনের ছবি।']],
             'blog' => ['quran.webp',
-                ['Hajj & Umrah Guides and News', 'হজ ও উমরাহ গাইড ও সংবাদ'],
-                ['Step-by-step Umrah and Hajj guides, payment advice and news for pilgrims from Bangladesh, written by the Antarik Hajj Kafela team.',
-                    'বাংলাদেশের হাজিদের জন্য ধাপে ধাপে উমরাহ ও হজ গাইড, পেমেন্ট পরামর্শ ও সংবাদ—আন্তরিক হজ্জ কাফেলা টিমের লেখা।']],
+                ['Travel Guides, Hajj & Umrah News', 'ভ্রমণ গাইড, হজ ও উমরাহ সংবাদ'],
+                ['Travel tips, visa updates and step-by-step Hajj and Umrah guides from the Antarik Travel International team.',
+                    'আন্তরিক ট্রাভেল ইন্টারন্যাশনাল টিমের ভ্রমণ টিপস, ভিসার হালনাগাদ এবং ধাপে ধাপে হজ ও উমরাহ গাইড।']],
             'reviews' => ['green-dome.webp',
-                ['Pilgrim Reviews', 'হাজিদের রিভিউ'],
-                ['What pilgrims say about travelling for Hajj and Umrah with Antarik Hajj Kafela.',
-                    'আন্তরিক হজ্জ কাফেলার সাথে হজ ও উমরাহ সফর নিয়ে হাজিদের মতামত।']],
+                ['Traveller & Pilgrim Reviews', 'ভ্রমণকারী ও হাজিদের রিভিউ'],
+                ['What travellers and pilgrims say about their trips, Hajj and Umrah with Antarik Travel International.',
+                    'আন্তরিক ট্রাভেল ইন্টারন্যাশনালের সাথে সফর, হজ ও উমরাহ নিয়ে ভ্রমণকারী ও হাজিদের মতামত।']],
         ];
 
         foreach ($pages as $key => [$photo, $title, $description]) {
@@ -94,14 +98,22 @@ class SeoSeeder extends Seeder
         }
 
         $bySlug = [
-            'terms-and-conditions' => ['nabawi-colonnade.webp',
+            'air-tickets' => ['travel/airplane-sky.webp',
+                ['Air Tickets: Domestic & International Fares', 'এয়ার টিকেট: অভ্যন্তরীণ ও আন্তর্জাতিক ভাড়া'],
+                ['Request a fare quote from an IATA accredited agent in Dhaka: one-way, return and multi-city tickets on every major airline, with group and student fares.',
+                    'ঢাকার আইএটিএ স্বীকৃত এজেন্টের কাছে ভাড়ার কোটেশন নিন: সব বড় এয়ারলাইনের ওয়ান-ওয়ে, রিটার্ন ও মাল্টি-সিটি টিকেট, গ্রুপ ও স্টুডেন্ট ফেয়ারসহ।']],
+            'visa' => ['travel/passport-visa.webp',
+                ['Visa Processing: Tourist, Business, Student & Work', 'ভিসা প্রসেসিং: ট্যুরিস্ট, বিজনেস, স্টুডেন্ট ও ওয়ার্ক'],
+                ['Visa files for the Middle East, Asia, Europe and the UK, North America and Oceania: document checks, forms, appointments and honest advice.',
+                    'মধ্যপ্রাচ্য, এশিয়া, ইউরোপ ও যুক্তরাজ্য, উত্তর আমেরিকা ও ওশেনিয়ার ভিসা ফাইল: কাগজপত্র যাচাই, ফরম, অ্যাপয়েন্টমেন্ট ও আন্তরিক পরামর্শ।']],
+            'terms-and-conditions' => ['travel/airport.webp',
                 ['Terms & Conditions', 'শর্তাবলী'],
-                ['The terms for booking, payments and travel on Hajj and Umrah packages with Antarik Hajj Kafela.',
-                    'আন্তরিক হজ্জ কাফেলার হজ ও উমরাহ প্যাকেজের বুকিং, পেমেন্ট ও সফরের শর্তাবলী।']],
-            'privacy-policy' => ['nabawi-colonnade.webp',
+                ['The terms for air tickets, visa processing, tour packages, Hajj and Umrah booked with Antarik Travel International.',
+                    'আন্তরিক ট্রাভেল ইন্টারন্যাশনালের মাধ্যমে বুক করা এয়ার টিকেট, ভিসা প্রসেসিং, ট্যুর প্যাকেজ, হজ ও উমরাহর শর্তাবলী।']],
+            'privacy-policy' => ['travel/airport.webp',
                 ['Privacy Policy', 'গোপনীয়তা নীতি'],
-                ['How Antarik Hajj Kafela collects, uses and protects your personal information and documents when you book Hajj or Umrah.',
-                    'হজ বা উমরাহ বুকিংয়ের সময় আন্তরিক হজ্জ কাফেলা কীভাবে আপনার ব্যক্তিগত তথ্য ও কাগজপত্র সংগ্রহ, ব্যবহার ও সুরক্ষা করে।']],
+                ['How Antarik Travel International collects, uses and protects your personal information and documents when you book a trip.',
+                    'সফর বুক করার সময় আন্তরিক ট্রাভেল ইন্টারন্যাশনাল কীভাবে আপনার ব্যক্তিগত তথ্য ও কাগজপত্র সংগ্রহ, ব্যবহার ও সুরক্ষা করে।']],
             'hajj-pre-registration' => ['hajj-campaign.webp',
                 ['Hajj Pre-registration', 'হজ প্রাক-নিবন্ধন'],
                 ['Pre-register for the coming Hajj with Antarik Hajj Kafela: an NID or passport copy and an active mobile number are enough to start.',
@@ -120,6 +132,10 @@ class SeoSeeder extends Seeder
                 ['Hajj Packages from Bangladesh', 'বাংলাদেশ থেকে হজ প্যাকেজ'],
                 ['Hajj packages from Dhaka with hotels near the Haram, Bangladeshi meals, flights and scholars beside you. Compare VIP, shifting and premium options.',
                     'হারামের কাছে হোটেল, বাংলাদেশি খাবার, ফ্লাইট ও আলেমদের সান্নিধ্যসহ ঢাকা থেকে হজ প্যাকেজ। ভিআইপি, শিফটিং ও প্রিমিয়াম অপশন তুলনা করুন।']],
+            'tours' => ['travel/travellers.webp',
+                ['Tour Packages from Dhaka', 'ঢাকা থেকে ট্যুর প্যাকেজ'],
+                ['Holiday packages from Dhaka to Thailand, Malaysia, Dubai, the Maldives, Türkiye, Europe, Japan and more, with flights, hotels, sightseeing and visa support.',
+                    'ঢাকা থেকে থাইল্যান্ড, মালয়েশিয়া, দুবাই, মালদ্বীপ, তুরস্ক, ইউরোপ, জাপানসহ আরও অনেক গন্তব্যে হলিডে প্যাকেজ—ফ্লাইট, হোটেল, দর্শনীয় স্থান ও ভিসা সহায়তাসহ।']],
             'umrah' => ['haram-wide.webp',
                 ['Umrah Packages from Bangladesh', 'বাংলাদেশ থেকে উমরাহ প্যাকেজ'],
                 ['7 and 14-day Umrah packages from Dhaka, from five-star hotels near the Haram to budget stays, with visa, flights and scholar-led Ziyarah.',
@@ -151,6 +167,11 @@ class SeoSeeder extends Seeder
         foreach ($packages as $slug => [$photo, $title, $description]) {
             $this->fill(Package::where('slug', $slug)->first(), $photo, $title, $description);
         }
+
+        foreach (TourSeeder::tours() as $tour) {
+            $photo = 'travel/'.$tour['image'];
+            $this->fill(Package::where('slug', TourSeeder::slug($tour))->first(), $photo, $tour['name'], $tour['summary'], $tour['alt']);
+        }
     }
 
     /**
@@ -173,8 +194,9 @@ class SeoSeeder extends Seeder
     /**
      * @param  array{0: string, 1: string}|null  $title
      * @param  array{0: string, 1: string}|null  $description
+     * @param  array{0: string, 1: string}|null  $alt  for photos not listed in PHOTOS
      */
-    private function fill(?Model $model, string $photo, ?array $title = null, ?array $description = null): void
+    private function fill(?Model $model, string $photo, ?array $title = null, ?array $description = null, ?array $alt = null): void
     {
         if (! $model) {
             return;
@@ -191,14 +213,17 @@ class SeoSeeder extends Seeder
         }
 
         if (empty($seo['image'])) {
-            $seo['image'] = $this->share($photo)->id;
+            $seo['image'] = $this->share($photo, $alt)->id;
         }
 
         $model->forceFill(['seo' => $seo])->save();
     }
 
-    private function share(string $photo): Media
+    /**
+     * @param  string  $photo  a file in images/heroes, or a path such as travel/dubai.webp
+     */
+    private function share(string $photo, ?array $alt = null): Media
     {
-        return $this->importImage("heroes/{$photo}", 'og', self::PHOTOS[$photo]);
+        return $this->importImage(str_contains($photo, '/') ? $photo : "heroes/{$photo}", 'og', $alt ?? self::PHOTOS[$photo]);
     }
 }

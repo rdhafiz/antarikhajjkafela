@@ -34,14 +34,15 @@
         :class="scrolled && '!border-line/70 !bg-white/92 shadow-[0_8px_30px_-18px_rgb(13_27_46/0.35)] backdrop-blur-md'"
     >
         <div class="container-site flex h-20 items-center justify-between gap-6">
-            <a href="{{ url('/') }}" class="relative shrink-0" aria-label="{{ $site->name() }} – {{ __('Home') }}">
+            {{-- Over a dark hero the logo sits on a white plate: its blue lettering needs a light ground. --}}
+            <a href="{{ url('/') }}" class="relative -ml-2.5 shrink-0 rounded-2xl px-2.5 py-1.5 transition-[background-color,box-shadow] duration-300 group-data-[transparent=true]/header:bg-white group-data-[transparent=true]/header:shadow-[0_10px_30px_-12px_rgb(0_0_0/0.45)]" aria-label="{{ $site->name() }} – {{ __('Home') }}">
                 <img
                     src="{{ $branding->logoUrl() }}"
                     srcset="{{ $branding->logoSrcset() }}"
                     sizes="180px"
                     alt="{{ $site->name() }}"
                     width="180"
-                    height="61"
+                    height="56"
                     class="h-auto w-[150px] sm:w-[172px]"
                     fetchpriority="high"
                 >
@@ -49,7 +50,7 @@
 
             {{-- Desktop navigation --}}
             <nav class="hidden lg:block" aria-label="{{ __('Main') }}">
-                <ul class="flex items-center gap-1 xl:gap-2">
+                <ul class="flex items-center gap-0.5 xl:gap-1">
                     @foreach ($menu as $item)
                         @php($active = $isActive($item))
                         <li class="relative" @if ($item['children']) x-data="dropdown" @mouseenter="show()" @mouseleave="hide()" @focusout="$el.contains($event.relatedTarget) || hide(0)" @endif>
@@ -59,7 +60,7 @@
                                     @click="toggle()"
                                     :aria-expanded="open.toString()"
                                     @class([
-                                        'group flex items-center gap-1 rounded-full px-2.5 py-2 xl:px-3.5 text-[15px] font-medium transition-colors',
+                                        'group flex items-center gap-1 rounded-full px-2 py-2 xl:px-3 text-[14px] xl:text-[15px] whitespace-nowrap font-medium transition-colors',
                                         'text-brand' => $active,
                                     ])
                                     :class="!scrolled && {{ $overlay ? 'true' : 'false' }} ? 'text-white hover:text-gold' : '{{ $active ? 'text-brand' : 'text-ink-2 hover:text-brand' }}'"
@@ -109,7 +110,7 @@
                                     href="{{ $item['url'] ?? '#' }}"
                                     @if ($item['new_tab']) target="_blank" rel="noopener" @endif
                                     @if ($active) aria-current="page" @endif
-                                    class="relative block rounded-full px-2.5 py-2 xl:px-3.5 text-[15px] font-medium transition-colors"
+                                    class="relative block rounded-full px-2 py-2 xl:px-3 text-[14px] xl:text-[15px] whitespace-nowrap font-medium transition-colors"
                                     :class="!scrolled && {{ $overlay ? 'true' : 'false' }} ? 'text-white hover:text-gold' : '{{ $active ? 'text-brand' : 'text-ink-2 hover:text-brand' }}'"
                                 >
                                     {{ $item['label'] }}

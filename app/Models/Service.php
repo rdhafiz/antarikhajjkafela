@@ -47,6 +47,27 @@ class Service extends Model
         return $query->where('is_active', true);
     }
 
+    /**
+     * Services with one of these slugs, including trashed ones (whose slug is
+     * set aside until they are restored).
+     *
+     * @param  list<string>  $slugs
+     */
+    public static function everHad(array $slugs): bool
+    {
+        return static::withTrashed()
+            ->where(fn (Builder $q) => $q->whereIn('slug', $slugs)->orWhereIn('trashed_values->slug', $slugs))
+            ->exists();
+    }
+
+    /**
+     * Hajj and Umrah, as opposed to the agency's other services such as tours.
+     */
+    public function isPilgrimage(): bool
+    {
+        return in_array($this->slug, ['hajj', 'umrah'], true);
+    }
+
     public function url(): string
     {
         return url($this->slug);

@@ -171,6 +171,6 @@ class SettingsTest extends AdminTestCase
             ->assertOk()
             ->assertHeader('Content-Type', 'application/manifest+json')
             ->assertJsonPath('theme_color', '#123456')
-            ->assertJsonPath('name', 'Antarik Hajj Kafela');
+            ->assertJsonPath('name', 'Antarik Travel International');
     }
 }

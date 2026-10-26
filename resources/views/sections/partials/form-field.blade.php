@@ -1,5 +1,5 @@
 {{--
-    One form input. Expects: $name, $label, $type, $required, $autocomplete (optional), $options (for select).
+    One form input. Expects: $name, $label, $type, $required, $autocomplete, $options (for select), $min and $default (optional).
 --}}
 @php($id = 'f-'.$sectionId.'-'.$name)
 <div @class(['sm:col-span-2' => in_array($type, ['textarea'], true) || ($wide ?? false)])>
@@ -17,14 +17,17 @@
                 class="block h-12 w-full rounded-xl border border-line bg-white px-4 text-[15px] text-ink focus:border-brand focus:ring-3 focus:ring-brand/15 focus:outline-none"
                 :class="errors.{{ $name }} && '!border-red-500'">
             <option value="">{{ __('Please choose') }}</option>
-            @foreach ($options as $option)
-                <option value="{{ $option }}">{{ $option }}</option>
+            {{-- A plain list (value = label) or value => label pairs. --}}
+            @foreach (array_is_list($options) ? array_combine($options, $options) : $options as $value => $text)
+                <option value="{{ $value }}" @selected((string) $value === (string) ($default ?? ''))>{{ $text }}</option>
             @endforeach
         </select>
     @else
         <input id="{{ $id }}" name="{{ $name }}" type="{{ $type }}" @required($required)
                @if ($autocomplete ?? null) autocomplete="{{ $autocomplete }}" @endif
-               @if ($type === 'number') min="1" max="50" inputmode="numeric" @endif
+               @if ($type === 'number') min="{{ $min ?? 1 }}" max="50" inputmode="numeric" @endif
+               @if (isset($default)) value="{{ $default }}" @endif
+               @if ($type === 'date') min="{{ now()->toDateString() }}" @endif
                @if ($type === 'tel') inputmode="tel" @endif
                :aria-invalid="errors.{{ $name }} ? 'true' : null" :aria-describedby="errors.{{ $name }} ? '{{ $id }}-error' : null"
                class="block h-12 w-full rounded-xl border border-line bg-white px-4 text-[15px] text-ink placeholder:text-ink-3 focus:border-brand focus:ring-3 focus:ring-brand/15 focus:outline-none"

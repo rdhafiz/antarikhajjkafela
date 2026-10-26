@@ -13,14 +13,14 @@ use App\PageBuilder\SectionStyle;
 use Illuminate\Database\Seeder;
 
 /**
- * Services and packages with the real offers from the agency's previous
- * website. Only runs when no services exist yet.
+ * The Hajj and Umrah services and packages with the real offers from the
+ * agency's previous website. Only runs when neither service exists yet.
  */
 class TravelSeeder extends Seeder
 {
     public function run(PackageEditor $editor): void
     {
-        if (! Service::exists()) {
+        if (! Service::everHad(['hajj', 'umrah'])) {
             $this->seedTravel($editor);
         }
 

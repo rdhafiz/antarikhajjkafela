@@ -15,6 +15,7 @@ const rings = [
 ];
 const half = (r: number) => r / Math.SQRT2;
 const year = new Date().getFullYear();
+const appName = (window as Window & { appName?: string }).appName ?? 'Antarik Travel International';
 </script>
 
 <template>
@@ -44,7 +45,7 @@ const year = new Date().getFullYear();
                 </div>
 
                 <div class="ahk-rise mt-6 text-center lg:mt-10" style="--d: 1.05s">
-                    <p class="text-[13px] font-semibold tracking-[0.24em] text-gold uppercase">Antarik Hajj Kafela</p>
+                    <p class="text-[13px] font-semibold tracking-[0.24em] text-gold uppercase">{{ appName }}</p>
                     <p class="mx-auto mt-3 hidden max-w-sm text-[15px] leading-relaxed text-white/60 lg:block">
                         Packages, bookings and every page of the website, managed from one place.
                     </p>
@@ -56,7 +57,7 @@ const year = new Date().getFullYear();
                 <div class="mx-auto w-full max-w-[400px]">
                     <RouterView />
                 </div>
-                <p class="ahk-rise mt-10 text-center text-[12px] text-ink-soft" style="--d: 1.35s">© {{ year }} Antarik Hajj Kafela</p>
+                <p class="ahk-rise mt-10 text-center text-[12px] text-ink-soft" style="--d: 1.35s">© {{ year }} {{ appName }}</p>
             </main>
         </div>
     </div>

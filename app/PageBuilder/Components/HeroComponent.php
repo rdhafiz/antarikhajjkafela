@@ -54,7 +54,7 @@ class HeroComponent extends Component
                     'text' => 'Image with text',
                     'image' => 'Image only (shown in full)',
                 ])->default('text'),
-                Field::image('image', 'Image', 'hero')->requiredWithout('image_mobile')->hint('On image-only slides: the wide (horizontal) image for computers and tablets.'),
+                Field::image('image', 'Image', 'hero')->hint('Text slides without an image use the brand background. On image-only slides: the wide (horizontal) image for computers and tablets.'),
                 Field::image('image_mobile', 'Mobile image (vertical)', 'hero')->hint('Optional. Shown on phones; if only one of the two images is set, it is used on every screen.')->showIf('type', ['image']),
                 Field::text('eyebrow', 'Eyebrow')->max(60)->showIf('type', $text),
                 Field::text('title', 'Headline')->max(120)->showIf('type', $text),

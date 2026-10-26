@@ -16,7 +16,7 @@
             $emails ? ['icon' => 'mail', 'label' => __('Email'), 'value' => $emails[0], 'href' => 'mailto:'.$emails[0], 'ltr' => true] : null,
             $address ? ['icon' => 'map-pin', 'label' => __('Visit our office'), 'value' => $address, 'href' => 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($address), 'external' => true] : null,
         ]));
-        $topics = [__('Hajj package'), __('Umrah package'), __('Visa'), __('Something else')];
+        $topics = [__('Air ticket'), __('Visa'), __('Tour package'), __('Hajj package'), __('Umrah package'), __('Something else')];
     @endphp
     <x-site.block :style="$style" :section="$section">
         <div class="pointer-events-none absolute -top-40 -right-40 -z-10 size-[560px] rounded-full bg-gold/12 blur-3xl" data-parallax="-0.15" aria-hidden="true"></div>

@@ -191,7 +191,7 @@
                     </div>
                 </div>
 
-                <p class="mx-auto mt-10 max-w-3xl text-center text-[13px] leading-relaxed text-ink-3" data-reveal>{{ __('Prices may change if the Saudi government, airlines or exchange rates change their fees. Please pay only through our official channels.') }}</p>
+                <p class="mx-auto mt-10 max-w-3xl text-center text-[13px] leading-relaxed text-ink-3" data-reveal>{{ ($package->service?->isPilgrimage() !== false ? __('Prices may change if the Saudi government, airlines or exchange rates change their fees. Please pay only through our official channels.') : __('Prices may change with airline fares, hotel rates or exchange rates. Please pay only through our official channels.')) }}</p>
             </div>
         </section>
     @endif

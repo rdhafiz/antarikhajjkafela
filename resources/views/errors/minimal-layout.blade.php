@@ -23,7 +23,7 @@
 </head>
 <body>
     <main>
-        <img src="{{ asset('images/brand/logo-360.webp') }}" alt="{{ config('app.name') }}" width="160" height="55">
+        <img src="{{ asset('images/brand/logo-360.webp') }}" alt="{{ config('app.name') }}" width="160" height="50">
         <p class="code" aria-hidden="true">{{ $code }}</p>
         <h1>{{ $title }}</h1>
         <p>{{ $text }}</p>

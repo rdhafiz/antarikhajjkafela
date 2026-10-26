@@ -45,14 +45,14 @@ return [
             'fields' => [
                 'site_name' => [
                     'type' => 'string', 'label' => 'Website name', 'translatable' => true, 'rules' => ['max:120'],
-                    'default' => ['en' => 'Antarik Hajj Kafela', 'bn' => 'আন্তরিক হজ্জ কাফেলা'],
+                    'default' => ['en' => 'Antarik Travel International', 'bn' => 'আন্তরিক ট্রাভেল ইন্টারন্যাশনাল'],
                 ],
                 'short_description' => [
                     'type' => 'text', 'label' => 'Short description', 'translatable' => true, 'rules' => ['max:500'],
                     'hint' => 'One or two sentences about the agency, used in the footer and as a fallback description.',
                     'default' => [
-                        'en' => 'A Trusted Secured and Reliable Travel Agency For Making A Safe Hajj From Bangladesh',
-                        'bn' => 'বাংলাদেশ থেকে নিরাপদ হজ পালনের জন্য একটি বিশ্বস্ত, সুরক্ষিত ও নির্ভরযোগ্য ট্রাভেল এজেন্সি',
+                        'en' => 'Trusted international travel services from Dhaka: Hajj & Umrah, air tickets, visa processing and tour packages.',
+                        'bn' => 'ঢাকা থেকে বিশ্বস্ত আন্তর্জাতিক ট্রাভেল সেবা: হজ ও উমরাহ, এয়ার টিকেট, ভিসা প্রসেসিং ও ট্যুর প্যাকেজ।',
                     ],
                 ],
                 'logo' => ['type' => 'media', 'usage' => 'logo', 'label' => 'Website logo', 'hint' => 'Shown in the header. A wide logo on a transparent or white background works best.', 'default' => null],
@@ -147,16 +147,16 @@ return [
                     'type' => 'string', 'label' => 'Meta title', 'translatable' => true, 'rules' => ['max:70'],
                     'hint' => 'Up to 60 characters shows fully in Google results.',
                     'default' => [
-                        'en' => 'Antarik Hajj Kafela | Trusted Hajj & Umrah Agency in Bangladesh',
-                        'bn' => 'আন্তরিক হজ্জ কাফেলা | বাংলাদেশের বিশ্বস্ত হজ ও উমরাহ এজেন্সি',
+                        'en' => 'Antarik Travel International | Hajj, Umrah, Air Tickets, Visa & Tours',
+                        'bn' => 'আন্তরিক ট্রাভেল ইন্টারন্যাশনাল | হজ, উমরাহ, এয়ার টিকেট, ভিসা ও ট্যুর',
                     ],
                 ],
                 'meta_description' => [
                     'type' => 'text', 'label' => 'Meta description', 'translatable' => true, 'rules' => ['max:200'],
                     'hint' => 'Around 150 characters that describe the agency in search results.',
                     'default' => [
-                        'en' => 'Safe, comfortable and scholar-guided Hajj & Umrah packages from Bangladesh since 2016.',
-                        'bn' => '২০১৬ সাল থেকে বাংলাদেশ থেকে নিরাপদ, আরামদায়ক ও আলেমদের তত্ত্বাবধানে হজ ও উমরাহ প্যাকেজ।',
+                        'en' => 'Trusted international travel agency in Dhaka since 2016: Hajj & Umrah, air tickets, visa processing and tour packages worldwide.',
+                        'bn' => '২০১৬ সাল থেকে ঢাকার বিশ্বস্ত আন্তর্জাতিক ট্রাভেল এজেন্সি: হজ ও উমরাহ, এয়ার টিকেট, ভিসা প্রসেসিং ও বিশ্বজুড়ে ট্যুর প্যাকেজ।',
                     ],
                 ],
                 'og_image' => ['type' => 'media', 'usage' => 'og', 'label' => 'Social share image', 'hint' => 'Shown when a link is shared on Facebook or WhatsApp. 1200×630 works best.', 'default' => null],

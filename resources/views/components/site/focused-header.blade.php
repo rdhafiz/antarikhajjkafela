@@ -10,7 +10,7 @@
 ])>
     <div class="container-site flex h-20 items-center justify-between gap-4">
         <a href="{{ url('/') }}" aria-label="{{ $site->name() }}">
-            <img src="{{ $branding->logoUrl() }}" srcset="{{ $branding->logoSrcset() }}" sizes="160px" alt="{{ $site->name() }}" width="160" height="54" class="h-auto w-[140px] sm:w-[160px]">
+            <img src="{{ $branding->logoUrl() }}" srcset="{{ $branding->logoSrcset() }}" sizes="160px" alt="{{ $site->name() }}" width="160" height="50" class="h-auto w-[140px] sm:w-[160px]">
         </a>
         <div class="flex items-center gap-3">
             @if (count($languages = $site->languages()) > 1)

@@ -2,13 +2,19 @@
     $catalogue = App\Domain\Forms\LeadFields::all();
     $fields = array_values(array_filter($c['fields'] ?? [], fn ($f) => isset($catalogue[$f['field'] ?? ''])));
     $fields = collect($fields)->unique('field')->values()->all();
-    $packages = array_values(array_filter(array_map('trim', preg_split('/\r?\n/', (string) $c['package_options']))));
+    $lines = fn ($text) => array_values(array_filter(array_map('trim', preg_split('/\r?\n/', (string) $text))));
+    // Each select's choices: typed in the admin (package, country) or fixed and translated.
+    $choices = fn (string $name) => match ($name) {
+        'package' => $lines($c['package_options']),
+        'visa_country' => $lines($c['country_options'] ?? ''),
+        default => App\Domain\Forms\LeadFields::choices($name),
+    };
     $bullets = array_filter($c['bullets'] ?? [], fn ($b) => filled($b['text']));
     $labels = [
         'name' => __('Full name'), 'phone' => __('Mobile number'), 'email' => __('Email'), 'district' => __('District'),
         'thana' => __('Thana / Upazila'), 'package' => __('Package of interest'), 'travelers' => __('Number of travelers'),
         'travel_month' => __('Preferred travel month'), 'message' => __('Message'),
-    ];
+    ] + array_map(fn ($field) => __($field['label']), $catalogue);
 @endphp
 <x-site.block :style="$style" :section="$section">
     <div class="grid items-start gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
@@ -35,7 +41,9 @@
                     'type' => $catalogue[$field['field']]['type'],
                     'required' => (bool) $field['required'],
                     'autocomplete' => $catalogue[$field['field']]['autocomplete'],
-                    'options' => $packages,
+                    'options' => $choices($field['field']),
+                    'min' => $catalogue[$field['field']]['min'] ?? null,
+                    'default' => $catalogue[$field['field']]['default'] ?? null,
                     'wide' => count($fields) % 2 === 1 && $loop->last,
                 ])
             @endforeach

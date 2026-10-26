@@ -19,7 +19,7 @@
         <div class="flex flex-col gap-8 rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-7 sm:p-10 lg:flex-row lg:items-center lg:justify-between">
             <div class="max-w-xl">
                 <p class="eyebrow eyebrow-light">{{ __('Begin your journey') }}</p>
-                <h2 class="mt-4 text-display-md text-white">{{ __('Planning Hajj or Umrah? Talk to our scholar-guided team.') }}</h2>
+                <h2 class="mt-4 text-display-md text-white">{{ __('Planning your next trip? Talk to our team.') }}</h2>
             </div>
             <div class="flex flex-col gap-3 sm:flex-row">
                 @if ($phones)

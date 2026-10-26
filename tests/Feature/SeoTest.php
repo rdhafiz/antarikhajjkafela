@@ -31,7 +31,7 @@ class SeoTest extends AdminTestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('<title>Hajj &amp; Umrah Packages from Bangladesh | Antarik Hajj Kafela</title>', false)
+            ->assertSee('<title>Hajj, Umrah, Air Tickets, Visa &amp; Tour Packages from Dhaka | Antarik Travel International</title>', false)
             ->assertSee('<meta property="og:image:width" content="1200">', false)
             ->assertSee('og.jpg', false)
             ->assertSee('<meta name="twitter:image"', false);

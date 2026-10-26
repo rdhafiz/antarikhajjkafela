@@ -9,6 +9,7 @@
     $highlight = $service->getTranslation('highlight', $locale);
     $whatsapp = $site->whatsappUrl(__('Assalamu alaikum, I would like to know about your :name packages.', ['name' => $name]));
     [$minDays, $maxDays] = $stats['days'] ?? [null, null];
+    $pilgrimage = $service->isPilgrimage();
 @endphp
 <x-site.layout header="overlay">
     <x-site.hero
@@ -42,8 +43,8 @@
         <div class="container-site">
             <div class="mx-auto mb-14 max-w-2xl text-center" data-reveal>
                 <p class="eyebrow justify-center">{{ __('Packages') }}</p>
-                <h2 class="mt-4 text-display-lg text-brand">{{ __('Choose your :name package', ['name' => $name]) }}</h2>
-                <p class="mt-5 text-[1.0625rem] leading-relaxed text-ink-2">{{ __('Hotels near the Haram, flights and scholars beside you. Compare the packages and book online.') }}</p>
+                <h2 class="mt-4 text-display-lg text-brand">{{ $pilgrimage ? __('Choose your :name package', ['name' => $name]) : __('Choose your next trip') }}</h2>
+                <p class="mt-5 text-[1.0625rem] leading-relaxed text-ink-2">{{ $pilgrimage ? __('Hotels near the Haram, flights and scholars beside you. Compare the packages and book online.') : __('Flights, hotels, transfers and sightseeing in one price. Compare the tours and book online.') }}</p>
             </div>
 
             @if ($packages->isEmpty())

@@ -33,7 +33,7 @@ class BlogSeeder extends Seeder
             'guides' => PostCategory::create(['name' => $this->t('Guides', 'গাইড'), 'slug' => 'guides', 'sort' => 0])->id,
             'news' => PostCategory::create(['name' => $this->t('News & briefings', 'সংবাদ ও বিজ্ঞপ্তি'), 'slug' => 'news', 'sort' => 1])->id,
         ];
-        $author = $this->t('Antarik Hajj Kafela', 'আন্তরিক হজ্জ কাফেলা');
+        $author = $this->t('Antarik Travel International', 'আন্তরিক ট্রাভেল ইন্টারন্যাশনাল');
 
         foreach ($this->posts() as $data) {
             Post::create([

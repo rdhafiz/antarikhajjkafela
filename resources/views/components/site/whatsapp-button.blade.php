@@ -1,5 +1,5 @@
 @inject('site', App\Support\SiteContext::class)
-@if ($url = $site->whatsappUrl(__('Assalamu alaikum, I would like to know about your Hajj & Umrah packages.')))
+@if ($url = $site->whatsappUrl(__('Assalamu alaikum, I would like to know about your travel services.')))
 <aside aria-label="{{ __('Chat with us on WhatsApp') }}">
     <a
         href="{{ $url }}"

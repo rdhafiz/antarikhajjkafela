@@ -22,7 +22,7 @@ class LeadFormComponent extends Component
 
     public function description(): string
     {
-        return 'Registration or interest form with the fields you choose. Ideal for campaign pages.';
+        return 'Registration, quote or enquiry form with the fields you choose: campaigns, air ticket quotes, visa enquiries.';
     }
 
     public function category(): string
@@ -43,8 +43,9 @@ class LeadFormComponent extends Component
                 Field::select('field', 'Field', LeadFields::options())->required(),
                 Field::text('label', 'Custom label')->max(60)->hint('Leave empty to use the standard label.'),
                 Field::toggle('required', 'Required'),
-            ])->min(1)->max(9)->itemLabel('field'),
+            ])->min(1)->max(14)->itemLabel('field'),
             Field::textarea('package_options', 'Package choices')->max(1000)->rows(4)->hint('One per line. Used by the "Package of interest" field.'),
+            Field::textarea('country_options', 'Country choices')->max(2000)->rows(4)->hint('One per line. Used by the "Destination country" field.'),
             Field::text('submit_label', 'Button text')->max(40)->placeholder('Register now'),
             Field::textarea('success', 'Thank-you message')->max(300)->rows(2),
             Field::repeater('bullets', 'Points beside the form', [

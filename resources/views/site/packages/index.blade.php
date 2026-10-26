@@ -1,7 +1,7 @@
 @php
     $locale = app()->getLocale();
-    $title = $service?->getTranslation('name', $locale) ?? __('Hajj & Umrah packages');
-    $intro = $service?->getTranslation('summary', $locale) ?? __('Compare our packages: hotels near the Haram, flights, durations and prices, all guided by experienced scholars.');
+    $title = $service?->getTranslation('name', $locale) ?? __('All packages');
+    $intro = $service?->getTranslation('summary', $locale) ?? __('Hajj, Umrah and holiday tour packages from Dhaka: compare flights, hotels, durations and prices.');
 @endphp
 <x-site.layout header="overlay">
     <x-site.page-header
