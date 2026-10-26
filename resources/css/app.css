@@ -14,8 +14,8 @@
  * Tints are mixed from those colors; neutrals are a warm "sand" scale.
  */
 @theme inline {
-    --font-sans: 'Plus Jakarta Sans', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
-    --font-display: 'Fraunces', 'Noto Sans Bengali', ui-serif, Georgia, serif;
+    --font-sans: 'PT Sans Caption', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'PT Sans Caption', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
 
     --color-brand: var(--brand-primary);
     --color-brand-950: color-mix(in oklab, var(--brand-primary) 74%, black);
@@ -79,12 +79,11 @@
 
     /*
      * Bangla pages: Noto Sans Bengali for all Bangla text. Headings use it too
-     * (with the sans for any Latin digits or punctuation), so a Bangla heading
-     * never mixes in the English serif. (Italics are switched off for Bangla
+     * (with the English sans for any Latin digits or punctuation). (Italics are switched off for Bangla
      * in the utilities layer at the end of this file.)
      */
     :root:lang(bn) {
-        --font-display: 'Noto Sans Bengali', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+        --font-display: 'Noto Sans Bengali', 'PT Sans Caption', ui-sans-serif, system-ui, sans-serif;
     }
 
     /* Bangla script needs a little more room between lines. */
@@ -2808,11 +2807,14 @@
 }
 
 /*
- * Bangla has no italic: keep it upright instead of slanting it artificially.
- * In the utilities layer so it also wins over the italic utility class.
+ * Neither PT Sans Caption nor Bangla has an italic: decorative italics (the
+ * gold highlight lines) stay upright instead of being slanted artificially,
+ * and Bangla text is never slanted. In the utilities layer so it also wins
+ * over the italic utility class.
  */
 @layer utilities {
-    :lang(bn) :is(.italic, em, i, blockquote) {
+    .italic,
+    :lang(bn) :is(em, i, blockquote) {
         font-style: normal;
     }
 

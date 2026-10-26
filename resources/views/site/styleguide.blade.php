@@ -19,7 +19,7 @@
                 <p class="mt-3 font-display text-display-lg text-brand">Display large</p>
                 <p class="mt-3 font-display text-display-md text-brand">Display medium</p>
                 <p class="mt-3 font-display text-display-sm text-brand">Display small</p>
-                <p class="mt-6 max-w-prose text-ink-2">Body text is set in Plus Jakarta Sans for English and Noto Sans Bengali for Bangla, with generous line height for comfortable reading on phones.</p>
+                <p class="mt-6 max-w-prose text-ink-2">English text and headings are set in PT Sans Caption, Bangla in Noto Sans Bengali, with generous line height for comfortable reading on phones.</p>
                 <div lang="bn" class="mt-8 rounded-2xl bg-sand-100 p-6">
                     <p class="font-display text-display-md text-brand">নিরাপদ ও আরামদায়ক হজ যাত্রা</p>
                     <p class="mt-3 text-ink-2">অভিজ্ঞ আলেমদের তত্ত্বাবধানে হজ ও উমরাহ পালনের জন্য আমরা আছি আপনার পাশে। ভিসা, টিকেট, হোটেল ও গাইডেন্স—সবকিছু এক জায়গায়।</p>

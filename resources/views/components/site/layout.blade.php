@@ -20,7 +20,7 @@
     <x-site.seo-head />
     <x-site.brand-head />
 
-    @foreach ($locale === 'bn' ? ['noto-sans-bengali-bengali-400-700'] : ['plus-jakarta-sans-latin-400', 'fraunces-latin-600'] as $font)
+    @foreach ($locale === 'bn' ? ['noto-sans-bengali-bengali-400-700'] : ['pt-sans-caption-latin-400', 'pt-sans-caption-latin-700'] as $font)
         <link rel="preload" as="font" type="font/woff2" href="{{ Vite::asset("resources/fonts/{$font}.woff2") }}" crossorigin>
     @endforeach
     @vite(['resources/css/app.css', 'resources/js/app.js'])
