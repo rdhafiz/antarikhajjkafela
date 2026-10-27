@@ -115,15 +115,11 @@
     <div class="relative border-t border-white/10">
         <div class="container-site flex flex-col gap-3 py-6 text-[13px] text-white/50 sm:flex-row sm:items-center sm:justify-between">
             <p>© {{ now()->year }} {{ $site->name() }}. {{ __('All rights reserved.') }}</p>
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
-                @if (count($languages = $site->languages()) > 1)
-                    <x-site.language-switcher :languages="$languages" tone="dark" />
-                @endif
-                <p class="text-white/70">
-                    {{ __('Designed and Developed by') }}
-                    <a href="https://codevioso.com" target="_blank" rel="noopener" class="font-semibold text-gold underline-offset-4 hover:underline">Codevioso</a>
-                </p>
-            </div>
+            {{-- The language switcher lives in the header only. --}}
+            <p class="text-white/70">
+                {{ __('Designed and Developed by') }}
+                <a href="https://codevioso.com" target="_blank" rel="noopener" class="font-semibold text-gold underline-offset-4 hover:underline">Codevioso</a>
+            </p>
         </div>
     </div>
 </footer>
