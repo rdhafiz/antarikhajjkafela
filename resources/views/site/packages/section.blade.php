@@ -17,15 +17,21 @@
     })($bg));
     $palette = $text ? "--sec-heading: {$text}; --sec-text: {$text}; --sec-muted: {$text};" : '';
     $style = trim(($bg && ! $hasBgImage ? "background-color: {$bg}; " : '').$palette);
+    // Without a colour or image of its own, each section takes the next soft shade and floating shapes.
+    $shade = ! $bg && ! $hasBgImage ? ['bg-mint-soft', 'bg-white', 'bg-peach-soft', 'bg-lilac-soft'][$index % 4] : null;
 @endphp
 <section
     @if (filled($s['heading'])) id="details-{{ $index + 1 }}" @endif
-    @class(['relative isolate scroll-mt-36 overflow-clip py-16 sm:py-20 lg:py-24', 'section-dark' => $isDark, 'section-light' => ! $isDark, 'bg-white' => ! $bg && ! $hasBgImage && $index % 2 === 0, 'bg-sand-50' => ! $bg && ! $hasBgImage && $index % 2 === 1])
+    @class(['relative isolate scroll-mt-36 overflow-clip py-16 sm:py-20 lg:py-24', 'section-dark' => $isDark, 'section-light' => ! $isDark, $shade => $shade !== null])
     @if ($style) style="{{ $style }}" @endif
 >
     @if ($hasBgImage)
         <img src="{{ $image->url('lg') }}" srcset="{{ $image->srcset() }}" sizes="100vw" alt="" loading="lazy" decoding="async" class="absolute inset-0 -z-20 size-full object-cover">
         <div class="absolute inset-0 -z-10" style="background-color: {{ $bg ?: '#06182e' }}; opacity: .82" aria-hidden="true"></div>
+    @endif
+
+    @if ($shade)
+        <x-site.decor />
     @endif
 
     <div class="container-site">

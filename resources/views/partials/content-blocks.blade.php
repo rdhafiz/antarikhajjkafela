@@ -50,7 +50,7 @@
                         @foreach ($block['items'] as $item)
                             <li class="flex gap-3">
                                 @if ($block['style'] === 'check')
-                                    <span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald text-white"><x-site.icon name="check" class="size-3.5" /></span>
+                                    <span class="list-check mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald text-white"><x-site.icon name="check" class="size-3.5" /></span>
                                 @else
                                     <span class="mt-2.5 size-2 shrink-0 rotate-45 bg-gold" aria-hidden="true"></span>
                                 @endif

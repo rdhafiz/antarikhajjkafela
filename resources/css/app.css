@@ -1250,13 +1250,29 @@
         }
     }
 
-    /* Package page: checklists in custom sections as tiles. */
+    /* Package page: checklists in custom sections as tiles, each tick in the next colour of the icon palette. */
     .pkg-blocks ul > li {
         align-items: flex-start;
         padding: 1rem 1.125rem;
         border: 1px solid var(--sec-border, var(--color-line));
         border-radius: 1rem;
         background: var(--sec-surface, #fff);
+    }
+
+    .section-light .pkg-blocks ul > li {
+        box-shadow: var(--shadow-soft);
+    }
+
+    .pkg-blocks ul > li:nth-child(6n + 1) { --ic-a: #059669; --ic-b: #14b8a6; }
+    .pkg-blocks ul > li:nth-child(6n + 2) { --ic-a: #2563eb; --ic-b: #06b6d4; }
+    .pkg-blocks ul > li:nth-child(6n + 3) { --ic-a: #7c3aed; --ic-b: #6366f1; }
+    .pkg-blocks ul > li:nth-child(6n + 4) { --ic-a: #f59e0b; --ic-b: #f97316; }
+    .pkg-blocks ul > li:nth-child(6n + 5) { --ic-a: #e11d48; --ic-b: #ec4899; }
+    .pkg-blocks ul > li:nth-child(6n + 6) { --ic-a: #0284c7; --ic-b: #22d3ee; }
+
+    .pkg-blocks .list-check {
+        background: linear-gradient(135deg, var(--ic-a), var(--ic-b));
+        box-shadow: 0 8px 16px -8px var(--ic-a);
     }
 
     /* Count-up figures: equal-width digits, so the number does not jiggle while it counts. */

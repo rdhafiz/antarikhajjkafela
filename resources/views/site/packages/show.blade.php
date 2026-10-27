@@ -73,10 +73,10 @@
         </div>
     @endif
 
-    {{-- Options & hotels: package types on one side, the chosen type's options and hotels on the other. --}}
+    {{-- Options & hotels on a soft sky band: package types on one side, the chosen type's options and hotels on the other. --}}
     @if ($p['types'])
-        <section id="prices" class="section-light relative isolate scroll-mt-36 overflow-clip bg-sand-50 py-16 sm:py-20 lg:py-24" x-data="{ tab: 0 }">
-            <div class="pattern-star-ink pointer-events-none absolute -inset-y-[20%] inset-x-0 -z-10 opacity-[0.025]" data-parallax="0.15" aria-hidden="true"></div>
+        <section id="prices" class="section-light relative isolate scroll-mt-36 overflow-clip bg-sky-soft py-16 sm:py-20 lg:py-24" x-data="{ tab: 0 }">
+            <x-site.decor />
             <div class="container-site">
                 <div class="mx-auto mb-12 max-w-2xl text-center" data-reveal>
                     <p class="eyebrow justify-center">{{ $p['showPrice'] ? __('Prices & hotels') : __('Options & hotels') }}</p>
@@ -153,7 +153,7 @@
                                             <div class="grid divide-y divide-line sm:grid-cols-2 sm:divide-x sm:divide-y-0 rtl:sm:divide-x-reverse">
                                                 @foreach ($price['hotels'] as $h => $hotel)
                                                     <div class="flex gap-4 bg-white p-6 sm:p-7" data-reveal style="--reveal-delay: {{ 80 + $h * 120 }}ms">
-                                                        <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-brand text-gold"><x-site.icon name="hotel" class="size-6" /></span>
+                                                        <span class="sec-icon ic-tone ic-{{ $h % 2 ? 3 : 1 }} size-12 shrink-0 rounded-2xl"><x-site.icon name="hotel" class="size-6" /></span>
                                                         <div class="min-w-0">
                                                             <p class="text-[12px] font-semibold tracking-[0.14em] text-ink-3 uppercase">{{ $hotel['heading'] }}</p>
                                                             @if ($hotel['subheading'])<p class="mt-1 font-display text-[1.1875rem] leading-snug font-semibold text-brand">{{ $hotel['subheading'] }}</p>@endif
@@ -191,7 +191,7 @@
                     </div>
                 </div>
 
-                <p class="mx-auto mt-10 max-w-3xl text-center text-[13px] leading-relaxed text-ink-3" data-reveal>{{ ($package->service?->isPilgrimage() !== false ? __('Prices may change if the Saudi government, airlines or exchange rates change their fees. Please pay only through our official channels.') : __('Prices may change with airline fares, hotel rates or exchange rates. Please pay only through our official channels.')) }}</p>
+                <p class="mx-auto mt-10 max-w-3xl text-center text-[13px] leading-relaxed text-ink-2" data-reveal>{{ ($package->service?->isPilgrimage() !== false ? __('Prices may change if the Saudi government, airlines or exchange rates change their fees. Please pay only through our official channels.') : __('Prices may change with airline fares, hotel rates or exchange rates. Please pay only through our official channels.')) }}</p>
             </div>
         </section>
     @endif
@@ -200,7 +200,7 @@
     @if ($p['flights'])
         <section id="flights" class="section-dark relative isolate scroll-mt-36 overflow-hidden bg-brand-950 py-16 text-white sm:py-20 lg:py-24">
             <div class="pattern-star pointer-events-none absolute -inset-y-[25%] inset-x-0 -z-10 opacity-[0.05]" data-parallax="0.25" aria-hidden="true"></div>
-            <div class="pointer-events-none absolute -top-32 -right-32 -z-10 size-[460px] rounded-full bg-gold/10 blur-3xl" data-parallax="-0.15" aria-hidden="true"></div>
+            <x-site.decor />
             <div class="container-site grid items-center gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
                 <div>
                     <div data-reveal>
@@ -228,7 +228,7 @@
                     @foreach ($p['flights'] as $flight)
                         <article class="flight-card relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-7 sm:p-9">
                             <div class="flex items-start gap-5" data-reveal>
-                                <span class="flex size-14 shrink-0 items-center justify-center rounded-full bg-gold text-brand-950"><x-site.icon name="plane" class="size-7" /></span>
+                                <span class="sec-icon ic-tone ic-2 size-14 shrink-0 rounded-full"><x-site.icon name="plane" class="size-7" /></span>
                                 <div class="min-w-0">
                                     <h3 class="font-display text-display-sm text-white">{{ $flight['airline'] }}</h3>
                                     @if ($flight['schedule'])<p class="mt-1.5 text-[15px] font-semibold text-gold">{{ $flight['schedule'] }}</p>@endif
@@ -248,14 +248,15 @@
         </section>
     @endif
 
-    {{-- Custom sections (included, notes, gifts…) --}}
+    {{-- Custom sections (included, notes, gifts…), each on the next soft shade. --}}
     @foreach ($p['sections'] as $index => $s)
         @include('site.packages.section', ['s' => $s, 'index' => $index])
     @endforeach
 
     {{-- Related: the same wide cards as the package lists. --}}
     @if ($related->isNotEmpty())
-        <section class="relative isolate overflow-hidden bg-sand-100 py-16 sm:py-20 lg:py-24">
+        <section class="section-light relative isolate overflow-hidden bg-white py-16 sm:py-20 lg:py-24">
+            <x-site.decor />
             <div class="container-site">
                 <div class="mx-auto mb-12 max-w-2xl text-center" data-reveal>
                     <p class="eyebrow justify-center">{{ $p['service']->getTranslation('name', $locale) }}</p>
