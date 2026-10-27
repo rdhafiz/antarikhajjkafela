@@ -17,7 +17,7 @@
         </table>
     @endif
 
-    @php($details = collect($inquiry->data)->except('page')->filter(fn ($v) => filled($v)))
+    @php($details = collect($inquiry->readableData())->filter(fn ($v) => filled($v)))
     @if ($details->isNotEmpty())
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f8fc;border:1px solid #e3eaf3;border-radius:14px;">
             <tr><td style="padding:6px 18px;">
@@ -25,7 +25,7 @@
                     @foreach ($details as $key => $value)
                         <tr>
                             <td style="padding:10px 0;color:#66738a;width:38%;vertical-align:top;{{ $loop->last ? '' : 'border-bottom:1px solid #e3eaf3;' }}">{{ str($key)->replace('_', ' ')->title() }}</td>
-                            <td style="padding:10px 0;font-weight:bold;white-space:pre-line;vertical-align:top;{{ $loop->last ? '' : 'border-bottom:1px solid #e3eaf3;' }}">{{ is_array($value) ? implode(', ', $value) : $value }}</td>
+                            <td style="padding:10px 0;font-weight:bold;white-space:pre-line;vertical-align:top;{{ $loop->last ? '' : 'border-bottom:1px solid #e3eaf3;' }}">{{ $value }}</td>
                         </tr>
                     @endforeach
                 </table>

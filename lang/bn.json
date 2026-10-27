@@ -443,5 +443,14 @@
     "Cash": "নগদ অর্থ",
     "Other": "অন্যান্য",
     "Chat on Messenger": "মেসেঞ্জারে চ্যাট করুন",
-    "Partially paid": "আংশিক পরিশোধিত"
+    "Partially paid": "আংশিক পরিশোধিত",
+    "Flight :number": "ফ্লাইট :number",
+    "Flight date": "ফ্লাইটের তারিখ",
+    "Add another flight": "আরেকটি ফ্লাইট যোগ করুন",
+    "Remove flight :number": "ফ্লাইট :number সরান",
+    "A multi-city trip can have up to :count flights.": "মাল্টি-সিটি সফরে সর্বোচ্চ :countটি ফ্লাইট রাখা যায়।",
+    "Choose your return date, or pick One way.": "ফেরার তারিখ বেছে নিন, অথবা ওয়ান-ওয়ে নির্বাচন করুন।",
+    "Add the next flight of your multi-city trip.": "আপনার মাল্টি-সিটি সফরের পরের ফ্লাইটটি যোগ করুন।",
+    "This flight cannot be earlier than the flight before it.": "এই ফ্লাইটের তারিখ আগের ফ্লাইটের আগে হতে পারে না।",
+    "Flying to must be a different city from Flying from.": "গন্তব্য শহর যাত্রার শহর থেকে আলাদা হতে হবে।"
 }

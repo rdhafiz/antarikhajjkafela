@@ -89,7 +89,7 @@ class InquiryController extends Controller
                         $inquiry->name,
                         Csv::phone($inquiry->phone),
                         $inquiry->email,
-                        collect($inquiry->data)->except('page')->map(fn ($v, $k) => "{$k}: {$v}")->implode(' | '),
+                        collect($inquiry->readableData())->map(fn ($v, $k) => "{$k}: ".str_replace("\n", '; ', $v))->implode(' | '),
                         $inquiry->status,
                         $inquiry->notes,
                     ]));
@@ -150,7 +150,7 @@ class InquiryController extends Controller
             'name' => $inquiry->name,
             'phone' => $inquiry->phone,
             'email' => $inquiry->email,
-            'data' => (object) collect($inquiry->data)->except('page')->all(),
+            'data' => (object) $inquiry->readableData(),
             'page' => $inquiry->page ? ['id' => $inquiry->page->id, 'title' => $inquiry->page->getTranslation('title', 'en'), 'type' => $inquiry->page->type] : null,
             'status' => $inquiry->status,
             'notes' => $inquiry->notes,

@@ -32,21 +32,44 @@
             @endif
         </div>
 
+        @php
+            // Air ticket quotes: the trip type shows the return date (Return) or more flights (Multi-city).
+            $keys = array_column($fields, 'field');
+            $trip = in_array('trip_type', $keys, true);
+            $legsAfter = $trip && in_array('from_city', $keys, true) && in_array('to_city', $keys, true)
+                ? collect(['return_date', 'departure_date', 'to_city'])->first(fn ($k) => in_array($k, $keys, true))
+                : null;
+            $tripHooks = [
+                'trip_type' => ['input' => 'x-model="tripType"'],
+                'return_date' => ['wrapper' => 'x-show="tripType === \'Return\'"', 'input' => ':disabled="tripType !== \'Return\'"', 'required' => true],
+            ];
+        @endphp
         <x-site.form-shell :section="$section" :submit-label="$c['submit_label'] ?: __('Register now')" :success="$c['success'] ?: __('Thank you! Our team will call you soon, In Sha Allah.')">
+            @if ($trip)<div class="contents" x-data="fareQuote({{ App\Domain\Forms\LeadFields::MAX_EXTRA_FLIGHTS }})">@endif
             @foreach ($fields as $field)
+                @if ($legsAfter && $field['field'] === 'from_city')
+                    <p class="text-[13px] font-bold tracking-[0.12em] text-gold-deep uppercase sm:col-span-2" x-show="tripType === 'Multi-city'" x-cloak>{{ __('Flight :number', ['number' => App\Support\Money::digits(1)]) }}</p>
+                @endif
                 @include('sections.partials.form-field', [
                     'sectionId' => $section->id,
                     'name' => $field['field'],
                     'label' => filled($field['label']) ? $field['label'] : $labels[$field['field']],
                     'type' => $catalogue[$field['field']]['type'],
-                    'required' => (bool) $field['required'],
+                    // The return date is required whenever it shows (a Return trip), whatever the admin chose.
+                    'required' => (bool) $field['required'] || ($trip && isset($tripHooks[$field['field']]['required'])),
                     'autocomplete' => $catalogue[$field['field']]['autocomplete'],
                     'options' => $choices($field['field']),
                     'min' => $catalogue[$field['field']]['min'] ?? null,
                     'default' => $catalogue[$field['field']]['default'] ?? null,
                     'wide' => count($fields) % 2 === 1 && $loop->last,
+                    'wrapperAttrs' => $trip ? ($tripHooks[$field['field']]['wrapper'] ?? null) : null,
+                    'inputAttrs' => $trip ? ($tripHooks[$field['field']]['input'] ?? null) : null,
                 ])
+                @if ($legsAfter === $field['field'])
+                    @include('sections.partials.fare-legs', ['sectionId' => $section->id, 'max' => App\Domain\Forms\LeadFields::MAX_EXTRA_FLIGHTS])
+                @endif
             @endforeach
+            @if ($trip)</div>@endif
         </x-site.form-shell>
     </div>
 </x-site.block>

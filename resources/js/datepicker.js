@@ -3,7 +3,7 @@
  * loaded only on pages that have one. The submitted value stays YYYY-MM-DD;
  * visitors see "12 Nov 2026" in a text field that takes over the field's id,
  * so its label still points at it. A return date can't be before the
- * departure date picked in the same form.
+ * departure date picked in the same form, nor a multi-city flight before the one it follows.
  */
 import flatpickr from 'flatpickr';
 import { Bangla } from 'flatpickr/dist/l10n/bn.js';
@@ -31,6 +31,16 @@ export default function datepickers(inputs) {
         picker.altInput.placeholder = input.dataset.placeholder || '';
         if (input.required) picker.altInput.required = true;
         input._flatpickr = picker;
+    });
+
+    // A later flight (data-min-from="<field name>") cannot be before the date it follows.
+    inputs.forEach((input) => {
+        const before = input.dataset.minFrom && input.form?.querySelector(`[name="${input.dataset.minFrom}"]`)?._flatpickr;
+        if (!before) return;
+        before.config.onChange.push(([date]) => {
+            input._flatpickr.set('minDate', date || 'today');
+            if (date && input._flatpickr.selectedDates[0] && input._flatpickr.selectedDates[0] < date) input._flatpickr.clear();
+        });
     });
 
     // A return date follows the departure date chosen in the same form.

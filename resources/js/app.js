@@ -284,6 +284,48 @@ Alpine.data('bookingForm', (config) => ({
  * show field errors inline, and add a reCAPTCHA v3 token when configured.
  * The script for reCAPTCHA only loads once the visitor starts filling the form.
  */
+/**
+ * Air ticket quote: the trip type shows the return date (Return) or more
+ * flights (Multi-city). Each added flight starts from where the last one
+ * landed; only the last one can be removed, so the order stays simple.
+ */
+Alpine.data('fareQuote', (max = 4) => ({
+    tripType: '',
+    legs: 0,
+
+    init() {
+        this.tripType = this.field('trip_type')?.value ?? '';
+        this.$watch('tripType', (type) => {
+            if (type === 'Multi-city' && this.legs === 0) this.add();
+        });
+    },
+
+    field(name) {
+        return this.$el.closest('form')?.querySelector(`[name="${name}"]`);
+    },
+
+    add() {
+        if (this.legs >= max) return;
+        const previousTo = this.legs === 0 ? this.field('to_city')?.value : this.field(`legs[${this.legs - 1}][to]`)?.value;
+        this.legs++;
+        this.$nextTick(() => {
+            const from = this.field(`legs[${this.legs - 1}][from]`);
+            if (from && !from.value && previousTo) from.value = previousTo;
+            (from && !from.value ? from : this.field(`legs[${this.legs - 1}][to]`))?.focus();
+        });
+    },
+
+    remove() {
+        if (this.legs === 0) return;
+        ['from', 'to', 'date'].forEach((part) => {
+            const input = this.field(`legs[${this.legs - 1}][${part}]`);
+            if (input?._flatpickr) input._flatpickr.clear();
+            else if (input) input.value = '';
+        });
+        this.legs--;
+    },
+}));
+
 Alpine.data('siteForm', (recaptchaKey = null) => ({
     busy: false,
     done: false,
