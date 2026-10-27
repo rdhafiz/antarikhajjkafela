@@ -129,7 +129,8 @@
             {{-- Controls: dots showing the time left on the current slide, pause, previous and next. --}}
             @if ($isSlider)
             <div class="absolute inset-x-0 bottom-6 z-10 sm:bottom-8">
-                <div class="container-site flex items-center gap-3">
+                {{-- On phones (swipe, dots and pause) the arrows are left out and the controls stop short of the WhatsApp corner. --}}
+                <div class="container-site flex items-center gap-3 max-sm:pe-20">
                     <div class="flex items-center">
                         @foreach ($slides as $index => $slide)
                             <button type="button" @click="go({{ $index }})" @class(['hs-dot', 'is-current' => $index === 0]) :class="{ 'is-current': i === {{ $index }} }" @if ($index === 0) aria-current="true" @endif :aria-current="i === {{ $index }} ? 'true' : null" aria-label="{{ __('Show slide :n', ['n' => $index + 1]) }}">
@@ -142,8 +143,8 @@
                             <span x-show="!paused"><x-site.icon name="pause" class="size-4" /></span>
                             <span x-show="paused" x-cloak><x-site.icon name="play" class="size-4" /></span>
                         </button>
-                        <button type="button" @click="step(-1)" class="hs-btn" aria-label="{{ __('Previous slide') }}"><x-site.icon name="chevron-left" /></button>
-                        <button type="button" @click="step(1)" class="hs-btn" aria-label="{{ __('Next slide') }}"><x-site.icon name="chevron-right" /></button>
+                        <button type="button" @click="step(-1)" class="hs-btn max-sm:hidden" aria-label="{{ __('Previous slide') }}"><x-site.icon name="chevron-left" /></button>
+                        <button type="button" @click="step(1)" class="hs-btn max-sm:hidden" aria-label="{{ __('Next slide') }}"><x-site.icon name="chevron-right" /></button>
                     </div>
                 </div>
             </div>
