@@ -82,6 +82,50 @@ class PageBuilderTest extends AdminTestCase
         )));
     }
 
+    public function test_inner_pages_use_the_home_design(): void
+    {
+        $this->get('/about')->assertOk()
+            ->assertSee('bg-sky-soft', false)
+            ->assertSee('bg-mint-soft', false)
+            ->assertSee('bg-peach-soft', false)
+            ->assertSee('bg-lilac-soft', false)
+            ->assertSee('class="decor pointer-events-none', false)
+            ->assertSee('ic-tone ic-2', false);
+
+        $this->get('/services')->assertOk()
+            ->assertSee('bg-sky-soft', false)
+            ->assertSee('bg-lilac-soft', false)
+            ->assertSee('class="decor pointer-events-none', false)
+            ->assertSee('ic-tone ic-4', false);
+
+        $this->get('/contact')->assertOk()
+            ->assertSee('bg-sky-soft', false)
+            ->assertSee('bg-lilac-soft', false)
+            ->assertSee('concierge-icon ic-tone ic-1', false);
+
+        foreach (['/air-tickets', '/visa'] as $url) {
+            $this->get($url)->assertOk()
+                ->assertSee('bg-sky-soft', false)
+                ->assertSee('bg-mint-soft', false)
+                ->assertSee('class="decor pointer-events-none', false)
+                ->assertSee('ic-tone ic-3', false);
+        }
+        $this->get('/visa')->assertSee('bg-peach-soft', false)->assertSee('bg-lilac-soft', false);
+
+        // Existing sites: sections with their original background are restyled; an admin's own choice stays.
+        $about = Page::where('system_key', 'about')->firstOrFail();
+        $tiles = $about->sections()->where('component', 'features')->orderBy('sort')->firstOrFail();
+        $tiles->update(['style' => ['background' => 'sand', 'decor' => 'none', 'spacing' => 'md'], 'content' => array_replace($tiles->content, ['icon_style' => null])]);
+        $team = $about->sections()->where('component', 'team')->firstOrFail();
+        $team->update(['style' => ['background' => 'navy', 'decor' => 'none']]);
+
+        (require database_path('migrations/2026_10_27_120000_restyle_inner_pages.php'))->up();
+
+        $this->assertSame(['sky-soft', 'shapes', 'md'], [$tiles->fresh()->style['background'], $tiles->fresh()->style['decor'], $tiles->fresh()->style['spacing']]);
+        $this->assertSame('colorful', $tiles->fresh()->content['icon_style']);
+        $this->assertSame('navy', $team->fresh()->style['background']);
+    }
+
     public function test_inner_page_banners_use_the_shared_centered_hero(): void
     {
         $policy = Page::where('slug', 'privacy-policy')->firstOrFail();

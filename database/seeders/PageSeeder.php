@@ -343,17 +343,18 @@ class PageSeeder extends Seeder
                 'years_label' => $this->t('Founded in Dhaka', 'ঢাকায় প্রতিষ্ঠিত'),
                 'quote' => $this->t('We want every traveller to feel that someone at home is looking after their trip.', 'আমরা চাই প্রত্যেক ভ্রমণকারী অনুভব করুন, দেশে কেউ তার সফরের খেয়াল রাখছে।'),
                 'quote_author' => $this->t('Antarik Travel International', 'আন্তরিক ট্রাভেল ইন্টারন্যাশনাল'),
-            ], ['background' => 'white']],
+            ], ['background' => 'white', 'decor' => 'shapes']],
             ['features', [
                 'eyebrow' => $this->t('Our purpose', 'আমাদের লক্ষ্য'),
                 'title' => $this->t('Vision & mission', 'ভিশন ও মিশন'),
                 'layout' => 'tiles',
+                'icon_style' => 'colorful',
                 'columns' => '2',
                 'items' => [
                     ['icon' => 'star', 'title' => $this->t('Vision', 'ভিশন'), 'text' => $this->t('To be the travel agency Bangladeshi families trust first, for the pilgrimage and for every journey after it.', 'বাংলাদেশি পরিবারগুলোর প্রথম ভরসার ট্রাভেল এজেন্সি হওয়া—হজ-উমরাহ এবং তার পরের প্রতিটি সফরে।'), 'link' => null],
                     ['icon' => 'heart', 'title' => $this->t('Mission', 'মিশন'), 'text' => $this->t('To make international travel simple, safe and fairly priced, with clear advice and real support before, during and after every trip.', 'স্পষ্ট পরামর্শ এবং প্রতিটি সফরের আগে, চলাকালীন ও পরে সত্যিকারের সহায়তার মাধ্যমে আন্তর্জাতিক ভ্রমণকে সহজ, নিরাপদ ও ন্যায্যমূল্যের করা।'), 'link' => null],
                 ],
-            ], ['background' => 'sand', 'spacing' => 'md']],
+            ], ['background' => 'sky-soft', 'spacing' => 'md', 'decor' => 'shapes']],
             ['features', [
                 'eyebrow' => $this->t('What we do', 'আমরা যা করি'),
                 'title' => $this->t('Our services', 'আমাদের সেবাসমূহ'),
@@ -361,7 +362,7 @@ class PageSeeder extends Seeder
                 'icon_style' => 'colorful',
                 'columns' => '4',
                 'items' => $this->coreServices(short: true),
-            ], ['background' => 'white']],
+            ], ['background' => 'mint-soft', 'decor' => 'shapes']],
             ['image_text', [
                 'eyebrow' => $this->t('Our Hajj & Umrah division', 'আমাদের হজ ও উমরাহ বিভাগ'),
                 'title' => $this->t('Antarik Hajj Kafela', 'আন্তরিক হজ্জ কাফেলা'),
@@ -378,8 +379,8 @@ class PageSeeder extends Seeder
                 'image_position' => 'left',
                 'primary' => $this->link('/hajj', 'Hajj packages', 'হজ প্যাকেজ'),
                 'secondary' => $this->link('/umrah', 'Umrah packages', 'উমরাহ প্যাকেজ'),
-            ], ['background' => 'sand']],
-            ['features', $this->credentials(), ['background' => 'navy-deep', 'spacing' => 'md']],
+            ], ['background' => 'peach-soft', 'decor' => 'shapes']],
+            ['features', $this->credentials(), ['background' => 'navy-deep', 'spacing' => 'md', 'decor' => 'shapes']],
             ['team', [
                 'eyebrow' => $this->t('Our people', 'আমাদের টিম'),
                 'title' => $this->t('The people behind your journey', 'আপনার সফরের পেছনের মানুষেরা'),
@@ -390,7 +391,7 @@ class PageSeeder extends Seeder
                     ['name' => $this->t('Maulana Hossain Ahmad', 'মাওলানা হোসাইন আহমাদ'), 'role' => $this->t('Official Representative', 'অফিসিয়াল প্রতিনিধি')],
                     ['name' => $this->t('Maulana Saiful Islam', 'মাওলানা সাইফুল ইসলাম'), 'role' => $this->t('Official Representative', 'অফিসিয়াল প্রতিনিধি')],
                 ],
-            ], ['background' => 'white']],
+            ], ['background' => 'lilac-soft', 'decor' => 'shapes']],
             $this->cta(),
         ];
     }
@@ -413,11 +414,12 @@ class PageSeeder extends Seeder
                 'icon_style' => 'colorful',
                 'columns' => '2',
                 'items' => $this->coreServices(short: false),
-            ], ['background' => 'sand']],
+            ], ['background' => 'white', 'decor' => 'shapes']],
             ['features', [
                 'eyebrow' => $this->t('Along the way', 'সফরের পথে'),
                 'title' => $this->t('Included with every booking', 'প্রতিটি বুকিংয়ের সাথে'),
                 'layout' => 'tiles',
+                'icon_style' => 'colorful',
                 'columns' => '4',
                 'items' => [
                     ['icon' => 'hotel', 'title' => $this->t('Hotel bookings', 'হোটেল বুকিং'), 'text' => $this->t('Hotels in every budget, booked with your ticket or on their own.', 'সব বাজেটের হোটেল—টিকেটের সাথে বা আলাদাভাবে।'), 'link' => null],
@@ -425,8 +427,8 @@ class PageSeeder extends Seeder
                     ['icon' => 'document', 'title' => $this->t('Travel documents', 'ভ্রমণের কাগজপত্র'), 'text' => $this->t('Itineraries, hotel letters and insurance for your visa file.', 'ভিসা ফাইলের জন্য ভ্রমণসূচি, হোটেল লেটার ও বিমা।'), 'link' => null],
                     ['icon' => 'headset', 'title' => $this->t('Support on the road', 'সফরে সহায়তা'), 'text' => $this->t('Our Dhaka team on WhatsApp until you are back home.', 'দেশে ফেরা পর্যন্ত হোয়াটসঅ্যাপে আমাদের ঢাকা টিম।'), 'link' => null],
                 ],
-            ], ['background' => 'white']],
-            ['process_steps', $this->howItWorks(), ['background' => 'sand']],
+            ], ['background' => 'sky-soft', 'decor' => 'shapes']],
+            ['process_steps', $this->howItWorks(), ['background' => 'lilac-soft', 'decor' => 'shapes']],
             $this->cta(),
         ];
     }
@@ -443,13 +445,13 @@ class PageSeeder extends Seeder
                 'title' => $this->t('Talk to our team', 'আমাদের টিমের সাথে কথা বলুন'),
                 'intro' => $this->t('For air tickets, visas, tours, Hajj, Umrah or any question about your trip.', 'এয়ার টিকেট, ভিসা, ট্যুর, হজ, উমরাহ বা আপনার সফর সম্পর্কিত যেকোনো প্রশ্নে।'),
                 'layout' => 'concierge',
-            ], ['background' => 'sand']],
+            ], ['background' => 'sky-soft', 'decor' => 'shapes']],
             ['faq', array_replace($this->faqContent(), [
                 'eyebrow' => $this->t('Quick answers', 'সংক্ষিপ্ত উত্তর'),
                 'intro' => $this->t('Many questions are answered here before you call.', 'কল করার আগেই অনেক প্রশ্নের উত্তর এখানে পেয়ে যাবেন।'),
                 'layout' => 'stacked',
                 'cta' => null,
-            ]), ['background' => 'white']],
+            ]), ['background' => 'lilac-soft', 'decor' => 'shapes']],
         ];
     }
 
@@ -472,11 +474,12 @@ class PageSeeder extends Seeder
                     'highlight' => $this->t('at fares we check for you.', 'যাচাই করা সেরা ভাড়ায়।'),
                     'intro' => $this->t('Tell us where and when you want to fly. Our ticketing team compares the airlines and sends you the best options.', 'কোথায় ও কবে যেতে চান জানান। আমাদের টিকেটিং টিম এয়ারলাইনগুলো তুলনা করে সেরা অপশনগুলো পাঠাবে।'),
                 ], []],
-                ['lead_form', $this->airQuoteForm(home: false), ['background' => 'sand', 'anchor' => 'quote']],
+                ['lead_form', $this->airQuoteForm(home: false), ['background' => 'sky-soft', 'anchor' => 'quote', 'decor' => 'shapes']],
                 ['features', [
                     'eyebrow' => $this->t('Why book with us', 'কেন আমাদের কাছে বুক করবেন'),
                     'title' => $this->t('More than the cheapest fare', 'শুধু সবচেয়ে কম ভাড়া নয়'),
                     'layout' => 'cards',
+                    'icon_style' => 'colorful',
                     'columns' => '4',
                     'items' => [
                         ['icon' => 'medal', 'title' => $this->t('IATA accredited', 'আইএটিএ স্বীকৃত'), 'text' => $this->t('We issue tickets directly on every major airline, so your booking is confirmed on the spot.', 'সব বড় এয়ারলাইনের টিকেট আমরা সরাসরি ইস্যু করি, তাই বুকিং সাথে সাথেই নিশ্চিত।'), 'link' => null],
@@ -484,7 +487,7 @@ class PageSeeder extends Seeder
                         ['icon' => 'users', 'title' => $this->t('Group and student fares', 'গ্রুপ ও স্টুডেন্ট ফেয়ার'), 'text' => $this->t('Special fares for groups, students and workers, with extra baggage where airlines allow it.', 'গ্রুপ, শিক্ষার্থী ও কর্মীদের জন্য বিশেষ ভাড়া, এয়ারলাইন অনুমতি দিলে অতিরিক্ত ব্যাগেজসহ।'), 'link' => null],
                         ['icon' => 'calendar', 'title' => $this->t('Changes handled', 'পরিবর্তনেও পাশে'), 'text' => $this->t('Date changes, name corrections and refunds handled by the same team that sold you the ticket.', 'তারিখ পরিবর্তন, নাম সংশোধন ও রিফান্ড—যে টিম টিকেট দিয়েছে, তারাই দেখে।'), 'link' => null],
                     ],
-                ], ['background' => 'white']],
+                ], ['background' => 'white', 'decor' => 'shapes']],
                 ['faq', [
                     'eyebrow' => $this->t('Air ticket questions', 'এয়ার টিকেট প্রশ্নোত্তর'),
                     'title' => $this->t('Before you book', 'বুক করার আগে'),
@@ -496,7 +499,7 @@ class PageSeeder extends Seeder
                         ['What do I need to book?', 'বুক করতে কী লাগবে?', '<p>The traveller\'s name exactly as in the passport, the passport number and expiry date, and a contact number.</p>', '<p>পাসপোর্ট অনুযায়ী যাত্রীর হুবহু নাম, পাসপোর্ট নম্বর ও মেয়াদ এবং একটি যোগাযোগ নম্বর।</p>'],
                     ]),
                     'cta' => $this->link('/contact', 'Contact us', 'যোগাযোগ করুন'),
-                ], ['background' => 'sand']],
+                ], ['background' => 'mint-soft', 'decor' => 'shapes']],
                 $this->cta(),
             ],
         ];
@@ -525,6 +528,7 @@ class PageSeeder extends Seeder
                     'eyebrow' => $this->t('Visa types', 'ভিসার ধরন'),
                     'title' => $this->t('Which visa do you need?', 'আপনার কোন ভিসা দরকার?'),
                     'layout' => 'cards',
+                    'icon_style' => 'colorful',
                     'columns' => '4',
                     'items' => [
                         ['icon' => 'globe', 'title' => $this->t('Tourist visa', 'ট্যুরিস্ট ভিসা'), 'text' => $this->t('Holidays and family visits, with the itinerary, hotel and ticket bookings the embassy asks for.', 'ছুটি ও পারিবারিক ভ্রমণ—দূতাবাসের চাওয়া ভ্রমণসূচি, হোটেল ও টিকেট বুকিংসহ।'), 'link' => null],
@@ -532,8 +536,8 @@ class PageSeeder extends Seeder
                         ['icon' => 'book', 'title' => $this->t('Student visa', 'স্টুডেন্ট ভিসা'), 'text' => $this->t('Offer letters, financial documents and interview preparation for studying abroad.', 'বিদেশে পড়াশোনার জন্য অফার লেটার, আর্থিক কাগজপত্র ও ইন্টারভিউ প্রস্তুতি।'), 'link' => null],
                         ['icon' => 'passport', 'title' => $this->t('Work visa', 'ওয়ার্ক ভিসা'), 'text' => $this->t('Employment visas on a genuine job offer, with attestation and medical arranged.', 'প্রকৃত চাকরির অফারে কর্মসংস্থান ভিসা—সত্যায়ন ও মেডিকেলের ব্যবস্থাসহ।'), 'link' => null],
                     ],
-                ], ['background' => 'white']],
-                ['features', $this->visaRegions(), ['background' => 'sand']],
+                ], ['background' => 'white', 'decor' => 'shapes']],
+                ['features', $this->visaRegions(), ['background' => 'mint-soft', 'decor' => 'shapes']],
                 ['image_text', [
                     'eyebrow' => $this->t('Documents', 'কাগজপত্র'),
                     'title' => $this->t('What most visa files need', 'বেশিরভাগ ভিসা ফাইলে যা লাগে'),
@@ -550,7 +554,7 @@ class PageSeeder extends Seeder
                         ['text' => $this->t('Invitation, offer or admission letter for business, work and study', 'বিজনেস, কাজ ও পড়াশোনার জন্য আমন্ত্রণ, অফার বা ভর্তির চিঠি')],
                     ],
                     'image_position' => 'right',
-                ], ['background' => 'white']],
+                ], ['background' => 'peach-soft', 'decor' => 'shapes']],
                 ['process_steps', [
                     'eyebrow' => $this->t('How it works', 'যেভাবে কাজ করি'),
                     'title' => $this->t('Your visa in four steps', 'চার ধাপে আপনার ভিসা'),
@@ -560,7 +564,7 @@ class PageSeeder extends Seeder
                         ['icon' => 'calendar', 'title' => $this->t('Appointment & submission', 'অ্যাপয়েন্টমেন্ট ও জমা'), 'text' => $this->t('We book the embassy or visa centre appointment and brief you before you go.', 'দূতাবাস বা ভিসা সেন্টারের অ্যাপয়েন্টমেন্ট নিই এবং যাওয়ার আগে আপনাকে ব্রিফ করি।')],
                         ['icon' => 'check-circle', 'title' => $this->t('Follow-up', 'ফলোআপ'), 'text' => $this->t('We track the application and help you book flights once the visa is issued.', 'আবেদনের অগ্রগতি দেখি এবং ভিসা হলে ফ্লাইট বুকিংয়ে সহায়তা করি।')],
                     ],
-                ], ['background' => 'sand']],
+                ], ['background' => 'lilac-soft', 'decor' => 'shapes']],
                 ['lead_form', [
                     'eyebrow' => $this->t('Visa enquiry', 'ভিসা জিজ্ঞাসা'),
                     'title' => $this->t('Ask about your visa', 'আপনার ভিসা সম্পর্কে জানুন'),
@@ -582,7 +586,7 @@ class PageSeeder extends Seeder
                         ['text' => $this->t('A document list for your exact visa', 'আপনার ভিসার জন্য নির্দিষ্ট কাগজপত্রের তালিকা')],
                         ['text' => $this->t('Honest advice on your chances', 'সম্ভাবনা নিয়ে আন্তরিক পরামর্শ')],
                     ],
-                ], ['background' => 'white', 'anchor' => 'enquiry']],
+                ], ['background' => 'sky-soft', 'anchor' => 'enquiry', 'decor' => 'shapes']],
                 ['faq', [
                     'eyebrow' => $this->t('Visa questions', 'ভিসা প্রশ্নোত্তর'),
                     'title' => $this->t('Good to know', 'জেনে রাখুন'),
@@ -594,7 +598,7 @@ class PageSeeder extends Seeder
                         ['Do you handle Umrah visas too?', 'উমরাহ ভিসাও কি করেন?', '<p>Yes. Umrah visas are arranged by our Hajj and Umrah division with every Umrah package, or on their own.</p>', '<p>হ্যাঁ। আমাদের হজ ও উমরাহ বিভাগ প্রতিটি উমরাহ প্যাকেজের সাথে, অথবা আলাদাভাবে উমরাহ ভিসার ব্যবস্থা করে।</p>'],
                     ]),
                     'cta' => $this->link('/contact', 'Contact us', 'যোগাযোগ করুন'),
-                ], ['background' => 'sand']],
+                ], ['background' => 'white', 'decor' => 'shapes']],
                 $this->cta(),
             ],
         ];

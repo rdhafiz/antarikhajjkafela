@@ -42,7 +42,7 @@
                             <li data-reveal="left" style="--reveal-delay: {{ 100 + $i * 90 }}ms">
                                 <a href="{{ $channel['href'] }}" @if (! empty($channel['external'])) target="_blank" rel="noopener" @endif
                                    class="concierge-row group relative isolate flex items-center gap-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5">
-                                    <span class="concierge-icon flex size-12 shrink-0 items-center justify-center rounded-xl">
+                                    <span class="concierge-icon ic-tone ic-{{ [1, 2, 3, 4][$i % 4] }} flex size-12 shrink-0 items-center justify-center rounded-xl">
                                         <x-site.icon :name="$channel['icon']" class="size-5" />
                                     </span>
                                     <span class="min-w-0 flex-1">
