@@ -14,6 +14,7 @@ use App\Models\PackagePrice;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +29,10 @@ use Throwable;
  */
 class BookingService
 {
-    public function __construct(private readonly BookingCalculator $calculator) {}
+    public function __construct(
+        private readonly BookingCalculator $calculator,
+        private readonly BookingLog $log,
+    ) {}
 
     /**
      * @param  array{travelers: int, rooms?: int|null, name: string, phone: string, email?: string|null, address?: string|null, note?: string|null}  $data
@@ -101,11 +105,34 @@ class BookingService
             throw $e;
         }
 
+        $this->log->record($booking, 'created', [
+            'customer' => $booking->customer_name,
+            'option' => trim($booking->snap('type', 'en').' – '.$booking->snap('option', 'en'), ' –'),
+            'travelers' => $booking->travelers,
+            'total' => (float) $booking->total,
+            'documents' => count($documents),
+            'ip' => $ip,
+        ]);
+
         if ($this->sendBookingEmails($booking)) {
             $booking->updates()->where('kind', 'created')->update(['emailed_at' => now()]);
         }
 
         return $booking;
+    }
+
+    /**
+     * Cancel online payments a customer started but never finished, once the
+     * balance is settled another way (an office payment). A gateway that still
+     * confirms one later is recorded and flagged as overpaid.
+     */
+    public function withdrawUnfinishedPayments(Booking $booking, ?User $by = null): void
+    {
+        $booking->payments()->where('is_online', true)->where('status', 'initiated')->get()->each(function (Payment $payment) use ($booking, $by) {
+            $payment->update(['status' => 'cancelled']);
+            $payment->addLog('withdrawn', ['reason' => 'An office payment was recorded for this booking.']);
+            $this->log->record($booking, 'payment_withdrawn', ['amount' => (float) $payment->amount, 'transaction' => $payment->transaction_id], $by ?? null);
+        });
     }
 
     /**
@@ -123,12 +150,8 @@ class BookingService
             'created_by' => $by?->id,
         ]);
 
-        if ($notify && $booking->customer_email) {
-            $sent = $this->safely(fn () => Mail::to($booking->customer_email)->locale($booking->locale)->send(new BookingUpdated($booking->fresh(), $update)));
-
-            if ($sent) {
-                $update->update(['emailed_at' => now()]);
-            }
+        if ($notify && $booking->customer_email && $this->sendMail($booking, $booking->customer_email, $booking->locale, new BookingUpdated($booking->fresh(), $update), 'Booking update')) {
+            $update->update(['emailed_at' => now()]);
         }
 
         return $update;
@@ -158,36 +181,61 @@ class BookingService
     }
 
     /**
-     * Recalculate the paid amount and move the status forward when payments
-     * cover the advance or the total. Closed bookings keep their status.
+     * Statuses that follow the money; the others are set by staff.
+     */
+    public const PAYMENT_STATUSES = ['partially_paid', 'advance_paid', 'fully_paid'];
+
+    /**
+     * Recalculate the paid amount and let the status follow it, both ways:
+     * nothing paid → the status staff gave it before any payment (pending or
+     * confirmed); less than the advance (or any amount when there is no
+     * advance) → partially paid; the advance → advance paid; the total →
+     * fully paid. Completed and cancelled bookings keep their status.
      */
     public function refreshPayments(Booking $booking): Booking
     {
+        $before = ['status' => $booking->getOriginal('status') ?? $booking->status, 'overpaid' => $booking->overpaid()];
         $paid = round((float) $booking->payments()->where('status', 'paid')->sum('amount'), 2);
         $booking->paid_amount = $paid;
 
-        // The status follows the money both ways. Removing a payment used to
-        // leave the old one behind, so a booking could read "Fully paid" with
-        // nothing recorded against it. Completed and cancelled are left alone,
-        // and so is a booking still in the workflow whose payments justify no
-        // payment status — pending and confirmed are not ours to overwrite.
         if (! $booking->isClosed()) {
+            $total = (float) $booking->total;
+            $advance = (float) $booking->advance_amount;
+
             $earned = match (true) {
-                $paid >= (float) $booking->total && (float) $booking->total > 0 => 'fully_paid',
-                $paid > 0 && $paid >= (float) $booking->advance_amount => 'advance_paid',
+                $total > 0 && $paid >= $total => 'fully_paid',
+                $advance > 0 && $paid >= $advance => 'advance_paid',
+                $paid > 0 => 'partially_paid',
                 default => null,
             };
 
             if ($earned !== null) {
                 $booking->status = $earned;
-            } elseif (in_array($booking->status, ['advance_paid', 'fully_paid'], true)) {
-                $booking->status = 'pending';
+            } elseif (in_array($booking->status, self::PAYMENT_STATUSES, true)) {
+                $booking->status = $this->statusBeforePayments($booking);
             }
         }
 
         $booking->save();
 
+        if ($booking->status !== $before['status']) {
+            $this->log->record($booking, 'status_auto', ['from' => $before['status'], 'to' => $booking->status, 'paid' => $paid]);
+        }
+
+        // Paid above the total: only a gateway confirming money no longer due gets here.
+        if ($booking->overpaid() > 0 && $booking->overpaid() > $before['overpaid']) {
+            $this->log->record($booking, 'overpaid', ['amount' => $booking->overpaid(), 'paid' => $paid, 'total' => (float) $booking->total]);
+        }
+
         return $booking;
+    }
+
+    /**
+     * The status staff last gave the booking that does not depend on payments (pending or confirmed).
+     */
+    private function statusBeforePayments(Booking $booking): string
+    {
+        return $booking->updates()->whereIn('kind', ['status', 'created'])->whereIn('status', ['pending', 'confirmed'])->value('status') ?? 'pending';
     }
 
     /**
@@ -211,6 +259,13 @@ class BookingService
                 'gateway_reference' => $details['gateway_reference'] ?? $fresh->gateway_reference,
             ])->save();
 
+            $this->log->record($fresh->booking, 'payment_paid', [
+                'amount' => (float) $fresh->amount,
+                'gateway' => $fresh->methodLabel(),
+                'transaction' => $fresh->transaction_id,
+                'gateway_reference' => $fresh->gateway_reference,
+            ]);
+
             $this->refreshPayments($fresh->booking);
 
             return true;
@@ -231,6 +286,11 @@ class BookingService
 
             if ($fresh->status === 'initiated') {
                 $fresh->update(['status' => $status]);
+                $this->log->record($fresh->booking, $status === 'cancelled' ? 'payment_cancelled' : 'payment_failed', [
+                    'amount' => (float) $fresh->amount,
+                    'gateway' => $fresh->methodLabel(),
+                    'transaction' => $fresh->transaction_id,
+                ]);
             }
         });
 
@@ -243,13 +303,11 @@ class BookingService
     private function sendBookingEmails(Booking $booking): bool
     {
         $sent = $booking->customer_email
-            && $this->safely(fn () => Mail::to($booking->customer_email)->locale($booking->locale)->send(new BookingReceived($booking)));
+            && $this->sendMail($booking, $booking->customer_email, $booking->locale, new BookingReceived($booking), 'Booking received');
 
-        $this->safely(function () use ($booking) {
-            if ($to = settings('contact.primary_email')) {
-                Mail::to($to)->locale('en')->send(new BookingPlaced($booking));
-            }
-        });
+        if ($to = settings('contact.primary_email')) {
+            $this->sendMail($booking, $to, 'en', new BookingPlaced($booking), 'New booking (office)');
+        }
 
         return $sent;
     }
@@ -259,22 +317,25 @@ class BookingService
         $booking = $payment->booking->fresh();
 
         return $booking->customer_email
-            && $this->safely(fn () => Mail::to($booking->customer_email)->locale($booking->locale)->send(new PaymentReceived($booking, $payment, $update)));
+            && $this->sendMail($booking, $booking->customer_email, $booking->locale, new PaymentReceived($booking, $payment, $update), 'Payment receipt');
     }
 
     /**
-     * The booking is saved; a mail problem must not fail the request.
+     * Send one email and log it on the booking. The booking is saved already:
+     * a mail problem must not fail the request, it is reported and logged.
      *
-     * @return bool whether it went through
+     * @return bool whether it went out
      */
-    private function safely(callable $send): bool
+    private function sendMail(Booking $booking, string $to, ?string $locale, Mailable $mail, string $label): bool
     {
         try {
-            $send();
+            Mail::to($to)->locale($locale ?: 'en')->send($mail);
+            $this->log->record($booking, 'email_sent', ['email' => $label, 'to' => $to]);
 
             return true;
         } catch (Throwable $e) {
             report($e);
+            $this->log->record($booking, 'email_failed', ['email' => $label, 'to' => $to, 'error' => Str::limit($e->getMessage(), 300)]);
 
             return false;
         }

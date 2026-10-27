@@ -7,6 +7,7 @@
     $tone = match ($booking->status) {
         'cancelled' => 'bg-red-600 text-white',
         'pending' => 'bg-gold text-brand-950',
+        'partially_paid' => 'bg-sky-700 text-white',
         default => 'bg-emerald text-white',
     };
     $phones = $site->phones();
@@ -108,7 +109,7 @@
                         @if ($canPay)
                             <form method="POST" action="{{ URL::signedRoute('bookings.pay', ['booking' => $booking->reference]) }}" class="mt-6" x-data="{ busy: false }" @submit="busy = true">
                                 @csrf
-                                <button type="submit" class="btn btn-primary w-full" :disabled="busy">{{ __('Pay advance :amount online', ['amount' => Money::format($booking->advanceDue())]) }}</button>
+                                <button type="submit" class="btn btn-primary w-full" :disabled="busy">{{ __('Pay advance :amount online', ['amount' => Money::format(app(App\Domain\Payments\OnlinePayments::class)->amountDue($booking))]) }}</button>
                             </form>
                         @endif
                     </div>

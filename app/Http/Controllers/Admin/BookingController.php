@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Booking\BookingLog;
 use App\Domain\Booking\BookingService;
 use App\Domain\Booking\TravelDates;
 use App\Http\Controllers\Controller;
@@ -22,7 +23,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BookingController extends Controller
 {
-    public function __construct(private readonly BookingService $bookings) {}
+    public function __construct(
+        private readonly BookingService $bookings,
+        private readonly BookingLog $log,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -78,8 +82,22 @@ class BookingController extends Controller
         ]);
 
         $before = $booking->status;
+        $notesBefore = (string) $booking->admin_notes;
         $booking->update(['status' => $data['status'], 'admin_notes' => $data['admin_notes'] ?? null]);
         $message = trim((string) ($data['customer_message'] ?? '')) ?: null;
+        $notify = $request->boolean('notify', true) && $booking->customer_email;
+
+        if ($booking->status !== $before) {
+            $this->log->record($booking, 'status_changed', ['from' => $before, 'to' => $booking->status, 'notify' => (bool) $notify], $request->user());
+        }
+
+        if ((string) $booking->admin_notes !== $notesBefore) {
+            $this->log->record($booking, 'notes_changed', ['from' => $notesBefore, 'to' => (string) $booking->admin_notes], $request->user());
+        }
+
+        if ($message) {
+            $this->log->record($booking, 'message_sent', ['message' => $message, 'notify' => (bool) $notify], $request->user());
+        }
 
         if ($booking->status !== $before || $message) {
             $this->bookings->recordUpdate($booking, $booking->status !== $before ? 'status' : 'message', $message, $request->boolean('notify', true), $request->user());
@@ -146,6 +164,17 @@ class BookingController extends Controller
             return $payment;
         });
 
+        $this->log->record($booking, 'payment_recorded', [
+            'amount' => (float) $payment->amount,
+            'method' => $payment->methodLabel(),
+            'reference' => $payment->reference,
+            'note' => $payment->note,
+            'paid_at' => $payment->paid_at?->toIso8601String(),
+        ], $request->user());
+
+        // A payment the customer started online and never finished could still be confirmed by the gateway and overpay.
+        $this->bookings->withdrawUnfinishedPayments($booking, $request->user());
+
         // Receipt to the customer with the new balance (unless staff untick "Email the customer").
         $message = trim((string) ($data['customer_message'] ?? '')) ?: null;
         $this->bookings->recordPayment($payment, $request->boolean('notify', true), $request->user(), $message);
@@ -156,13 +185,19 @@ class BookingController extends Controller
     /**
      * Remove an office payment recorded by mistake. Online payments stay.
      */
-    public function destroyPayment(Booking $booking, Payment $payment): JsonResponse
+    public function destroyPayment(Request $request, Booking $booking, Payment $payment): JsonResponse
     {
         abort_unless($payment->booking_id === $booking->id, 404);
         abort_if($payment->is_online, 422, 'Online payments cannot be removed.');
 
-        DB::transaction(function () use ($booking, $payment) {
+        DB::transaction(function () use ($booking, $payment, $request) {
             $payment->delete();
+            $this->log->record($booking, 'payment_removed', [
+                'amount' => (float) $payment->amount,
+                'method' => $payment->methodLabel(),
+                'reference' => $payment->reference,
+            ], $request->user());
+            // The status follows what is still paid (see BookingService::refreshPayments).
             $this->bookings->refreshPayments($booking);
         });
 
@@ -172,9 +207,11 @@ class BookingController extends Controller
     /**
      * Stream a private booking document to an authorized admin.
      */
-    public function document(Booking $booking, BookingDocument $document): StreamedResponse
+    public function document(Request $request, Booking $booking, BookingDocument $document): StreamedResponse
     {
         abort_unless($document->booking_id === $booking->id, 404);
+
+        $this->log->record($booking, 'document_opened', ['name' => $document->original_name, 'kind' => BookingDocument::KINDS[$document->kind] ?? $document->kind], $request->user());
 
         return Storage::disk(BookingDocument::DISK)->response($document->path, $document->original_name, [
             'Content-Type' => $document->mime_type,
@@ -328,6 +365,8 @@ class BookingController extends Controller
                 'log' => $p->log ?? [],
             ]),
             'offline_methods' => Payment::OFFLINE_METHODS,
+            'activity' => $this->log->timeline($booking),
+            'statuses' => Booking::STATUSES,
             'updates' => $booking->updates->map(fn (BookingUpdate $u) => [
                 'id' => $u->id,
                 'kind' => $u->kind,

@@ -5,7 +5,7 @@ import AppBadge from '@admin/components/ui/AppBadge.vue';
 import { navigation } from '@admin/navigation';
 import { http } from '@admin/lib/http';
 import { formatDate } from '@admin/lib/format';
-import { money, statusTone, type BookingStatus } from '@admin/pages/bookings/types';
+import { money, statusLabels, statusTone, type BookingStatus } from '@admin/pages/bookings/types';
 import { useAppStore } from '@admin/stores/app';
 import { useAuthStore } from '@admin/stores/auth';
 
@@ -48,7 +48,7 @@ const greeting = computed(() => {
 });
 const today = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 
-const statusLabel: Record<BookingStatus, string> = { pending: 'Pending', confirmed: 'Confirmed', advance_paid: 'Advance paid', fully_paid: 'Fully paid', completed: 'Completed', cancelled: 'Cancelled' };
+const statusLabel: Record<BookingStatus, string> = statusLabels;
 const count = new Intl.NumberFormat('en-IN');
 
 const stats = computed<Stat[]>(() => {

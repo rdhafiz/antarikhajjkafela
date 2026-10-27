@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Site;
 
+use App\Domain\Booking\BookingLog;
 use App\Domain\Booking\BookingService;
 use App\Domain\Booking\TravelDates;
 use App\Domain\Forms\Recaptcha;
@@ -155,6 +156,12 @@ class BookingController extends Controller
     {
         $booking->load(['payments' => fn ($q) => $q->where('status', 'paid'), 'updates']);
 
+        // Logged at most every half hour, and not when staff open the customer link while signed in.
+        $log = app(BookingLog::class);
+        if (! auth()->check() && ! $log->recently($booking, 'customer_viewed', 30)) {
+            $log->record($booking, 'customer_viewed', ['ip' => request()->ip()]);
+        }
+
         seo()->title(__('Booking :reference', ['reference' => $booking->reference]))->noindex();
 
         // The signed link is the customer's key: never pass it on in a Referer.
@@ -169,7 +176,10 @@ class BookingController extends Controller
      */
     public function pay(Booking $booking): RedirectResponse
     {
-        abort_unless($this->payments->canPay($booking), 409);
+        // A page left open after staff recorded the payment: back to the booking, which shows what is due now.
+        if (! $this->payments->canPay($booking)) {
+            return redirect()->to($booking->publicUrl());
+        }
 
         return $this->toGateway($booking);
     }
@@ -206,6 +216,8 @@ class BookingController extends Controller
         if (! $matches) {
             return back()->withInput()->withErrors(['reference' => __('We could not find a booking with these details. Please check them or call us.')]);
         }
+
+        app(BookingLog::class)->record($booking, 'customer_lookup', ['ip' => $request->ip()]);
 
         return redirect()->to($booking->publicUrl());
     }

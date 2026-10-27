@@ -1,1 +1,0 @@
-var e={pending:`warning`,confirmed:`brand`,advance_paid:`gold`,fully_paid:`success`,completed:`success`,cancelled:`danger`},t=new Intl.NumberFormat(`en-IN`,{maximumFractionDigits:2});function n(e){return`৳${t.format(e)}`}export{e as n,n as t};

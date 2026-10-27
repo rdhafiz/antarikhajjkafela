@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ArrowLeft, BellRing, CheckCircle2, ChevronDown, Copy, ExternalLink, FileText, Files, Image as ImageIcon, Mail, MailCheck, MessageCircle, MessageSquareText, Package as PackageIcon, Phone, Plus, RefreshCw, Trash2, UserRound, Wallet } from 'lucide-vue-next';
+import { ArrowLeft, BellRing, Globe, CheckCircle2, ChevronDown, Copy, ExternalLink, FileText, Files, History, Image as ImageIcon, Mail, MailCheck, MailX, MessageCircle, MessageSquareText, Package as PackageIcon, Phone, Plus, RefreshCw, Trash2, TriangleAlert, UserRound, Wallet } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
 import AppCheckbox from '@admin/components/ui/AppCheckbox.vue';
@@ -16,7 +16,7 @@ import { formatBytes, formatDate } from '@admin/lib/format';
 import { useAppStore } from '@admin/stores/app';
 import { useAuthStore } from '@admin/stores/auth';
 import { useToastStore } from '@admin/stores/toast';
-import { money, statusTone, type BookingDetail, type BookingStatus, type BookingUpdate } from './types';
+import { money, statusLabels, statusTone, type BookingActivity, type BookingDetail, type BookingStatus, type BookingUpdate } from './types';
 
 const route = useRoute();
 const router = useRouter();
@@ -26,7 +26,54 @@ const toast = useToastStore();
 const { confirm } = useConfirm();
 
 const booking = ref<BookingDetail | null>(null);
-const statuses: Record<BookingStatus, string> = { pending: 'Pending', confirmed: 'Confirmed', advance_paid: 'Advance paid', fully_paid: 'Fully paid', completed: 'Completed', cancelled: 'Cancelled' };
+const statuses: Record<BookingStatus, string> = statusLabels;
+
+// Activity log: every entry, or one kind at a time.
+const logFilter = ref<'all' | BookingActivity['category']>('all');
+const logFilters = [
+    { key: 'all', label: 'All' },
+    { key: 'staff', label: 'Staff' },
+    { key: 'payment', label: 'Payments' },
+    { key: 'email', label: 'Emails' },
+    { key: 'customer', label: 'Customer' },
+] as const;
+const logShown = ref(25);
+const activity = computed(() => (booking.value?.activity ?? []).filter((a) => logFilter.value === 'all' || a.category === logFilter.value));
+const logMeta: Record<BookingActivity['category'], { icon: typeof Mail; tone: string }> = {
+    staff: { icon: UserRound, tone: 'bg-violet-50 text-violet-600' },
+    payment: { icon: Wallet, tone: 'bg-sky-50 text-sky-600' },
+    email: { icon: Mail, tone: 'bg-pink-50 text-pink-600' },
+    customer: { icon: Globe, tone: 'bg-emerald-50 text-emerald-600' },
+};
+function logIcon(entry: BookingActivity): { icon: typeof Mail; tone: string } {
+    if (entry.event === 'email_failed') return { icon: MailX, tone: 'bg-red-50 text-red-600' };
+    if (entry.event === 'overpaid') return { icon: TriangleAlert, tone: 'bg-amber-50 text-amber-600' };
+    if (entry.event === 'email_sent') return { icon: MailCheck, tone: logMeta.email.tone };
+    return logMeta[entry.category] ?? logMeta.staff;
+}
+const statusName = (key: unknown) => statuses[key as BookingStatus] ?? String(key ?? '—');
+/** The details of an entry as short "label: value" lines. */
+function logDetails(entry: BookingActivity): string[] {
+    const d = entry.details;
+    const lines: string[] = [];
+    if ('from' in d && 'to' in d && entry.event !== 'notes_changed') lines.push(`${statusName(d.from)} → ${statusName(d.to)}`);
+    if (typeof d.amount === 'number') lines.push(money(d.amount));
+    if (d.method) lines.push(String(d.method));
+    if (d.gateway) lines.push(String(d.gateway));
+    if (d.reference) lines.push(`Ref ${d.reference}`);
+    if (d.gateway_reference) lines.push(`Gateway ref ${d.gateway_reference}`);
+    if (d.transaction) lines.push(String(d.transaction));
+    if (d.email) lines.push(`${d.email} → ${d.to}`);
+    if (d.name) lines.push(`${d.kind ?? 'Document'}: ${d.name}`);
+    if (entry.event === 'overpaid') lines.push(`Paid ${money(Number(d.paid))} of ${money(Number(d.total))}`);
+    if (entry.event === 'created') {
+        const parts = [d.customer, d.option, d.travelers ? `${d.travelers} traveller${d.travelers === 1 ? '' : 's'}` : null, d.total ? money(Number(d.total)) : null, d.documents ? `${d.documents} document(s)` : null];
+        lines.push(parts.filter(Boolean).join(' · '));
+    }
+    if (d.notify === false && (entry.event === 'status_changed' || entry.event === 'message_sent')) lines.push('Customer not emailed');
+    if (d.ip) lines.push(`IP ${d.ip}`);
+    return lines.filter(Boolean);
+}
 const edit = useForm({ status: 'pending' as BookingStatus, admin_notes: '', customer_message: '', notify: true });
 const paymentOpen = ref(false);
 const paymentForm = useForm({ amount: 0 as number | '', method: 'bank', paid_at: '', reference: '', note: '', customer_message: '', notify: true });
@@ -231,6 +278,43 @@ onMounted(load);
                             <pre v-if="openLog === payment.id" class="mt-3 max-h-80 overflow-x-hidden overflow-y-auto rounded-lg bg-ink p-3 text-[11px] leading-relaxed [overflow-wrap:anywhere] whitespace-pre-wrap text-white/85">{{ JSON.stringify(payment.log, null, 2) }}</pre>
                         </li>
                     </ul>
+                </section>
+
+                <!-- Activity log: everything that happened to this booking, newest first -->
+                <section class="card p-6" aria-labelledby="b-activity">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h2 id="b-activity" class="flex items-center gap-2 text-[12px] font-semibold tracking-wide text-ink-muted uppercase"><History class="size-4 text-amber-600" aria-hidden="true" />Activity log</h2>
+                        <div class="flex flex-wrap gap-1.5" role="group" aria-label="Show">
+                            <button
+                                v-for="f in logFilters"
+                                :key="f.key"
+                                type="button"
+                                class="rounded-full px-3 py-1 text-[12px] font-semibold transition-colors"
+                                :class="logFilter === f.key ? 'bg-ink text-white' : 'bg-canvas text-ink-soft hover:text-ink'"
+                                :aria-pressed="logFilter === f.key"
+                                @click="logFilter = f.key; logShown = 25"
+                            >{{ f.label }}</button>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-[13px] text-ink-muted">Staff actions, payments and the gateway, emails, and the customer's visits. Only staff see this.</p>
+                    <p v-if="!activity.length" class="mt-4 text-sm text-ink-muted">Nothing logged here yet.</p>
+                    <ol v-else class="mt-4 space-y-3.5">
+                        <li v-for="entry in activity.slice(0, logShown)" :key="entry.id" class="flex gap-3">
+                            <span class="flex size-8 shrink-0 items-center justify-center rounded-full" :class="logIcon(entry).tone"><component :is="logIcon(entry).icon" class="size-4" aria-hidden="true" /></span>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-semibold text-ink" :class="{ 'text-red-700': entry.event === 'email_failed', 'text-amber-800': entry.event === 'overpaid' }">{{ entry.label }}</p>
+                                <p class="text-[12px] text-ink-muted">{{ formatDate(entry.at, true) }} · {{ entry.by ?? (entry.category === 'customer' ? 'Customer' : 'System') }}</p>
+                                <p v-for="line in logDetails(entry)" :key="line" class="mt-0.5 text-[13px] [overflow-wrap:anywhere] text-ink-soft">{{ line }}</p>
+                                <p v-if="entry.details.message" class="mt-1 rounded-lg bg-canvas px-3 py-2 text-[13px] [overflow-wrap:anywhere] whitespace-pre-line text-ink">{{ entry.details.message }}</p>
+                                <div v-if="entry.event === 'notes_changed'" class="mt-1 grid gap-1 text-[13px] sm:grid-cols-2">
+                                    <p class="rounded-lg bg-red-50/70 px-3 py-2 [overflow-wrap:anywhere] whitespace-pre-line text-ink-soft line-through decoration-red-300">{{ entry.details.from || '(empty)' }}</p>
+                                    <p class="rounded-lg bg-emerald-50/70 px-3 py-2 [overflow-wrap:anywhere] whitespace-pre-line text-ink">{{ entry.details.to || '(empty)' }}</p>
+                                </div>
+                                <p v-if="entry.details.error" class="mt-1 rounded-lg bg-red-50 px-3 py-2 text-[12px] [overflow-wrap:anywhere] text-red-800">{{ entry.details.error }}</p>
+                            </div>
+                        </li>
+                    </ol>
+                    <button v-if="activity.length > logShown" type="button" class="mt-4 text-[13px] font-semibold text-brand hover:underline" @click="logShown += 50">Show {{ Math.min(50, activity.length - logShown) }} more</button>
                 </section>
 
                 <!-- Customer updates: what the customer sees on their booking page -->

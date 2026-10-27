@@ -18,6 +18,7 @@ import {
     Package as PackageIcon,
     Phone,
     PiggyBank,
+    Coins,
     Users,
     Wallet,
 } from 'lucide-vue-next';
@@ -54,6 +55,7 @@ const filtersOpen = ref(false);
 const statusMeta: Record<BookingStatus, { icon: Component; tone: string }> = {
     pending: { icon: Clock, tone: '#fbbf24' },
     confirmed: { icon: BadgeCheck, tone: '#60a5fa' },
+    partially_paid: { icon: Coins, tone: '#38bdf8' },
     advance_paid: { icon: PiggyBank, tone: '#fb923c' },
     fully_paid: { icon: Wallet, tone: '#34d399' },
     completed: { icon: CircleCheckBig, tone: '#2dd4bf' },

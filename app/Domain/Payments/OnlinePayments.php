@@ -2,6 +2,7 @@
 
 namespace App\Domain\Payments;
 
+use App\Domain\Booking\BookingLog;
 use App\Domain\Booking\BookingService;
 use App\Models\Booking;
 use App\Models\Payment;
@@ -19,7 +20,16 @@ class OnlinePayments
     public function __construct(
         private readonly GatewayManager $gateways,
         private readonly BookingService $bookings,
+        private readonly BookingLog $log,
     ) {}
+
+    /**
+     * What an online payment would charge now: the advance still due, never more than the balance.
+     */
+    public function amountDue(Booking $booking): float
+    {
+        return round(min($booking->advanceDue(), $booking->balance()), 2);
+    }
 
     /**
      * Whether the customer can pay the advance for this booking online now.
@@ -28,7 +38,7 @@ class OnlinePayments
     {
         return ! $booking->isClosed()
             && ! $booking->hidesPrice()
-            && $booking->advanceDue() >= self::MINIMUM
+            && $this->amountDue($booking) >= self::MINIMUM
             && $this->gateways->active() !== null;
     }
 
@@ -41,14 +51,21 @@ class OnlinePayments
     {
         $gateway = $this->gateways->active() ?? throw new GatewayException('Online payment is not available.');
 
+        // Re-checked here, not only when the button was shown: staff may have recorded a payment since.
+        if (! $this->canPay($booking->refresh())) {
+            throw new GatewayException('Nothing is due online for this booking.');
+        }
+
         $payment = $booking->payments()->create([
             'method' => $gateway->key(),
             'is_online' => true,
             'status' => 'initiated',
-            'amount' => $booking->advanceDue(),
+            'amount' => $this->amountDue($booking),
             'currency' => $booking->currency,
             'transaction_id' => $booking->reference.'-'.Str::upper(Str::random(6)),
         ]);
+
+        $this->log->record($booking, 'payment_started', ['amount' => (float) $payment->amount, 'gateway' => $payment->methodLabel(), 'transaction' => $payment->transaction_id]);
 
         try {
             return $gateway->initiate($payment, $booking);

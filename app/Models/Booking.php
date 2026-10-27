@@ -24,6 +24,7 @@ class Booking extends Model
     public const STATUSES = [
         'pending' => 'Pending',
         'confirmed' => 'Confirmed',
+        'partially_paid' => 'Partially paid',
         'advance_paid' => 'Advance paid',
         'fully_paid' => 'Fully paid',
         'completed' => 'Completed',
@@ -81,6 +82,7 @@ class Booking extends Model
         return match ($status) {
             'pending' => __('Pending confirmation', [], $locale),
             'confirmed' => __('Confirmed', [], $locale),
+            'partially_paid' => __('Partially paid', [], $locale),
             'advance_paid' => __('Advance paid', [], $locale),
             'fully_paid' => __('Fully paid', [], $locale),
             'completed' => __('Completed', [], $locale),

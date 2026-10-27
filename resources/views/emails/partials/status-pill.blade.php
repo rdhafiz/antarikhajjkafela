@@ -3,6 +3,7 @@
     [$bg, $fg] = match ($status) {
         'pending' => ['#fff4cc', '#7a5a00'],
         'confirmed' => ['#e6efff', '#1d4ed8'],
+        'partially_paid' => ['#e0f2fe', '#0369a1'],
         'advance_paid' => ['#efe9ff', '#5b21b6'],
         'fully_paid', 'completed' => ['#e3f6ec', '#047857'],
         'cancelled' => ['#fde8e8', '#b91c1c'],

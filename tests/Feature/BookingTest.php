@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Domain\Booking\BookingCalculator;
+use App\Domain\Booking\BookingService;
 use App\Domain\Booking\TravelDates;
 use App\Domain\Payments\Gateways\DgePayGateway;
+use App\Domain\Payments\OnlinePayments;
 use App\Mail\BookingPlaced;
 use App\Mail\BookingReceived;
 use App\Mail\BookingUpdated;
@@ -236,7 +238,7 @@ class BookingTest extends AdminTestCase
 
         $status = $this->get($booking->publicUrl())->assertOk()->assertSeeText('Price on request')->assertDontSeeText('Balance')->getContent();
         $this->assertStringNotContainsString('Pay advance', $status);
-        $this->post(URL::signedRoute('bookings.pay', ['booking' => $booking->reference]))->assertStatus(409);
+        $this->post(URL::signedRoute('bookings.pay', ['booking' => $booking->reference]))->assertRedirect($booking->publicUrl());
 
         Mail::assertSent(BookingReceived::class, fn ($mail) => ! str_contains($mail->render(), 'Balance'));
         Mail::assertSent(BookingPlaced::class, fn ($mail) => str_contains($mail->render(), 'Balance'));
@@ -438,6 +440,111 @@ class BookingTest extends AdminTestCase
         $this->asAdmin($viewer)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => 1, 'method' => 'cash', 'paid_at' => now()->toDateTimeString()])->assertForbidden();
         $this->asAdmin($viewer)->deleteJson("/api/admin/bookings/{$booking->id}")->assertForbidden();
         $this->assertStringContainsString($booking->reference, $this->asAdmin($viewer)->get('/api/admin/bookings/export')->assertOk()->streamedContent());
+    }
+
+    public function test_the_status_follows_the_payments_both_ways(): void
+    {
+        // No advance on this package: any amount below the total is a partial payment.
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1]));
+        $booking = Booking::firstOrFail();
+        $admin = $this->adminWith(['bookings.view', 'bookings.update', 'payments.create']);
+        $total = (float) $booking->total;
+
+        // Staff confirm it first; removing every payment later goes back to Confirmed, not Pending.
+        $this->asAdmin($admin)->putJson("/api/admin/bookings/{$booking->id}", ['status' => 'confirmed'])->assertOk();
+
+        $first = $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => 1000, 'method' => 'cash', 'paid_at' => now()->toDateTimeString()])
+            ->assertCreated()->assertJsonPath('data.status', 'partially_paid')->json('data.payments.0.id');
+
+        $second = $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => $total - 1000, 'method' => 'bank', 'paid_at' => now()->toDateTimeString()])
+            ->assertCreated()->assertJsonPath('data.status', 'fully_paid')->json('data.payments.0.id');
+
+        // Nothing more can be recorded once it is paid in full.
+        $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => 1, 'method' => 'cash', 'paid_at' => now()->toDateTimeString()])
+            ->assertJsonValidationErrors('amount');
+
+        $this->asAdmin($admin)->deleteJson("/api/admin/bookings/{$booking->id}/payments/{$second}")->assertOk()->assertJsonPath('data.status', 'partially_paid');
+        $this->asAdmin($admin)->deleteJson("/api/admin/bookings/{$booking->id}/payments/{$first}")->assertOk()->assertJsonPath('data.status', 'confirmed')->assertJsonPath('data.paid_amount', 0);
+
+        // With an advance: below it is partial, the advance itself is "advance paid".
+        $this->package()->update(['advance_type' => 'fixed', 'advance_value' => 20000]);
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1, 'phone' => '01711-000001']));
+        $withAdvance = Booking::latest('id')->firstOrFail();
+        $this->asAdmin($admin)->postJson("/api/admin/bookings/{$withAdvance->id}/payments", ['amount' => 5000, 'method' => 'cash', 'paid_at' => now()->toDateTimeString()])->assertJsonPath('data.status', 'partially_paid');
+        $this->asAdmin($admin)->postJson("/api/admin/bookings/{$withAdvance->id}/payments", ['amount' => 15000, 'method' => 'cash', 'paid_at' => now()->toDateTimeString()])->assertJsonPath('data.status', 'advance_paid');
+
+        // Completed and cancelled bookings keep their status whatever happens to the payments.
+        $this->asAdmin($admin)->putJson("/api/admin/bookings/{$withAdvance->id}", ['status' => 'completed'])->assertOk();
+        $id = $withAdvance->payments()->value('id');
+        $this->asAdmin($admin)->deleteJson("/api/admin/bookings/{$withAdvance->id}/payments/{$id}")->assertOk()->assertJsonPath('data.status', 'completed');
+    }
+
+    public function test_online_payments_never_overpay_and_late_confirmations_are_flagged(): void
+    {
+        $this->enableSslCommerz();
+        $this->package()->update(['advance_type' => 'fixed', 'advance_value' => 20000]);
+        Http::fake(['sandbox.sslcommerz.com/gwprocess/*' => Http::response(['status' => 'SUCCESS', 'GatewayPageURL' => 'https://sandbox.sslcommerz.com/pay/abc', 'sessionkey' => 'abc'])]);
+
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1, 'payment' => 'now']));
+        $booking = Booking::firstOrFail();
+        $online = $booking->payments()->firstOrFail();
+        $this->assertSame('initiated', $online->status);
+
+        // Staff record the whole balance at the office: the unfinished online payment is withdrawn.
+        $admin = $this->adminWith(['bookings.view', 'bookings.update', 'payments.create']);
+        $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => (float) $booking->total, 'method' => 'bank', 'paid_at' => now()->toDateTimeString()])
+            ->assertCreated()->assertJsonPath('data.status', 'fully_paid');
+        $this->assertSame('cancelled', $online->fresh()->status);
+
+        // Nothing is due, so online payment is no longer offered or started.
+        $this->assertFalse(app(OnlinePayments::class)->canPay($booking->fresh()));
+        $this->post(URL::signedRoute('bookings.pay', ['booking' => $booking->reference]))->assertRedirect($booking->publicUrl());
+        $this->assertSame(2, $booking->payments()->count());
+
+        // The gateway still confirms the withdrawn payment: the money was taken, so it is recorded and flagged.
+        app(BookingService::class)->markPaid($online->fresh(), ['gateway_reference' => 'LATE1']);
+        $detail = $this->asAdmin($admin)->getJson("/api/admin/bookings/{$booking->id}")->assertOk()->json('data');
+        $this->assertSame(20000, (int) $detail['overpaid']);
+        $this->assertContains('overpaid', array_column($detail['activity'], 'event'));
+        $this->assertContains('payment_withdrawn', array_column($detail['activity'], 'event'));
+
+        // The online amount is never more than the balance, even with an advance set above the price.
+        $fresh = (new Booking)->forceFill(['total' => 30000, 'advance_amount' => 45000, 'paid_amount' => 0]);
+        $this->assertSame(30000.0, app(OnlinePayments::class)->amountDue($fresh));
+    }
+
+    public function test_each_booking_keeps_its_own_activity_log(): void
+    {
+        Storage::fake('local');
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1, 'passport' => [UploadedFile::fake()->image('passport.jpg')]]));
+        $other = $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1, 'phone' => '01711-000002']));
+        [$booking, $second] = Booking::orderBy('id')->get()->all();
+        $admin = $this->adminWith(['bookings.view', 'bookings.update', 'payments.create']);
+
+        // The customer opens their page (logged once per half hour) and finds it with Find your booking.
+        $this->get($booking->publicUrl())->assertOk();
+        $this->get($booking->publicUrl())->assertOk();
+        $this->post('/booking/status', ['reference' => $booking->reference, 'contact' => 'karim@example.com']);
+
+        $this->asAdmin($admin)->putJson("/api/admin/bookings/{$booking->id}", ['status' => 'confirmed', 'admin_notes' => 'Called him', 'customer_message' => 'See you soon.'])->assertOk();
+        $paymentId = $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => 500, 'method' => 'cash', 'paid_at' => now()->toDateTimeString(), 'reference' => 'R-1'])->json('data.payments.0.id');
+        $this->asAdmin($admin)->deleteJson("/api/admin/bookings/{$booking->id}/payments/{$paymentId}")->assertOk();
+        $document = $booking->documents()->firstOrFail();
+        $this->asAdmin($admin)->get("/api/admin/bookings/{$booking->id}/documents/{$document->id}")->assertOk();
+
+        $activity = collect($this->asAdmin($admin)->getJson("/api/admin/bookings/{$booking->id}")->json('data.activity'));
+        $events = $activity->pluck('event');
+
+        foreach (['created', 'email_sent', 'customer_viewed', 'customer_lookup', 'status_changed', 'notes_changed', 'message_sent', 'payment_recorded', 'status_auto', 'payment_removed', 'document_opened'] as $event) {
+            $this->assertContains($event, $events, "missing {$event}");
+        }
+        $this->assertSame(1, $events->filter(fn ($e) => $e === 'customer_viewed')->count());
+        $this->assertSame(['from' => 'pending', 'to' => 'confirmed', 'notify' => true], $activity->firstWhere('event', 'status_changed')['details']);
+        $this->assertSame($admin->name, $activity->firstWhere('event', 'payment_removed')['by']);
+        $this->assertNull($activity->firstWhere('event', 'customer_viewed')['by']);
+
+        // Another booking's log is its own.
+        $this->assertSame(['email_sent', 'email_sent', 'created'], collect($this->asAdmin($admin)->getJson("/api/admin/bookings/{$second->id}")->json('data.activity'))->pluck('event')->all());
     }
 
     public function test_customers_are_emailed_every_update_with_the_latest_details(): void

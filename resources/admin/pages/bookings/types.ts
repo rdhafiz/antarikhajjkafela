@@ -1,8 +1,19 @@
-export type BookingStatus = 'pending' | 'confirmed' | 'advance_paid' | 'fully_paid' | 'completed' | 'cancelled';
+export type BookingStatus = 'pending' | 'confirmed' | 'partially_paid' | 'advance_paid' | 'fully_paid' | 'completed' | 'cancelled';
+
+export const statusLabels: Record<BookingStatus, string> = {
+    pending: 'Pending',
+    confirmed: 'Confirmed',
+    partially_paid: 'Partially paid',
+    advance_paid: 'Advance paid',
+    fully_paid: 'Fully paid',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+};
 
 export const statusTone: Record<BookingStatus, 'neutral' | 'brand' | 'success' | 'warning' | 'danger' | 'gold'> = {
     pending: 'warning',
     confirmed: 'brand',
+    partially_paid: 'neutral',
     advance_paid: 'gold',
     fully_paid: 'success',
     completed: 'success',
@@ -87,4 +98,16 @@ export interface BookingDetail extends BookingRow {
     payments: BookingPayment[];
     offline_methods: Record<string, string>;
     updates: BookingUpdate[];
+    activity: BookingActivity[];
+}
+
+/** One entry of the booking's own activity log (staff, payments, emails, customer). */
+export interface BookingActivity {
+    id: number;
+    event: string;
+    category: 'staff' | 'payment' | 'email' | 'customer';
+    label: string;
+    by: string | null;
+    details: Record<string, string | number | boolean | null>;
+    at: string;
 }
