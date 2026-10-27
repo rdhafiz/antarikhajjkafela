@@ -452,5 +452,19 @@
     "Choose your return date, or pick One way.": "ফেরার তারিখ বেছে নিন, অথবা ওয়ান-ওয়ে নির্বাচন করুন।",
     "Add the next flight of your multi-city trip.": "আপনার মাল্টি-সিটি সফরের পরের ফ্লাইটটি যোগ করুন।",
     "This flight cannot be earlier than the flight before it.": "এই ফ্লাইটের তারিখ আগের ফ্লাইটের আগে হতে পারে না।",
-    "Flying to must be a different city from Flying from.": "গন্তব্য শহর যাত্রার শহর থেকে আলাদা হতে হবে।"
+    "Flying to must be a different city from Flying from.": "গন্তব্য শহর যাত্রার শহর থেকে আলাদা হতে হবে।",
+    "Enter a valid email address, e.g. name@example.com.": "সঠিক ইমেইল ঠিকানা দিন, যেমন name@example.com।",
+    "Enter a valid mobile number, e.g. 01712-345678, or an international number starting with +.": "সঠিক মোবাইল নম্বর দিন, যেমন 01712-345678, অথবা + দিয়ে শুরু হওয়া আন্তর্জাতিক নম্বর।",
+    ":name: only JPG, PNG, WebP or PDF files can be uploaded.": ":name: শুধু JPG, PNG, WebP বা PDF ফাইল আপলোড করা যায়।",
+    ":name is larger than 5 MB.": ":name ৫ MB-এর চেয়ে বড়।",
+    ":name was not added: up to 10 documents in total.": ":name যোগ করা হয়নি: সব মিলিয়ে সর্বোচ্চ ১০টি ডকুমেন্ট।",
+    ":name was not added: up to 15 MB of documents in total.": ":name যোগ করা হয়নি: সব মিলিয়ে সর্বোচ্চ ১৫ MB ডকুমেন্ট।",
+    "Sending…": "পাঠানো হচ্ছে…",
+    "Uploading :percent%": "আপলোড হচ্ছে :percent%",
+    "We could not reach the server. Your details are still here: check your connection and try again.": "সার্ভারে পৌঁছানো যায়নি। আপনার তথ্য এখানেই আছে: ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।",
+    "This is taking too long. Your details are still here: please try again.": "অনেক বেশি সময় লাগছে। আপনার তথ্য এখানেই আছে: আবার চেষ্টা করুন।",
+    "This page was open for a long time. Please reload it and try again.": "পেজটি অনেকক্ষণ খোলা ছিল। পেজটি রিলোড করে আবার চেষ্টা করুন।",
+    "Too many attempts. Please wait a minute and try again.": "অনেকবার চেষ্টা করা হয়েছে। এক মিনিট অপেক্ষা করে আবার চেষ্টা করুন।",
+    "The documents are too large to send. Remove some and try again.": "ডকুমেন্টগুলো পাঠানোর জন্য অনেক বড়। কয়েকটি সরিয়ে আবার চেষ্টা করুন।",
+    "Something went wrong. Please try again or call us.": "কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন অথবা আমাদের কল করুন।"
 }
