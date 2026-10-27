@@ -128,6 +128,26 @@ class PageBuilderTest extends AdminTestCase
         $this->assertSame('navy', $team->fresh()->style['background']);
     }
 
+    public function test_listing_pages_take_the_travel_agency_wording(): void
+    {
+        $blog = Page::where('system_key', 'blog')->firstOrFail();
+        $cta = $blog->sections()->where('component', 'cta')->firstOrFail();
+        $cta->update(['content' => array_replace($cta->content, ['title' => ['en' => 'Ready to answer the call? Let us plan your Hajj or Umrah together.']])]);
+        $listing = $blog->sections()->where('component', 'page_listing')->firstOrFail();
+        $listing->update(['content' => array_replace($listing->content, ['intro' => ['en' => 'Guidance, news and updates for Hajj and Umrah pilgrims.']])]);
+        $gallery = Page::where('system_key', 'gallery')->firstOrFail()->sections()->where('component', 'cta')->firstOrFail();
+        $gallery->update(['content' => array_replace($gallery->content, ['title' => ['en' => 'Our own banner']])]);
+
+        (require database_path('migrations/2026_10_27_140000_use_travel_agency_wording_on_listing_pages.php'))->up();
+
+        $this->get('/blog')->assertOk()
+            ->assertSeeText('Tell us where you want to go. We will take care of the rest.')
+            ->assertSeeText('Travel tips, visa updates and guidance for Hajj and Umrah pilgrims.')
+            ->assertDontSeeText('Ready to answer the call?');
+        // A title the admin wrote stays.
+        $this->assertSame('Our own banner', $gallery->fresh()->content['title']['en']);
+    }
+
     public function test_inner_page_banners_use_the_shared_centered_hero(): void
     {
         $policy = Page::where('slug', 'privacy-policy')->firstOrFail();
