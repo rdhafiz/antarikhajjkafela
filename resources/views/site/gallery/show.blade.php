@@ -37,7 +37,7 @@
                                 <img
                                     src="{{ $item->media->url($index === 0 && $items->count() >= 5 ? 'md' : 'thumb') }}"
                                     @if ($index === 0 && $items->count() >= 5) srcset="{{ $item->media->srcset() }}" sizes="(min-width: 1024px) 50vw, (min-width: 640px) 66vw, 100vw" @endif
-                                    alt=""
+                                    alt="{{ $item->media->altText($cap ?: $album->getTranslation('title', $locale)) }}"
                                     @if ($index > 3) loading="lazy" @endif
                                     decoding="async"
                                     class="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"

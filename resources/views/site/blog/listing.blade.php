@@ -56,7 +56,7 @@
             <article class="group relative isolate mx-auto flex min-h-[24rem] max-w-6xl flex-col items-start justify-end overflow-hidden rounded-[2rem] bg-brand-950 px-6 pt-24 pb-9 text-start text-white shadow-[var(--shadow-lift)] sm:min-h-[30rem] sm:px-12 sm:pb-12">
                 @if ($lead->banner)
                     <div class="absolute inset-0 -z-20 overflow-hidden">
-                        <img src="{{ $lead->banner->url('lg') }}" srcset="{{ $lead->banner->srcset() }}" sizes="(min-width: 1200px) 1150px, 100vw" alt=""
+                        <img src="{{ $lead->banner->url('lg') }}" srcset="{{ $lead->banner->srcset() }}" sizes="(min-width: 1200px) 1150px, 100vw" alt="{{ $lead->banner->altText($lead->getTranslation('title', $locale)) }}"
                              class="size-full object-cover transition-[scale] duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]">
                     </div>
                 @else

@@ -8,7 +8,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Baseline security headers for every response. Headers a controller has
- * already set (for example a stricter Referrer-Policy) are kept.
+ * already set (for example a stricter Referrer-Policy) are kept. The PHP
+ * version is never announced, and a site closed to search engines says so
+ * on every response.
  */
 class SecurityHeaders
 {
@@ -25,6 +27,15 @@ class SecurityHeaders
 
         if ($request->isSecure() && app()->isProduction()) {
             $headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
+        }
+
+        if (! config('app.search_indexing')) {
+            $headers['X-Robots-Tag'] = 'noindex, nofollow';
+        }
+
+        $response->headers->remove('X-Powered-By');
+        if (! headers_sent()) {
+            header_remove('X-Powered-By');
         }
 
         foreach ($headers as $name => $value) {

@@ -39,7 +39,7 @@
         <div class="col-span-2 max-w-sm lg:col-span-1" data-reveal>
             <a href="{{ url('/') }}" class="inline-flex items-center gap-3">
                 <span class="flex size-14 items-center justify-center rounded-2xl bg-white p-1.5">
-                    <img src="{{ $branding->iconUrl(96) }}" alt="" width="48" height="48" class="size-full object-contain" loading="lazy" decoding="async">
+                    <img src="{{ $branding->iconUrl(96) }}" alt="" aria-hidden="true" width="48" height="48" class="size-full object-contain" loading="lazy" decoding="async">
                 </span>
                 <span class="font-display text-[1.35rem] leading-tight font-semibold text-white">{{ $site->name() }}</span>
             </a>

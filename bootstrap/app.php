@@ -43,4 +43,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // Error pages speak the visitor's language, even when the error came before the web middleware ran.
+        $exceptions->render(function (Throwable $e, Request $request) {
+            if (! $request->is('api/*')) {
+                app()->setLocale(app(SetLocale::class)->resolve($request));
+            }
+
+            return null;
+        });
     })->create();

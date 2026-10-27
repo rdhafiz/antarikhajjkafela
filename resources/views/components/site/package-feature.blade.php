@@ -22,7 +22,7 @@
                     src="{{ $package->banner->url('lg') }}"
                     srcset="{{ $package->banner->srcset() }}"
                     sizes="(min-width: 1200px) 1150px, 100vw"
-                    alt="" loading="lazy" decoding="async"
+                    alt="{{ $package->banner->altText($name) }}" loading="lazy" decoding="async"
                     class="pkg-feature-img size-full object-cover"
                 >
             </div>

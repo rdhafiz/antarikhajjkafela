@@ -20,7 +20,7 @@
                 src="{{ $post->banner->url($lead ? 'md' : 'sm') }}"
                 srcset="{{ $post->banner->srcset() }}"
                 sizes="{{ $lead ? '(min-width: 1024px) 640px, 100vw' : '(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw' }}"
-                alt=""
+                alt="{{ $post->banner->altText($title) }}"
                 @if (! $lead) loading="lazy" @endif
                 decoding="async"
                 class="absolute inset-0 size-full object-cover transition-[scale] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"

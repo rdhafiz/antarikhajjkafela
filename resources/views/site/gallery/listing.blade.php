@@ -34,7 +34,7 @@
             <article class="mx-auto max-w-6xl">
                 <div class="relative isolate flex min-h-[24rem] flex-col items-start justify-end overflow-hidden rounded-[2rem] bg-brand-950 px-6 pt-24 pb-9 text-start text-white shadow-[var(--shadow-lift)] sm:min-h-[30rem] sm:px-12 sm:pb-12">
                     @if ($featured->cover)
-                        <img src="{{ $featured->cover->url('lg') ?? $featured->cover->url('md') }}" srcset="{{ $featured->cover->srcset() }}" sizes="(min-width: 1200px) 1150px, 100vw" alt=""
+                        <img src="{{ $featured->cover->url('lg') ?? $featured->cover->url('md') }}" srcset="{{ $featured->cover->srcset() }}" sizes="(min-width: 1200px) 1150px, 100vw" alt="{{ $featured->cover->altText($featured->getTranslation('title', app()->getLocale())) }}"
                              class="absolute inset-0 -z-20 size-full object-cover">
                     @else
                         <div class="pattern-star absolute inset-0 -z-20 opacity-[0.08]" aria-hidden="true"></div>

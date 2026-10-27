@@ -65,7 +65,7 @@ class SitemapController extends Controller
 
     public function robots(): Response
     {
-        $lines = app()->isProduction()
+        $lines = app()->isProduction() && config('app.search_indexing')
             ? ['User-agent: *', 'Disallow: /admin', 'Disallow: /api', 'Disallow: /preview', '', 'Sitemap: '.route('sitemap')]
             : ['User-agent: *', 'Disallow: /'];
 

@@ -14,7 +14,7 @@
                 src="{{ $album->cover->url('thumb') ?? $album->cover->url('sm') }}"
                 srcset="{{ $album->cover->srcset() }}"
                 sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"
-                alt=""
+                alt="{{ $album->cover->altText($album->getTranslation('title', $locale)) }}"
                 loading="lazy"
                 decoding="async"
                 class="absolute inset-0 size-full object-cover transition-[scale] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
