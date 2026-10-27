@@ -35,15 +35,15 @@
     >
         <div class="container-site flex h-20 items-center justify-between gap-6">
             {{-- Over a dark hero the logo sits on a white plate: its blue lettering needs a light ground. --}}
-            <a href="{{ url('/') }}" class="relative -ml-2.5 shrink-0 rounded-2xl px-2.5 py-1.5 transition-[background-color,box-shadow] duration-300 group-data-[transparent=true]/header:bg-white group-data-[transparent=true]/header:shadow-[0_10px_30px_-12px_rgb(0_0_0/0.45)]" aria-label="{{ $site->name() }} – {{ __('Home') }}">
+            <a href="{{ url('/') }}" class="relative -ml-1.5 shrink-0 rounded-xl px-1.5 py-0.5 transition-[background-color,box-shadow] duration-300 group-data-[transparent=true]/header:bg-white group-data-[transparent=true]/header:shadow-[0_10px_30px_-12px_rgb(0_0_0/0.45)]" aria-label="{{ $site->name() }} – {{ __('Home') }}">
                 <img
                     src="{{ $branding->logoUrl() }}"
                     srcset="{{ $branding->logoSrcset() }}"
-                    sizes="180px"
+                    sizes="(min-width: 1280px) 224px, (min-width: 640px) 204px, 174px"
                     alt="{{ $site->name() }}"
-                    width="180"
-                    height="56"
-                    class="h-auto w-[150px] sm:w-[172px]"
+                    width="224"
+                    height="72"
+                    class="h-[56px] w-auto sm:h-[66px] lg:h-[58px] xl:h-[72px]"
                     fetchpriority="high"
                 >
             </a>

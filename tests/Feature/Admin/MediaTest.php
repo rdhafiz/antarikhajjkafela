@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Domain\Media\MediaUploader;
 use App\Models\Media;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -38,6 +39,37 @@ class MediaTest extends AdminTestCase
         Storage::disk('local')->assertExists("{$media->directory}/original.jpg");
 
         $response->assertJsonPath('data.usage', 'card');
+    }
+
+    public function test_logo_margins_are_trimmed_and_older_logos_can_be_regenerated(): void
+    {
+        // A 600×200 white canvas with a 400×100 blue block in the middle.
+        $canvas = imagecreatetruecolor(600, 200);
+        imagefill($canvas, 0, 0, imagecolorallocate($canvas, 255, 255, 255));
+        imagefilledrectangle($canvas, 100, 50, 499, 149, imagecolorallocate($canvas, 20, 60, 200));
+        $path = tempnam(sys_get_temp_dir(), 'logo').'.png';
+        imagepng($canvas, $path);
+
+        $this->asAdmin($this->superAdmin())->post('/api/admin/media', [
+            'file' => new UploadedFile($path, 'logo.png', 'image/png', null, true),
+            'usage' => 'logo',
+        ])->assertCreated();
+
+        $media = Media::firstOrFail();
+        $this->assertSame([400, 100], [$media->variants['md']['width'], $media->variants['md']['height']]);
+
+        // Regenerating writes new file names, so cached copies are not reused.
+        $old = $media->variants['md']['path'];
+        $this->assertTrue(app(MediaUploader::class)->regenerateVariants($media));
+        $this->assertNotSame($old, $media->fresh()->variants['md']['path']);
+        Storage::disk('public')->assertExists($media->fresh()->variants['md']['path']);
+
+        // Other usages keep their margins.
+        $this->asAdmin($this->superAdmin())->post('/api/admin/media', [
+            'file' => new UploadedFile($path, 'photo.png', 'image/png', null, true),
+            'usage' => 'general',
+        ])->assertCreated();
+        $this->assertSame([400, 133], [Media::latest('id')->first()->variants['admin']['width'], Media::latest('id')->first()->variants['admin']['height']]);
     }
 
     public function test_images_are_never_upscaled(): void

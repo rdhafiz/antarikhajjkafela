@@ -39,6 +39,7 @@ class MediaUploader
 
         $image = $this->images->decodePath($file->getRealPath());
         $image->orient();
+        $this->trimMargins($image, $usage);
 
         $uuid = (string) Str::uuid();
         $directory = trim(config('media.directory'), '/').'/'.now()->format('Y/m').'/'.$uuid;
@@ -128,6 +129,7 @@ class MediaUploader
 
         $image = $this->images->decodePath($disk->path($original));
         $image->orient();
+        $this->trimMargins($image, $media->usage);
         $variants = $media->variants ?? [];
 
         foreach ($missing as $name => $spec) {
@@ -137,6 +139,46 @@ class MediaUploader
         $media->update(['variants' => $variants]);
 
         return array_map('strval', array_keys($missing));
+    }
+
+    /**
+     * Write every variant of an image again from its original, with the
+     * usage's current settings (for example after trimming was turned on).
+     */
+    public function regenerateVariants(Media $media): bool
+    {
+        $original = $media->directory.'/'.$media->filename;
+        $disk = Storage::disk(config('media.originals_disk', 'local'));
+
+        if (! $disk->exists($original)) {
+            return false;
+        }
+
+        $image = $this->images->decodePath($disk->path($original));
+        $image->orient();
+        $this->trimMargins($image, $media->usage);
+
+        // New file names, so browsers holding the old files (cached for a month) fetch the new ones.
+        $suffix = '-'.Str::lower(Str::random(6));
+        $variants = [];
+        foreach ($this->variantsFor($media->usage) as $name => $spec) {
+            $variants[$name] = $this->writeVariant($image, $media->directory, $name.$suffix, $spec);
+        }
+        $variants['admin'] = $this->writeVariant($image, $media->directory, 'admin'.$suffix, config('media.admin_variant'));
+
+        $media->update(['variants' => $variants]);
+
+        return true;
+    }
+
+    /**
+     * Cut off plain margins (transparent or one flat colour) for usages that ask for it, such as logos.
+     */
+    private function trimMargins(ImageInterface $image, string $usage): void
+    {
+        if (config("media.usages.{$usage}.trim")) {
+            $image->trim(10);
+        }
     }
 
     private function writeVariant(ImageInterface $source, string $directory, string $name, array $spec): array

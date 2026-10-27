@@ -106,6 +106,8 @@ return [
 
         'logo' => [
             'label' => 'Logo',
+            // Plain margins around the artwork are cut off, so the logo fills the space it is given.
+            'trim' => true,
             'variants' => [
                 'md' => ['width' => 640, 'height' => null, 'fit' => 'scale', 'quality' => 90],
                 'sm' => ['width' => 320, 'height' => null, 'fit' => 'scale', 'quality' => 90],
