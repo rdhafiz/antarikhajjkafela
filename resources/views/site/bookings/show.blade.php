@@ -4,14 +4,6 @@
     use App\Support\Money;
 
     $result = session('payment_result');
-    $statusLabels = [
-        'pending' => __('Pending confirmation'),
-        'confirmed' => __('Confirmed'),
-        'advance_paid' => __('Advance paid'),
-        'fully_paid' => __('Fully paid'),
-        'completed' => __('Completed'),
-        'cancelled' => __('Cancelled'),
-    ];
     $tone = match ($booking->status) {
         'cancelled' => 'bg-red-600 text-white',
         'pending' => 'bg-gold text-brand-950',
@@ -61,7 +53,7 @@
                             <h1 class="mt-2 font-display text-[2rem] leading-none font-semibold tracking-wide">{{ $booking->reference }}</h1>
                             <p class="mt-3 text-[14px] text-white/65">{{ __('Booked on :date', ['date' => App\Support\Dates::format($booking->created_at)]) }}</p>
                         </div>
-                        <span class="rounded-full px-4 py-1.5 text-[14px] font-semibold {{ $tone }}">{{ $statusLabels[$booking->status] ?? $booking->status }}</span>
+                        <span class="rounded-full px-4 py-1.5 text-[14px] font-semibold {{ $tone }}">{{ App\Models\Booking::statusLabel($booking->status) }}</span>
                     </div>
                 </div>
 
@@ -133,6 +125,43 @@
                                 </li>
                             @endforeach
                         </ul>
+                    </div>
+                @endif
+
+                {{-- What has happened so far, newest first: the booking, status changes, payments and messages from the team. --}}
+                @if ($booking->updates->isNotEmpty())
+                    <div class="border-t border-line p-6 sm:px-9">
+                        <h2 class="text-[13px] font-semibold tracking-wider text-ink-3 uppercase">{{ __('Booking updates') }}</h2>
+                        <ol class="mt-5 space-y-5">
+                            @foreach ($booking->updates as $update)
+                                @php
+                                    [$icon, $toneClass] = match ($update->kind) {
+                                        'created' => ['check-circle', 'ic-1'],
+                                        'payment' => ['wallet', 'ic-2'],
+                                        'message' => ['mail', 'ic-3'],
+                                        default => ['calendar', 'ic-5'],
+                                    };
+                                @endphp
+                                <li class="relative flex gap-4">
+                                    @unless ($loop->last)<span class="absolute top-11 bottom-[-1.25rem] left-[1.1rem] w-px bg-line rtl:right-[1.1rem] rtl:left-auto" aria-hidden="true"></span>@endunless
+                                    <span class="sec-icon ic-tone {{ $toneClass }} relative size-9 shrink-0 rounded-full" aria-hidden="true"><x-site.icon :name="$icon" class="size-4" /></span>
+                                    <div class="min-w-0 pt-1">
+                                        <p class="font-semibold text-ink">
+                                            @switch ($update->kind)
+                                                @case('created') {{ __('Booking received') }} @break
+                                                @case('payment') {{ __('Payment received: :amount', ['amount' => Money::format($update->amount)]) }} @break
+                                                @case('status') {{ __('Status changed to :status', ['status' => App\Models\Booking::statusLabel($update->status)]) }} @break
+                                                @default {{ __('Message from our team') }}
+                                            @endswitch
+                                        </p>
+                                        <p class="mt-0.5 text-[13px] text-ink-3"><time datetime="{{ $update->created_at->toIso8601String() }}">{{ App\Support\Dates::format($update->created_at) }}</time></p>
+                                        @if (filled($update->message))
+                                            <p class="mt-2 rounded-xl bg-sky-soft px-4 py-3 text-[15px] leading-relaxed whitespace-pre-line text-ink-2">{{ $update->message }}</p>
+                                        @endif
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ol>
                     </div>
                 @endif
 

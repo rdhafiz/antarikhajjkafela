@@ -85,7 +85,8 @@ class BookingController extends Controller
             'rooms' => ['nullable', 'integer', 'min:1', 'max:'.self::MAX_TRAVELERS],
             'name' => ['required', 'string', 'max:120'],
             'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{7,20}$/'],
-            'email' => ['nullable', 'email', 'max:190', Rule::requiredIf($request->input('payment') === 'now')],
+            // Required: the confirmation and every later update are emailed (there are no customer accounts).
+            'email' => ['required', 'email', 'max:190'],
             'address' => ['nullable', 'string', 'max:300'],
             'note' => ['nullable', 'string', 'max:2000'],
             'passport' => ['nullable', 'array', 'max:10'],
@@ -96,7 +97,7 @@ class BookingController extends Controller
             'agree' => ['accepted'],
             ...app(TravelDates::class)->rules(app(TravelDates::class)->mode($package->service), $request->integer('travel_year') ?: null),
         ], [
-            'email.required' => __('Enter your email to pay online; the receipt is sent there.'),
+            'email.required' => __('Enter your email; we send your booking confirmation and updates there.'),
             'agree.accepted' => __('Please accept the booking terms.'),
             // Laravel words file sizes in kilobytes; staff and pilgrims think in MB.
             'passport.*.max' => __(':attribute must be 5 MB or smaller.'),
@@ -152,7 +153,7 @@ class BookingController extends Controller
      */
     public function show(Booking $booking): Response
     {
-        $booking->load(['payments' => fn ($q) => $q->where('status', 'paid')]);
+        $booking->load(['payments' => fn ($q) => $q->where('status', 'paid'), 'updates']);
 
         seo()->title(__('Booking :reference', ['reference' => $booking->reference]))->noindex();
 
@@ -175,10 +176,10 @@ class BookingController extends Controller
 
     public function status(): Response
     {
-        seo()->title(__('Check booking status'))
+        seo()->title(__('Find your booking'))
             ->description(__('Find your booking with its reference number and your phone number or email.'))
             ->breadcrumb(__('Home'), url('/'))
-            ->breadcrumb(__('Check booking status'), route('bookings.status'));
+            ->breadcrumb(__('Find your booking'), route('bookings.status'));
 
         return response()->view('site.bookings.status');
     }

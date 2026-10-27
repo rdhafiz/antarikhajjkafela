@@ -7,6 +7,7 @@ use App\Domain\Booking\TravelDates;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingDocument;
+use App\Models\BookingUpdate;
 use App\Models\Payment;
 use App\Support\Csv;
 use App\Support\Money;
@@ -62,16 +63,29 @@ class BookingController extends Controller
         return response()->json(['data' => $this->detail($booking), 'was_unread' => $wasUnread]);
     }
 
+    /**
+     * Change the status and internal notes. A new status or a message to the
+     * customer goes into the customer's history and, unless staff untick
+     * "Email the customer", out to them by email with the latest details.
+     */
     public function update(Request $request, Booking $booking): JsonResponse
     {
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(Booking::STATUSES))],
             'admin_notes' => ['nullable', 'string', 'max:10000'],
+            'customer_message' => ['nullable', 'string', 'max:2000'],
+            'notify' => ['sometimes', 'boolean'],
         ]);
 
-        $booking->update($data);
+        $before = $booking->status;
+        $booking->update(['status' => $data['status'], 'admin_notes' => $data['admin_notes'] ?? null]);
+        $message = trim((string) ($data['customer_message'] ?? '')) ?: null;
 
-        return response()->json(['data' => $this->detail($booking)]);
+        if ($booking->status !== $before || $message) {
+            $this->bookings->recordUpdate($booking, $booking->status !== $before ? 'status' : 'message', $message, $request->boolean('notify', true), $request->user());
+        }
+
+        return response()->json(['data' => $this->detail($booking->refresh())]);
     }
 
     public function destroy(Booking $booking): JsonResponse
@@ -102,11 +116,13 @@ class BookingController extends Controller
             'paid_at' => ['required', 'date', 'before_or_equal:now'],
             'reference' => ['nullable', 'string', 'max:120'],
             'note' => ['nullable', 'string', 'max:1000'],
+            'customer_message' => ['nullable', 'string', 'max:2000'],
+            'notify' => ['sometimes', 'boolean'],
         ], [
             'amount.max' => 'Only '.Money::format($booking->balance(), 'en').' is still due on this booking.',
         ]);
 
-        DB::transaction(function () use ($booking, $data, $request) {
+        $payment = DB::transaction(function () use ($booking, $data, $request) {
             // Re-check against a locked row: two people recording at once
             // would otherwise both pass the rule above.
             $fresh = Booking::whereKey($booking->id)->lockForUpdate()->first();
@@ -117,8 +133,8 @@ class BookingController extends Controller
                 ]);
             }
 
-            $booking->payments()->create([
-                ...$data,
+            $payment = $booking->payments()->create([
+                ...collect($data)->except(['customer_message', 'notify'])->all(),
                 'is_online' => false,
                 'status' => 'paid',
                 'currency' => $booking->currency,
@@ -126,7 +142,13 @@ class BookingController extends Controller
             ]);
 
             $this->bookings->refreshPayments($booking);
+
+            return $payment;
         });
+
+        // Receipt to the customer with the new balance (unless staff untick "Email the customer").
+        $message = trim((string) ($data['customer_message'] ?? '')) ?: null;
+        $this->bookings->recordPayment($payment, $request->boolean('notify', true), $request->user(), $message);
 
         return response()->json(['data' => $this->detail($booking->refresh())], 201);
     }
@@ -261,7 +283,7 @@ class BookingController extends Controller
      */
     private function detail(Booking $booking): array
     {
-        $booking->load(['payments.recorder:id,name', 'documents', 'package:id,slug,status']);
+        $booking->load(['payments.recorder:id,name', 'documents', 'package:id,slug,status', 'updates.creator:id,name']);
 
         return [
             ...$this->summary($booking),
@@ -306,6 +328,16 @@ class BookingController extends Controller
                 'log' => $p->log ?? [],
             ]),
             'offline_methods' => Payment::OFFLINE_METHODS,
+            'updates' => $booking->updates->map(fn (BookingUpdate $u) => [
+                'id' => $u->id,
+                'kind' => $u->kind,
+                'status' => $u->status,
+                'message' => $u->message,
+                'amount' => $u->amount !== null ? (float) $u->amount : null,
+                'emailed' => $u->emailed_at !== null,
+                'by' => $u->creator?->name,
+                'created_at' => $u->created_at?->toIso8601String(),
+            ]),
         ];
     }
 }

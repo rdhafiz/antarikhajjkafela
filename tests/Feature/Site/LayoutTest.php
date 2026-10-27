@@ -30,7 +30,7 @@ class LayoutTest extends TestCase
             ->assertOk()
             ->assertSee('<html lang="en"', false)
             ->assertSeeText('Umrah')
-            ->assertSeeText('Check booking status')
+            ->assertSeeText('Find your booking')
             ->assertSee('href="tel:+8801711381901"', false)
             ->assertSee('https://wa.me/8801814371475', false)
             ->assertSee('https://facebook.com/antarikhajjkafela', false);

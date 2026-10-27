@@ -81,7 +81,7 @@ class TrashTest extends AdminTestCase
 
         $this->post('/packages/umrah-package/book', [
             'option' => Package::where('slug', 'umrah-package')->firstOrFail()->prices()->value('package_prices.id'),
-            'travelers' => 1, 'travel_month' => now()->month, 'travel_year' => now()->year, 'name' => 'Abdul Karim', 'phone' => '01711-000000', 'payment' => 'later', 'agree' => '1',
+            'travelers' => 1, 'travel_month' => now()->month, 'travel_year' => now()->year, 'name' => 'Abdul Karim', 'phone' => '01711-000000', 'email' => 'karim@example.com', 'payment' => 'later', 'agree' => '1',
             'passport' => [UploadedFile::fake()->image('passport.jpg')],
         ])->assertRedirect();
         $booking = Booking::firstOrFail();

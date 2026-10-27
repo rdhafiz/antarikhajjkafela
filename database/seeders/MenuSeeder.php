@@ -51,7 +51,7 @@ class MenuSeeder extends Seeder
                 [...$this->route('reviews', 'Reviews', 'রিভিউ'), 'is_visible' => false],
                 $this->route('blog', 'Blog & news', 'ব্লগ ও সংবাদ'),
                 $this->route('contact', 'Contact', 'যোগাযোগ'),
-                $this->route('booking_status', 'Check booking status', 'বুকিং স্ট্যাটাস দেখুন'),
+                $this->route('booking_status', 'Find your booking', 'আপনার বুকিং খুঁজুন'),
                 $this->url('/terms-and-conditions', 'Terms & conditions', 'শর্তাবলী'),
                 $this->url('/privacy-policy', 'Privacy policy', 'গোপনীয়তা নীতি'),
             ],

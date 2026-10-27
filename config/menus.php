@@ -40,7 +40,7 @@ return [
         'blog' => ['label' => 'Blog & news', 'path' => '/blog'],
         'about' => ['label' => 'About us', 'path' => '/about'],
         'contact' => ['label' => 'Contact', 'path' => '/contact'],
-        'booking_status' => ['label' => 'Check booking status', 'path' => '/booking/status'],
+        'booking_status' => ['label' => 'Find your booking', 'path' => '/booking/status'],
     ],
 
 ];

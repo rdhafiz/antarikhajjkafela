@@ -267,6 +267,9 @@
                                 <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="btn btn-whatsapp"><x-site.icon name="whatsapp" /> WhatsApp</a>
                             @endif
                         </div>
+                        <a href="{{ route('bookings.status') }}" class="mt-4 flex items-center justify-center gap-2 text-[14px] font-semibold text-white/80 hover:text-gold">
+                            <x-site.icon name="ticket" class="size-4 text-gold" /> {{ __('Already booked? Find your booking') }}
+                        </a>
                     </div>
                 </div>
             </div>

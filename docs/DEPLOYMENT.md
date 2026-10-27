@@ -147,6 +147,10 @@ php artisan up
   - add the Google Tag Manager, Analytics and Pixel IDs, and the reCAPTCHA v3 keys
   - add the payment gateway credentials (sandbox first, then live)
 - **SSLCommerz.** In the merchant panel, set the IPN URL to `https://<domain>/payments/sslcommerz/ipn`.
+- **Advance payments.** Customers can pay the advance online only when both of these are done:
+  1. Settings → Payment gateways: Active gateway **SSLCommerz**, Mode **Live**, and the live Store ID and Store password from SSLCommerz. Try **Sandbox** first with a sandbox store from SSLCommerz to test the flow.
+  2. Packages → (each package) → Details → **Advance payment**: a fixed amount per traveler or a percentage of the total. Packages set to "No advance", or that hide their price, are booked without paying online.
+- **Booking emails.** Email is required on the booking form. Customers get an email when they book, when a payment is received (online or recorded at the office), and when staff change the status or send a message from the booking screen (the "Email the customer" box). Each update also appears on the customer's booking page. Customers find their booking at `/booking/status` with the reference and their phone number or email. Check that the `MAIL_*` settings above work by making a test booking.
 - **Google Search Console.** Submit `https://<domain>/sitemap.xml`.
 - **Old links.** If this replaces the old antarikhajjkafela.com site, its old addresses (for example `/about-us/` and `/services/hajj/`) redirect permanently to the new pages. The list is in `config/redirects.php`.
 - **Checks.** Test a booking without payment, the contact form, and a sandbox payment end to end.

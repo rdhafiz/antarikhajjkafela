@@ -217,19 +217,21 @@
                                 @foreach ([
                                     ['name', __('Full name'), 'text', true, 'name', 'user'],
                                     ['phone', __('Mobile number'), 'tel', true, 'tel', 'phone'],
-                                    ['email', __('Email'), 'email', false, 'email', 'mail'],
+                                    ['email', __('Email'), 'email', true, 'email', 'mail'],
                                     ['address', __('Address'), 'text', false, 'street-address', 'map-pin'],
                                 ] as $i => [$key, $label, $type, $required, $autocomplete, $icon])
                                     <div data-field data-reveal style="--reveal-delay: {{ ($i % 2) * 80 }}ms">
                                         <label for="{{ $key }}" class="book-label">{{ $label }}@if ($required) <span class="text-red-600">*</span>@else <span class="font-normal text-ink-3">({{ __('optional') }})</span>@endif
-                                            @if ($key === 'email')<span class="font-normal text-ink-3" x-text="payment === 'now' ? @js(' – '.__('needed for online payment')) : ''"></span>@endif
                                         </label>
                                         <div class="book-picker">
                                             <x-site.icon :name="$icon" class="book-picker-icon" />
                                             <input id="{{ $key }}" name="{{ $key }}" type="{{ $type }}" value="{{ old($key) }}" autocomplete="{{ $autocomplete }}" @required($required) @if ($type === 'tel') inputmode="tel" dir="ltr" placeholder="01XXXXXXXXX" pattern="[0-9+\-\s\(\)]{7,20}" data-message="{{ __('Enter a valid mobile number.') }}" @endif
-                                                   @if ($key === 'email') :required="payment === 'now'" @endif class="book-select book-input" {!! $invalid($key) !!}>
+                                                   class="book-select book-input" {!! $invalid($key) !!} @if ($key === 'email' && ! $errors->has('email')) aria-describedby="email-hint" @endif>
                                         </div>
                                         @error($key)<p id="{{ $key }}-error" class="error-site">{{ $message }}</p>@enderror
+                                        @if ($key === 'email')
+                                            <p id="email-hint" class="mt-1.5 text-[13px] text-ink-3">{{ __('We send your booking confirmation and every update here.') }}</p>
+                                        @endif
                                     </div>
                                 @endforeach
                                 <div class="sm:col-span-2" data-reveal>

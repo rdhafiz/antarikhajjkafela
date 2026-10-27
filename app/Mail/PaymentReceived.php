@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Booking;
+use App\Models\BookingUpdate;
 use App\Models\Payment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -11,13 +12,13 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Sent to the customer when an online payment is confirmed.
+ * Sent to the customer when a payment is received, online or at the office.
  */
 class PaymentReceived extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Booking $booking, public Payment $payment) {}
+    public function __construct(public Booking $booking, public Payment $payment, public ?BookingUpdate $update = null) {}
 
     public function envelope(): Envelope
     {

@@ -420,5 +420,22 @@
     "Flights from Dhaka, and a driver waiting when you land.": "ঢাকা থেকে ফ্লাইট, আর নামার সাথে সাথে অপেক্ষমাণ গাড়ি।",
     "The Blue Mosque in Istanbul": "ইস্তাম্বুলের ব্লু মস্ক",
     "At your destination": "গন্তব্যে পৌঁছে",
-    "Hotels, sightseeing and halal food options planned for each city.": "প্রতিটি শহরের হোটেল, দর্শনীয় স্থান ও হালাল খাবারের পরিকল্পনা করা।"
+    "Hotels, sightseeing and halal food options planned for each city.": "প্রতিটি শহরের হোটেল, দর্শনীয় স্থান ও হালাল খাবারের পরিকল্পনা করা।",
+    "We send your booking confirmation and every update here.": "বুকিংয়ের নিশ্চিতকরণ ও প্রতিটি আপডেট আমরা এখানে পাঠাই।",
+    "Enter your email; we send your booking confirmation and updates there.": "আপনার ইমেইল দিন; বুকিংয়ের নিশ্চিতকরণ ও আপডেট আমরা সেখানে পাঠাই।",
+    "Booking :reference: :status": "বুকিং :reference: :status",
+    "Update on your booking :reference": "আপনার বুকিং :reference-এর আপডেট",
+    "Booking update": "বুকিং আপডেট",
+    "The status of your booking :reference is now: :status.": "আপনার বুকিং :reference-এর বর্তমান অবস্থা: :status।",
+    "There is an update on your booking :reference.": "আপনার বুকিং :reference সম্পর্কে একটি আপডেট আছে।",
+    "Message from our team": "আমাদের টিমের বার্তা",
+    "You can also find your booking any time with your reference number and phone number:": "রেফারেন্স নম্বর ও ফোন নম্বর দিয়ে যেকোনো সময় আপনার বুকিং খুঁজে দেখতে পারেন:",
+    "Find your booking": "আপনার বুকিং খুঁজুন",
+    "We will email you whenever your booking is updated. Please make payments only through our official channels.": "আপনার বুকিংয়ে কোনো পরিবর্তন হলেই আমরা ইমেইল করব। শুধুমাত্র আমাদের অফিসিয়াল মাধ্যমে পেমেন্ট করুন।",
+    "Status": "অবস্থা",
+    "Booking updates": "বুকিং আপডেট",
+    "Payment received: :amount": "পেমেন্ট গৃহীত: :amount",
+    "Status changed to :status": "অবস্থা পরিবর্তন: :status",
+    "Already booked? Find your booking": "বুকিং করেছেন? আপনার বুকিং খুঁজুন",
+    "Enter your booking reference and the phone number or email you booked with to see its status, payments and updates.": "বুকিংয়ের অবস্থা, পেমেন্ট ও আপডেট দেখতে আপনার বুকিং রেফারেন্স এবং বুকিংয়ের সময় দেওয়া ফোন নম্বর বা ইমেইল লিখুন।"
 }

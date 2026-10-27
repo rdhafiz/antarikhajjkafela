@@ -8,6 +8,7 @@
     $amounts ??= ! $booking->hidesPrice();
     $rows = array_filter([
         __('Reference', [], $locale) => $booking->reference,
+        __('Status', [], $locale) => App\Models\Booking::statusLabel($booking->status, $locale),
         __('Package', [], $locale) => $booking->snap('package', $locale),
         __('Option', [], $locale) => trim($booking->snap('type', $locale).' – '.$booking->snap('option', $locale), ' –'),
         __('Travelers', [], $locale) => Money::digits($booking->travelers, $locale),

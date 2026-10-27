@@ -32,7 +32,7 @@ class HardeningTest extends AdminTestCase
         $package = Package::where('slug', 'umrah-package')->firstOrFail();
 
         $this->post('/packages/umrah-package/book', [
-            'travel_month' => now()->month, 'travel_year' => now()->year, 'option' => $package->prices()->first()->id, 'travelers' => 1, 'name' => 'Test', 'phone' => '01711000000',
+            'travel_month' => now()->month, 'travel_year' => now()->year, 'option' => $package->prices()->first()->id, 'travelers' => 1, 'name' => 'Test', 'phone' => '01711000000', 'email' => 'test@example.com',
             'payment' => 'later', 'agree' => '1',
         ]);
 

@@ -55,6 +55,18 @@ export interface BookingPayment {
     log: { at: string; event: string; data: unknown }[];
 }
 
+/** One entry of the customer-facing history (also shown on the customer's booking page). */
+export interface BookingUpdate {
+    id: number;
+    kind: 'created' | 'status' | 'payment' | 'message';
+    status: BookingStatus | null;
+    message: string | null;
+    amount: number | null;
+    emailed: boolean;
+    by: string | null;
+    created_at: string;
+}
+
 export interface BookingDetail extends BookingRow {
     package_id: number | null;
     package_url: string | null;
@@ -74,4 +86,5 @@ export interface BookingDetail extends BookingRow {
     documents: { id: number; kind: string; kind_label: string; name: string; size: number; is_image: boolean; url: string }[];
     payments: BookingPayment[];
     offline_methods: Record<string, string>;
+    updates: BookingUpdate[];
 }

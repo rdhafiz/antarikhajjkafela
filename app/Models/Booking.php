@@ -66,6 +66,30 @@ class Booking extends Model
     }
 
     /**
+     * The customer-facing history, newest first.
+     */
+    public function updates(): HasMany
+    {
+        return $this->hasMany(BookingUpdate::class)->latest('id');
+    }
+
+    /**
+     * The status as the customer reads it, in their language.
+     */
+    public static function statusLabel(string $status, ?string $locale = null): string
+    {
+        return match ($status) {
+            'pending' => __('Pending confirmation', [], $locale),
+            'confirmed' => __('Confirmed', [], $locale),
+            'advance_paid' => __('Advance paid', [], $locale),
+            'fully_paid' => __('Fully paid', [], $locale),
+            'completed' => __('Completed', [], $locale),
+            'cancelled' => __('Cancelled', [], $locale),
+            default => $status,
+        };
+    }
+
+    /**
      * Whether the package hid its price when this booking was made.
      */
     public function hidesPrice(): bool

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ArrowLeft, ChevronDown, Copy, ExternalLink, FileText, Files, Image as ImageIcon, Mail, MessageCircle, Package as PackageIcon, Phone, Plus, Trash2, UserRound, Wallet } from 'lucide-vue-next';
+import { ArrowLeft, BellRing, CheckCircle2, ChevronDown, Copy, ExternalLink, FileText, Files, Image as ImageIcon, Mail, MailCheck, MessageCircle, MessageSquareText, Package as PackageIcon, Phone, Plus, RefreshCw, Trash2, UserRound, Wallet } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
+import AppCheckbox from '@admin/components/ui/AppCheckbox.vue';
 import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
 import AppModal from '@admin/components/ui/AppModal.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
@@ -15,7 +16,7 @@ import { formatBytes, formatDate } from '@admin/lib/format';
 import { useAppStore } from '@admin/stores/app';
 import { useAuthStore } from '@admin/stores/auth';
 import { useToastStore } from '@admin/stores/toast';
-import { money, statusTone, type BookingDetail, type BookingStatus } from './types';
+import { money, statusTone, type BookingDetail, type BookingStatus, type BookingUpdate } from './types';
 
 const route = useRoute();
 const router = useRouter();
@@ -26,9 +27,30 @@ const { confirm } = useConfirm();
 
 const booking = ref<BookingDetail | null>(null);
 const statuses: Record<BookingStatus, string> = { pending: 'Pending', confirmed: 'Confirmed', advance_paid: 'Advance paid', fully_paid: 'Fully paid', completed: 'Completed', cancelled: 'Cancelled' };
-const edit = useForm({ status: 'pending' as BookingStatus, admin_notes: '' });
+const edit = useForm({ status: 'pending' as BookingStatus, admin_notes: '', customer_message: '', notify: true });
 const paymentOpen = ref(false);
-const paymentForm = useForm({ amount: 0 as number | '', method: 'bank', paid_at: '', reference: '', note: '' });
+const paymentForm = useForm({ amount: 0 as number | '', method: 'bank', paid_at: '', reference: '', note: '', customer_message: '', notify: true });
+
+// What the customer is told: a new status or a message goes to their history and, if ticked, to their email.
+const customerChange = computed(() => booking.value !== null && (edit.data.status !== booking.value.status || edit.data.customer_message.trim() !== ''));
+const updateMeta: Record<BookingUpdate['kind'], { icon: typeof Mail; tone: string }> = {
+    created: { icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-600' },
+    status: { icon: RefreshCw, tone: 'bg-violet-50 text-violet-600' },
+    payment: { icon: Wallet, tone: 'bg-sky-50 text-sky-600' },
+    message: { icon: MessageSquareText, tone: 'bg-pink-50 text-pink-600' },
+};
+function updateTitle(update: BookingUpdate): string {
+    switch (update.kind) {
+        case 'created':
+            return 'Booking received';
+        case 'payment':
+            return `Payment received: ${money(update.amount ?? 0)}`;
+        case 'status':
+            return `Status changed to ${update.status ? statuses[update.status] : '—'}`;
+        default:
+            return 'Message to the customer';
+    }
+}
 const openLog = ref<number | null>(null);
 
 const paidPercent = computed(() => (booking.value && booking.value.total > 0 ? Math.min(100, Math.round((booking.value.paid_amount / booking.value.total) * 100)) : 0));
@@ -41,7 +63,7 @@ const whatsapp = computed(() => {
 
 function apply(data: BookingDetail): void {
     booking.value = data;
-    edit.reset({ status: data.status, admin_notes: data.admin_notes ?? '' });
+    edit.reset({ status: data.status, admin_notes: data.admin_notes ?? '', customer_message: '', notify: Boolean(data.customer_email) });
 }
 
 async function load(): Promise<void> {
@@ -58,15 +80,16 @@ async function load(): Promise<void> {
 async function save(): Promise<void> {
     const response = await edit.submit(() => http.put<{ data: BookingDetail }>(`/bookings/${booking.value!.id}`, edit.data));
     if (response) {
+        const emailed = customerChange.value && response.data.data.updates[0]?.emailed;
         apply(response.data.data);
-        toast.success('Booking updated');
+        toast.success('Booking updated', emailed ? 'The customer was emailed the latest details.' : undefined);
     }
 }
 
 function openPayment(): void {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    paymentForm.reset({ amount: booking.value?.balance ?? '', method: 'bank', paid_at: now.toISOString().slice(0, 16), reference: '', note: '' });
+    paymentForm.reset({ amount: booking.value?.balance ?? '', method: 'bank', paid_at: now.toISOString().slice(0, 16), reference: '', note: '', customer_message: '', notify: Boolean(booking.value?.customer_email) });
     paymentOpen.value = true;
 }
 
@@ -75,7 +98,7 @@ async function recordPayment(): Promise<void> {
     if (response) {
         apply(response.data.data);
         paymentOpen.value = false;
-        toast.success('Payment recorded');
+        toast.success('Payment recorded', response.data.data.updates[0]?.emailed ? 'A receipt was emailed to the customer.' : undefined);
     }
 }
 
@@ -209,6 +232,27 @@ onMounted(load);
                         </li>
                     </ul>
                 </section>
+
+                <!-- Customer updates: what the customer sees on their booking page -->
+                <section class="card p-6" aria-labelledby="b-updates">
+                    <h2 id="b-updates" class="flex items-center gap-2 text-[12px] font-semibold tracking-wide text-ink-muted uppercase"><BellRing class="size-4 text-pink-600" aria-hidden="true" />Customer updates</h2>
+                    <p class="mt-1 text-[13px] text-ink-muted">Shown on the customer's booking page. Each one says whether it was emailed.</p>
+                    <p v-if="!booking.updates.length" class="mt-3 text-sm text-ink-muted">No updates yet.</p>
+                    <ol v-else class="mt-4 space-y-4">
+                        <li v-for="update in booking.updates" :key="update.id" class="flex gap-3">
+                            <span class="flex size-9 shrink-0 items-center justify-center rounded-full" :class="updateMeta[update.kind].tone"><component :is="updateMeta[update.kind].icon" class="size-4" aria-hidden="true" /></span>
+                            <div class="min-w-0 flex-1">
+                                <p class="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
+                                    {{ updateTitle(update) }}
+                                    <span v-if="update.emailed" class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700"><MailCheck class="size-3" aria-hidden="true" />Emailed</span>
+                                    <span v-else class="rounded-full bg-canvas px-2 py-0.5 text-[11px] font-semibold text-ink-muted">Not emailed</span>
+                                </p>
+                                <p class="text-[12px] text-ink-muted">{{ formatDate(update.created_at, true) }}<template v-if="update.by"> · {{ update.by }}</template></p>
+                                <p v-if="update.message" class="mt-1.5 rounded-lg bg-canvas px-3 py-2 text-[13px] [overflow-wrap:anywhere] whitespace-pre-line text-ink">{{ update.message }}</p>
+                            </div>
+                        </li>
+                    </ol>
+                </section>
             </div>
 
             <aside class="space-y-6">
@@ -232,8 +276,19 @@ onMounted(load);
                                 <option v-for="(label, key) in statuses" :key="key" :value="key">{{ label }}</option>
                             </select>
                         </FormField>
+                        <FormField label="Message to the customer" for="b-message" :error="edit.error('customer_message')" hint="Optional. Shown on their booking page and in the email.">
+                            <textarea id="b-message" v-model="edit.data.customer_message" rows="3" class="control" placeholder="e.g. Your visa has been submitted." />
+                        </FormField>
+                        <div class="rounded-lg bg-canvas px-3 py-2.5">
+                            <AppCheckbox v-model="edit.data.notify" :disabled="!booking.customer_email" label="Email the customer about this change" />
+                            <p class="mt-1 text-[12px] text-ink-muted">
+                                <template v-if="!booking.customer_email">This booking has no email address.</template>
+                                <template v-else-if="customerChange">They get the new status{{ edit.data.customer_message.trim() ? ', your message' : '' }} and the latest details.</template>
+                                <template v-else>Sent when you change the status or write a message.</template>
+                            </p>
+                        </div>
                         <FormField label="Internal notes" for="b-notes" :error="edit.error('admin_notes')" hint="Only visible to staff.">
-                            <textarea id="b-notes" v-model="edit.data.admin_notes" rows="6" class="control" />
+                            <textarea id="b-notes" v-model="edit.data.admin_notes" rows="5" class="control" />
                         </FormField>
                         <AppButton v-if="auth.can('bookings.update')" type="submit" block :loading="edit.processing">Save</AppButton>
                     </fieldset>
@@ -259,9 +314,13 @@ onMounted(load);
                         <input id="p-ref" v-model="paymentForm.data.reference" class="control" />
                     </FormField>
                 </div>
-                <FormField label="Note" for="p-note" :error="paymentForm.error('note')">
+                <FormField label="Internal note" for="p-note" :error="paymentForm.error('note')" hint="Only visible to staff.">
                     <textarea id="p-note" v-model="paymentForm.data.note" rows="2" class="control" />
                 </FormField>
+                <FormField label="Message to the customer" for="p-message" :error="paymentForm.error('customer_message')" hint="Optional. Included in the receipt email and on their booking page.">
+                    <textarea id="p-message" v-model="paymentForm.data.customer_message" rows="2" class="control" />
+                </FormField>
+                <AppCheckbox v-model="paymentForm.data.notify" :disabled="!booking.customer_email" :label="booking.customer_email ? 'Email the customer a receipt' : 'No email on this booking'" />
             </form>
             <template #footer>
                 <AppButton variant="secondary" @click="paymentOpen = false">Cancel</AppButton>

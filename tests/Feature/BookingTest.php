@@ -7,6 +7,7 @@ use App\Domain\Booking\TravelDates;
 use App\Domain\Payments\Gateways\DgePayGateway;
 use App\Mail\BookingPlaced;
 use App\Mail\BookingReceived;
+use App\Mail\BookingUpdated;
 use App\Mail\PaymentReceived;
 use App\Models\Booking;
 use App\Models\Package;
@@ -251,6 +252,10 @@ class BookingTest extends AdminTestCase
         $this->post('/packages/umrah-package/book', $this->form(['payment' => 'now', 'email' => '']))
             ->assertSessionHasErrors('email');
 
+        // Email is required even when paying later: the confirmation and every update go there.
+        $this->post('/packages/umrah-package/book', $this->form(['payment' => 'later', 'email' => '']))
+            ->assertSessionHasErrors('email');
+
         $this->assertSame(0, Booking::count());
 
         $this->package()->update(['booking_ends_on' => now()->subDay()]);
@@ -435,6 +440,46 @@ class BookingTest extends AdminTestCase
         $this->assertStringContainsString($booking->reference, $this->asAdmin($viewer)->get('/api/admin/bookings/export')->assertOk()->streamedContent());
     }
 
+    public function test_customers_are_emailed_every_update_with_the_latest_details(): void
+    {
+        $this->package()->update(['advance_type' => 'fixed', 'advance_value' => 20000]);
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1]));
+        $booking = Booking::firstOrFail();
+        $admin = $this->adminWith(['bookings.view', 'bookings.update', 'payments.create']);
+
+        // The booking itself starts the history, and its email links to the lookup page.
+        $this->assertSame(['created'], $booking->updates()->pluck('kind')->all());
+        $this->assertNotNull($booking->updates()->first()->emailed_at);
+        Mail::assertSent(BookingReceived::class, fn ($mail) => str_contains($mail->render(), route('bookings.status')));
+
+        // A new status with a message: emailed with the latest details, kept in the history.
+        $this->asAdmin($admin)->putJson("/api/admin/bookings/{$booking->id}", ['status' => 'confirmed', 'admin_notes' => 'Staff only', 'customer_message' => 'Your visa file is ready.'])
+            ->assertOk()->assertJsonPath('data.updates.0.kind', 'status')->assertJsonPath('data.updates.0.emailed', true);
+        Mail::assertSent(BookingUpdated::class, fn ($mail) => $mail->hasTo('karim@example.com')
+            && str_contains($mail->render(), 'Your visa file is ready.')
+            && str_contains($mail->render(), 'Confirmed')
+            && ! str_contains($mail->render(), 'Staff only'));
+
+        // Saving internal notes alone tells the customer nothing.
+        $this->asAdmin($admin)->putJson("/api/admin/bookings/{$booking->id}", ['status' => 'confirmed', 'admin_notes' => 'Called back'])->assertOk();
+        Mail::assertSent(BookingUpdated::class, 1);
+
+        // A message with "Email the customer" unticked is recorded but not sent.
+        $this->asAdmin($admin)->putJson("/api/admin/bookings/{$booking->id}", ['status' => 'confirmed', 'customer_message' => 'Flights are booked.', 'notify' => false])
+            ->assertOk()->assertJsonPath('data.updates.0.kind', 'message')->assertJsonPath('data.updates.0.emailed', false);
+        Mail::assertSent(BookingUpdated::class, 1);
+
+        // An office payment sends a receipt with the new balance.
+        $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => 20000, 'method' => 'bank', 'paid_at' => now()->subHour()->toDateTimeString(), 'customer_message' => 'Thank you for the deposit.'])
+            ->assertCreated()->assertJsonPath('data.updates.0.kind', 'payment')->assertJsonPath('data.updates.0.emailed', true);
+        Mail::assertSent(PaymentReceived::class, fn ($mail) => str_contains($mail->render(), 'Thank you for the deposit.'));
+
+        // The customer's page shows the whole history; internal notes stay hidden.
+        $this->get($booking->publicUrl())->assertOk()
+            ->assertSeeTextInOrder(['Booking updates', 'Payment received', 'Flights are booked.', 'Your visa file is ready.', 'Booking received'])
+            ->assertDontSeeText('Staff only');
+    }
+
     public function test_customers_find_their_booking_with_reference_and_phone(): void
     {
         $this->post('/packages/umrah-package/book', $this->form());
@@ -446,5 +491,9 @@ class BookingTest extends AdminTestCase
             ->assertRedirect($booking->publicUrl());
         $this->post('/booking/status', ['reference' => $booking->reference, 'contact' => '01999999999'])
             ->assertSessionHasErrors('reference');
+
+        // The page is "Find your booking", linked from the package pages.
+        $this->get('/booking/status')->assertOk()->assertSeeText('Find your booking');
+        $this->get('/packages/umrah-package')->assertOk()->assertSee(route('bookings.status'), false);
     }
 }

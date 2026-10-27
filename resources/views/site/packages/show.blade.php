@@ -191,7 +191,12 @@
                     </div>
                 </div>
 
-                <p class="mx-auto mt-10 max-w-3xl text-center text-[13px] leading-relaxed text-ink-2" data-reveal>{{ ($package->service?->isPilgrimage() !== false ? __('Prices may change if the Saudi government, airlines or exchange rates change their fees. Please pay only through our official channels.') : __('Prices may change with airline fares, hotel rates or exchange rates. Please pay only through our official channels.')) }}</p>
+                <p class="mt-10 text-center text-[15px]" data-reveal>
+                    <a href="{{ route('bookings.status') }}" class="inline-flex items-center gap-2 font-semibold text-brand hover:underline">
+                        <x-site.icon name="ticket" class="size-4 text-gold-deep" />{{ __('Already booked? Find your booking') }}
+                    </a>
+                </p>
+                <p class="mx-auto mt-4 max-w-3xl text-center text-[13px] leading-relaxed text-ink-2" data-reveal>{{ ($package->service?->isPilgrimage() !== false ? __('Prices may change if the Saudi government, airlines or exchange rates change their fees. Please pay only through our official channels.') : __('Prices may change with airline fares, hotel rates or exchange rates. Please pay only through our official channels.')) }}</p>
             </div>
         </section>
     @endif
