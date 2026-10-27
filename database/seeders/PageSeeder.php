@@ -187,7 +187,8 @@ class PageSeeder extends Seeder
     /**
      * The home page: the agency's four services, with Hajj & Umrah as one
      * slide and one section. Slides: the agency, Hajj & Umrah, air tickets,
-     * visa processing, tour packages.
+     * visa processing, tour packages; the service sections follow the same
+     * order.
      *
      * @return list<array>
      */
@@ -235,20 +236,6 @@ class PageSeeder extends Seeder
                 'items' => $this->coreServices(short: true),
             ], ['background' => 'white', 'decor' => 'shapes']],
             ['features', $this->credentials(), ['background' => 'navy-deep', 'spacing' => 'md', 'decor' => 'shapes']],
-            ['lead_form', $this->airQuoteForm(home: true), ['background' => 'sky-soft', 'anchor' => 'air-quote', 'decor' => 'shapes']],
-            ['package_showcase', [
-                'eyebrow' => $this->t('Popular tours', 'জনপ্রিয় ট্যুর'),
-                'title' => $this->t('Where will you go next?', 'এবার কোথায় যাবেন?'),
-                'intro' => $this->t('Ready-made holidays from Dhaka with flights, hotels and sightseeing. Every tour can be changed to suit you.', 'ফ্লাইট, হোটেল ও দর্শনীয় স্থানসহ ঢাকা থেকে তৈরি ছুটির প্যাকেজ। প্রতিটি ট্যুর আপনার মতো করে বদলানো যায়।'),
-                'source' => 'service',
-                'service' => (string) Service::where('slug', 'tours')->value('id'),
-                'limit' => 6,
-                'layout' => 'staggered',
-                'cta' => $this->link('/tours', 'All tour packages', 'সব ট্যুর প্যাকেজ'),
-            ], ['background' => 'navy-deep']],
-            ['features', array_replace($this->visaRegions(), [
-                'cta' => $this->link('/visa', 'Visa services', 'ভিসা সেবা দেখুন'),
-            ]), ['background' => 'mint-soft', 'decor' => 'shapes']],
             ['image_text', [
                 'eyebrow' => $this->t('Hajj & Umrah · Antarik Hajj Kafela', 'হজ ও উমরাহ · আন্তরিক হজ্জ কাফেলা'),
                 'title' => $this->t('Hajj and Umrah, the way they deserve to be performed', 'যেভাবে হজ ও উমরাহ পালন করা উচিত, ঠিক সেভাবেই'),
@@ -267,6 +254,20 @@ class PageSeeder extends Seeder
                 'primary' => $this->link('/hajj', 'Hajj packages', 'হজ প্যাকেজ'),
                 'secondary' => $this->link('/umrah', 'Umrah packages', 'উমরাহ প্যাকেজ'),
             ], ['background' => 'peach-soft', 'decor' => 'shapes']],
+            ['lead_form', $this->airQuoteForm(home: true), ['background' => 'sky-soft', 'anchor' => 'air-quote', 'decor' => 'shapes']],
+            ['features', array_replace($this->visaRegions(), [
+                'cta' => $this->link('/visa', 'Visa services', 'ভিসা সেবা দেখুন'),
+            ]), ['background' => 'mint-soft', 'decor' => 'shapes']],
+            ['package_showcase', [
+                'eyebrow' => $this->t('Popular tours', 'জনপ্রিয় ট্যুর'),
+                'title' => $this->t('Where will you go next?', 'এবার কোথায় যাবেন?'),
+                'intro' => $this->t('Ready-made holidays from Dhaka with flights, hotels and sightseeing. Every tour can be changed to suit you.', 'ফ্লাইট, হোটেল ও দর্শনীয় স্থানসহ ঢাকা থেকে তৈরি ছুটির প্যাকেজ। প্রতিটি ট্যুর আপনার মতো করে বদলানো যায়।'),
+                'source' => 'service',
+                'service' => (string) Service::where('slug', 'tours')->value('id'),
+                'limit' => 6,
+                'layout' => 'staggered',
+                'cta' => $this->link('/tours', 'All tour packages', 'সব ট্যুর প্যাকেজ'),
+            ], ['background' => 'navy-deep']],
             ['features', [
                 'eyebrow' => $this->t('Why Antarik', 'কেন আন্তরিক'),
                 'title' => $this->t('Travel with people who answer the phone', 'এমন মানুষের সাথে সফর করুন, যারা সবসময় পাশে থাকে'),

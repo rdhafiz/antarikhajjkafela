@@ -49,8 +49,9 @@ Unsplash photos (free to use under the Unsplash License) for the travel agency p
 | File | Used for | Photographer | Source |
 | --- | --- | --- | --- |
 | panorama.webp | Home hero, first slide | Supplied by the client (not from Unsplash) | — |
-| airplane-sky.webp | Air Tickets banner; home call-to-action and default page banner; booking step 1 for tours (cropped copy in `public/images/booking/sky-scene.webp`) | Marco Tjokro | https://unsplash.com/photos/cvj8Li-amfw |
-| airport.webp | Home slide "Air tickets"; Services, Terms and Privacy banners; booking step 2 for tours (`airport-scene.webp`) | Albert Stoynov | https://unsplash.com/photos/Yil5cKBbS5M |
+| airplane-takeoff.webp | Home slide "Air tickets"; Air Tickets banner; "Air tickets" service card | Niklas Jonasson | https://unsplash.com/photos/N8_JqFhBr4M |
+| airplane-sky.webp | Home call-to-action and default page banner; booking step 1 for tours (cropped copy in `public/images/booking/sky-scene.webp`) | Marco Tjokro | https://unsplash.com/photos/cvj8Li-amfw |
+| airport.webp | Services, Terms and Privacy banners; booking step 2 for tours (`airport-scene.webp`) | Albert Stoynov | https://unsplash.com/photos/Yil5cKBbS5M |
 | passport-visa.webp | Home slide "Visa"; Visa banner and documents section; booking step 3 for tours (`passport-scene.webp`) | Global Residence Index | https://unsplash.com/photos/addEU6TScGI |
 | travellers.webp | Home hero; Tours service; default share image | Westwind Air Service | https://unsplash.com/photos/yRp1lQSnbk0 |
 | maldives.webp | Home slide "Tours"; Maldives tour; "Tour packages" service card; booking step 4 for tours (`island-scene.webp`) | Matheen Faiz | https://unsplash.com/photos/iwZqmickJxA |

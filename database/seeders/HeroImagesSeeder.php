@@ -26,6 +26,8 @@ class HeroImagesSeeder extends Seeder
 
     private const SKY = ['travel/airplane-sky.webp', 'An airliner wing above the clouds', 'মেঘের ওপরে উড়োজাহাজের ডানা'];
 
+    private const TAKEOFF = ['travel/airplane-takeoff.webp', 'An airliner lifting off the runway', 'রানওয়ে থেকে উড্ডয়নরত উড়োজাহাজ'];
+
     private const PASSPORT = ['travel/passport-visa.webp', 'Passports ready for a visa application', 'ভিসা আবেদনের জন্য প্রস্তুত পাসপোর্ট'];
 
     /**
@@ -35,7 +37,7 @@ class HeroImagesSeeder extends Seeder
      */
     private const BANNERS = [
         'services' => self::AIRPORT,
-        'air-tickets' => self::SKY,
+        'air-tickets' => self::TAKEOFF,
         'visa' => self::PASSPORT,
         'reviews' => ['heroes/green-dome.webp', 'The Green Dome of the Prophet\'s Mosque', 'মসজিদে নববীর সবুজ গম্বুজ'],
         'terms-and-conditions' => self::AIRPORT,
@@ -52,7 +54,7 @@ class HeroImagesSeeder extends Seeder
         'home' => [
             ['travel/panorama.webp', 'The Kaaba, world landmarks and an airliner above a globe', 'কাবা, বিশ্বের দর্শনীয় স্থাপনা ও গ্লোবের ওপর উড়োজাহাজ'],
             ['heroes/home-haram.webp', 'Masjid al-Haram and the Kaaba in Makkah', 'মক্কায় মসজিদুল হারাম ও কাবা'],
-            self::AIRPORT,
+            self::TAKEOFF,
             self::PASSPORT,
             ['travel/maldives.webp', 'Overwater villas above a turquoise lagoon in the Maldives', 'মালদ্বীপে ফিরোজা লেগুনের ওপর ওয়াটার ভিলা'],
         ],
@@ -67,7 +69,7 @@ class HeroImagesSeeder extends Seeder
      */
     private const ITEM_PHOTOS = [
         'Hajj & Umrah' => ['heroes/haram-wide.webp', 'Masjid al-Haram in Makkah', 'মক্কার মসজিদুল হারাম'],
-        'Air tickets' => self::SKY,
+        'Air tickets' => self::TAKEOFF,
         'Visa processing' => self::PASSPORT,
         'Tour packages' => ['travel/maldives.webp', 'Overwater villas above a turquoise lagoon in the Maldives', 'মালদ্বীপে ফিরোজা লেগুনের ওপর ওয়াটার ভিলা'],
         'Middle East' => ['travel/dubai.webp', 'The Burj Khalifa above the Dubai skyline', 'দুবাইয়ের স্কাইলাইনের ওপরে বুর্জ খলিফা'],
@@ -78,6 +80,8 @@ class HeroImagesSeeder extends Seeder
 
     public function run(): void
     {
+        $this->replaceAirTicketPhotos();
+
         foreach (Page::with('sections')->get() as $page) {
             $key = $page->system_key === 'home' ? 'home' : $page->slug;
             $first = $page->sections->sortBy('sort')->first();
@@ -196,6 +200,47 @@ class HeroImagesSeeder extends Seeder
                 if ($photo && empty($item['image'])) {
                     $content['items'][$i]['image'] = $this->photo($photo, 'card')->id;
                     $changed = true;
+                }
+            }
+
+            if ($changed) {
+                $section->update(['content' => $content]);
+            }
+        }
+    }
+
+    /**
+     * The air tickets slide, banner and service card first had a terminal or
+     * a distant plane; the take-off photo replaces them where the old seeded
+     * photo is still in place (a photo chosen in the admin portal stays).
+     */
+    private function replaceAirTicketPhotos(): void
+    {
+        $old = Media::whereIn('original_name', ['airport.webp', 'airplane-sky.webp'])->pluck('id')->all();
+        $isOld = fn ($id) => $id && in_array((int) $id, $old, true);
+
+        foreach (PageSection::whereIn('component', ['hero', 'page_banner', 'features'])->with('page')->get() as $section) {
+            $content = $section->content ?? [];
+            $changed = false;
+
+            if ($section->component === 'hero') {
+                foreach ($content['slides'] ?? [] as $i => $slide) {
+                    if (($slide['eyebrow']['en'] ?? null) === 'Air tickets' && $isOld($slide['image'] ?? null)) {
+                        $content['slides'][$i]['image'] = $this->photo(self::TAKEOFF, 'hero')->id;
+                        $changed = true;
+                    }
+                }
+            } elseif ($section->component === 'page_banner') {
+                if ($section->page?->slug === 'air-tickets' && $isOld($content['image'] ?? null)) {
+                    $content['image'] = $this->photo(self::TAKEOFF, 'banner')->id;
+                    $changed = true;
+                }
+            } else {
+                foreach ($content['items'] ?? [] as $i => $item) {
+                    if (($item['title']['en'] ?? null) === 'Air tickets' && $isOld($item['image'] ?? null)) {
+                        $content['items'][$i]['image'] = $this->photo(self::TAKEOFF, 'card')->id;
+                        $changed = true;
+                    }
                 }
             }
 

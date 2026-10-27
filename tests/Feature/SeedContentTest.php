@@ -86,6 +86,45 @@ class SeedContentTest extends AdminTestCase
         $this->get('/packages')->assertOk()->assertSee(Media::find(settings('branding.default_banner'))->url('lg'), false);
     }
 
+    public function test_home_services_follow_the_priority_and_air_tickets_get_the_take_off_photo(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+
+        $this->seed([TourSeeder::class, PageSeeder::class]);
+        $home = Page::where('system_key', 'home')->first();
+        $components = $home->sections()->orderBy('sort')->pluck('component')->all();
+        $this->assertSame(['hero', 'features', 'features', 'image_text', 'lead_form', 'features', 'package_showcase'], array_slice($components, 0, 7));
+
+        // A site seeded with the old photos gets the take-off photo; an admin's own choice stays.
+        $hero = $home->sections()->where('component', 'hero')->first();
+        $content = $hero->content;
+        $content['slides'][2]['image'] = $this->importOld('travel/airport.webp', 'hero')->id;
+        $hero->update(['content' => $content]);
+        $services = $home->sections()->where('component', 'features')->orderBy('sort')->first();
+        $content = $services->content;
+        $content['items'][1]['image'] = 999;
+        $services->update(['content' => $content]);
+
+        $this->seed(HeroImagesSeeder::class);
+
+        $this->assertSame('airplane-takeoff.webp', Media::find($hero->fresh()->content['slides'][2]['image'])->original_name);
+        $this->assertSame(999, $services->fresh()->content['items'][1]['image']);
+        $banner = Page::where('slug', 'air-tickets')->first()->sections()->orderBy('sort')->first();
+        $this->assertSame('airplane-takeoff.webp', Media::find($banner->content['image'])->original_name);
+    }
+
+    private function importOld(string $path, string $usage): Media
+    {
+        return (new class extends HeroImagesSeeder
+        {
+            public function import(string $path, string $usage): Media
+            {
+                return $this->importImage($path, $usage);
+            }
+        })->import($path, $usage);
+    }
+
     public function test_sample_tours_are_bookable_and_seeded_once(): void
     {
         Storage::fake('public');
