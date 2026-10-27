@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\Inquiry;
 use App\Models\Media;
 use App\Models\Page;
+use App\Models\Review;
 use App\PageBuilder\SectionStyle;
 use Database\Seeders\PageSeeder;
 use Illuminate\Support\Facades\URL;
@@ -113,6 +114,10 @@ class PageBuilderTest extends AdminTestCase
         $this->get('/visa')->assertSee('bg-peach-soft', false)->assertSee('bg-lilac-soft', false);
         $this->get('/blog')->assertOk()->assertSee('bg-sky-soft', false)->assertSee('class="decor pointer-events-none', false);
         $this->get('/gallery')->assertOk()->assertSee('bg-mint-soft', false)->assertSee('class="decor pointer-events-none', false);
+
+        Page::where('system_key', 'reviews')->update(['status' => Page::STATUS_PUBLISHED]);
+        Review::create(['name' => ['en' => 'A traveller'], 'text' => ['en' => 'Kind words.'], 'rating' => 5, 'is_published' => true]);
+        $this->get('/reviews')->assertOk()->assertSee('bg-lilac-soft', false)->assertSee('sec-icon ic-tone ic-1', false);
 
         // Existing sites: sections with their original background are restyled; an admin's own choice stays.
         $about = Page::where('system_key', 'about')->firstOrFail();

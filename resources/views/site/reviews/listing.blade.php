@@ -3,7 +3,7 @@
 <x-site.block :style="$style" :section="$section">
     @if ($reviews->isEmpty())
         <div class="mx-auto max-w-md py-10 text-center" data-reveal>
-            <span class="sec-icon mx-auto"><x-site.icon name="quote" class="size-6" /></span>
+            <span class="sec-icon ic-tone ic-3 mx-auto size-14"><x-site.icon name="quote" class="size-6" /></span>
             <p class="sec-heading mt-5 font-display text-display-sm">{{ __('Reviews coming soon') }}</p>
         </div>
     @else
@@ -21,7 +21,7 @@
             <h2 class="sr-only">{{ __('Video reviews') }}</h2>
             <div @class(['mb-12 grid gap-6', 'sm:grid-cols-2' => $videoReviews->count() > 1, 'lg:grid-cols-3' => $videoReviews->count() > 2, 'mx-auto max-w-3xl' => $videoReviews->count() === 1])>
                 @foreach ($videoReviews as $index => $review)
-                    <x-site.review-card :review="$review" data-reveal :style="'--reveal-delay: '.(($index % 3) * 80).'ms'" />
+                    <x-site.review-card :review="$review" :tone="$index % 6 + 1" data-reveal :style="'--reveal-delay: '.(($index % 3) * 80).'ms'" />
                 @endforeach
             </div>
         @endif
@@ -32,7 +32,7 @@
             {{-- Masonry columns keep reviews of different lengths tidy. --}}
             <div class="gap-6 sm:columns-2 lg:columns-3">
                 @foreach ($written as $index => $review)
-                    <x-site.review-card :review="$review" :with-video="false" class="mb-6 break-inside-avoid" data-reveal />
+                    <x-site.review-card :review="$review" :with-video="false" :tone="$loop->index % 6 + 1" class="mb-6 break-inside-avoid" data-reveal />
                 @endforeach
             </div>
         @endif

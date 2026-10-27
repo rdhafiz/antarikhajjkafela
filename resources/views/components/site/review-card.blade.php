@@ -1,4 +1,4 @@
-@props(['review', 'withVideo' => true])
+@props(['review', 'withVideo' => true, 'tone' => null])
 @php
     $locale = app()->getLocale();
     $name = $review->getTranslation('name', $locale);
@@ -17,7 +17,12 @@
         @if ($review->rating)
             <x-site.stars :rating="$review->rating" />
         @endif
-        <x-site.icon name="quote" class="ml-auto size-8 text-gold/60" />
+        @if ($tone)
+            {{-- Colourful quote tile (.ic-1 … .ic-6), as on the other card grids. --}}
+            <span class="sec-icon ic-tone ic-{{ $tone }} ml-auto size-11 shrink-0 rounded-xl" aria-hidden="true"><x-site.icon name="quote" class="size-5" /></span>
+        @else
+            <x-site.icon name="quote" class="ml-auto size-8 text-gold/60" />
+        @endif
     </div>
 
     @if (filled($text))

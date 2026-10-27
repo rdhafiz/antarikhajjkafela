@@ -133,7 +133,7 @@ class PageSeeder extends Seeder
                             'reviews' => $this->t('In the words of the travellers and pilgrims who went with us.', 'আমাদের সাথে সফর করা ভ্রমণকারী ও হাজীদের নিজের কথায়।'),
                             default => $this->t('Guidance, news and updates for Hajj and Umrah pilgrims.', 'হজ ও উমরাহ যাত্রীদের জন্য দিকনির্দেশনা, সংবাদ ও আপডেট।'),
                         }),
-                        ['page_listing', [], []],
+                        ['page_listing', [], ['background' => 'lilac-soft', 'decor' => 'shapes']],
                         $this->cta(),
                     ],
                 },
