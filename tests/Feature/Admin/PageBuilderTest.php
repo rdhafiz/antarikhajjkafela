@@ -8,6 +8,7 @@ use App\Models\Page;
 use App\Models\Review;
 use App\PageBuilder\SectionStyle;
 use Database\Seeders\PageSeeder;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -459,6 +460,60 @@ class PageBuilderTest extends AdminTestCase
         $this->withUnencryptedCookie('locale', 'bn')->get('/air-tickets')->assertOk()
             ->assertSee('<option value="Return" selected>রিটার্ন</option>', false)
             ->assertSee('name="adults" type="number"', false);
+    }
+
+    public function test_fare_quotes_check_the_trip_type_cities_and_flights(): void
+    {
+        // Many submissions in a row: the form's limit of six a minute is not what is tested here.
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $air = Page::where('slug', 'air-tickets')->firstOrFail()->sections()->where('component', 'lead_form')->firstOrFail();
+        $base = ['from_city' => 'Dhaka', 'to_city' => 'Dubai', 'departure_date' => now()->addDays(10)->toDateString(), 'adults' => 1, 'name' => 'Karim', 'phone' => '01711000000'];
+
+        // #16: a return trip needs its return date; one way does not (and a stray one is not kept).
+        $this->postJson(route('forms.submit', $air), [...$base, 'trip_type' => 'Return'])
+            ->assertJsonValidationErrors(['return_date' => 'Choose your return date, or pick One way.']);
+        $this->postJson(route('forms.submit', $air), [...$base, 'trip_type' => 'One way', 'return_date' => now()->addDays(20)->toDateString()])->assertOk();
+        $this->assertArrayNotHasKey('return_date', Inquiry::latest('id')->first()->data);
+
+        // #18: the same city both ways is refused, whatever the case or spacing.
+        $this->postJson(route('forms.submit', $air), [...$base, 'trip_type' => 'One way', 'to_city' => '  dhaka '])
+            ->assertJsonValidationErrors(['to_city' => 'Flying to must be a different city from Flying from.']);
+
+        // #17: multi-city needs at least one more flight, each complete, with its own cities and a date in order.
+        $this->postJson(route('forms.submit', $air), [...$base, 'trip_type' => 'Multi-city'])
+            ->assertJsonValidationErrors(['legs' => 'Add the next flight of your multi-city trip.']);
+        $this->postJson(route('forms.submit', $air), [...$base, 'trip_type' => 'Multi-city', 'legs' => [
+            ['from' => 'Dubai', 'to' => 'dubai', 'date' => now()->addDays(12)->toDateString()],
+            ['from' => 'Istanbul', 'to' => '', 'date' => now()->addDays(5)->toDateString()],
+        ]])->assertJsonValidationErrors(['legs.0.to', 'legs.1.to', 'legs.1.date']);
+        $this->postJson(route('forms.submit', $air), [...$base, 'trip_type' => 'Multi-city', 'legs' => array_fill(0, 5, ['from' => 'A', 'to' => 'B', 'date' => now()->addDays(20)->toDateString()])])
+            ->assertJsonValidationErrors(['legs']);
+
+        $this->postJson(route('forms.submit', $air), [...$base, 'trip_type' => 'Multi-city', 'return_date' => now()->addDays(30)->toDateString(), 'legs' => [
+            ['from' => 'Dubai', 'to' => 'Istanbul', 'date' => now()->addDays(12)->toDateString()],
+            ['from' => 'Istanbul', 'to' => 'Dhaka', 'date' => now()->addDays(15)->toDateString()],
+        ]])->assertOk();
+        $inquiry = Inquiry::latest('id')->first();
+        $this->assertSame('Istanbul', $inquiry->data['more_flights'][1]['from']);
+        $this->assertArrayNotHasKey('return_date', $inquiry->data);
+        $this->assertStringContainsString('Flight 3: Istanbul → Dhaka', $inquiry->readableData()['more_flights']);
+
+        // Flights sent with another trip type are dropped.
+        $this->postJson(route('forms.submit', $air), [...$base, 'trip_type' => 'One way', 'legs' => [['from' => 'X', 'to' => 'Y', 'date' => 'nonsense']]])->assertOk();
+        $this->assertArrayNotHasKey('more_flights', Inquiry::latest('id')->first()->data);
+
+        // The admin sees the flights as readable lines.
+        $this->asAdmin($this->superAdmin())->getJson("/api/admin/inquiries/{$inquiry->id}")->assertOk()
+            ->assertJsonPath('data.data.more_flights', 'Flight 2: Dubai → Istanbul · '.now()->addDays(12)->toDateString()."\nFlight 3: Istanbul → Dhaka · ".now()->addDays(15)->toDateString());
+
+        // The page renders the trip switch, the return date tied to Return, and the extra flight rows.
+        $this->get('/air-tickets')->assertOk()
+            ->assertSee('x-data="fareQuote(4)"', false)
+            ->assertSee('x-model="tripType"', false)
+            ->assertSee(':disabled="tripType !== \'Return\'"', false)
+            ->assertSee('name="legs[3][date]"', false)
+            ->assertSee('data-min-from="legs[2][date]"', false)
+            ->assertSeeText('Add another flight');
     }
 
     public function test_honeypot_submissions_are_silently_dropped(): void

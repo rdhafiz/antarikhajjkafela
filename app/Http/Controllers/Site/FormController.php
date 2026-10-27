@@ -32,7 +32,13 @@ class FormController extends Controller
             return $this->success($request, $section);
         }
 
-        $data = $request->validate($this->rules($section), [], $this->attributes());
+        $data = $request->validate($this->rules($section, $request), $this->messages(), $this->attributes());
+
+        // Multi-city: the flights after the first, stored as a readable list.
+        if (isset($data['legs'])) {
+            $data['more_flights'] = array_values(array_map(fn ($leg) => array_map(fn ($v) => trim((string) $v), $leg), $data['legs']));
+            unset($data['legs']);
+        }
 
         if (! $recaptcha->passes($request->input('recaptcha_token'), $request->ip())) {
             throw ValidationException::withMessages(['recaptcha' => __('We could not verify your submission. Please try again.')])
@@ -62,7 +68,7 @@ class FormController extends Controller
     /**
      * @return array<string, list<mixed>>
      */
-    private function rules(PageSection $section): array
+    private function rules(PageSection $section, Request $request): array
     {
         if ($section->component === 'contact_form') {
             return [
@@ -107,7 +113,80 @@ class FormController extends Controller
             $rules['return_date'][] = 'after_or_equal:departure_date';
         }
 
+        // You cannot fly from a city to the same city.
+        if (isset($rules['to_city'], $rules['from_city'])) {
+            $rules['to_city'][] = $this->differentCity(fn () => $request->input('from_city'));
+        }
+
+        if (isset($rules['trip_type'])) {
+            $rules = $this->tripRules($rules, $request);
+        }
+
         return $rules;
+    }
+
+    /**
+     * The trip type decides the rest: a return trip needs its return date,
+     * one way has none, and multi-city adds up to four more flights (each with
+     * its own cities and a date no earlier than the flight before it).
+     *
+     * @param  array<string, list<mixed>>  $rules
+     * @return array<string, list<mixed>>
+     */
+    private function tripRules(array $rules, Request $request): array
+    {
+        if (isset($rules['return_date'])) {
+            $rules['return_date'] = ['exclude_unless:trip_type,Return', 'required', ...array_values(array_diff($rules['return_date'], ['required', 'nullable']))];
+        }
+
+        if (isset($rules['from_city'], $rules['to_city'])) {
+            $previousDate = function (int $index) use ($request) {
+                return $index === 0 ? $request->input('departure_date') : $request->input('legs.'.($index - 1).'.date');
+            };
+
+            $rules['legs'] = ['exclude_unless:trip_type,Multi-city', 'required', 'array', 'min:1', 'max:'.LeadFields::MAX_EXTRA_FLIGHTS];
+            $rules['legs.*'] = ['array:from,to,date'];
+            $rules['legs.*.from'] = ['required', 'string', 'max:80'];
+            $rules['legs.*.to'] = ['required', 'string', 'max:80', $this->differentCity(fn (string $attribute) => $request->input(str_replace('.to', '.from', $attribute)))];
+            $rules['legs.*.date'] = ['required', 'date', 'after_or_equal:today', function (string $attribute, mixed $value, \Closure $fail) use ($previousDate) {
+                $before = $previousDate((int) explode('.', $attribute)[1]);
+
+                if (filled($before) && strtotime((string) $value) !== false && strtotime((string) $before) !== false && strtotime((string) $value) < strtotime((string) $before)) {
+                    $fail(__('This flight cannot be earlier than the flight before it.'));
+                }
+            }];
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Fails when the destination is the departure city (ignoring case and spaces).
+     *
+     * @param  callable(string): mixed  $from  the departure city for this field
+     */
+    private function differentCity(callable $from): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail) use ($from) {
+            $normalize = fn ($city) => mb_strtolower(preg_replace('/\s+/u', ' ', trim((string) $city)));
+
+            if (filled($value) && $normalize($value) === $normalize($from($attribute))) {
+                $fail(__('Flying to must be a different city from Flying from.'));
+            }
+        };
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function messages(): array
+    {
+        return [
+            'return_date.required' => __('Choose your return date, or pick One way.'),
+            'legs.required' => __('Add the next flight of your multi-city trip.'),
+            'legs.min' => __('Add the next flight of your multi-city trip.'),
+            'legs.max' => __('A multi-city trip can have up to :count flights.', ['count' => LeadFields::MAX_EXTRA_FLIGHTS + 1]),
+        ];
     }
 
     /**
@@ -127,6 +206,9 @@ class FormController extends Controller
             'travel_month' => __('Preferred travel month'),
             ...collect(LeadFields::all())->except(['name', 'phone', 'email', 'message', 'district', 'thana', 'package', 'travelers', 'travel_month'])
                 ->map(fn ($field) => __($field['label']))->all(),
+            'legs.*.from' => __('Flying from'),
+            'legs.*.to' => __('Flying to'),
+            'legs.*.date' => __('Flight date'),
         ];
     }
 

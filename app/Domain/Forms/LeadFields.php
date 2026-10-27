@@ -9,6 +9,9 @@ namespace App\Domain\Forms;
  */
 class LeadFields
 {
+    /** A multi-city quote: flight 1 is from_city → to_city on departure_date, then up to this many more. */
+    public const MAX_EXTRA_FLIGHTS = 4;
+
     /** Choices of the fixed select fields, by field (value => English label). */
     public const CHOICES = [
         'trip_type' => ['Return' => 'Return', 'One way' => 'One way', 'Multi-city' => 'Multi-city'],
