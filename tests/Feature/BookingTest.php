@@ -256,6 +256,10 @@ class BookingTest extends AdminTestCase
         $this->post('/packages/umrah-package/book', $this->form(['payment' => 'now', 'email' => '']))
             ->assertSessionHasErrors('email');
 
+        // #22: a larger group is told the limit plainly.
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 500]))
+            ->assertSessionHasErrors(['travelers' => 'Book 1 to 50 travelers at a time. For a larger group, please call us.']);
+
         // Email is required even when paying later: the confirmation and every update go there.
         $this->post('/packages/umrah-package/book', $this->form(['payment' => 'later', 'email' => '']))
             ->assertSessionHasErrors('email');

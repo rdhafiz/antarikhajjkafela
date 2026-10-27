@@ -69,7 +69,10 @@
                 </div>
             </div>
 
-            <div class="p-7 sm:p-10 lg:p-12" x-data="{ topic: null }">
+            @php($sent = session('form_success') === $section->id)
+            <div class="p-7 sm:p-10 lg:p-12" x-data="{ topic: null, sent: @js($sent) }" @form-sent="sent = true">
+                {{-- Once the message is sent only the thank-you stays: no heading or topic chips above it. --}}
+                <div x-show="!sent" @if ($sent) hidden @endif>
                 <div data-reveal>
                     <p class="font-display text-display-sm text-brand">{{ __('Send us a message') }}</p>
                     <p class="mt-1.5 text-[15px] text-ink-2">{{ __('Leave your details and our team will call you, In Sha Allah.') }}</p>
@@ -86,8 +89,9 @@
                         @endforeach
                     </div>
                 </div>
+                </div>
 
-                <div class="mt-7" data-reveal style="--reveal-delay: 140ms">
+                <div @class(['mt-7' => ! $sent]) data-reveal style="--reveal-delay: 140ms">
                     <x-site.form-shell :section="$section" :submit-label="$c['submit_label'] ?: __('Send message')" :success="$c['success'] ?: __('Thank you! We will contact you shortly.')" plain>
                         @include('sections.partials.form-field', ['sectionId' => $section->id, 'name' => 'name', 'label' => __('Full name'), 'type' => 'text', 'required' => true, 'autocomplete' => 'name'])
                         @include('sections.partials.form-field', ['sectionId' => $section->id, 'name' => 'phone', 'label' => __('Mobile number'), 'type' => 'tel', 'required' => true, 'autocomplete' => 'tel'])

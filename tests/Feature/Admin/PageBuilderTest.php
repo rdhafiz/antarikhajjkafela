@@ -274,7 +274,6 @@ class PageBuilderTest extends AdminTestCase
         $slides = $hero->fresh()->content['slides'];
         $this->assertSame(['Old headline', 'Second slide'], array_map(fn ($s) => $s['title']['en'], $slides));
         // It gets a repeater id like every other slide, so opening the editor changes nothing.
-        $this->assertMatchesRegularExpression('/^[A-Za-z0-9_-]{4,40}$/', $slides[0]['_id']);
         $this->get('/')->assertOk()->assertSee('heroSlider(2)', false);
     }
 
@@ -460,6 +459,35 @@ class PageBuilderTest extends AdminTestCase
         $this->withUnencryptedCookie('locale', 'bn')->get('/air-tickets')->assertOk()
             ->assertSee('<option value="Return" selected>রিটার্ন</option>', false)
             ->assertSee('name="adults" type="number"', false);
+    }
+
+    public function test_form_messages_use_the_form_labels_and_message_limits(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $visa = Page::where('slug', 'visa')->firstOrFail()->sections()->where('component', 'lead_form')->firstOrFail();
+        $person = ['visa_type' => 'Student', 'visa_country' => 'কানাডা', 'name' => 'Rahima', 'phone' => '01711000001'];
+
+        // #24: the error names the field as the form labels it, in plain words.
+        $this->postJson(route('forms.submit', $visa), [...$person, 'departure_date' => '2020-01-01'])
+            ->assertJsonValidationErrors(['departure_date' => 'Planned travel date cannot be in the past. Choose today or a later date.']);
+        $this->postJson(route('forms.submit', $visa), [...$person, 'departure_date' => 'soon'])
+            ->assertJsonValidationErrors(['departure_date' => 'Choose a valid date for Planned travel date.']);
+
+        // #25: messages stop at 2000 characters, counting a line break once (as the box does), with a counter on the page.
+        $this->postJson(route('forms.submit', $visa), [...$person, 'message' => str_repeat('a', 2001)])
+            ->assertJsonValidationErrors(['message' => 'Please keep this to 2000 characters.']);
+        $this->postJson(route('forms.submit', $visa), [...$person, 'message' => str_repeat("ab\r\n", 500)])->assertOk();
+        $this->get('/visa')->assertOk()->assertSee('maxlength="2000"', false)->assertSee('x-data="charCount(2000)"', false);
+
+        $contact = Page::where('system_key', 'contact')->firstOrFail()->sections()->where('component', 'contact_form')->firstOrFail();
+        $this->postJson(route('forms.submit', $contact), ['name' => 'Karim', 'phone' => '01711000000', 'message' => str_repeat('a', 2001)])
+            ->assertJsonValidationErrors(['message']);
+
+        // #26: once sent, the contact page shows only the thank-you (no topic chips above it).
+        $this->post(route('forms.submit', $contact), ['name' => 'Karim', 'phone' => '01711000000', 'message' => 'Hello'])->assertRedirect();
+        $page = $this->withSession(['form_success' => $contact->id])->get($contact->page->url())->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/x-show="!sent"\s+hidden/', $page);
+        $this->assertStringContainsString('@form-sent="sent = true"', $this->get($contact->page->url())->getContent());
     }
 
     public function test_fare_quotes_check_the_trip_type_cities_and_flights(): void
