@@ -1,5 +1,6 @@
 <x-site.layout>
-    <section class="section-light bg-sand-50 py-12 sm:py-16">
+    <section class="section-light relative isolate overflow-hidden bg-sky-soft py-12 sm:py-16">
+        <x-site.decor />
         <div class="container-site max-w-xl">
             {{-- No hero here: a compact title so the form is in view right away. --}}
             <div class="mb-8 text-center" data-reveal>

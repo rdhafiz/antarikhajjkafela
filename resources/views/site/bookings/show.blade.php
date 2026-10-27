@@ -20,7 +20,8 @@
     $phones = $site->phones();
 @endphp
 <x-site.layout :analytics="false">
-    <section class="section-light bg-sand-50 py-12 sm:py-16">
+    <section class="section-light relative isolate overflow-clip bg-sky-soft py-12 sm:py-16">
+        <x-site.decor />
         <div class="container-site max-w-4xl">
             {{-- Outcome messages --}}
             @if ($result === 'paid')

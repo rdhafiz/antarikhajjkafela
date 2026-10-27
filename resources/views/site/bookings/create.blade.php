@@ -45,7 +45,7 @@
 @endphp
 <x-site.layout>
     {{-- Title row: no hero, so the form starts near the top. --}}
-    <div class="section-light bg-sand-50 pt-10 sm:pt-12">
+    <div class="section-light bg-sky-soft pt-10 sm:pt-12">
         <div class="container-site">
             <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between" data-reveal>
                 <div class="flex items-center gap-5">
@@ -83,8 +83,9 @@
         </div>
     </div>
 
-    <section class="section-light relative isolate bg-sand-50 pt-8 pb-14 sm:pt-10 sm:pb-20">
-        <div class="pattern-star-ink pointer-events-none absolute inset-0 -z-10 opacity-[0.02]" aria-hidden="true"></div>
+    {{-- overflow-clip, not hidden: the order summary stays sticky inside it. --}}
+    <section class="section-light relative isolate overflow-clip bg-sky-soft pt-8 pb-14 sm:pt-10 sm:pb-20">
+        <x-site.decor />
         <div class="container-site">
             <form method="POST" action="{{ route('bookings.store', $package->slug) }}" enctype="multipart/form-data" novalidate
                   x-data="bookingForm(@js($config))" @submit="submit($event)" @input="clearError($event.target)" @change="clearError($event.target)" @focusin.once="loadRecaptcha()"
@@ -111,7 +112,7 @@
                         <legend class="sr-only">{{ __('Choose your package option') }}</legend>
                         <div class="book-card-head book-head-scene" data-reveal aria-hidden="true">
                             <img src="{{ asset('images/booking/'.$scenes[0].'.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
-                            <span class="book-card-num">{{ $pad(1) }}</span>
+                            <span class="book-card-num ic-tone ic-1">{{ $pad(1) }}</span>
                             <span class="book-head-rule" aria-hidden="true"></span>
                             <div class="relative min-w-0">
                                 <p class="book-head-title">{{ __('Choose your package option') }}</p>
@@ -204,7 +205,7 @@
                         <legend class="sr-only">{{ __('Your details') }}</legend>
                         <div class="book-card-head book-head-scene" data-reveal aria-hidden="true">
                             <img src="{{ asset('images/booking/'.$scenes[1].'.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
-                            <span class="book-card-num">{{ $pad(2) }}</span>
+                            <span class="book-card-num ic-tone ic-2">{{ $pad(2) }}</span>
                             <span class="book-head-rule" aria-hidden="true"></span>
                             <div class="relative min-w-0">
                                 <p class="book-head-title">{{ __('Your details') }}</p>
@@ -248,7 +249,7 @@
                         <legend class="sr-only">{{ __('Documents') }}</legend>
                         <div class="book-card-head book-head-scene" data-reveal aria-hidden="true">
                             <img src="{{ asset('images/booking/'.$scenes[2].'.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
-                            <span class="book-card-num">{{ $pad(3) }}</span>
+                            <span class="book-card-num ic-tone ic-3">{{ $pad(3) }}</span>
                             <span class="book-head-rule" aria-hidden="true"></span>
                             <div class="relative min-w-0">
                                 <p class="book-head-title flex flex-wrap items-center gap-x-3 gap-y-1">{{ __('Documents') }} <span class="book-optional">{{ __('optional') }}</span></p>
@@ -322,7 +323,7 @@
                         <legend class="sr-only">{{ __('Payment') }}</legend>
                         <div class="book-card-head book-head-scene" data-reveal aria-hidden="true">
                             <img src="{{ asset('images/booking/'.$scenes[3].'.webp') }}" alt="" width="760" height="430" class="book-scene" loading="lazy" decoding="async">
-                            <span class="book-card-num">{{ $pad(4) }}</span>
+                            <span class="book-card-num ic-tone ic-5">{{ $pad(4) }}</span>
                             <span class="book-head-rule" aria-hidden="true"></span>
                             <div class="relative min-w-0">
                                 <p class="book-head-title">{{ __('Payment') }}</p>
