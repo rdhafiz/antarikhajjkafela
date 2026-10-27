@@ -31,9 +31,11 @@ class LayoutTest extends TestCase
             ->assertSee('<html lang="en"', false)
             ->assertSeeText('Umrah')
             ->assertSeeText('Find your booking')
-            ->assertSee('href="tel:+8801711381901"', false)
-            ->assertSee('https://wa.me/8801814371475', false)
-            ->assertSee('https://facebook.com/antarikhajjkafela', false);
+            ->assertSee('href="tel:+8801827176727"', false)
+            ->assertSee('https://wa.me/8801827176727', false)
+            ->assertSee('https://www.facebook.com/antariktravelinternational/', false)
+            ->assertSee('https://m.me/antariktravelinternational', false)
+            ->assertSee('aria-label="Messenger"', false);
     }
 
     public function test_the_header_shows_the_light_logo_over_dark_page_tops(): void

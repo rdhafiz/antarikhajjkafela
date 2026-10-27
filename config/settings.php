@@ -104,12 +104,12 @@ return [
             'description' => 'Shown in the header, footer, contact page and structured data.',
             'icon' => 'phone',
             'fields' => [
-                'primary_phone' => ['type' => 'phone', 'label' => 'Primary phone', 'section' => 'Phone', 'default' => '01711-381901'],
-                'secondary_phone' => ['type' => 'phone', 'label' => 'Secondary phone', 'section' => 'Phone', 'default' => '01851074630'],
-                'primary_whatsapp' => ['type' => 'phone', 'label' => 'Primary WhatsApp', 'section' => 'WhatsApp', 'hint' => 'Include the country code for WhatsApp links, e.g. 8801814371475.', 'default' => '01814371475'],
+                'primary_phone' => ['type' => 'phone', 'label' => 'Primary phone', 'section' => 'Phone', 'default' => '01827-176727'],
+                'secondary_phone' => ['type' => 'phone', 'label' => 'Secondary phone', 'section' => 'Phone', 'default' => null],
+                'primary_whatsapp' => ['type' => 'phone', 'label' => 'Primary WhatsApp', 'section' => 'WhatsApp', 'hint' => 'Include the country code for WhatsApp links, e.g. +880 1827-176727.', 'default' => '+880 1827-176727'],
                 'secondary_whatsapp' => ['type' => 'phone', 'label' => 'Secondary WhatsApp', 'section' => 'WhatsApp', 'default' => null],
-                'primary_email' => ['type' => 'email', 'label' => 'Primary email', 'section' => 'Email', 'default' => 'antariktravels@yahoo.com'],
-                'secondary_email' => ['type' => 'email', 'label' => 'Secondary email', 'section' => 'Email', 'default' => 'info@antarikhajjkafela.com'],
+                'primary_email' => ['type' => 'email', 'label' => 'Primary email', 'section' => 'Email', 'default' => 'abdussobhan202@gmail.com'],
+                'secondary_email' => ['type' => 'email', 'label' => 'Secondary email', 'section' => 'Email', 'default' => null],
                 'address' => [
                     'type' => 'text', 'label' => 'Office address', 'section' => 'Office', 'translatable' => true, 'rules' => ['max:500'],
                     'default' => [
@@ -129,7 +129,8 @@ return [
             'description' => 'Profile links shown as icons. Leave a field empty to hide its icon.',
             'icon' => 'share',
             'fields' => [
-                'facebook' => ['type' => 'url', 'label' => 'Facebook', 'default' => 'https://facebook.com/antarikhajjkafela'],
+                'facebook' => ['type' => 'url', 'label' => 'Facebook', 'default' => 'https://www.facebook.com/antariktravelinternational/'],
+                'messenger' => ['type' => 'url', 'label' => 'Messenger', 'hint' => 'Chat link for the Facebook page, e.g. https://m.me/antariktravelinternational.', 'default' => 'https://m.me/antariktravelinternational'],
                 'instagram' => ['type' => 'url', 'label' => 'Instagram', 'default' => null],
                 'youtube' => ['type' => 'url', 'label' => 'YouTube', 'default' => null],
                 'linkedin' => ['type' => 'url', 'label' => 'LinkedIn', 'default' => null],

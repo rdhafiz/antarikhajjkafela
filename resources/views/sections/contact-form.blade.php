@@ -13,6 +13,7 @@
         $channels = array_values(array_filter([
             $phones ? ['icon' => 'phone', 'label' => __('Call us'), 'value' => collect($phones)->pluck('display')->implode(' · '), 'href' => $phones[0]['href'], 'ltr' => true] : null,
             $whatsapp ? ['icon' => 'whatsapp', 'label' => 'WhatsApp', 'value' => settings('contact.primary_whatsapp') ?: __('Chat on WhatsApp'), 'href' => $whatsapp, 'external' => true, 'ltr' => true] : null,
+            ($messenger = settings('social.messenger')) ? ['icon' => 'messenger', 'label' => 'Messenger', 'value' => $site->name(), 'href' => $messenger, 'external' => true] : null,
             $emails ? ['icon' => 'mail', 'label' => __('Email'), 'value' => $emails[0], 'href' => 'mailto:'.$emails[0], 'ltr' => true] : null,
             $address ? ['icon' => 'map-pin', 'label' => __('Visit our office'), 'value' => $address, 'href' => 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($address), 'external' => true] : null,
         ]));
@@ -42,7 +43,7 @@
                             <li data-reveal="left" style="--reveal-delay: {{ 100 + $i * 90 }}ms">
                                 <a href="{{ $channel['href'] }}" @if (! empty($channel['external'])) target="_blank" rel="noopener" @endif
                                    class="concierge-row group relative isolate flex items-center gap-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5">
-                                    <span class="concierge-icon ic-tone ic-{{ [1, 2, 3, 4][$i % 4] }} flex size-12 shrink-0 items-center justify-center rounded-xl">
+                                    <span class="concierge-icon ic-tone ic-{{ $i % 6 + 1 }} flex size-12 shrink-0 items-center justify-center rounded-xl">
                                         <x-site.icon :name="$channel['icon']" class="size-5" />
                                     </span>
                                     <span class="min-w-0 flex-1">

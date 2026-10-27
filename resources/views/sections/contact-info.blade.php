@@ -4,6 +4,7 @@
     $emails = $site->emails();
     $whatsapp = $site->whatsappUrl();
     $whatsappNumber = settings('contact.primary_whatsapp');
+    $messenger = settings('social.messenger');
     $address = $site->address();
     $map = $c['show_map'] ? $site->mapEmbedUrl() : null;
 
@@ -11,6 +12,7 @@
     $cards = array_values(array_filter([
         $phones ? ['icon' => 'phone', 'label' => __('Phone'), 'links' => array_map(fn ($p) => ['href' => $p['href'], 'text' => $p['display'], 'ltr' => true], $phones), 'action' => ['href' => $phones[0]['href'], 'text' => __('Call us')]] : null,
         $whatsapp ? ['icon' => 'whatsapp', 'label' => 'WhatsApp', 'links' => $whatsappNumber ? [['href' => $whatsapp, 'text' => $whatsappNumber, 'ltr' => true, 'external' => true]] : [], 'action' => ['href' => $whatsapp, 'text' => __('Chat on WhatsApp'), 'external' => true]] : null,
+        $messenger ? ['icon' => 'messenger', 'label' => 'Messenger', 'links' => [['href' => $messenger, 'text' => $site->name(), 'external' => true]], 'action' => ['href' => $messenger, 'text' => __('Chat on Messenger'), 'external' => true]] : null,
         $emails ? ['icon' => 'mail', 'label' => __('Email'), 'links' => array_map(fn ($e) => ['href' => 'mailto:'.$e, 'text' => $e, 'ltr' => true], $emails), 'action' => null] : null,
         $address ? ['icon' => 'map-pin', 'label' => __('Office'), 'text' => $address, 'links' => [], 'action' => ['href' => 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($address), 'text' => __('Get directions'), 'external' => true]] : null,
     ]));

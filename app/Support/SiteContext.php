@@ -14,6 +14,7 @@ class SiteContext
 {
     private const SOCIAL_LABELS = [
         'facebook' => 'Facebook',
+        'messenger' => 'Messenger',
         'instagram' => 'Instagram',
         'youtube' => 'YouTube',
         'linkedin' => 'LinkedIn',
