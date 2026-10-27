@@ -176,7 +176,7 @@ class PageBuilderTest extends AdminTestCase
         $this->assertSame('Our own wording.', $fresh['items'][0]['text']['en']);
         $this->assertNotEmpty($fresh['items'][1]['logo']);
         $this->assertNotEmpty($fresh['items'][0]['logo']);
-        $this->assertNull($fresh['items'][5]['logo'] ?? null);
+        $this->assertNotEmpty($fresh['items'][5]['logo']);
 
         $this->get('/')->assertOk()
             ->assertSee('badge-card', false)

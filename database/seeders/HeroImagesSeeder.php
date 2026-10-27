@@ -89,6 +89,7 @@ class HeroImagesSeeder extends Seeder
         'ATAB member' => ['credentials/atab.webp', 'ATAB member', 'আটাব সদস্য'],
         'HAAB member' => ['credentials/haab.webp', 'HAAB member', 'হাব সদস্য'],
         'Biman Bangladesh Airlines' => ['credentials/biman.webp', 'Biman Bangladesh Airlines', 'বিমান বাংলাদেশ এয়ারলাইন্স'],
+        'Civil Aviation licence' => ['credentials/civil-aviation.webp', 'Civil Aviation licence', 'সিভিল এভিয়েশন লাইসেন্স'],
     ];
 
     public function run(): void
