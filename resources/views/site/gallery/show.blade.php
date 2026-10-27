@@ -21,7 +21,8 @@
         ]"
     />
 
-    <section class="section-light bg-sand-50 py-12 sm:py-16" x-data="lightbox(@js($slides))" @keydown.window="key($event)">
+    <section class="section-light relative isolate overflow-hidden bg-mint-soft py-12 sm:py-16" x-data="lightbox(@js($slides))" @keydown.window="key($event)">
+        <x-site.decor />
         <div class="container-site">
             <h2 class="sr-only">{{ __('Photos and videos') }}</h2>
             <ul class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4" data-reveal>
@@ -86,7 +87,8 @@
     </section>
 
     @if ($more->isNotEmpty())
-        <section class="section-light py-16 sm:py-20" aria-labelledby="more-albums">
+        <section class="section-light relative isolate overflow-hidden bg-white py-16 sm:py-20" aria-labelledby="more-albums">
+            <x-site.decor />
             <div class="container-site">
                 <div class="mb-10 flex flex-wrap items-end justify-between gap-4">
                     <h2 id="more-albums" class="sec-heading text-display-lg">{{ __('More albums') }}</h2>

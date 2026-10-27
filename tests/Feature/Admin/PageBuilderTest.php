@@ -111,6 +111,8 @@ class PageBuilderTest extends AdminTestCase
                 ->assertSee('ic-tone ic-3', false);
         }
         $this->get('/visa')->assertSee('bg-peach-soft', false)->assertSee('bg-lilac-soft', false);
+        $this->get('/blog')->assertOk()->assertSee('bg-sky-soft', false)->assertSee('class="decor pointer-events-none', false);
+        $this->get('/gallery')->assertOk()->assertSee('bg-mint-soft', false)->assertSee('class="decor pointer-events-none', false);
 
         // Existing sites: sections with their original background are restyled; an admin's own choice stays.
         $about = Page::where('system_key', 'about')->firstOrFail();

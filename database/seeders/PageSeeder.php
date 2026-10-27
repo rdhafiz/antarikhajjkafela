@@ -118,14 +118,14 @@ class PageSeeder extends Seeder
                         ['page_listing', [
                             'eyebrow' => $this->t('Our gallery', 'আমাদের গ্যালারি'),
                             'intro' => $this->t('Moments from our tours, Hajj and Umrah journeys, workshops and gatherings.', 'আমাদের ট্যুর, হজ ও উমরাহ সফর, কর্মশালা ও আয়োজনের কিছু মুহূর্ত।'),
-                        ], []],
+                        ], ['background' => 'mint-soft', 'decor' => 'shapes']],
                         $this->cta(),
                     ],
                     'blog' => [
                         ['page_listing', [
                             'eyebrow' => $this->t('Guides & news', 'গাইড ও সংবাদ'),
                             'intro' => $this->t('Travel tips, visa updates and guidance for Hajj and Umrah pilgrims.', 'ভ্রমণ টিপস, ভিসার হালনাগাদ এবং হজ ও উমরাহ যাত্রীদের জন্য দিকনির্দেশনা।'),
-                        ], []],
+                        ], ['background' => 'sky-soft', 'decor' => 'shapes']],
                         $this->cta(),
                     ],
                     default => [

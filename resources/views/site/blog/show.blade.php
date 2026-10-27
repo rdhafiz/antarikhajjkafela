@@ -35,7 +35,8 @@
         </x-site.hero>
 
         {{-- Body --}}
-        <div class="section-light">
+        <div class="section-light relative isolate overflow-hidden bg-white">
+            <x-site.decor />
             <div class="container-site py-14 sm:py-20">
                 <div class="mx-auto max-w-[760px] text-[1.0625rem]">
                     @php
@@ -83,7 +84,8 @@
     </article>
 
     @if ($related->isNotEmpty())
-        <section class="section-light bg-sand-50 py-16 sm:py-24" aria-labelledby="related-title">
+        <section class="section-light relative isolate overflow-hidden bg-sky-soft py-16 sm:py-24" aria-labelledby="related-title">
+            <x-site.decor />
             <div class="container-site">
                 <div class="mb-10 flex flex-wrap items-end justify-between gap-4" data-reveal>
                     <div>
