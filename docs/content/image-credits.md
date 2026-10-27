@@ -49,10 +49,10 @@ Unsplash photos (free to use under the Unsplash License) for the travel agency p
 | File | Used for | Photographer | Source |
 | --- | --- | --- | --- |
 | panorama.webp | Home hero, first slide | Supplied by the client (not from Unsplash) | — |
-| airplane-takeoff.webp | Home slide "Air tickets"; Air Tickets banner; "Air tickets" service card | Niklas Jonasson | https://unsplash.com/photos/N8_JqFhBr4M |
+| airplane-takeoff.webp | Home slide "Air tickets"; Air Tickets banner; "Air tickets" service card; Tours journey card (`public/images/tours/flight.webp`) | Niklas Jonasson | https://unsplash.com/photos/N8_JqFhBr4M |
 | airplane-sky.webp | Home call-to-action and default page banner; booking step 1 for tours (cropped copy in `public/images/booking/sky-scene.webp`) | Marco Tjokro | https://unsplash.com/photos/cvj8Li-amfw |
 | airport.webp | Services, Terms and Privacy banners; booking step 2 for tours (`airport-scene.webp`) | Albert Stoynov | https://unsplash.com/photos/Yil5cKBbS5M |
-| passport-visa.webp | Home slide "Visa"; Visa banner and documents section; booking step 3 for tours (`passport-scene.webp`) | Global Residence Index | https://unsplash.com/photos/addEU6TScGI |
+| passport-visa.webp | Tours journey card (`public/images/tours/plan.webp`); Home slide "Visa"; Visa banner and documents section; booking step 3 for tours (`passport-scene.webp`) | Global Residence Index | https://unsplash.com/photos/addEU6TScGI |
 | travellers.webp | Home hero; Tours service; default share image | Westwind Air Service | https://unsplash.com/photos/yRp1lQSnbk0 |
 | maldives.webp | Home slide "Tours"; Maldives tour; "Tour packages" service card; booking step 4 for tours (`island-scene.webp`) | Matheen Faiz | https://unsplash.com/photos/iwZqmickJxA |
 | thailand.webp | Thailand tour | Evan Krause | https://unsplash.com/photos/BU6lABNbTpA |
@@ -62,7 +62,7 @@ Unsplash photos (free to use under the Unsplash License) for the travel agency p
 | nepal.webp | Nepal tour | Sebastian Pena Lambarri | https://unsplash.com/photos/Wj9ELwGXa6c |
 | kashmir.webp | Kashmir tour | Naweedey | https://unsplash.com/photos/XHG0uFAlEGM |
 | bhutan.webp | Bhutan tour | Mohamed Abdul Rasheed | https://unsplash.com/photos/fwP7lCNdY2M |
-| istanbul.webp | Türkiye tour | Paul Bill | https://unsplash.com/photos/cDE_FDdPT6Y |
+| istanbul.webp | Türkiye tour; Tours journey card (`public/images/tours/stay.webp`) | Paul Bill | https://unsplash.com/photos/cDE_FDdPT6Y |
 | egypt.webp | Egypt tour | Jeremy Bishop | https://unsplash.com/photos/HcgK4WoBwzg |
 | europe.webp | Europe tour | Anthony Delanoix | https://unsplash.com/photos/QAwciFlS1g4 |
 | japan.webp | Japan tour | Aditya Anjagi | https://unsplash.com/photos/KZSDCocsOEE |

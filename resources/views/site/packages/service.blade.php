@@ -1,5 +1,5 @@
 @inject('site', App\Support\SiteContext::class)
-@inject('guide', App\Domain\Travel\PilgrimageGuide::class)
+@inject('guide', App\Domain\Travel\ServiceGuide::class)
 @php
     use App\Support\Money;
 
@@ -11,6 +11,7 @@
     $whatsapp = $site->whatsappUrl(__('Assalamu alaikum, I would like to know about your :name packages.', ['name' => $name]));
     [$minDays, $maxDays] = $stats['days'] ?? [null, null];
     $pilgrimage = $service->isPilgrimage();
+    $guided = $guide->sections($service);
 @endphp
 <x-site.layout header="overlay">
     <x-site.hero
@@ -63,18 +64,18 @@
         </div>
     </section>
 
-    @if ($pilgrimage)
+    @if ($guided)
         {{-- What the packages include: colourful icon cards on white. --}}
         <section class="section-light relative isolate overflow-hidden bg-white py-20 sm:py-24 lg:py-28">
             <x-site.decor />
             <div class="container-site">
                 <x-site.block-heading :c="[
                     'eyebrow' => __('Included'),
-                    'title' => __('What your :name package includes', ['name' => $name]),
-                    'intro' => __('Every package is arranged by our licensed Hajj and Umrah division, Antarik Hajj Kafela.'),
+                    'title' => $guided['included']['title'],
+                    'intro' => $guided['included']['intro'],
                 ]" class="mb-14" />
                 <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    @foreach ($guide->included($service) as $index => $item)
+                    @foreach ($guided['included']['items'] as $index => $item)
                         <li class="sec-card group p-7" data-reveal style="--reveal-delay: {{ ($index % 3) * 90 }}ms">
                             <span class="sec-icon ic-tone ic-{{ $index % 6 + 1 }} size-14 transition-[rotate] duration-500 group-hover:-rotate-6">
                                 <x-site.icon :name="$item['icon']" class="size-6" />
@@ -87,26 +88,24 @@
             </div>
         </section>
 
-        {{-- The journey: photo cards for the preparation, Makkah and Madinah. --}}
+        {{-- The journey: three photo cards (preparation, Makkah, Madinah; or plan, flights, destination). --}}
         <section class="section-light relative isolate overflow-hidden bg-peach-soft py-20 sm:py-24 lg:py-28">
             <x-site.decor />
             <div class="container-site">
                 <x-site.block-heading :c="[
                     'eyebrow' => __('Your journey'),
-                    'title' => __('From Dhaka to the two Holy Mosques'),
-                    'intro' => $service->slug === 'hajj'
-                        ? __('Prepared before you leave, guided through every rite, and looked after until you are home.')
-                        : __('Prepared before you leave, guided through your Umrah, and looked after until you are home.'),
+                    'title' => $guided['journey']['title'],
+                    'intro' => $guided['journey']['intro'],
                 ]" class="mb-14" />
                 <ul class="grid gap-5 md:grid-cols-3">
-                    @foreach ($guide->journey($service) as $index => $card)
+                    @foreach ($guided['journey']['cards'] as $index => $card)
                         <li class="photo-card group relative isolate flex min-h-[24rem] flex-col justify-end overflow-hidden rounded-[1.75rem] bg-brand-950 p-6 text-white shadow-[var(--shadow-lift)] sm:p-7 lg:min-h-[28rem]" data-reveal style="--reveal-delay: {{ $index * 90 }}ms">
                             <img src="{{ asset($card['image']) }}" alt="{{ $card['alt'] }}" width="800" height="1000" loading="lazy" decoding="async" class="photo-card-img absolute inset-0 -z-20 size-full object-cover">
                             <span class="photo-card-fade absolute inset-0 -z-10" aria-hidden="true"></span>
                             <span class="sec-icon ic-tone ic-{{ $index + 1 }} absolute top-6 start-6 size-12 rounded-2xl shadow-lg sm:top-7 sm:start-7">
                                 <x-site.icon :name="$card['icon']" class="size-6" />
                             </span>
-                            <span class="absolute top-7 end-6 font-display text-[1.5rem] leading-none font-semibold text-white/80 sm:end-7" aria-hidden="true">{{ App\Support\Money::digits(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) }}</span>
+                            <span class="absolute top-7 end-6 font-display text-[1.5rem] leading-none font-semibold text-white/90 [text-shadow:0_1px_3px_rgb(0_0_0/0.55)] sm:end-7" aria-hidden="true">{{ App\Support\Money::digits(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) }}</span>
                             <h3 class="font-display text-[1.5rem] leading-tight font-semibold text-white">{{ $card['title'] }}</h3>
                             <p class="mt-2.5 text-[15px] leading-relaxed text-white/85">{{ $card['text'] }}</p>
                         </li>

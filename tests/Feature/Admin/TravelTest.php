@@ -7,6 +7,7 @@ use App\Models\Package;
 use App\Models\PackagePrice;
 use App\Models\Service;
 use Database\Seeders\PageSeeder;
+use Database\Seeders\TourSeeder;
 use Database\Seeders\TravelSeeder;
 
 class TravelTest extends AdminTestCase
@@ -270,6 +271,11 @@ class TravelTest extends AdminTestCase
             ->assertJsonValidationErrors('slug'); // used by a page
 
         $this->asAdmin($admin)->postJson('/api/admin/services', ['name' => ['en' => 'Ziyarah tours'], 'slug' => 'ziyarah-tours'])->assertCreated();
+        $this->seed(TourSeeder::class);
+        $this->get('/tours')->assertOk()
+            ->assertSeeTextInOrder(['What your tour includes', 'Halal food noted', 'From Dhaka and back, planned for you', 'At your destination'])
+            ->assertSee('images/tours/flight.webp', false)
+            ->assertDontSeeText('Mina–Arafah–Muzdalifah');
         $this->get('/ziyarah-tours')->assertOk()->assertSeeText('New packages are being prepared')
             ->assertDontSeeText('From Dhaka to the two Holy Mosques');
 
