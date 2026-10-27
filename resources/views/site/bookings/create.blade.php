@@ -151,7 +151,7 @@
                                             <span class="book-option-type">{{ $option['type'] }}</span>
                                             <span class="book-option-title">{{ $option['title'] }}</span>
                                             @if ($showPrice)
-                                                <span class="book-option-price">{{ Money::html($option['price']) }} <span class="book-option-unit">{{ $option['unit_label'] }}</span></span>
+                                                <span class="book-option-price"><span class="whitespace-nowrap">{{ Money::html($option['price']) }}</span> <span class="book-option-unit">{{ $option['unit_label'] }}</span></span>
                                             @else
                                                 <x-site.price-request class="mt-2 block text-[15px] font-semibold text-brand" />
                                             @endif
@@ -383,7 +383,7 @@
                                             <span class="book-option-title !mt-0">{{ $title }}</span>
                                             <span class="book-pay-text">{{ $text }}</span>
                                             @if ($value === 'now')
-                                                <span class="book-option-price"><span x-text="money(advanceAmount)"></span> <span class="book-option-unit">{{ __('advance') }}</span></span>
+                                                <span class="book-option-price"><span class="whitespace-nowrap" x-text="money(advanceAmount)"></span> <span class="book-option-unit">{{ __('advance') }}</span></span>
                                             @endif
                                         </span>
                                         <span class="book-option-check" aria-hidden="true"><x-site.icon name="check" class="size-4" stroke-width="3" /></span>

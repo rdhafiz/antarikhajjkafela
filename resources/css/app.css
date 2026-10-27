@@ -1494,6 +1494,8 @@
 
     .book-option-type {
         display: block;
+        /* Clear of the tick in the corner. */
+        padding-inline-end: 1.75rem;
         font-size: 14.5px;
         font-weight: 700;
         color: var(--color-gold-deep);
@@ -1507,14 +1509,14 @@
         color: var(--color-ink);
     }
 
+    /* The amount never breaks; its unit ("per person") drops to the next line on a narrow card instead of being cut off. */
     .book-option-price {
         display: block;
         margin-top: 0.55rem;
         font-family: var(--font-display);
         font-size: 1.45rem;
-        line-height: 1;
+        line-height: 1.15;
         font-weight: 600;
-        white-space: nowrap;
         color: var(--color-brand);
     }
 
@@ -1544,6 +1546,8 @@
     }
 
     .book-option-unit {
+        display: inline-block;
+        white-space: nowrap;
         font-family: var(--font-sans);
         font-size: 14px;
         font-weight: 400;

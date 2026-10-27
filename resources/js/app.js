@@ -530,6 +530,27 @@ Alpine.data('siteForm', (recaptchaKey = null) => ({
 }));
 
 /**
+ * Floating WhatsApp button: on phones it slides out of the way while the
+ * visitor scrolls down (so it never covers a button they are reaching for)
+ * and comes back as soon as they scroll up. Always shown near the top.
+ */
+Alpine.data('floatingContact', () => ({
+    tucked: false,
+
+    init() {
+        const phone = window.matchMedia('(max-width: 639px)');
+        let last = window.scrollY;
+
+        window.addEventListener('scroll', () => {
+            const y = window.scrollY;
+            if (Math.abs(y - last) < 8) return;
+            this.tucked = phone.matches && y > last && y > 160;
+            last = y;
+        }, { passive: true });
+    },
+}));
+
+/**
  * Character counter under a message box with a maxlength: "120 / 2000",
  * amber near the limit and red at it. The digits follow the page language.
  */
