@@ -13,6 +13,7 @@
         'option' => (int) old('option', $selected['id']),
         'travelers' => (int) old('travelers', 1),
         'rooms' => (int) old('rooms', 1),
+        'maxTravelers' => App\Http\Controllers\Site\BookingController::MAX_TRAVELERS,
         'travelMonth' => (int) old('travel_month') ?: '',
         'travelYear' => (int) old('travel_year', $travel['years'][0] ?? 0) ?: '',
         'travelMode' => $travel['mode'],
@@ -168,7 +169,9 @@
                                     <div class="book-count">
                                         <div class="book-count-field">
                                             <button type="button" class="book-count-minus" @click="travelers = Math.max(1, travelers - 1)" :disabled="travelers <= 1" aria-label="{{ __('Fewer travelers') }}"><span aria-hidden="true"></span></button>
-                                            <input id="travelers" name="travelers" type="number" min="1" max="50" inputmode="numeric" x-model.number="travelers" required {!! $invalid('travelers') !!}>
+                                            <input id="travelers" name="travelers" type="number" min="1" max="50" step="1" inputmode="numeric" x-model.number="travelers" required {!! $invalid('travelers') !!}
+                                                   data-required-message="{{ __('Enter the number of travelers.') }}"
+                                                   data-range-message="{{ __('Book 1 to :max travelers at a time. For a larger group, please call us.', ['max' => Money::digits(50)]) }}">
                                         </div>
                                         <button type="button" class="book-count-plus" @click="travelers = Math.min(50, travelers + 1)" :disabled="travelers >= 50" aria-label="{{ __('More travelers') }}"><span aria-hidden="true"></span></button>
                                     </div>
@@ -176,7 +179,9 @@
                                 </div>
                                 <div x-show="selected.unit === 'room'" x-cloak data-field>
                                     <label for="rooms" class="book-label">{{ __('Number of rooms') }}</label>
-                                    <input id="rooms" name="rooms" type="number" min="1" max="50" inputmode="numeric" x-model.number="rooms" class="book-select" :disabled="selected.unit !== 'room'" :required="selected.unit === 'room'">
+                                    <input id="rooms" name="rooms" type="number" min="1" max="50" step="1" inputmode="numeric" x-model.number="rooms" class="book-select" :disabled="selected.unit !== 'room'" :required="selected.unit === 'room'"
+                                           data-required-message="{{ __('Enter the number of rooms.') }}"
+                                           data-range-message="{{ __('Book 1 to :max rooms at a time. For a larger group, please call us.', ['max' => Money::digits(50)]) }}">
                                     @error('rooms')<p class="error-site">{{ $message }}</p>@enderror
                                 </div>
 
@@ -255,12 +260,13 @@
                                         @endif
                                     </div>
                                 @endforeach
-                                <div class="sm:col-span-2" data-reveal>
+                                <div class="sm:col-span-2" data-reveal x-data="charCount(2000)">
                                     <label for="note" class="book-label">{{ __('Message') }} <span class="font-normal text-ink-3">({{ __('optional') }})</span></label>
                                     <div class="book-picker book-picker-top">
                                         <x-site.icon name="document" class="book-picker-icon" />
-                                        <textarea id="note" name="note" rows="4" class="book-select book-input" placeholder="{{ __('Names of the travelers, special needs, questions…') }}">{{ old('note') }}</textarea>
+                                        <textarea id="note" name="note" rows="4" maxlength="2000" aria-describedby="note-limit" class="book-select book-input" placeholder="{{ __('Names of the travelers, special needs, questions…') }}">{{ old('note') }}</textarea>
                                     </div>
+                                    <p id="note-limit" class="mt-1.5 text-right text-[12.5px] tabular-nums" :class="tone"><span class="sr-only">{{ __('Up to :count characters', ['count' => Money::digits(2000)]) }}: </span><span x-text="label" aria-hidden="true"></span></p>
                                     @error('note')<p class="error-site">{{ $message }}</p>@enderror
                                 </div>
                             </div>
@@ -413,7 +419,7 @@
                             @if ($travel['mode'] !== 'none')
                             <div class="flex justify-between gap-4"><dt class="text-white">{{ $travel['mode'] === 'hajj_year' ? __('Hajj year') : __('Travel') }}</dt><dd class="text-end" x-text="travelDate || '—'"></dd></div>
                             @endif
-                            <div class="flex justify-between gap-4"><dt class="text-white" x-text="selected.unit === 'room' ? @js(__('Rooms')) : @js(__('Travelers'))"></dt><dd x-text="digits(selected.unit === 'room' ? rooms : (selected.unit === 'group' ? 1 : travelers))"></dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-white" x-text="selected.unit === 'room' ? @js(__('Rooms')) : @js(__('Travelers'))"></dt><dd x-text="digits(selected.unit === 'room' ? count(rooms) : (selected.unit === 'group' ? 1 : count(travelers)))"></dd></div>
                             @if ($showPrice)
                             <div class="flex items-baseline justify-between gap-4 border-t border-white/10 pt-3"><dt class="font-semibold">{{ __('Total') }}</dt><dd class="text-[1.5rem] leading-none font-bold text-gold tabular-nums" x-text="money(total)"></dd></div>
                             <div x-show="advanceAmount > 0" class="flex justify-between gap-4 text-[14px]"><dt class="text-white">{{ __('Advance to confirm') }}</dt><dd x-text="money(advanceAmount)"></dd></div>
