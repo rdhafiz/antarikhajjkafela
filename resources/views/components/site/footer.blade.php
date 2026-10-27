@@ -16,7 +16,7 @@
     {{-- Call to action --}}
     @if ($cta)
     <div class="container-site relative pt-16 sm:pt-20">
-        <div class="flex flex-col gap-8 rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-7 sm:p-10 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex flex-col gap-8 rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-7 sm:p-10 lg:flex-row lg:items-center lg:justify-between" data-reveal>
             <div class="max-w-xl">
                 <p class="eyebrow eyebrow-light">{{ __('Begin your journey') }}</p>
                 <h2 class="mt-4 text-display-md text-white">{{ __('Planning your next trip? Talk to our team.') }}</h2>
@@ -35,7 +35,8 @@
 
     {{-- Columns --}}
     <div class="container-site relative grid grid-cols-2 gap-x-6 gap-y-12 py-16 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr] lg:gap-10">
-        <div class="col-span-2 max-w-sm lg:col-span-1">
+        {{-- Each column reveals a beat after the one before. --}}
+        <div class="col-span-2 max-w-sm lg:col-span-1" data-reveal>
             <a href="{{ url('/') }}" class="inline-flex items-center gap-3">
                 <span class="flex size-14 items-center justify-center rounded-2xl bg-white p-1.5">
                     <img src="{{ $branding->iconUrl(96) }}" alt="" width="48" height="48" class="size-full object-contain" loading="lazy" decoding="async">
@@ -56,7 +57,7 @@
         </div>
 
         @if ($mainMenu->isNotEmpty())
-            <nav aria-labelledby="footer-explore">
+            <nav aria-labelledby="footer-explore" data-reveal style="--reveal-delay: 90ms">
                 <h2 id="footer-explore" class="font-sans text-[13px] font-bold tracking-[0.14em] text-gold uppercase">{{ __('Explore') }}</h2>
                 <ul class="mt-5 space-y-3 text-[15px]">
                     @foreach ($mainMenu as $item)
@@ -67,7 +68,7 @@
         @endif
 
         @if ($footerMenu)
-            <nav aria-labelledby="footer-links">
+            <nav aria-labelledby="footer-links" data-reveal style="--reveal-delay: 180ms">
                 <h2 id="footer-links" class="font-sans text-[13px] font-bold tracking-[0.14em] text-gold uppercase">{{ __('Useful links') }}</h2>
                 <ul class="mt-5 space-y-3 text-[15px]">
                     @foreach ($footerMenu as $item)
@@ -79,7 +80,7 @@
             </nav>
         @endif
 
-        <div class="col-span-2 lg:col-span-1">
+        <div class="col-span-2 lg:col-span-1" data-reveal style="--reveal-delay: 270ms">
             <h2 class="font-sans text-[13px] font-bold tracking-[0.14em] text-gold uppercase">{{ __('Contact us') }}</h2>
             <ul class="mt-5 space-y-4 text-[15px]">
                 @if ($address = $site->address())
@@ -113,7 +114,7 @@
     </div>
 
     <div class="relative border-t border-white/10">
-        <div class="container-site flex flex-col gap-3 py-6 text-[13px] text-white/50 sm:flex-row sm:items-center sm:justify-between">
+        <div class="container-site flex flex-col gap-3 py-6 text-[13px] text-white/50 sm:flex-row sm:items-center sm:justify-between" data-reveal>
             <p>© {{ now()->year }} {{ $site->name() }}. {{ __('All rights reserved.') }}</p>
             {{-- The language switcher lives in the header only. --}}
             <p class="text-white/70">

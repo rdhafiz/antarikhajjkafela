@@ -23,7 +23,7 @@
             @if ($bullets)
                 <ul class="mt-8 space-y-4">
                     @foreach ($bullets as $bullet)
-                        <li class="flex gap-3">
+                        <li class="flex gap-3" data-reveal="left" style="--reveal-delay: {{ 120 + $loop->index * 90 }}ms">
                             <span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald text-white"><x-site.icon name="check" class="size-3.5" /></span>
                             <span class="sec-text text-[1.0625rem]">{{ $bullet['text'] }}</span>
                         </li>

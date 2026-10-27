@@ -177,17 +177,17 @@
             <div @class(['grid gap-5', $grid, 'gap-x-10 gap-y-9' => ! $cards])>
                 @foreach ($items as $index => $item)
                     @php($tag = $item['link'] ? 'a' : 'div')
+                    {{-- The reveal sits on a wrapper: the card's own hover transition would cancel it. --}}
+                    <div data-reveal style="--reveal-delay: {{ ($index % 4) * 90 }}ms">
                     <{{ $tag }}
                         @if ($item['link']) href="{{ $item['link']['url'] }}" @if ($item['link']['external']) target="_blank" rel="noopener" @endif @endif
                         @class([
-                            'group relative block',
+                            'group relative block h-full',
                             'sec-card p-7 transition-[box-shadow,border-color,translate] duration-300' => $cards,
                             'overflow-hidden hover:-translate-y-1' => $cards && $item['image'],
                             'hover:shadow-[var(--shadow-lift)]' => $cards && $item['link'],
                             'flex gap-5' => $layout === 'list',
                         ])
-                        data-reveal
-                        style="--reveal-delay: {{ ($index % 4) * 90 }}ms"
                     >
                         @if ($cards && $item['image'])
                             {{-- The photo across the top of the card; the icon overlaps its lower edge. --}}
@@ -212,6 +212,7 @@
                             @endif
                         </div>
                     </{{ $tag }}>
+                    </div>
                 @endforeach
             </div>
         </div>

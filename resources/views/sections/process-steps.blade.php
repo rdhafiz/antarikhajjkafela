@@ -20,9 +20,9 @@
         x-data="journey({{ $count }})"
         @mouseenter="hold(true)" @mouseleave="hold(false)" @focusin="hold(true)" @focusout="hold(false)"
         class="journey grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-8"
-        data-reveal
     >
-        <div role="tablist" aria-label="{{ $c['title'] ?: __('Steps') }}" class="grid gap-2 lg:flex lg:flex-col lg:gap-0" style="grid-template-columns: repeat({{ $count }}, minmax(0, 1fr))" @keydown="keys($event)">
+        {{-- The step list and the stage reveal in turn (not the tabs themselves: their own transitions would cancel it). --}}
+        <div data-reveal="left" role="tablist" aria-label="{{ $c['title'] ?: __('Steps') }}" class="grid gap-2 lg:flex lg:flex-col lg:gap-0" style="grid-template-columns: repeat({{ $count }}, minmax(0, 1fr))" @keydown="keys($event)">
             @foreach ($steps as $index => $step)
                 <button
                     type="button" role="tab" id="{{ $uid }}-tab-{{ $index }}" aria-controls="{{ $uid }}-panel-{{ $index }}"
@@ -42,7 +42,7 @@
             @endforeach
         </div>
 
-        <div @class([
+        <div data-reveal="scale" style="--reveal-delay: 150ms" @class([
             'journey-stage relative isolate grid min-h-[22rem] overflow-hidden rounded-[2rem] text-white lg:min-h-[26rem]',
             'bg-brand-950' => ! $dark,
             'border border-white/10 bg-white/[0.06]' => $dark,

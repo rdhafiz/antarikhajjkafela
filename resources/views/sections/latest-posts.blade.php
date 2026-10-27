@@ -56,9 +56,9 @@
                     </div>
                 </article>
 
-                <ol class="flex flex-col" data-reveal>
+                <ol class="flex flex-col">
                     @foreach ($rest as $index => $post)
-                        <li class="news-row group relative grid grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-5 border-b border-[var(--sec-border)] py-5 first:pt-0 last:border-b-0 sm:grid-cols-[8.5rem_minmax(0,1fr)] lg:flex-1">
+                        <li data-reveal style="--reveal-delay: {{ $index * 90 }}ms" class="news-row group relative grid grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-5 border-b border-[var(--sec-border)] py-5 first:pt-0 last:border-b-0 sm:grid-cols-[8.5rem_minmax(0,1fr)] lg:flex-1">
                             <div class="relative aspect-square overflow-hidden rounded-2xl bg-brand sm:aspect-[4/3]">
                                 @if ($post->banner)
                                     <img src="{{ $post->banner->url('sm') }}" alt="" loading="lazy" decoding="async" class="news-row-img size-full object-cover">

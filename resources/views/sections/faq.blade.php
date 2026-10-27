@@ -49,8 +49,9 @@
             @endif
         </div>
 
-        <div @class(['grid gap-3', 'mx-auto w-full max-w-3xl' => ! $split]) x-data="{ open: 0 }" data-reveal>
+        <div @class(['grid gap-3', 'mx-auto w-full max-w-3xl' => ! $split]) x-data="{ open: 0 }">
             @foreach ($items as $index => $item)
+                <div data-reveal style="--reveal-delay: {{ ($index % 6) * 70 }}ms">
                 <div @class(['faq-item', 'is-open' => $index === 0]) :class="{ 'is-open': open === {{ $index }} }">
                     <h3>
                         <button
@@ -70,6 +71,7 @@
                     <div id="{{ $uid }}-a-{{ $index }}" role="region" aria-labelledby="{{ $uid }}-q-{{ $index }}" x-show="open === {{ $index }}" x-collapse @if ($index !== 0) x-cloak @endif>
                         <div class="faq-answer prose-site px-4 pb-5 sm:px-5 sm:pb-6 text-[1rem] sm:ps-[4.25rem] sm:pe-16">{!! $item['answer'] !!}</div>
                     </div>
+                </div>
                 </div>
             @endforeach
         </div>

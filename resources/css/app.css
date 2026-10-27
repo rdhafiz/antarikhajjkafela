@@ -1426,7 +1426,10 @@
         padding: 1rem 2.75rem 1rem 0.9rem;
         box-shadow: 0 14px 30px -24px rgb(15 23 42 / 0.35);
         container-type: inline-size;
+        /* The scroll reveal's opacity and transform are listed too, or this transition would cancel it. */
         transition:
+            opacity 900ms var(--ease-out-soft) var(--reveal-delay, 0ms),
+            transform 1100ms var(--ease-out-soft) var(--reveal-delay, 0ms),
             border-color 400ms var(--ease-out-soft),
             box-shadow 400ms var(--ease-out-soft),
             translate 400ms var(--ease-out-soft),
@@ -2462,7 +2465,11 @@
         background: linear-gradient(160deg, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.03));
         border: 1px solid rgb(255 255 255 / 0.12);
         box-shadow: 0 24px 48px -32px rgb(0 0 0 / 0.6);
-        transition: border-color 400ms var(--ease-out-soft), translate 400ms var(--ease-out-soft), background-color 400ms var(--ease-out-soft);
+        /* The scroll reveal's opacity and transform are listed too, or this transition would cancel it. */
+        transition-property: opacity, transform, border-color, translate;
+        transition-duration: 900ms, 1100ms, 400ms, 400ms;
+        transition-timing-function: var(--ease-out-soft);
+        transition-delay: var(--reveal-delay, 0ms), var(--reveal-delay, 0ms), 0ms, 0ms;
     }
 
     .badge-card:hover {
