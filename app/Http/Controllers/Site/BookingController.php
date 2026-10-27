@@ -14,6 +14,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Models\PackagePrice;
+use App\Support\Money;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -87,6 +88,11 @@ class BookingController extends Controller
         // Bots fill the hidden honeypot field.
         abort_if(filled($request->input('website')), 422);
 
+        // Browsers count a line break as one character but send two (CRLF): count it the way the box did.
+        if (is_string($request->input('note'))) {
+            $request->merge(['note' => str_replace("\r\n", "\n", $request->input('note'))]);
+        }
+
         $data = $request->validate([
             'option' => ['required', 'integer', Rule::exists('package_prices', 'id')->whereNull('deleted_at')->whereIn('package_type_id', $package->types()->pluck('id'))],
             'travelers' => ['required', 'integer', 'min:1', 'max:'.self::MAX_TRAVELERS],
@@ -115,6 +121,12 @@ class BookingController extends Controller
             'nid.*.max' => __(':attribute must be 5 MB or smaller.'),
             'passport.max' => __('Upload up to 10 passport copies.'),
             'nid.max' => __('Upload up to 10 NID copies.'),
+            'travelers.required' => __('Enter the number of travelers.'),
+            'travelers.min' => __('Book 1 to :max travelers at a time. For a larger group, please call us.', ['max' => Money::digits(self::MAX_TRAVELERS)]),
+            'travelers.max' => __('Book 1 to :max travelers at a time. For a larger group, please call us.', ['max' => Money::digits(self::MAX_TRAVELERS)]),
+            'rooms.min' => __('Book 1 to :max rooms at a time. For a larger group, please call us.', ['max' => Money::digits(self::MAX_TRAVELERS)]),
+            'rooms.max' => __('Book 1 to :max rooms at a time. For a larger group, please call us.', ['max' => Money::digits(self::MAX_TRAVELERS)]),
+            'note.max' => __('Please keep this to :max characters.'),
         ], [
             'option' => __('Package option'),
             'travelers' => __('Number of travelers'),
@@ -125,6 +137,7 @@ class BookingController extends Controller
             'phone' => __('Mobile number'),
             'email' => __('Email'),
             'address' => __('Address'),
+            'note' => __('Message'),
             'passport' => __('Passport copies'),
             'passport.*' => __('Passport copy'),
             'nid' => __('NID copies'),

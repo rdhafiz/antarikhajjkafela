@@ -32,7 +32,12 @@ class FormController extends Controller
             return $this->success($request, $section);
         }
 
-        $data = $request->validate($this->rules($section, $request), $this->messages(), $this->attributes());
+        // Browsers count a line break as one character but send two (CRLF): count it the way the box did.
+        if (is_string($request->input('message'))) {
+            $request->merge(['message' => str_replace("\r\n", "\n", $request->input('message'))]);
+        }
+
+        $data = $request->validate($this->rules($section, $request), $this->messages(), $this->attributes($section));
 
         // Multi-city: the flights after the first, stored as a readable list.
         if (isset($data['legs'])) {
@@ -76,7 +81,7 @@ class FormController extends Controller
                 'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{7,20}$/'],
                 'email' => ['nullable', 'email', 'max:190'],
                 'subject' => ['nullable', 'string', 'max:160'],
-                'message' => ['required', 'string', 'max:3000'],
+                'message' => ['required', 'string', 'max:2000'],
             ];
         }
 
@@ -186,15 +191,35 @@ class FormController extends Controller
             'legs.required' => __('Add the next flight of your multi-city trip.'),
             'legs.min' => __('Add the next flight of your multi-city trip.'),
             'legs.max' => __('A multi-city trip can have up to :count flights.', ['count' => LeadFields::MAX_EXTRA_FLIGHTS + 1]),
+            // Plain wording for dates (a date typed by hand can be in the past or not a date at all).
+            '*.date' => __('Choose a valid date for :attribute.'),
+            'departure_date.after_or_equal' => __(':attribute cannot be in the past. Choose today or a later date.'),
+            'return_date.after_or_equal' => __(':attribute cannot be before the departure date.'),
+            'legs.*.date.after_or_equal' => __(':attribute cannot be in the past. Choose today or a later date.'),
+            'message.max' => __('Please keep this to :max characters.'),
         ];
     }
 
     /**
+     * Field names for messages: the label the admin gave the field on this
+     * form (e.g. "Planned travel date"), else the standard one.
+     *
      * @return array<string, string>
      */
-    private function attributes(): array
+    private function attributes(PageSection $section): array
     {
-        return [
+        $custom = collect($section->component === 'lead_form' ? ($section->content['fields'] ?? []) : [])
+            ->filter(fn ($field) => isset($field['field']))
+            ->mapWithKeys(function ($field) {
+                $label = $field['label'] ?? null;
+                $label = is_array($label) ? ($label[app()->getLocale()] ?? $label['en'] ?? null) : $label;
+
+                return [$field['field'] => trim((string) $label)];
+            })
+            ->filter()
+            ->all();
+
+        return $custom + [
             'name' => __('Full name'),
             'phone' => __('Mobile number'),
             'email' => __('Email'),

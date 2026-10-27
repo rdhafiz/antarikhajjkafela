@@ -182,9 +182,14 @@ Alpine.data('bookingForm', (config) => ({
         return this.options.find((o) => o.id === this.option) ?? this.options[0];
     },
 
+    /** A count as the server will take it: a whole number from 1 to the maximum (the summary never shows more). */
+    count(value) {
+        return Math.min(this.maxTravelers, Math.max(1, Math.floor(Number(value)) || 1));
+    },
+
     get quantity() {
         if (this.selected.unit === 'group') return 1;
-        return Math.max(1, Number(this.selected.unit === 'room' ? this.rooms : this.travelers) || 1);
+        return this.count(this.selected.unit === 'room' ? this.rooms : this.travelers);
     },
 
     get total() {
@@ -200,7 +205,7 @@ Alpine.data('bookingForm', (config) => ({
     },
 
     get advanceAmount() {
-        const travelers = Math.max(1, Number(this.travelers) || 1);
+        const travelers = this.count(this.travelers);
         const amount = this.advance.type === 'fixed'
             ? this.advance.value * travelers
             : this.advance.type === 'percentage' ? (this.total * this.advance.value) / 100 : 0;
@@ -260,8 +265,9 @@ Alpine.data('bookingForm', (config) => ({
         const v = el.validity;
         const choice = el.type === 'radio' || el.type === 'checkbox';
         const text = v.valueMissing
-            ? (choice ? (el.dataset.message ?? this.messages.choose) : this.messages.required)
+            ? (choice ? (el.dataset.message ?? this.messages.choose) : (el.dataset.requiredMessage ?? this.messages.required))
             : v.customError ? el.validationMessage
+            : (v.rangeOverflow || v.rangeUnderflow || v.badInput || v.stepMismatch) && el.dataset.rangeMessage ? el.dataset.rangeMessage
             : v.typeMismatch && el.type === 'email' ? this.messages.email : (el.dataset.message ?? this.messages.invalid);
         const id = `${el.id || el.name}-client-error`;
         box?.querySelector(`#${CSS.escape(id)}`)?.remove();
@@ -293,7 +299,11 @@ Alpine.data('bookingForm', (config) => ({
     clearError(el, force = false) {
         if (!el?.name || !el.form) return;
         this.validate(el);
-        if (!force && !el.checkValidity()) return;
+        if (!force && !el.checkValidity()) {
+            // Too many (or too few) travelers: say so while typing, before the summary misleads.
+            if (el.validity.rangeOverflow || el.validity.rangeUnderflow) this.flag(el);
+            return;
+        }
         const group = el.type === 'radio' ? [...el.form.querySelectorAll(`[name="${el.name}"]`)] : [el];
         group.forEach((g) => this.unflag(g));
         const box = el.closest('[data-field]');
@@ -498,6 +508,7 @@ Alpine.data('siteForm', (recaptchaKey = null) => ({
 
             if (response.ok) {
                 this.done = true;
+                this.$dispatch('form-sent');
                 form.closest('[id^="form-"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 window.dataLayer?.push({ event: 'form_submit', form_id: form.action });
                 window.fbq?.('track', 'Lead');
@@ -536,6 +547,32 @@ Alpine.data('floatingContact', () => ({
             this.tucked = phone.matches && y > last && y > 160;
             last = y;
         }, { passive: true });
+    },
+}));
+
+/**
+ * Character counter under a message box with a maxlength: "120 / 2000",
+ * amber near the limit and red at it. The digits follow the page language.
+ */
+Alpine.data('charCount', (max) => ({
+    max,
+    count: 0,
+
+    init() {
+        const field = this.$el.querySelector('textarea, input');
+        if (!field) return;
+        const update = () => (this.count = field.value.length);
+        update();
+        field.addEventListener('input', update);
+    },
+
+    get label() {
+        const n = new Intl.NumberFormat(document.documentElement.lang.startsWith('bn') ? 'bn-BD' : 'en');
+        return `${n.format(this.count)} / ${n.format(this.max)}`;
+    },
+
+    get tone() {
+        return this.count >= this.max ? 'text-red-600' : this.count >= this.max * 0.9 ? 'text-amber-700' : 'text-ink-3';
     },
 }));
 
