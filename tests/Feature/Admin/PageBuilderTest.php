@@ -175,7 +175,8 @@ class PageBuilderTest extends AdminTestCase
         $this->assertSame(['Hajj 602 · Umrah 411', 'IATA accredited', 'ATAB member', 'HAAB member', 'Biman Bangladesh Airlines', 'Civil Aviation licence'], collect($fresh['items'])->pluck('title.en')->all());
         $this->assertSame('Our own wording.', $fresh['items'][0]['text']['en']);
         $this->assertNotEmpty($fresh['items'][1]['logo']);
-        $this->assertNull($fresh['items'][0]['logo'] ?? null);
+        $this->assertNotEmpty($fresh['items'][0]['logo']);
+        $this->assertNull($fresh['items'][5]['logo'] ?? null);
 
         $this->get('/')->assertOk()
             ->assertSee('badge-card', false)

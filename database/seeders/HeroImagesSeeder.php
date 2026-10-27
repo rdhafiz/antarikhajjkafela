@@ -84,6 +84,7 @@ class HeroImagesSeeder extends Seeder
      * @var array<string, array{0: string, 1: string, 2: string}>
      */
     public const CREDENTIAL_LOGOS = [
+        'Hajj 602 · Umrah 411' => ['credentials/hajj-kafela.webp', 'Antarik Hajj Kafela', 'আন্তরিক হজ্জ কাফেলা'],
         'IATA accredited' => ['credentials/iata.webp', 'IATA', 'আইএটিএ'],
         'ATAB member' => ['credentials/atab.webp', 'ATAB member', 'আটাব সদস্য'],
         'HAAB member' => ['credentials/haab.webp', 'HAAB member', 'হাব সদস্য'],
