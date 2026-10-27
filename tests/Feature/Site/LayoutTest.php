@@ -3,11 +3,14 @@
 namespace Tests\Feature\Site;
 
 use App\Domain\Access\AccessSynchronizer;
+use App\Domain\Media\MediaUploader;
 use App\Models\User;
 use App\Support\SiteContext;
 use Database\Seeders\MenuSeeder;
 use Database\Seeders\PageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class LayoutTest extends TestCase
@@ -31,6 +34,33 @@ class LayoutTest extends TestCase
             ->assertSee('href="tel:+8801711381901"', false)
             ->assertSee('https://wa.me/8801814371475', false)
             ->assertSee('https://facebook.com/antarikhajjkafela', false);
+    }
+
+    public function test_the_header_shows_the_light_logo_over_dark_page_tops(): void
+    {
+        // No uploaded logo: the bundled light logo shows over the hero, no white panel.
+        $this->get('/')->assertOk()
+            ->assertSee('images/brand/logo-light-880.webp', false)
+            ->assertSee('logo-light pointer-events-none', false)
+            ->assertDontSee('header:bg-white group-data-[transparent=true]/header:shadow', false);
+
+        // A custom logo without a light version falls back to the white panel.
+        Storage::fake('public');
+        Storage::fake('local');
+        $logo = app(MediaUploader::class)->upload(UploadedFile::fake()->image('other-brand.png', 600, 200), 'logo');
+        settings()->set('branding', ['logo' => $logo->id]);
+        $this->app->forgetScopedInstances();
+
+        $this->get('/')->assertOk()
+            ->assertDontSee('logo-light pointer-events-none', false)
+            ->assertSee('header:bg-white group-data-[transparent=true]/header:shadow', false);
+
+        // With its light version uploaded, that one is used.
+        $light = app(MediaUploader::class)->upload(UploadedFile::fake()->image('other-brand-light.png', 600, 200), 'logo');
+        settings()->set('branding', ['logo_light' => $light->id]);
+        $this->app->forgetScopedInstances();
+
+        $this->get('/')->assertOk()->assertSee($light->url('md'), false);
     }
 
     public function test_seo_head_and_structured_data_are_present(): void

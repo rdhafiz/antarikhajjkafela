@@ -60,6 +60,29 @@ class Branding
     }
 
     /**
+     * The logo for dark backgrounds (transparent header over a photo, mobile
+     * menu): the uploaded light logo, or the bundled one while the bundled
+     * logo is in use. Null when a custom logo has no light version.
+     *
+     * @return array{src: string, srcset: string}|null
+     */
+    public function lightLogo(): ?array
+    {
+        if ($light = $this->media('branding.logo_light')) {
+            return ['src' => $light->url('md'), 'srcset' => $light->srcset()];
+        }
+
+        if ($this->logo() === null) {
+            return [
+                'src' => $this->bundled('logo-light-880.webp'),
+                'srcset' => $this->bundled('logo-light-360.webp').' 360w, '.$this->bundled('logo-light-440.webp').' 440w, '.$this->bundled('logo-light-880.webp').' 880w',
+            ];
+        }
+
+        return null;
+    }
+
+    /**
      * Square brand icon at roughly the requested size.
      */
     public function iconUrl(int $size = 192): string

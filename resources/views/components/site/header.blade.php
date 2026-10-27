@@ -34,8 +34,16 @@
         :class="scrolled && '!border-line/70 !bg-white/92 shadow-[0_8px_30px_-18px_rgb(13_27_46/0.35)] backdrop-blur-md'"
     >
         <div class="container-site flex h-20 items-center justify-between gap-6">
-            {{-- Over a dark hero the logo sits on a white plate: its blue lettering needs a light ground. --}}
-            <a href="{{ url('/') }}" class="relative -ml-1.5 shrink-0 rounded-xl px-1.5 py-0.5 transition-[background-color,box-shadow] duration-300 group-data-[transparent=true]/header:bg-white group-data-[transparent=true]/header:shadow-[0_10px_30px_-12px_rgb(0_0_0/0.45)]" aria-label="{{ $site->name() }} – {{ __('Home') }}">
+            {{--
+                Over a dark hero the light logo shows; once the header turns white on scroll it
+                crossfades to the full-colour logo. A custom logo without a light version sits
+                on a white plate over the hero instead.
+            --}}
+            @php($light = $overlay ? $branding->lightLogo() : null)
+            <a href="{{ url('/') }}" @class([
+                'relative shrink-0',
+                '-ml-1.5 rounded-xl px-1.5 py-0.5 transition-[background-color,box-shadow] duration-300 group-data-[transparent=true]/header:bg-white group-data-[transparent=true]/header:shadow-[0_10px_30px_-12px_rgb(0_0_0/0.45)]' => ! $light,
+            ]) aria-label="{{ $site->name() }} – {{ __('Home') }}">
                 <img
                     src="{{ $branding->logoUrl() }}"
                     srcset="{{ $branding->logoSrcset() }}"
@@ -43,9 +51,25 @@
                     alt="{{ $site->name() }}"
                     width="224"
                     height="72"
-                    class="h-[56px] w-auto sm:h-[66px] lg:h-[58px] xl:h-[72px]"
-                    fetchpriority="high"
+                    @class([
+                        'h-[56px] w-auto sm:h-[66px] lg:h-[58px] xl:h-[72px]',
+                        'logo-full transition-opacity duration-300 group-data-[transparent=true]/header:opacity-0 motion-reduce:transition-none' => $light,
+                    ])
+                    @unless ($light) fetchpriority="high" @endunless
                 >
+                @if ($light)
+                    <img
+                        src="{{ $light['src'] }}"
+                        srcset="{{ $light['srcset'] }}"
+                        sizes="(min-width: 1280px) 224px, (min-width: 640px) 204px, 174px"
+                        alt=""
+                        width="224"
+                        height="72"
+                        class="logo-light pointer-events-none absolute inset-0 size-full object-contain object-left opacity-0 drop-shadow-[0_2px_10px_rgb(0_0_0/0.35)] transition-opacity duration-300 group-data-[transparent=true]/header:opacity-100 motion-reduce:transition-none"
+                        fetchpriority="high"
+                        aria-hidden="true"
+                    >
+                @endif
             </a>
 
             {{-- Desktop navigation --}}
@@ -181,7 +205,8 @@
                 {{-- Top bar --}}
                 <div class="mm-fade container-site flex h-20 shrink-0 items-center justify-between" style="--d: 380ms">
                     <a href="{{ url('/') }}" aria-label="{{ $site->name() }} – {{ __('Home') }}">
-                        <img src="{{ $branding->logoUrl() }}" srcset="{{ $branding->logoSrcset() }}" sizes="150px" alt="{{ $site->name() }}" class="h-auto w-[150px]" loading="lazy">
+                        @php($menuLogo = $branding->lightLogo())
+                        <img src="{{ $menuLogo['src'] ?? $branding->logoUrl() }}" srcset="{{ $menuLogo['srcset'] ?? $branding->logoSrcset() }}" sizes="170px" alt="{{ $site->name() }}" @class(['h-[54px] w-auto', 'rounded-lg bg-white px-1.5 py-0.5' => ! $menuLogo]) loading="lazy">
                     </a>
                     <button type="button" class="mm-close" @click="closeMenu()">
                         <span class="sr-only">{{ __('Close menu') }}</span>

@@ -10,7 +10,8 @@
 ])>
     <div class="container-site flex h-20 items-center justify-between gap-4">
         <a href="{{ url('/') }}" aria-label="{{ $site->name() }}">
-            <img src="{{ $branding->logoUrl() }}" srcset="{{ $branding->logoSrcset() }}" sizes="160px" alt="{{ $site->name() }}" width="160" height="50" class="h-auto w-[140px] sm:w-[160px]">
+            @php($light = $variant === 'overlay' ? $branding->lightLogo() : null)
+            <img src="{{ $light['src'] ?? $branding->logoUrl() }}" srcset="{{ $light['srcset'] ?? $branding->logoSrcset() }}" sizes="200px" alt="{{ $site->name() }}" width="200" height="62" class="h-[52px] w-auto sm:h-[60px]">
         </a>
         <div class="flex items-center gap-3">
             @if (count($languages = $site->languages()) > 1)
