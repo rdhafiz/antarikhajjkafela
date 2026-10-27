@@ -73,3 +73,7 @@ Unsplash photos (free to use under the Unsplash License) for the travel agency p
 ## From the previous website
 
 See "Images used for seeding" in `old-site-content.md`.
+
+## Licence and membership logos
+
+`database/seeders/images/credentials/` (IATA, ATAB, HAAB, Biman Bangladesh Airlines) were supplied by the client for the "Licensed & accredited" badges. They are the marks of those organisations, shown to state the agency's accreditation and memberships.

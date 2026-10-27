@@ -685,20 +685,35 @@ class PageSeeder extends Seeder
      *
      * @return array<string, mixed>
      */
+    /**
+     * The licences and memberships, in order. Shared with the migration that adds the two newer ones.
+     *
+     * @param  callable(string, string): mixed  $t
+     * @return list<array<string, mixed>>
+     */
+    public static function credentialItems(callable $t): array
+    {
+        return [
+            ['icon' => 'kaaba', 'title' => $t('Hajj 602 · Umrah 411', 'হজ ৬০২ · উমরাহ ৪১১'), 'text' => $t('Government Hajj and Umrah licences, Ministry of Religious Affairs.', 'ধর্ম বিষয়ক মন্ত্রণালয়ের সরকারি হজ ও উমরাহ লাইসেন্স।'), 'link' => null],
+            ['icon' => 'plane', 'title' => $t('IATA accredited', 'আইএটিএ স্বীকৃত'), 'text' => $t('Accredited by the International Air Transport Association to issue tickets.', 'টিকেট ইস্যুর জন্য ইন্টারন্যাশনাল এয়ার ট্রান্সপোর্ট অ্যাসোসিয়েশনের স্বীকৃতি।'), 'link' => null],
+            ['icon' => 'users', 'title' => $t('ATAB member', 'আটাব সদস্য'), 'text' => $t('Member of the Association of Travel Agents of Bangladesh.', 'অ্যাসোসিয়েশন অব ট্রাভেল এজেন্টস অব বাংলাদেশের সদস্য।'), 'link' => null],
+            ['icon' => 'mosque', 'title' => $t('HAAB member', 'হাব সদস্য'), 'text' => $t('Member of the Hajj Agencies Association of Bangladesh.', 'হজ এজেন্সিজ অ্যাসোসিয়েশন অব বাংলাদেশের সদস্য।'), 'link' => null],
+            ['icon' => 'plane', 'title' => $t('Biman Bangladesh Airlines', 'বিমান বাংলাদেশ এয়ারলাইন্স'), 'text' => $t('Tickets and Hajj flights on the national airline of Bangladesh.', 'বাংলাদেশের জাতীয় এয়ারলাইনে টিকেট ও হজ ফ্লাইট।'), 'link' => null],
+            ['icon' => 'shield', 'title' => $t('Civil Aviation licence', 'সিভিল এভিয়েশন লাইসেন্স'), 'text' => $t('Licensed travel agency under the Ministry of Civil Aviation and Tourism.', 'বেসামরিক বিমান পরিবহন ও পর্যটন মন্ত্রণালয়ের লাইসেন্সপ্রাপ্ত ট্রাভেল এজেন্সি।'), 'link' => null],
+        ];
+    }
+
     private function credentials(): array
     {
         return [
             'eyebrow' => $this->t('Licensed & accredited', 'লাইসেন্সপ্রাপ্ত ও স্বীকৃত'),
             'title' => $this->t('A travel agency you can check', 'যাচাই করে নিতে পারেন এমন ট্রাভেল এজেন্সি'),
-            'layout' => 'list',
-            'columns' => '4',
+            'intro' => $this->t('Government licences and industry memberships you can verify before you travel with us.', 'আমাদের সাথে সফরের আগেই যাচাই করে নিতে পারেন এমন সরকারি লাইসেন্স ও সদস্যপদ।'),
+            'layout' => 'badges',
+            'columns' => '3',
             'icon_style' => 'colorful',
-            'items' => [
-                ['icon' => 'kaaba', 'title' => $this->t('Hajj 602 · Umrah 411', 'হজ ৬০২ · উমরাহ ৪১১'), 'text' => $this->t('Government Hajj and Umrah licences, Ministry of Religious Affairs.', 'ধর্ম বিষয়ক মন্ত্রণালয়ের সরকারি হজ ও উমরাহ লাইসেন্স।'), 'link' => null],
-                ['icon' => 'plane', 'title' => $this->t('IATA accredited', 'আইএটিএ স্বীকৃত'), 'text' => $this->t('Accredited by the International Air Transport Association to issue tickets.', 'টিকেট ইস্যুর জন্য ইন্টারন্যাশনাল এয়ার ট্রান্সপোর্ট অ্যাসোসিয়েশনের স্বীকৃতি।'), 'link' => null],
-                ['icon' => 'users', 'title' => $this->t('ATAB member', 'আটাব সদস্য'), 'text' => $this->t('Member of the Association of Travel Agents of Bangladesh.', 'অ্যাসোসিয়েশন অব ট্রাভেল এজেন্টস অব বাংলাদেশের সদস্য।'), 'link' => null],
-                ['icon' => 'shield', 'title' => $this->t('Civil Aviation licence', 'সিভিল এভিয়েশন লাইসেন্স'), 'text' => $this->t('Licensed travel agency under the Ministry of Civil Aviation and Tourism.', 'বেসামরিক বিমান পরিবহন ও পর্যটন মন্ত্রণালয়ের লাইসেন্সপ্রাপ্ত ট্রাভেল এজেন্সি।'), 'link' => null],
-            ],
+            // Logos (usage "logo") are filled by HeroImagesSeeder from database/seeders/images/credentials.
+            'items' => self::credentialItems(fn (string $en, string $bn) => $this->t($en, $bn)),
         ];
     }
 

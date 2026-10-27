@@ -78,6 +78,18 @@ class HeroImagesSeeder extends Seeder
         'North America & Oceania' => ['travel/sydney.webp', 'The Sydney Opera House and Harbour Bridge', 'সিডনি অপেরা হাউস ও হারবার ব্রিজ'],
     ];
 
+    /**
+     * Licence and membership logos for the badges, by the item's English title.
+     *
+     * @var array<string, array{0: string, 1: string, 2: string}>
+     */
+    public const CREDENTIAL_LOGOS = [
+        'IATA accredited' => ['credentials/iata.webp', 'IATA', 'আইএটিএ'],
+        'ATAB member' => ['credentials/atab.webp', 'ATAB member', 'আটাব সদস্য'],
+        'HAAB member' => ['credentials/haab.webp', 'HAAB member', 'হাব সদস্য'],
+        'Biman Bangladesh Airlines' => ['credentials/biman.webp', 'Biman Bangladesh Airlines', 'বিমান বাংলাদেশ এয়ারলাইন্স'],
+    ];
+
     public function run(): void
     {
         $this->replaceAirTicketPhotos();
@@ -99,6 +111,8 @@ class HeroImagesSeeder extends Seeder
         }
 
         $this->travelImages();
+
+        $this->fillCredentialLogos();
 
         $this->postBanners();
 
@@ -201,6 +215,7 @@ class HeroImagesSeeder extends Seeder
                     $content['items'][$i]['image'] = $this->photo($photo, 'card')->id;
                     $changed = true;
                 }
+
             }
 
             if ($changed) {
@@ -241,6 +256,31 @@ class HeroImagesSeeder extends Seeder
                         $content['items'][$i]['image'] = $this->photo(self::TAKEOFF, 'card')->id;
                         $changed = true;
                     }
+                }
+            }
+
+            if ($changed) {
+                $section->update(['content' => $content]);
+            }
+        }
+    }
+
+    /**
+     * Badge items without a logo get the bundled licence or membership logo
+     * for their title. Also called by the migration that introduced badges.
+     */
+    public function fillCredentialLogos(): void
+    {
+        foreach (PageSection::where('component', 'features')->get() as $section) {
+            $content = $section->content ?? [];
+            $changed = false;
+
+            foreach ($content['items'] ?? [] as $i => $item) {
+                $logo = self::CREDENTIAL_LOGOS[$item['title']['en'] ?? ''] ?? null;
+
+                if ($logo && empty($item['logo'])) {
+                    $content['items'][$i]['logo'] = $this->photo($logo, 'logo')->id;
+                    $changed = true;
                 }
             }
 

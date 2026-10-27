@@ -108,6 +108,35 @@
                 </li>
             @endforeach
         </ul>
+    @elseif ($layout === 'badges')
+        {{--
+            Certificate cards: each licence or membership logo whole on a white plate (the logos come on
+            white), or the item's icon on a colour plate of the same size, then the title and text.
+        --}}
+        <x-site.block-heading :c="$c" class="mb-12 lg:mb-14" />
+        <ul class="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
+            @foreach ($items as $index => $item)
+                <li class="badge-card group relative flex flex-col rounded-[1.5rem] p-2 sm:rounded-[1.75rem] sm:p-2.5" data-reveal style="--reveal-delay: {{ ($index % 3) * 90 }}ms">
+                    @if ($item['logo'] ?? null)
+                        <div class="badge-plate flex h-24 items-center justify-center rounded-[1.15rem] bg-white px-4 py-3 sm:h-36 sm:rounded-[1.35rem] sm:px-6 sm:py-4">
+                            <img src="{{ $item['logo']->url('sm') }}" srcset="{{ $item['logo']->srcset() }}" sizes="(min-width: 1024px) 300px, 45vw" alt="{{ $item['title'] }}" loading="lazy" decoding="async" class="badge-logo max-h-full w-auto max-w-full object-contain">
+                        </div>
+                    @else
+                        <div @class(['badge-plate relative isolate flex h-24 items-center justify-center overflow-hidden rounded-[1.15rem] sm:h-36 sm:rounded-[1.35rem]', 'ic-tone ic-'.($index % 6 + 1)])>
+                            <div class="pattern-star absolute inset-0 -z-10 opacity-[0.12]" aria-hidden="true"></div>
+                            <x-site.icon :name="$item['icon'] ?: 'medal'" class="size-10 text-white drop-shadow-[0_4px_10px_rgb(0_0_0/0.25)] sm:size-14" />
+                        </div>
+                    @endif
+                    <div class="flex flex-1 flex-col px-2 pt-4 pb-3 sm:px-3.5 sm:pt-5 sm:pb-4">
+                        <h3 class="sec-heading flex items-start gap-2 font-display text-[1rem] leading-snug font-semibold sm:text-[1.2rem]">
+                            <x-site.icon name="check-circle" class="mt-0.5 size-4 shrink-0 text-gold sm:size-5" />
+                            <span>{{ $item['title'] }}</span>
+                        </h3>
+                        @if (filled($item['text']))<p class="sec-text mt-2 text-[13px] leading-relaxed sm:text-[14.5px]">{{ $item['text'] }}</p>@endif
+                    </div>
+                </li>
+            @endforeach
+        </ul>
     @elseif ($layout === 'photos')
         {{-- Photo cards: the image fills the card, the text sits on a dark fade at the bottom. --}}
         <x-site.block-heading :c="$c" class="mb-14" />

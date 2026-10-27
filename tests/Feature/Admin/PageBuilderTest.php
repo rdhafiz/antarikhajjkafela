@@ -8,6 +8,7 @@ use App\Models\Page;
 use App\Models\Review;
 use App\PageBuilder\SectionStyle;
 use Database\Seeders\PageSeeder;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
@@ -151,6 +152,36 @@ class PageBuilderTest extends AdminTestCase
             ->assertDontSeeText('Ready to answer the call?');
         // A title the admin wrote stays.
         $this->assertSame('Our own banner', $gallery->fresh()->content['title']['en']);
+    }
+
+    public function test_credentials_show_as_badges_with_their_logos(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+
+        // The original icon list on an existing site becomes badges with HAAB and Biman added in order.
+        $section = Page::where('system_key', 'home')->firstOrFail()->sections()->where('component', 'features')->get()
+            ->first(fn ($s) => ($s->content['layout'] ?? null) === 'badges');
+        $content = $section->content;
+        $content['layout'] = 'list';
+        $content['items'] = collect($content['items'])->reject(fn ($i) => in_array($i['title']['en'], ['HAAB member', 'Biman Bangladesh Airlines'], true))->values()->all();
+        $content['items'][0]['text']['en'] = 'Our own wording.';
+        $section->update(['content' => $content]);
+
+        (require database_path('migrations/2026_10_27_190000_show_credentials_as_badges.php'))->up();
+
+        $fresh = $section->fresh()->content;
+        $this->assertSame('badges', $fresh['layout']);
+        $this->assertSame(['Hajj 602 · Umrah 411', 'IATA accredited', 'ATAB member', 'HAAB member', 'Biman Bangladesh Airlines', 'Civil Aviation licence'], collect($fresh['items'])->pluck('title.en')->all());
+        $this->assertSame('Our own wording.', $fresh['items'][0]['text']['en']);
+        $this->assertNotEmpty($fresh['items'][1]['logo']);
+        $this->assertNull($fresh['items'][0]['logo'] ?? null);
+
+        $this->get('/')->assertOk()
+            ->assertSee('badge-card', false)
+            ->assertSee('alt="IATA accredited"', false)
+            ->assertSee('alt="Biman Bangladesh Airlines"', false)
+            ->assertSeeTextInOrder(['IATA accredited', 'ATAB member', 'HAAB member', 'Biman Bangladesh Airlines', 'Civil Aviation licence']);
     }
 
     public function test_inner_page_banners_use_the_shared_centered_hero(): void
