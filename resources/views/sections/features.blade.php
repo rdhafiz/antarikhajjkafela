@@ -150,7 +150,7 @@
                     style="--reveal-delay: {{ ($index % 4) * 90 }}ms"
                 >
                     @if ($item['image'])
-                        <img src="{{ $item['image']->url('md') }}" srcset="{{ $item['image']->srcset() }}" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" alt="" loading="lazy" decoding="async" class="photo-card-img absolute inset-0 -z-20 size-full object-cover">
+                        <img src="{{ $item['image']->url('md') }}" srcset="{{ $item['image']->srcset() }}" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" alt="{{ $item['image']->altText($item['title'] ?? null) }}" loading="lazy" decoding="async" class="photo-card-img absolute inset-0 -z-20 size-full object-cover">
                     @else
                         <span class="absolute inset-0 -z-20 bg-gradient-to-br from-brand to-brand-950" aria-hidden="true"></span>
                     @endif
@@ -192,7 +192,7 @@
                         @if ($cards && $item['image'])
                             {{-- The photo across the top of the card; the icon overlaps its lower edge. --}}
                             <div class="-mx-7 -mt-7 mb-0 aspect-[16/10] overflow-hidden">
-                                <img src="{{ $item['image']->url('md') }}" srcset="{{ $item['image']->srcset() }}" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" alt="" loading="lazy" decoding="async" class="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]">
+                                <img src="{{ $item['image']->url('md') }}" srcset="{{ $item['image']->srcset() }}" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" alt="{{ $item['image']->altText($item['title'] ?? null) }}" loading="lazy" decoding="async" class="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]">
                             </div>
                         @endif
                         @if ($item['icon'])

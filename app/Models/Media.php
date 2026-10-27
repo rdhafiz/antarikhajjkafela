@@ -38,6 +38,18 @@ class Media extends Model
     /**
      * Public URL of a variant. Without a name, the largest variant is used.
      */
+    /**
+     * Text for the image's alt attribute: its own description in the page
+     * language (set in the media library), else the fallback, usually the
+     * title shown with the image.
+     */
+    public function altText(?string $fallback = null): string
+    {
+        $alt = trim((string) $this->getTranslation('alt', app()->getLocale(), false));
+
+        return $alt !== '' ? $alt : trim((string) $fallback);
+    }
+
     public function url(?string $variant = null): ?string
     {
         $data = $variant !== null

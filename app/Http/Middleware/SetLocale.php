@@ -9,7 +9,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Applies the visitor's chosen language (stored in a cookie) to the request.
- * URLs are the same for every language; only the content changes.
+ * URLs are the same for every language; only the content changes. Without a
+ * choice the page is in the base language (English), which is also what
+ * search engines index.
  */
 class SetLocale
 {
@@ -19,10 +21,16 @@ class SetLocale
 
     public function handle(Request $request, Closure $next): Response
     {
-        $chosen = $request->cookie(self::COOKIE);
-
-        app()->setLocale($this->locales->isSupported($chosen) ? $chosen : $this->locales->default());
+        app()->setLocale($this->resolve($request));
 
         return $next($request);
+    }
+
+    /** The visitor's language: their choice, else the base language. Also used for error pages. */
+    public function resolve(Request $request): string
+    {
+        $chosen = $request->cookie(self::COOKIE);
+
+        return $this->locales->isSupported($chosen) ? $chosen : $this->locales->base();
     }
 }

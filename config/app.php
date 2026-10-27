@@ -86,6 +86,13 @@ return [
 
     'locale' => env('APP_LOCALE', 'en'),
 
+    /*
+    | Whether search engines may index the site. Set SEO_INDEXING=false on test
+    | and staging servers: robots.txt then blocks everything and every page is
+    | sent with noindex (meta tag and X-Robots-Tag header).
+    */
+    'search_indexing' => (bool) env('SEO_INDEXING', true),
+
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),

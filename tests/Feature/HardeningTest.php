@@ -78,6 +78,51 @@ class HardeningTest extends AdminTestCase
         $this->get('/language/bn', ['Referer' => url('/about')])->assertRedirect(url('/about'));
     }
 
+    public function test_search_engines_and_first_visits_get_english(): void
+    {
+        $this->seed(PageSeeder::class);
+        settings()->set('localization', ['default_locale' => 'bn']);
+
+        // No language chosen (search engines, first visits): English, whatever the admin's default.
+        $this->get('/')->assertOk()->assertSee('<html lang="en"', false);
+        $this->withUnencryptedCookie('locale', 'bn')->get('/')->assertOk()->assertSee('<html lang="bn"', false);
+    }
+
+    public function test_test_servers_are_closed_to_search_engines_and_php_is_not_announced(): void
+    {
+        $this->seed(PageSeeder::class);
+
+        $this->get('/')->assertOk()->assertHeaderMissing('X-Powered-By')->assertHeaderMissing('X-Robots-Tag')
+            ->assertSee('<meta name="robots" content="index, follow', false);
+
+        config(['app.search_indexing' => false]);
+        $this->get('/')->assertOk()
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
+            ->assertSee('<meta name="robots" content="noindex, nofollow">', false);
+
+        $this->app['env'] = 'production';
+        $this->get('/robots.txt')->assertOk()->assertSee('Disallow: /')->assertDontSee('Sitemap:');
+        config(['app.search_indexing' => true]);
+        $this->get('/robots.txt')->assertOk()->assertSee('Sitemap:')->assertDontSee("Disallow: /\n", false);
+    }
+
+    public function test_too_many_attempts_page_keeps_the_language_and_the_site_menu(): void
+    {
+        $this->seed(PageSeeder::class);
+        settings()->set('localization', ['default_locale' => 'bn']);
+
+        foreach (['en' => 'Too many attempts', 'bn' => 'অনেকবার চেষ্টা করা হয়েছে'] as $locale => $title) {
+            $this->app['cache']->store()->flush();
+            for ($i = 0; $i < 8; $i++) {
+                $response = $this->withUnencryptedCookie('locale', $locale)->post('/booking/status', ['reference' => 'AHK-2026-000999', 'contact' => '01711000000']);
+            }
+
+            $response->assertStatus(429)->assertSee($title)->assertSee('<html lang="'.$locale.'"', false)
+                ->assertSee('noindex', false)
+                ->assertSee('x-data="siteHeader', false);
+        }
+    }
+
     public function test_error_pages_render_without_the_database(): void
     {
         foreach ([500, 503, 419, 429] as $code) {

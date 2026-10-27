@@ -20,7 +20,7 @@
         <div class="relative isolate overflow-hidden rounded-[2rem] bg-brand text-white shadow-[var(--shadow-lift)]" data-reveal="scale">
             @if ($variant === 'banner' && $c['image'])
                 <div class="absolute inset-x-0 -inset-y-[25%] -z-20" data-parallax="0.18" aria-hidden="true">
-                    <img src="{{ $c['image']->url('lg') }}" srcset="{{ $c['image']->srcset() }}" sizes="(min-width: 1280px) 1200px, 100vw" alt="" loading="lazy" decoding="async" class="size-full object-cover">
+                    <img src="{{ $c['image']->url('lg') }}" srcset="{{ $c['image']->srcset() }}" sizes="(min-width: 1280px) 1200px, 100vw" alt="{{ $c['image']->altText($c['title']) }}" loading="lazy" decoding="async" class="size-full object-cover">
                 </div>
                 <div class="absolute inset-0 -z-10 bg-gradient-to-r from-brand-950/95 via-brand/85 to-brand/40" aria-hidden="true"></div>
             @endif
@@ -36,7 +36,7 @@
                 </div>
                 @if ($variant === 'split' && $c['image'])
                     <div class="relative h-72 lg:h-full lg:min-h-[420px]">
-                        <img src="{{ $c['image']->url('md') }}" srcset="{{ $c['image']->srcset() }}" sizes="(min-width: 1024px) 40vw, 100vw" alt="" loading="lazy" decoding="async" class="absolute inset-0 size-full object-cover">
+                        <img src="{{ $c['image']->url('md') }}" srcset="{{ $c['image']->srcset() }}" sizes="(min-width: 1024px) 40vw, 100vw" alt="{{ $c['image']->altText($c['title']) }}" loading="lazy" decoding="async" class="absolute inset-0 size-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-r from-brand via-brand/30 to-transparent max-lg:bg-gradient-to-t" aria-hidden="true"></div>
                     </div>
                 @endif

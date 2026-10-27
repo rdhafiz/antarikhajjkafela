@@ -56,6 +56,7 @@ APP_ENV=production
 APP_KEY=                       # generate once: php artisan key:generate --show
 APP_DEBUG=false
 APP_URL=https://<domain>
+SEO_INDEXING=true              # false on a test/staging server
 
 LOG_CHANNEL=daily
 LOG_LEVEL=warning
@@ -85,6 +86,12 @@ MAIL_PASSWORD=<mailbox password>
 MAIL_FROM_ADDRESS=no-reply@<domain>
 MAIL_FROM_NAME="${APP_NAME}"
 ```
+
+`APP_URL` is the address every canonical link, the sitemap and emails use, so it must be the site's real domain.
+
+**Test or staging server:** set `SEO_INDEXING=false`. robots.txt then blocks everything, and every page is sent with `noindex` (meta tag and `X-Robots-Tag` header), so Google keeps the test copy out of its results. On the live server leave it `true` (or unset).
+
+**At launch:** set `APP_URL` to the live domain (and `SANCTUM_STATEFUL_DOMAINS` to match), keep `SEO_INDEXING=true`, run `php artisan optimize`, then submit `https://<domain>/sitemap.xml` in Google Search Console.
 
 Payment gateway credentials, tracking IDs and reCAPTCHA keys are **not** set here. They're entered in the admin portal under Settings.
 

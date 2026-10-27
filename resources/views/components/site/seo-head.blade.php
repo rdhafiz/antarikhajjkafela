@@ -13,7 +13,7 @@
     <meta name="description" content="{{ $description }}">
 @endif
 <link rel="canonical" href="{{ $seo->resolvedCanonical() }}">
-<meta name="robots" content="{{ $seo->noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large' }}">
+<meta name="robots" content="{{ $seo->noindex || ! config('app.search_indexing') ? 'noindex, nofollow' : 'index, follow, max-image-preview:large' }}">
 @if ($verification = settings('tracking.search_console_verification'))
     <meta name="google-site-verification" content="{{ $verification }}">
 @endif
