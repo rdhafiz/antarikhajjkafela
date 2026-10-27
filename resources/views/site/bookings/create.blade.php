@@ -22,11 +22,32 @@
         'advance' => $advance,
         'recaptcha' => $recaptcha,
         'locale' => app()->getLocale(),
+        // Documents: checked as they are chosen, with the same limits as the server.
+        'uploads' => [
+            'maxBytes' => 5 * 1024 * 1024,
+            'maxCount' => 10,
+            'maxTotalBytes' => App\Http\Controllers\Site\BookingController::MAX_UPLOAD_BYTES,
+            'extensions' => ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+        ],
         'messages' => [
             'required' => __('Please fill in this field.'),
             'choose' => __('Please choose one.'),
-            'email' => __('Enter a valid email address.'),
+            'email' => __('Enter a valid email address, e.g. name@example.com.'),
+            'phone' => __('Enter a valid mobile number, e.g. 01712-345678, or an international number starting with +.'),
             'invalid' => __('Please check this field.'),
+            'fileType' => __(':name: only JPG, PNG, WebP or PDF files can be uploaded.'),
+            'fileSize' => __(':name is larger than 5 MB.'),
+            'fileCount' => __(':name was not added: up to 10 documents in total.'),
+            'fileTotal' => __(':name was not added: up to 15 MB of documents in total.'),
+            'sending' => __('Sending…'),
+            'uploading' => __('Uploading :percent%'),
+            'fix' => __('Please check the highlighted fields.'),
+            'network' => __('We could not reach the server. Your details are still here: check your connection and try again.'),
+            'timeout' => __('This is taking too long. Your details are still here: please try again.'),
+            'expired' => __('This page was open for a long time. Please reload it and try again.'),
+            'tooMany' => __('Too many attempts. Please wait a minute and try again.'),
+            'tooLarge' => __('The documents are too large to send. Remove some and try again.'),
+            'failed' => __('Something went wrong. Please try again or call us.'),
         ],
     ];
     $invalid = fn (string $name) => $errors->has($name) ? 'aria-invalid="true" aria-describedby="'.e($name).'-error"' : '';
@@ -225,7 +246,7 @@
                                         </label>
                                         <div class="book-picker">
                                             <x-site.icon :name="$icon" class="book-picker-icon" />
-                                            <input id="{{ $key }}" name="{{ $key }}" type="{{ $type }}" value="{{ old($key) }}" autocomplete="{{ $autocomplete }}" @required($required) @if ($type === 'tel') inputmode="tel" dir="ltr" placeholder="01XXXXXXXXX" pattern="[0-9+\-\s\(\)]{7,20}" data-message="{{ __('Enter a valid mobile number.') }}" @endif
+                                            <input id="{{ $key }}" name="{{ $key }}" type="{{ $type }}" value="{{ old($key) }}" autocomplete="{{ $autocomplete }}" @required($required) @if ($type === 'tel') inputmode="tel" dir="ltr" placeholder="01XXXXXXXXX" data-validate="phone" @endif @if ($type === 'email') dir="ltr" data-validate="email" @endif
                                                    class="book-select book-input" {!! $invalid($key) !!} @if ($key === 'email' && ! $errors->has('email')) aria-describedby="email-hint" @endif>
                                         </div>
                                         @error($key)<p id="{{ $key }}-error" class="error-site">{{ $message }}</p>@enderror
@@ -273,20 +294,28 @@
                             </div>
                             <div class="grid gap-4 lg:grid-cols-2">
                                 @foreach (['passport' => [__('Passport copies'), 'passport'], 'nid' => [__('NID copies'), 'document']] as $key => [$label, $icon])
-                                    {{-- Pick or drop files; the card turns gold once it holds some. --}}
-                                    <div class="book-option book-doc"
+                                    {{--
+                                        Pick or drop files. Each file is checked at once (type, size, the 10-file and 15 MB totals);
+                                        files that fail are left out with a message, and the card turns gold only for accepted files.
+                                    --}}
+                                    <div data-field class="min-w-0"
                                          x-data="{
                                             files: [],
+                                            rejected: [],
                                             dragging: false,
-                                            pick(list) { this.files = [...list].map((f) => f.name) },
+                                            pick(list) {
+                                                const result = this.acceptFiles(this.$refs.input, list);
+                                                this.files = result.names;
+                                                this.rejected = result.rejected;
+                                            },
                                             drop(event) {
                                                 this.dragging = false;
                                                 if (!event.dataTransfer.files.length) return;
-                                                this.$refs.input.files = event.dataTransfer.files;
                                                 this.pick(event.dataTransfer.files);
                                             },
-                                            clear() { this.$refs.input.value = ''; this.files = [] },
-                                         }"
+                                            clear() { this.$refs.input.value = ''; this.files = []; this.rejected = []; this.clearError(this.$refs.input, true) },
+                                         }">
+                                    <div class="book-option book-doc"
                                          :class="{ 'is-selected': files.length, 'is-dragging': dragging }"
                                          @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false" @drop.prevent="drop($event)"
                                          data-reveal style="--reveal-delay: {{ $loop->index * 80 }}ms">
@@ -310,7 +339,10 @@
                                         <input id="{{ $key }}" x-ref="input" name="{{ $key }}[]" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf" class="sr-only" aria-label="{{ $label }}"
                                                @change="pick($event.target.files)">
                                     </div>
-                                    @error($key.'.*')<p class="error-site lg:col-span-2">{{ $message }}</p>@enderror
+                                    <template x-for="text in rejected" :key="text"><p class="error-site" role="alert" x-text="text"></p></template>
+                                    @error($key.'.*')<p class="error-site">{{ $message }}</p>@enderror
+                                    @error($key)<p class="error-site">{{ $message }}</p>@enderror
+                                    </div>
                                 @endforeach
                             </div>
                             <p class="mt-5 flex items-center gap-2 text-[14px] text-ink-2" data-reveal>
@@ -401,9 +433,10 @@
                                 </label>
                                 @error('agree')<p id="agree-error" class="error-site">{{ $message }}</p>@enderror
                             </div>
-                            <button type="submit" class="btn btn-gold min-h-12 w-full" :disabled="busy">
+                            <p x-show="formError" x-text="formError" x-cloak class="mb-3 rounded-xl bg-red-50 px-3.5 py-2.5 text-[13px] font-medium text-red-800" role="alert"></p>
+                            <button type="submit" class="btn btn-gold min-h-12 w-full" :disabled="busy" :aria-busy="busy.toString()">
                                 <svg x-show="busy" x-cloak class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".25" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-                                <span x-text="payment === 'now' ? @js(__('Book and pay advance')) : @js(__('Confirm free booking'))">{{ __('Confirm free booking') }}</span>
+                                <span x-text="busy ? busyLabel : (payment === 'now' ? @js(__('Book and pay advance')) : @js(__('Confirm free booking')))">{{ __('Confirm free booking') }}</span>
                             </button>
                             <p class="mt-2 text-center text-[12px] text-white">{{ __('Final amounts are confirmed by our team.') }}@if ($recaptcha) {{ __('Protected by reCAPTCHA.') }}@endif</p>
                         </div>

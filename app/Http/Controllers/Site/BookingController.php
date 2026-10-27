@@ -14,11 +14,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Models\PackagePrice;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Propaganistas\LaravelPhone\Rules\Phone;
 
 /**
  * The public booking flow: form → booking → optional online advance →
@@ -73,7 +75,12 @@ class BookingController extends Controller
         ]);
     }
 
-    public function store(Request $request, string $slug, Recaptcha $recaptcha): RedirectResponse
+    /**
+     * The form posts in the background (JSON): a problem comes back as field
+     * errors with the visitor's files still chosen; success returns where to
+     * go next. Without JavaScript it is an ordinary post and redirect.
+     */
+    public function store(Request $request, string $slug, Recaptcha $recaptcha): RedirectResponse|JsonResponse
     {
         $package = $this->bookablePackage($slug);
 
@@ -85,9 +92,10 @@ class BookingController extends Controller
             'travelers' => ['required', 'integer', 'min:1', 'max:'.self::MAX_TRAVELERS],
             'rooms' => ['nullable', 'integer', 'min:1', 'max:'.self::MAX_TRAVELERS],
             'name' => ['required', 'string', 'max:120'],
-            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{7,20}$/'],
+            // A real mobile number: Bangladeshi (01XXXXXXXXX, with or without +88) or international with its country code.
+            'phone' => ['required', 'string', 'max:25', (new Phone)->international()->country('BD')->type('mobile')],
             // Required: the confirmation and every later update are emailed (there are no customer accounts).
-            'email' => ['required', 'email', 'max:190'],
+            'email' => ['required', 'email:rfc,filter', 'max:190'],
             'address' => ['nullable', 'string', 'max:300'],
             'note' => ['nullable', 'string', 'max:2000'],
             'passport' => ['nullable', 'array', 'max:10'],
@@ -99,6 +107,8 @@ class BookingController extends Controller
             ...app(TravelDates::class)->rules(app(TravelDates::class)->mode($package->service), $request->integer('travel_year') ?: null),
         ], [
             'email.required' => __('Enter your email; we send your booking confirmation and updates there.'),
+            'email.email' => __('Enter a valid email address, e.g. name@example.com.'),
+            'phone.phone' => __('Enter a valid mobile number, e.g. 01712-345678, or an international number starting with +.'),
             'agree.accepted' => __('Please accept the booking terms.'),
             // Laravel words file sizes in kilobytes; staff and pilgrims think in MB.
             'passport.*.max' => __(':attribute must be 5 MB or smaller.'),
@@ -142,11 +152,17 @@ class BookingController extends Controller
 
         $booking = $this->bookings->create($package, PackagePrice::findOrFail($data['option']), $data, $documents, $request->ip());
 
-        if ($data['payment'] === 'now' && $this->payments->canPay($booking)) {
-            return $this->toGateway($booking);
+        $target = $data['payment'] === 'now' && $this->payments->canPay($booking)
+            ? $this->gatewayUrl($booking)
+            : $booking->publicUrl();
+
+        if ($target === $booking->publicUrl()) {
+            session()->flash('booking_created', true);
         }
 
-        return redirect()->to($booking->publicUrl())->with('booking_created', true);
+        return $request->expectsJson()
+            ? response()->json(['redirect' => $target])
+            : redirect()->to($target);
     }
 
     /**
@@ -224,10 +240,21 @@ class BookingController extends Controller
 
     private function toGateway(Booking $booking): RedirectResponse
     {
+        return redirect()->away($this->gatewayUrl($booking));
+    }
+
+    /**
+     * The payment page, or the booking page saying online payment is not available right now.
+     */
+    private function gatewayUrl(Booking $booking): string
+    {
         try {
-            return redirect()->away($this->payments->start($booking));
+            return $this->payments->start($booking);
         } catch (GatewayException) {
-            return redirect()->to($booking->publicUrl())->with('booking_created', true)->with('payment_result', 'unavailable');
+            session()->flash('booking_created', true);
+            session()->flash('payment_result', 'unavailable');
+
+            return $booking->publicUrl();
         }
     }
 

@@ -19,6 +19,7 @@ use App\Support\Money;
 use Database\Seeders\PageSeeder;
 use Database\Seeders\TravelSeeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -231,7 +232,8 @@ class BookingTest extends AdminTestCase
         $this->assertStringNotContainsString('Pay the advance now', $form);
         $this->post('/packages/umrah-package/book', $this->form(['payment' => 'now']))->assertInvalid('payment');
 
-        $this->post('/packages/umrah-package/book', $this->form())->assertRedirect();
+        // Still JSON from the admin calls above: the background post gets where to go next.
+        $this->post('/packages/umrah-package/book', $this->form())->assertOk()->assertJsonStructure(['redirect']);
         $booking = Booking::firstOrFail();
         $this->assertTrue($booking->hidesPrice());
         $this->assertGreaterThan(0, (float) $booking->total, 'The office still gets the amounts.');
@@ -263,6 +265,56 @@ class BookingTest extends AdminTestCase
         $this->package()->update(['booking_ends_on' => now()->subDay()]);
         $this->get('/packages/umrah-package/book')->assertNotFound();
         $this->post('/packages/umrah-package/book', $this->form())->assertNotFound();
+    }
+
+    public function test_phone_and_email_must_be_real(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+
+        // #21: the number from the report, a short one and a landline are refused; so is an email without a domain ending.
+        foreach (['01245686666666666', '0171100000', '029876543', 'call me'] as $phone) {
+            $this->post('/packages/umrah-package/book', $this->form(['phone' => $phone]))
+                ->assertSessionHasErrors(['phone' => 'Enter a valid mobile number, e.g. 01712-345678, or an international number starting with +.']);
+        }
+        foreach (['a@b', 'karim@example', 'not an email'] as $email) {
+            $this->post('/packages/umrah-package/book', $this->form(['email' => $email]))
+                ->assertSessionHasErrors(['email' => 'Enter a valid email address, e.g. name@example.com.']);
+        }
+        $this->assertSame(0, Booking::count());
+
+        // Bangladeshi mobiles with or without +88, and international mobiles, are taken.
+        foreach (['01711-000000', '+8801811000000', '+971501234567', '+44 7911 123456'] as $phone) {
+            $this->post('/packages/umrah-package/book', $this->form(['phone' => $phone, 'travelers' => 1]))->assertRedirect();
+        }
+        $this->assertSame(4, Booking::count());
+    }
+
+    public function test_the_form_posts_in_the_background_and_keeps_the_details_on_errors(): void
+    {
+        Storage::fake('local');
+
+        // #19/#20: problems come back as field errors (JSON), so the page keeps the visitor's files and details.
+        $this->postJson('/packages/umrah-package/book', $this->form([
+            'phone' => '01245686666666666',
+            'passport' => [UploadedFile::fake()->create('notes.txt', 10, 'text/plain')],
+            'nid' => [UploadedFile::fake()->create('nid.pdf', 6 * 1024, 'application/pdf')],
+        ]))->assertUnprocessable()->assertJsonValidationErrors(['phone', 'passport.0', 'nid.0']);
+
+        $this->postJson('/packages/umrah-package/book', $this->form([
+            'passport' => array_fill(0, 4, UploadedFile::fake()->create('passport.pdf', 4 * 1024, 'application/pdf')),
+        ]))->assertUnprocessable()->assertJsonValidationErrors(['passport' => 'The documents are too large together. Upload up to 15 MB in total.']);
+        $this->assertSame(0, Booking::count());
+
+        // Success says where to go next: the private booking page.
+        $response = $this->postJson('/packages/umrah-package/book', $this->form())->assertOk();
+        $this->assertSame(Booking::firstOrFail()->publicUrl(), $response->json('redirect'));
+
+        // The page carries the same limits for the instant checks.
+        $this->get('/packages/umrah-package/book')->assertOk()
+            ->assertSee('data-validate="phone"', false)
+            ->assertSee('data-validate="email"', false)
+            ->assertSee('maxTotalBytes', false)
+            ->assertSee('acceptFiles', false);
     }
 
     public function test_documents_are_private_and_only_for_admins(): void

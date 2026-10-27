@@ -147,17 +147,36 @@ async function recaptchaToken(key) {
     }
     if (!window.grecaptcha) return null;
 
-    return new Promise((resolve) => window.grecaptcha.ready(() => window.grecaptcha.execute(key, { action: 'submit' }).then(resolve, () => resolve(null))));
+    // A blocked or stalled reCAPTCHA must not hold the form: after 10 seconds send without a token (the server decides).
+    const token = new Promise((resolve) => window.grecaptcha.ready(() => window.grecaptcha.execute(key, { action: 'submit' }).then(resolve, () => resolve(null))));
+    return Promise.race([token, new Promise((resolve) => setTimeout(() => resolve(null), 10000))]);
 }
 
+/** Phone and email checks shared by the public forms (the server checks again, more strictly for phones). */
+const validators = {
+    // A Bangladeshi mobile (01XXXXXXXXX, optionally +88/88 in front) or an international number with its + country code.
+    phone: (value) => {
+        const v = value.replace(/[\s\-().]/g, '');
+        return /^(?:\+?88)?01[3-9]\d{8}$/.test(v) || /^\+(?!88)[1-9]\d{7,14}$/.test(v);
+    },
+    email: (value) => /^[^\s@]+@[^\s@]+\.[^\s@.]{2,}$/.test(value.trim()),
+};
+
 /**
- * Booking form: live price summary (the server recalculates everything)
- * and a reCAPTCHA token before the normal form post.
+ * Booking form: live price summary (the server recalculates everything),
+ * checks as the visitor goes, and a background submit with a reCAPTCHA token.
  */
 Alpine.data('bookingForm', (config) => ({
     ...config,
     busy: false,
-    verified: false,
+    progress: null,
+    formError: '',
+
+    get busyLabel() {
+        return this.progress !== null && this.progress < 100
+            ? this.messages.uploading.replace(':percent', this.progress)
+            : this.messages.sending;
+    },
 
     get selected() {
         return this.options.find((o) => o.id === this.option) ?? this.options[0];
@@ -205,9 +224,9 @@ Alpine.data('bookingForm', (config) => ({
     },
 
     /**
-     * Check the required fields before sending, with a message under each
-     * field in the page's language (the form is `novalidate`, so the browser
-     * shows none of its own). The server checks everything again.
+     * Check the fields before sending, with a message under each field in the
+     * page's language (the form is `novalidate`, so the browser shows none of
+     * its own). The server checks everything again.
      */
     check(form) {
         form.querySelectorAll('.error-client').forEach((el) => el.remove());
@@ -215,6 +234,7 @@ Alpine.data('bookingForm', (config) => ({
 
         for (const el of form.elements) {
             if (el.dataset.clientInvalid) this.unflag(el);
+            this.validate(el);
             if (!el.willValidate || el.checkValidity()) continue;
             // A radio group gets one message.
             if (el.type === 'radio' && form.querySelector(`.error-client[data-for="${el.name}"]`)) continue;
@@ -228,14 +248,23 @@ Alpine.data('bookingForm', (config) => ({
         return false;
     },
 
-    flag(el) {
+    /** Phone and email fields (data-validate) get a custom message when the value does not look right. */
+    validate(el) {
+        const kind = el.dataset?.validate;
+        if (!kind || !validators[kind]) return;
+        el.setCustomValidity(el.value.trim() && !validators[kind](el.value) ? this.messages[kind] : '');
+    },
+
+    flag(el, message = null) {
         const box = el.closest('[data-field]');
         const v = el.validity;
         const choice = el.type === 'radio' || el.type === 'checkbox';
         const text = v.valueMissing
             ? (choice ? (el.dataset.message ?? this.messages.choose) : this.messages.required)
+            : v.customError ? el.validationMessage
             : v.typeMismatch && el.type === 'email' ? this.messages.email : (el.dataset.message ?? this.messages.invalid);
         const id = `${el.id || el.name}-client-error`;
+        box?.querySelector(`#${CSS.escape(id)}`)?.remove();
 
         el.setAttribute('aria-invalid', 'true');
         el.setAttribute('aria-describedby', id);
@@ -246,7 +275,8 @@ Alpine.data('bookingForm', (config) => ({
         p.className = 'error-site error-client';
         p.id = id;
         p.dataset.for = el.name;
-        p.textContent = text;
+        p.textContent = message ?? text;
+        p.setAttribute('role', 'alert');
         box.append(p);
     },
 
@@ -256,34 +286,137 @@ Alpine.data('bookingForm', (config) => ({
         delete el.dataset.clientInvalid;
     },
 
-    /** Drop a field's message once it is valid. */
-    clearError(el) {
+    /**
+     * Drop a field's messages (ours and the server's) once it is valid again,
+     * or right away (force) when its files were removed.
+     */
+    clearError(el, force = false) {
         if (!el?.name || !el.form) return;
+        this.validate(el);
+        if (!force && !el.checkValidity()) return;
         const group = el.type === 'radio' ? [...el.form.querySelectorAll(`[name="${el.name}"]`)] : [el];
-        if (!group.some((g) => g.dataset.clientInvalid) || !el.checkValidity()) return;
         group.forEach((g) => this.unflag(g));
+        const box = el.closest('[data-field]');
+        box?.querySelectorAll('.error-client, .error-site:not([x-text])').forEach((p) => p.remove());
         el.form.querySelector(`.error-client[data-for="${el.name}"]`)?.remove();
+        if (!el.form.querySelector('[aria-invalid="true"]')) this.formError = '';
+    },
+
+    /**
+     * Take the documents the visitor chose or dropped, keeping only the ones
+     * the server will accept: JPG, PNG, WebP or PDF, 5 MB each, 10 files and
+     * 15 MB across both cards. Returns the kept names and why others were left out.
+     */
+    acceptFiles(input, list) {
+        const limits = this.uploads;
+        const others = [...input.form.querySelectorAll('input[type="file"]')].filter((i) => i !== input).flatMap((i) => [...i.files]);
+        let count = others.length;
+        let bytes = others.reduce((sum, f) => sum + f.size, 0);
+        const keep = new DataTransfer();
+        const rejected = [];
+        const say = (key, file) => rejected.push(this.messages[key].replace(':name', file.name));
+
+        for (const file of list) {
+            const extension = file.name.split('.').pop().toLowerCase();
+            if (!limits.extensions.includes(extension) || (file.type && !/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(file.type))) say('fileType', file);
+            else if (file.size > limits.maxBytes) say('fileSize', file);
+            else if (count >= limits.maxCount) say('fileCount', file);
+            else if (bytes + file.size > limits.maxTotalBytes) say('fileTotal', file);
+            else {
+                keep.items.add(file);
+                count++;
+                bytes += file.size;
+            }
+        }
+
+        input.files = keep.files;
+        this.clearError(input, true);
+        return { names: [...keep.files].map((f) => f.name), rejected };
+    },
+
+    /** Show the server's messages under their fields (keys like "phone" or "passport.0"). */
+    showErrors(form, errors) {
+        let first = null;
+        let general = null;
+        for (const [key, messages] of Object.entries(errors)) {
+            const name = key.split('.')[0];
+            const el = form.querySelector(`[name="${name}"], [name="${name}[]"]`);
+            if (!el) {
+                // Not tied to a field (reCAPTCHA, for one): show it above the button.
+                general ??= messages[0];
+                continue;
+            }
+            this.flag(el, messages[0]);
+            first ??= el;
+        }
+        this.formError = general ?? this.messages.fix;
+        if (first) {
+            first.closest('[data-field]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            first.focus({ preventScroll: true });
+        }
+    },
+
+    /**
+     * Send the form in the background so nothing the visitor entered (files
+     * included) is lost when the server finds a problem. Uploads report their
+     * progress; nothing waits for ever.
+     */
+    send(form) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', form.action);
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.timeout = 180000;
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) this.progress = Math.round((e.loaded / e.total) * 100);
+            };
+            xhr.onload = () => {
+                let data = {};
+                try {
+                    data = JSON.parse(xhr.responseText || '{}');
+                } catch {
+                    data = {};
+                }
+                resolve({ status: xhr.status, data });
+            };
+            xhr.onerror = () => reject(new Error('network'));
+            xhr.ontimeout = () => reject(new Error('timeout'));
+            xhr.send(new FormData(form));
+        });
     },
 
     async submit(event) {
-        if (this.verified) return;
         event.preventDefault();
         if (this.busy) return;
-        if (!this.check(event.target)) return;
+        const form = event.target;
+        this.formError = '';
+        if (!this.check(form)) return;
         this.busy = true;
+        this.progress = null;
 
-        const token = await recaptchaToken(this.recaptcha);
-        if (token) this.$refs.token.value = token;
-        this.verified = true;
-        event.target.submit();
+        try {
+            const token = await recaptchaToken(this.recaptcha);
+            if (token) this.$refs.token.value = token;
+
+            const { status, data } = await this.send(form);
+
+            if (status >= 200 && status < 300 && data.redirect) {
+                window.location.assign(data.redirect);
+                return; // Leaving the page: keep the button busy.
+            }
+
+            if (status === 422 && data.errors) this.showErrors(form, data.errors);
+            else this.formError = { 419: this.messages.expired, 429: this.messages.tooMany, 413: this.messages.tooLarge }[status] ?? this.messages.failed;
+        } catch (error) {
+            this.formError = error.message === 'timeout' ? this.messages.timeout : this.messages.network;
+        }
+
+        this.busy = false;
+        this.progress = null;
     },
 }));
 
-/**
- * Public forms (contact, campaign leads): submit without reloading the page,
- * show field errors inline, and add a reCAPTCHA v3 token when configured.
- * The script for reCAPTCHA only loads once the visitor starts filling the form.
- */
 /**
  * Air ticket quote: the trip type shows the return date (Return) or more
  * flights (Multi-city). Each added flight starts from where the last one
@@ -326,6 +459,11 @@ Alpine.data('fareQuote', (max = 4) => ({
     },
 }));
 
+/**
+ * Public forms (contact, campaign leads): submit without reloading the page,
+ * show field errors inline, and add a reCAPTCHA v3 token when configured.
+ * The script for reCAPTCHA only loads once the visitor starts filling the form.
+ */
 Alpine.data('siteForm', (recaptchaKey = null) => ({
     busy: false,
     done: false,
