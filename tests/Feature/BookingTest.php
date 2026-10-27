@@ -561,7 +561,9 @@ class BookingTest extends AdminTestCase
 
         // A new status with a message: emailed with the latest details, kept in the history.
         $this->asAdmin($admin)->putJson("/api/admin/bookings/{$booking->id}", ['status' => 'confirmed', 'admin_notes' => 'Staff only', 'customer_message' => 'Your visa file is ready.'])
-            ->assertOk()->assertJsonPath('data.updates.0.kind', 'status')->assertJsonPath('data.updates.0.emailed', true);
+            // The response comes first: the email goes out right after it, so the update is "to be emailed", then emailed.
+            ->assertOk()->assertJsonPath('data.updates.0.kind', 'status')->assertJsonPath('data.updates.0.notify', true)->assertJsonPath('data.updates.0.emailed', false);
+        $this->assertNotNull($booking->updates()->first()->emailed_at);
         Mail::assertSent(BookingUpdated::class, fn ($mail) => $mail->hasTo('karim@example.com')
             && str_contains($mail->render(), 'Your visa file is ready.')
             && str_contains($mail->render(), 'Confirmed')
@@ -573,12 +575,13 @@ class BookingTest extends AdminTestCase
 
         // A message with "Email the customer" unticked is recorded but not sent.
         $this->asAdmin($admin)->putJson("/api/admin/bookings/{$booking->id}", ['status' => 'confirmed', 'customer_message' => 'Flights are booked.', 'notify' => false])
-            ->assertOk()->assertJsonPath('data.updates.0.kind', 'message')->assertJsonPath('data.updates.0.emailed', false);
+            ->assertOk()->assertJsonPath('data.updates.0.kind', 'message')->assertJsonPath('data.updates.0.notify', false)->assertJsonPath('data.updates.0.emailed', false);
         Mail::assertSent(BookingUpdated::class, 1);
 
         // An office payment sends a receipt with the new balance.
         $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => 20000, 'method' => 'bank', 'paid_at' => now()->subHour()->toDateTimeString(), 'customer_message' => 'Thank you for the deposit.'])
-            ->assertCreated()->assertJsonPath('data.updates.0.kind', 'payment')->assertJsonPath('data.updates.0.emailed', true);
+            ->assertCreated()->assertJsonPath('data.updates.0.kind', 'payment')->assertJsonPath('data.updates.0.notify', true);
+        $this->assertNotNull($booking->updates()->first()->emailed_at);
         Mail::assertSent(PaymentReceived::class, fn ($mail) => str_contains($mail->render(), 'Thank you for the deposit.'));
 
         // The customer's page shows the whole history; internal notes stay hidden.

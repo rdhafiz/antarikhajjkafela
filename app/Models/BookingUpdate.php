@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * One entry in a booking's history as the customer sees it (see the
  * booking_updates migration).
  */
-#[Fillable(['booking_id', 'kind', 'status', 'message', 'amount', 'emailed_at', 'created_by'])]
+#[Fillable(['booking_id', 'kind', 'status', 'message', 'amount', 'notify', 'emailed_at', 'created_by'])]
 class BookingUpdate extends Model
 {
     public const KINDS = ['created', 'status', 'payment', 'message'];
@@ -19,6 +19,7 @@ class BookingUpdate extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'notify' => 'boolean',
             'emailed_at' => 'datetime',
         ];
     }

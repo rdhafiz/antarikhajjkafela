@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
 
+use function Illuminate\Support\defer;
+
 /**
  * Creates bookings, keeps their paid amount and status in step with the
  * payment ledger, records the customer-facing history and sends the booking
@@ -80,7 +82,7 @@ class BookingService
                 // Reference from the row id, e.g. AHK-2026-000123.
                 $booking->forceFill(['reference' => sprintf('AHK-%s-%06d', now()->format('Y'), $booking->id)])->save();
 
-                $booking->updates()->create(['kind' => 'created', 'status' => 'pending']);
+                $booking->updates()->create(['kind' => 'created', 'status' => 'pending', 'notify' => filled($data['email'] ?? null)]);
 
                 foreach ($documents as $document) {
                     $path = $document['file']->store("bookings/{$booking->id}", BookingDocument::DISK);
@@ -114,9 +116,7 @@ class BookingService
             'ip' => $ip,
         ]);
 
-        if ($this->sendBookingEmails($booking)) {
-            $booking->updates()->where('kind', 'created')->update(['emailed_at' => now()]);
-        }
+        $this->sendBookingEmails($booking);
 
         return $booking;
     }
@@ -143,15 +143,18 @@ class BookingService
      */
     public function recordUpdate(Booking $booking, string $kind, ?string $message = null, bool $notify = true, ?User $by = null): BookingUpdate
     {
+        $notify = $notify && filled($booking->customer_email);
+
         $update = $booking->updates()->create([
             'kind' => $kind,
             'status' => $booking->status,
             'message' => $message,
+            'notify' => $notify,
             'created_by' => $by?->id,
         ]);
 
-        if ($notify && $booking->customer_email && $this->sendMail($booking, $booking->customer_email, $booking->locale, new BookingUpdated($booking->fresh(), $update), 'Booking update')) {
-            $update->update(['emailed_at' => now()]);
+        if ($notify) {
+            $this->sendMail($booking, $booking->customer_email, $booking->locale, new BookingUpdated($booking->fresh(), $update), 'Booking update', $update);
         }
 
         return $update;
@@ -165,16 +168,19 @@ class BookingService
     {
         $booking = $payment->booking->fresh();
 
+        $notify = $notify && filled($booking->customer_email);
+
         $update = $booking->updates()->create([
             'kind' => 'payment',
             'status' => $booking->status,
             'amount' => $payment->amount,
             'message' => $message,
+            'notify' => $notify,
             'created_by' => $by?->id,
         ]);
 
-        if ($notify && $this->sendPaymentEmail($payment, $update)) {
-            $update->update(['emailed_at' => now()]);
+        if ($notify) {
+            $this->sendMail($booking, $booking->customer_email, $booking->locale, new PaymentReceived($booking, $payment, $update), 'Payment receipt', $update);
         }
 
         return $update;
@@ -297,47 +303,33 @@ class BookingService
         $payment->refresh();
     }
 
-    /**
-     * @return bool whether the customer's email went out
-     */
-    private function sendBookingEmails(Booking $booking): bool
+    private function sendBookingEmails(Booking $booking): void
     {
-        $sent = $booking->customer_email
-            && $this->sendMail($booking, $booking->customer_email, $booking->locale, new BookingReceived($booking), 'Booking received');
+        if ($booking->customer_email) {
+            $this->sendMail($booking, $booking->customer_email, $booking->locale, new BookingReceived($booking), 'Booking received', $booking->updates()->where('kind', 'created')->first());
+        }
 
         if ($to = settings('contact.primary_email')) {
             $this->sendMail($booking, $to, 'en', new BookingPlaced($booking), 'New booking (office)');
         }
-
-        return $sent;
-    }
-
-    private function sendPaymentEmail(Payment $payment, ?BookingUpdate $update = null): bool
-    {
-        $booking = $payment->booking->fresh();
-
-        return $booking->customer_email
-            && $this->sendMail($booking, $booking->customer_email, $booking->locale, new PaymentReceived($booking, $payment, $update), 'Payment receipt');
     }
 
     /**
-     * Send one email and log it on the booking. The booking is saved already:
-     * a mail problem must not fail the request, it is reported and logged.
-     *
-     * @return bool whether it went out
+     * Send one email after the response has gone to the browser (an SMTP send
+     * takes seconds), then log it on the booking and mark the customer update
+     * as emailed. A mail problem never fails anything: it is reported and logged.
      */
-    private function sendMail(Booking $booking, string $to, ?string $locale, Mailable $mail, string $label): bool
+    private function sendMail(Booking $booking, string $to, ?string $locale, Mailable $mail, string $label, ?BookingUpdate $update = null): void
     {
-        try {
-            Mail::to($to)->locale($locale ?: 'en')->send($mail);
-            $this->log->record($booking, 'email_sent', ['email' => $label, 'to' => $to]);
-
-            return true;
-        } catch (Throwable $e) {
-            report($e);
-            $this->log->record($booking, 'email_failed', ['email' => $label, 'to' => $to, 'error' => Str::limit($e->getMessage(), 300)]);
-
-            return false;
-        }
+        defer(function () use ($booking, $to, $locale, $mail, $label, $update) {
+            try {
+                Mail::to($to)->locale($locale ?: 'en')->send($mail);
+                $update?->forceFill(['emailed_at' => now()])->save();
+                $this->log->record($booking, 'email_sent', ['email' => $label, 'to' => $to]);
+            } catch (Throwable $e) {
+                report($e);
+                $this->log->record($booking, 'email_failed', ['email' => $label, 'to' => $to, 'error' => Str::limit($e->getMessage(), 300)]);
+            }
+        }, always: true);
     }
 }

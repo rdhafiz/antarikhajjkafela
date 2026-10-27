@@ -73,6 +73,8 @@ export interface BookingUpdate {
     status: BookingStatus | null;
     message: string | null;
     amount: number | null;
+    /** An email was asked for; it goes out just after the save, so emailed turns true a moment later. */
+    notify: boolean;
     emailed: boolean;
     by: string | null;
     created_at: string;

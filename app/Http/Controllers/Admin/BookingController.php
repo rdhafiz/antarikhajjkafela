@@ -373,6 +373,7 @@ class BookingController extends Controller
                 'status' => $u->status,
                 'message' => $u->message,
                 'amount' => $u->amount !== null ? (float) $u->amount : null,
+                'notify' => (bool) $u->notify,
                 'emailed' => $u->emailed_at !== null,
                 'by' => $u->creator?->name,
                 'created_at' => $u->created_at?->toIso8601String(),

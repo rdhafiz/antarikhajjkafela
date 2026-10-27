@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ArrowLeft, BellRing, Globe, CheckCircle2, ChevronDown, Copy, ExternalLink, FileText, Files, History, Image as ImageIcon, Mail, MailCheck, MailX, MessageCircle, MessageSquareText, Package as PackageIcon, Phone, Plus, RefreshCw, Trash2, TriangleAlert, UserRound, Wallet } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
@@ -113,6 +113,30 @@ function apply(data: BookingDetail): void {
     edit.reset({ status: data.status, admin_notes: data.admin_notes ?? '', customer_message: '', notify: Boolean(data.customer_email) });
 }
 
+// Emails go out just after a save; reload quietly a few times until every requested one shows as sent.
+let followUp: ReturnType<typeof setTimeout> | undefined;
+function followEmails(tries = 4): void {
+    clearTimeout(followUp);
+    if (!booking.value?.updates.some((u) => u.notify && !u.emailed) || tries === 0) return;
+    followUp = setTimeout(async () => {
+        try {
+            const { data } = await http.get<{ data: BookingDetail }>(`/bookings/${booking.value!.id}`);
+            // Keep what staff are typing: only the lists are refreshed while the form has changes.
+            const b = booking.value!;
+            const dirty = edit.data.status !== b.status || edit.data.admin_notes !== (b.admin_notes ?? '') || edit.data.customer_message.trim() !== '';
+            if (dirty) booking.value = { ...booking.value!, updates: data.data.updates, activity: data.data.activity };
+            else apply(data.data);
+        } catch {
+            return;
+        }
+        followEmails(tries - 1);
+    }, 5000);
+}
+onBeforeUnmount(() => clearTimeout(followUp));
+
+/** Whether an update's email is still on its way (asked for, not sent, and recent). */
+const emailPending = (update: BookingUpdate) => update.notify && !update.emailed && Date.now() - new Date(update.created_at).getTime() < 3 * 60 * 1000;
+
 async function load(): Promise<void> {
     try {
         const { data } = await http.get<{ data: BookingDetail; was_unread: boolean }>(`/bookings/${route.params.id}`);
@@ -127,9 +151,10 @@ async function load(): Promise<void> {
 async function save(): Promise<void> {
     const response = await edit.submit(() => http.put<{ data: BookingDetail }>(`/bookings/${booking.value!.id}`, edit.data));
     if (response) {
-        const emailed = customerChange.value && response.data.data.updates[0]?.emailed;
+        const emailing = customerChange.value && response.data.data.updates[0]?.notify;
         apply(response.data.data);
-        toast.success('Booking updated', emailed ? 'The customer was emailed the latest details.' : undefined);
+        toast.success('Booking updated', emailing ? 'The customer is being emailed the latest details.' : undefined);
+        followEmails();
     }
 }
 
@@ -145,7 +170,8 @@ async function recordPayment(): Promise<void> {
     if (response) {
         apply(response.data.data);
         paymentOpen.value = false;
-        toast.success('Payment recorded', response.data.data.updates[0]?.emailed ? 'A receipt was emailed to the customer.' : undefined);
+        toast.success('Payment recorded', response.data.data.updates[0]?.notify ? 'A receipt is being emailed to the customer.' : undefined);
+        followEmails();
     }
 }
 
@@ -329,6 +355,8 @@ onMounted(load);
                                 <p class="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
                                     {{ updateTitle(update) }}
                                     <span v-if="update.emailed" class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700"><MailCheck class="size-3" aria-hidden="true" />Emailed</span>
+                                    <span v-else-if="emailPending(update)" class="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-700"><Mail class="size-3" aria-hidden="true" />Sending…</span>
+                                    <span v-else-if="update.notify" class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700"><MailX class="size-3" aria-hidden="true" />Email not sent</span>
                                     <span v-else class="rounded-full bg-canvas px-2 py-0.5 text-[11px] font-semibold text-ink-muted">Not emailed</span>
                                 </p>
                                 <p class="text-[12px] text-ink-muted">{{ formatDate(update.created_at, true) }}<template v-if="update.by"> · {{ update.by }}</template></p>
