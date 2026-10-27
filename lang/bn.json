@@ -437,5 +437,9 @@
     "Payment received: :amount": "পেমেন্ট গৃহীত: :amount",
     "Status changed to :status": "অবস্থা পরিবর্তন: :status",
     "Already booked? Find your booking": "বুকিং করেছেন? আপনার বুকিং খুঁজুন",
-    "Enter your booking reference and the phone number or email you booked with to see its status, payments and updates.": "বুকিংয়ের অবস্থা, পেমেন্ট ও আপডেট দেখতে আপনার বুকিং রেফারেন্স এবং বুকিংয়ের সময় দেওয়া ফোন নম্বর বা ইমেইল লিখুন।"
+    "Enter your booking reference and the phone number or email you booked with to see its status, payments and updates.": "বুকিংয়ের অবস্থা, পেমেন্ট ও আপডেট দেখতে আপনার বুকিং রেফারেন্স এবং বুকিংয়ের সময় দেওয়া ফোন নম্বর বা ইমেইল লিখুন।",
+    "Bank deposit / transfer": "ব্যাংক ডিপোজিট / ট্রান্সফার",
+    "Mobile banking (bKash, Nagad…)": "মোবাইল ব্যাংকিং (বিকাশ, নগদ…)",
+    "Cash": "নগদ অর্থ",
+    "Other": "অন্যান্য"
 }

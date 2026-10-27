@@ -1,29 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><title>New enquiry</title></head>
-<body style="margin:0;background:#f7f2e9;font-family:Arial,Helvetica,sans-serif;color:#0d1b2e;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 12px;">
-        <tr><td align="center">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:14px;overflow:hidden;">
-                <tr><td style="background:#012a51;padding:20px 28px;color:#fdc802;font-size:13px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">
-                    {{ $inquiry->source === 'lead_form' ? 'Campaign registration' : 'Website message' }}
-                </td></tr>
-                <tr><td style="padding:28px;">
-                    <p style="margin:0 0 18px;font-size:16px;">A new enquiry was received{{ isset($inquiry->data['page']) ? ' on "'.$inquiry->data['page'].'"' : '' }}.</p>
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;">
-                        @foreach (array_filter(['Name' => $inquiry->name, 'Phone' => $inquiry->phone, 'Email' => $inquiry->email]) as $label => $value)
-                            <tr><td style="padding:8px 0;color:#66738a;width:38%;">{{ $label }}</td><td style="padding:8px 0;font-weight:bold;">{{ $value }}</td></tr>
-                        @endforeach
-                        @foreach (collect($inquiry->data)->except('page') as $key => $value)
-                            <tr><td style="padding:8px 0;color:#66738a;vertical-align:top;">{{ str($key)->replace('_', ' ')->title() }}</td><td style="padding:8px 0;white-space:pre-line;">{{ $value }}</td></tr>
-                        @endforeach
-                    </table>
-                    <p style="margin:26px 0 0;">
-                        <a href="{{ admin_url('inquiries') }}" style="display:inline-block;background:#012a51;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:bold;font-size:14px;">Open the inquiry inbox</a>
-                    </p>
-                </td></tr>
-            </table>
+@extends('emails.layout', [
+    'eyebrow' => $inquiry->source === 'lead_form' ? 'Campaign registration' : 'Website message',
+    'title' => $inquiry->name ?: 'New enquiry',
+    'intro' => 'A new enquiry was received'.(isset($inquiry->data['page']) ? ' on "'.$inquiry->data['page'].'"' : '').'.',
+])
+
+{{-- Staff email: always in English. --}}
+@section('body')
+    @php($phone = preg_replace('/[^0-9+]/', '', (string) $inquiry->phone))
+    @if ($inquiry->phone || $inquiry->email)
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#e6f6ed;border-radius:14px;margin-bottom:12px;">
+            <tr><td style="padding:14px 18px;font-size:14px;line-height:1.7;">
+                @if ($inquiry->phone)<a href="tel:{{ $phone }}" style="color:#047857;font-weight:bold;text-decoration:none;">{{ $inquiry->phone }}</a>@endif
+                @if ($inquiry->phone && $inquiry->email) &nbsp;·&nbsp; @endif
+                @if ($inquiry->email)<a href="mailto:{{ $inquiry->email }}" style="color:#047857;font-weight:bold;text-decoration:none;">{{ $inquiry->email }}</a>@endif
+            </td></tr>
+        </table>
+    @endif
+
+    @php($details = collect($inquiry->data)->except('page')->filter(fn ($v) => filled($v)))
+    @if ($details->isNotEmpty())
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f8fc;border:1px solid #e3eaf3;border-radius:14px;">
+            <tr><td style="padding:6px 18px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;">
+                    @foreach ($details as $key => $value)
+                        <tr>
+                            <td style="padding:10px 0;color:#66738a;width:38%;vertical-align:top;{{ $loop->last ? '' : 'border-bottom:1px solid #e3eaf3;' }}">{{ str($key)->replace('_', ' ')->title() }}</td>
+                            <td style="padding:10px 0;font-weight:bold;white-space:pre-line;vertical-align:top;{{ $loop->last ? '' : 'border-bottom:1px solid #e3eaf3;' }}">{{ is_array($value) ? implode(', ', $value) : $value }}</td>
+                        </tr>
+                    @endforeach
+                </table>
+            </td></tr>
+        </table>
+    @endif
+
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:26px;">
+        <tr><td style="background:#012a51;border-radius:999px;">
+            <a href="{{ admin_url('inquiries') }}" style="display:inline-block;padding:13px 26px;color:#ffffff;text-decoration:none;font-weight:bold;font-size:14px;">Open the inquiry inbox &rarr;</a>
         </td></tr>
     </table>
-</body>
-</html>
+@endsection

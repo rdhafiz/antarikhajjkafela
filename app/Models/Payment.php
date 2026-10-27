@@ -61,4 +61,12 @@ class Payment extends Model
     {
         return self::GATEWAYS[$this->method] ?? self::OFFLINE_METHODS[$this->method] ?? ucfirst($this->method);
     }
+
+    /**
+     * The method in the customer's language (receipts); staff screens use methodLabel().
+     */
+    public function customerMethodLabel(): string
+    {
+        return isset(self::OFFLINE_METHODS[$this->method]) ? __(self::OFFLINE_METHODS[$this->method]) : $this->methodLabel();
+    }
 }
