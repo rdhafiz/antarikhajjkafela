@@ -47,6 +47,9 @@ const open = computed({
                         <AlertDialogDescription v-if="shown.message" class="mt-1.5 text-sm leading-relaxed text-ink-soft">
                             {{ shown.message }}
                         </AlertDialogDescription>
+                        <ul v-if="shown.items?.length" class="mt-3 max-h-48 space-y-1 overflow-y-auto rounded-lg bg-canvas px-3 py-2 text-[13px] text-ink">
+                            <li v-for="item in shown.items" :key="item" class="flex gap-2"><span class="text-ink-muted" aria-hidden="true">•</span>{{ item }}</li>
+                        </ul>
                     </div>
                 </div>
                 <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -54,7 +57,7 @@ const open = computed({
                         class="h-10 rounded-lg border border-line bg-white px-4 text-sm font-semibold text-ink hover:bg-canvas"
                         @click="settle(false)"
                     >
-                        Cancel
+                        {{ shown.notice ? 'OK' : 'Cancel' }}
                     </AlertDialogCancel>
                     <!--
                         A plain button, not AlertDialogAction: that component closes
@@ -63,6 +66,7 @@ const open = computed({
                         every confirmed action quietly did nothing.
                     -->
                     <button
+                        v-if="!shown.notice"
                         type="button"
                         class="h-10 rounded-lg px-4 text-sm font-semibold text-white"
                         :class="shown.tone === 'danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-brand hover:opacity-90'"

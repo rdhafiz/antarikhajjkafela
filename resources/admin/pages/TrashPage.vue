@@ -21,6 +21,8 @@ import {
     Wallet,
 } from 'lucide-vue-next';
 import AppButton from '@admin/components/ui/AppButton.vue';
+import AppModal from '@admin/components/ui/AppModal.vue';
+import { useAuthStore } from '@admin/stores/auth';
 import AppPagination from '@admin/components/ui/AppPagination.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
 import FilterDrawer, { type FilterGroup } from '@admin/components/ui/FilterDrawer.vue';
@@ -51,6 +53,35 @@ const toast = useToastStore();
 const list = useListQuery<TrashRow, TrashResponse>('/trash', { type: '' });
 const filtersOpen = ref(false);
 const restoring = ref<string | null>(null);
+const auth = useAuthStore();
+
+// Delete for good: the name of the item is not enough of a check, so the word DELETE is typed.
+const purging = ref<TrashRow | null>(null);
+const purgeOpen = ref(false);
+const purgeWord = ref('');
+const purgeBusy = ref(false);
+
+function askPurge(row: TrashRow): void {
+    purging.value = row;
+    purgeWord.value = '';
+    purgeOpen.value = true;
+}
+
+async function purge(): Promise<void> {
+    const row = purging.value;
+    if (!row || purgeWord.value.trim().toUpperCase() !== 'DELETE') return;
+    purgeBusy.value = true;
+    try {
+        await http.delete(`/trash/${row.type}/${row.id}`);
+        toast.success(`${row.type_label} deleted for good`, row.title);
+        purgeOpen.value = false;
+        await list.load();
+    } catch (e) {
+        toast.error(errorMessage(e));
+    } finally {
+        purgeBusy.value = false;
+    }
+}
 
 /** Each kind in its sidebar module's colour. */
 const looks: Record<string, { icon: Component; tone: string }> = {
@@ -111,7 +142,7 @@ onMounted(list.load);
     <div>
         <ListHero
             title="Trash"
-            description="Everything deleted in the admin stays here and can be restored. Nothing is removed for good."
+            description="Everything deleted in the admin stays here and can be restored. A super admin can delete an item for good, with its files."
             :icon="Trash2"
             tone="#f87171"
             :photo="headerPhoto"
@@ -159,8 +190,34 @@ onMounted(list.load);
                 >
                     Restore
                 </AppButton>
+                <AppButton
+                    v-if="auth.can('trash.delete')"
+                    variant="ghost"
+                    size="sm"
+                    :icon="Trash2"
+                    class="text-red-600 hover:bg-red-50"
+                    :disabled="restoring !== null"
+                    :aria-label="`Delete ${row.type_label.toLowerCase()} ${row.title} for good`"
+                    @click="askPurge(row)"
+                >
+                    Delete forever
+                </AppButton>
             </li>
         </ul>
+
+        <AppModal v-model:open="purgeOpen" title="Delete for good?" :description="purging ? `${purging.type_label}: ${purging.title}` : ''" size="sm" :persistent="purgeBusy">
+            <form id="trash-purge" class="space-y-3" @submit.prevent="purge">
+                <p class="text-sm leading-relaxed text-ink-soft">
+                    This removes it permanently, with its files (for a booking: passport and NID copies, payments, updates and its activity log). It cannot be restored.
+                </p>
+                <label for="purge-word" class="block text-[13px] font-semibold text-ink">Type <span class="font-mono">DELETE</span> to confirm</label>
+                <input id="purge-word" v-model="purgeWord" class="control" autocomplete="off" autocapitalize="characters" spellcheck="false">
+            </form>
+            <template #footer>
+                <AppButton variant="secondary" :disabled="purgeBusy" @click="purgeOpen = false">Cancel</AppButton>
+                <AppButton type="submit" form="trash-purge" variant="danger" :icon="Trash2" :loading="purgeBusy" :disabled="purgeWord.trim().toUpperCase() !== 'DELETE'">Delete forever</AppButton>
+            </template>
+        </AppModal>
 
         <AppPagination v-if="list.meta.value && list.rows.value.length" :meta="list.meta.value" label="items" @change="list.goTo" @per-page="list.setPerPage" />
 

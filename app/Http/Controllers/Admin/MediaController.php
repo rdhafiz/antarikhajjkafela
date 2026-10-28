@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Media\MediaUploader;
+use App\Domain\Media\MediaUsage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\MediaUploadRequest;
 use App\Http\Resources\Admin\MediaResource;
@@ -82,8 +83,26 @@ class MediaController extends Controller
         return new MediaResource($media);
     }
 
-    public function destroy(Media $media): JsonResponse
+    /**
+     * Where the image is used (the admin asks before offering to delete it).
+     */
+    public function usedIn(Media $media, MediaUsage $usage): JsonResponse
     {
+        return response()->json(['data' => $usage->of($media)]);
+    }
+
+    /**
+     * Images still in use are not deleted: their pages would show a broken image.
+     */
+    public function destroy(Media $media, MediaUsage $usage): JsonResponse
+    {
+        if ($usedIn = $usage->of($media)) {
+            return response()->json([
+                'message' => 'This image is still used, so it cannot be deleted. Replace it there first: '.implode('; ', $usedIn).'.',
+                'used_in' => $usedIn,
+            ], 409);
+        }
+
         $media->delete();
 
         return response()->json(status: 204);

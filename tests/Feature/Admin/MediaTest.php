@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Domain\Media\MediaUploader;
+use App\Models\GalleryAlbum;
 use App\Models\Media;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -137,6 +138,34 @@ class MediaTest extends AdminTestCase
         Storage::disk('public')->assertExists($media->variants['lg']['path']);
         Storage::disk('local')->assertExists("{$media->directory}/original.jpg");
         $this->assertSame($admin->id, $media->fresh()->deleted_by);
+    }
+
+    public function test_media_in_use_cannot_be_deleted(): void
+    {
+        $admin = $this->superAdmin();
+        $upload = fn (string $name) => Media::findOrFail($this->asAdmin($admin)->post('/api/admin/media', ['file' => UploadedFile::fake()->image($name, 800, 600), 'usage' => 'general'])->json('data.id'));
+        $cover = $upload('cover.jpg');
+        $logo = $upload('logo.jpg');
+        $free = $upload('free.jpg');
+
+        // #52: an album cover and the site logo are in use: refused, with where they are used.
+        GalleryAlbum::create(['title' => ['en' => 'Umrah 2025'], 'slug' => 'umrah-2025', 'is_published' => true, 'cover_id' => $cover->id]);
+        settings()->set('branding', ['logo' => $logo->id]);
+
+        $this->asAdmin($admin)->getJson("/api/admin/media/{$cover->id}/used-in")->assertOk()->assertJsonPath('data', ['Album "Umrah 2025" (cover)']);
+        $this->asAdmin($admin)->deleteJson("/api/admin/media/{$cover->id}")->assertStatus(409)->assertJsonPath('used_in.0', 'Album "Umrah 2025" (cover)');
+        $this->asAdmin($admin)->deleteJson("/api/admin/media/{$logo->id}")->assertStatus(409)->assertJsonPath('used_in.0', 'Settings → Branding: Website logo');
+        $this->assertNotSoftDeleted($cover);
+
+        // Unused images go to the Trash as before.
+        $this->asAdmin($admin)->getJson("/api/admin/media/{$free->id}/used-in")->assertJsonPath('data', []);
+        $this->asAdmin($admin)->deleteJson("/api/admin/media/{$free->id}")->assertNoContent();
+
+        // #53: deleted for good from the Trash, its files go too; an image in use can't be.
+        $this->asAdmin($admin)->deleteJson("/api/admin/trash/media/{$free->id}")->assertNoContent();
+        $this->assertNull(Media::withTrashed()->find($free->id));
+        Storage::disk('public')->assertMissing($free->variants['lg']['path']);
+        Storage::disk('local')->assertMissing("{$free->directory}/original.jpg");
     }
 
     public function test_media_permissions_are_enforced(): void

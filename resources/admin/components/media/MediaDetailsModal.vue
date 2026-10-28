@@ -5,6 +5,7 @@ import AppButton from '@admin/components/ui/AppButton.vue';
 import AppModal from '@admin/components/ui/AppModal.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
 import { useConfirm } from '@admin/composables/useConfirm';
+import { mediaIsFree } from '@admin/components/media/mediaInUse';
 import { useForm } from '@admin/composables/useForm';
 import { errorMessage, http } from '@admin/lib/http';
 import { formatBytes, formatDate } from '@admin/lib/format';
@@ -47,9 +48,16 @@ async function remove(): Promise<void> {
     const media = props.media;
     if (!media) return;
 
+    try {
+        if (!(await mediaIsFree(media.id))) return;
+    } catch (e) {
+        toast.error(errorMessage(e));
+        return;
+    }
+
     const ok = await confirm({
         title: 'Delete this image?',
-        message: 'It will be removed everywhere it is used on the website. It goes to the Trash, where a super admin can restore it.',
+        message: 'It is not used anywhere on the website. It goes to the Trash, where a super admin can restore it.',
         confirmLabel: 'Delete image',
     });
     if (!ok) return;

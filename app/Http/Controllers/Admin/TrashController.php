@@ -69,6 +69,16 @@ class TrashController extends Controller
         ]);
     }
 
+    /**
+     * Delete one item for good (no restore afterwards).
+     */
+    public function destroy(string $type, int $id): JsonResponse
+    {
+        $this->trash->purge($type, $id);
+
+        return response()->json(status: 204);
+    }
+
     public function restore(string $type, int $id): JsonResponse
     {
         $model = $this->trash->restore($type, $id);

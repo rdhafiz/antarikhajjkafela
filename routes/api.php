@@ -66,6 +66,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('media', [MediaController::class, 'index'])->middleware('can:media.view')->name('media.index');
         Route::post('media', [MediaController::class, 'store'])->middleware('can:media.create')->name('media.store');
         Route::get('media/{media}', [MediaController::class, 'show'])->middleware('can:media.view')->name('media.show');
+        Route::get('media/{media}/used-in', [MediaController::class, 'usedIn'])->middleware('can:media.view')->name('media.used-in');
         Route::put('media/{media}', [MediaController::class, 'update'])->middleware('can:media.update')->name('media.update');
         Route::delete('media/{media}', [MediaController::class, 'destroy'])->middleware('can:media.delete')->name('media.destroy');
 
@@ -141,6 +142,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Inquiries
         Route::get('trash', [TrashController::class, 'index'])->middleware('can:trash.view')->name('trash.index');
         Route::post('trash/{type}/{id}/restore', [TrashController::class, 'restore'])->whereNumber('id')->middleware('can:trash.restore')->name('trash.restore');
+        Route::delete('trash/{type}/{id}', [TrashController::class, 'destroy'])->whereNumber('id')->middleware('can:trash.delete')->name('trash.destroy');
 
         Route::get('inquiries', [InquiryController::class, 'index'])->middleware('can:inquiries.view')->name('inquiries.index');
         Route::get('inquiries/export', [InquiryController::class, 'export'])->middleware('can:inquiries.view')->name('inquiries.export');

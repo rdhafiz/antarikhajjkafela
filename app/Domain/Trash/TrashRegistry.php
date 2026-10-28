@@ -3,6 +3,7 @@
 namespace App\Domain\Trash;
 
 use App\Domain\Booking\BookingService;
+use App\Domain\Media\MediaUsage;
 use App\Models\Booking;
 use App\Models\GalleryAlbum;
 use App\Models\GalleryItem;
@@ -23,6 +24,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
@@ -49,6 +52,10 @@ class TrashRegistry
                 'link' => fn (Booking $b) => "bookings/{$b->id}",
                 // Its documents and payments went to the Trash with it.
                 'after' => fn (Booking $b, $since) => $this->restoreChildren([$b->documents(), $b->payments()], $since),
+                // Deleting for good: the passport/NID files go too (documents, payments and updates follow in the database).
+                'purge' => function (Booking $b) {
+                    $b->documents()->withTrashed()->get()->each(fn ($document) => Storage::disk('local')->delete($document->path));
+                },
             ],
             'payments' => [
                 'model' => Payment::class,
@@ -126,6 +133,14 @@ class TrashRegistry
                 'label' => 'Image',
                 'title' => fn (Media $m) => $m->original_name,
                 'detail' => fn (Media $m) => $m->usage,
+                // Deleting for good removes the files; an image something still points at stays.
+                'purge_blocker' => fn (Media $m) => ($used = app(MediaUsage::class)->of($m)) ? 'Still used: '.implode('; ', $used).'.' : null,
+                'purge' => function (Media $m) {
+                    Storage::disk('public')->delete(collect($m->variants ?? [])->pluck('path')->filter()->all());
+                    if ($m->directory) {
+                        Storage::disk('local')->deleteDirectory($m->directory);
+                    }
+                },
                 'link' => fn () => 'media',
             ],
             'users' => [
@@ -177,6 +192,42 @@ class TrashRegistry
         Cache::forget('sitemap.xml');
 
         return $model;
+    }
+
+    /**
+     * Delete a record in the Trash for good, with its private files. Super
+     * admins only (trash.delete); it cannot be undone.
+     */
+    public function purge(string $key, int $id): void
+    {
+        $type = $this->type($key);
+        $model = $type['model']::onlyTrashed()->findOrFail($id);
+
+        if ($blocker = $this->purgeBlocker($key, $model)) {
+            abort(422, $blocker);
+        }
+
+        DB::transaction(function () use ($type, $model) {
+            if (isset($type['purge'])) {
+                ($type['purge'])($model);
+            }
+            $model->forceDelete();
+            // Its history goes with it (for a booking: customer details in the activity log).
+            Activity::where('subject_type', $model->getMorphClass())->where('subject_id', $model->getKey())->delete();
+        });
+
+        Cache::forget('sitemap.xml');
+    }
+
+    public function purgeBlocker(string $key, Model $model): ?string
+    {
+        $type = $this->type($key);
+
+        if ($model instanceof Service && Package::withTrashed()->where('service_id', $model->getKey())->exists()) {
+            return 'Its packages (including any in the Trash) must be deleted for good first.';
+        }
+
+        return isset($type['purge_blocker']) ? ($type['purge_blocker'])($model) : null;
     }
 
     public function blocker(string $key, Model $model): ?string
