@@ -41,7 +41,8 @@ class PackageSchema
                 Field::repeater('prices', 'Pricing', [
                     Field::text('title', 'Title')->max(120)->required()->placeholder('4/5-bed shared room'),
                     Field::textarea('short_description', 'Short description')->max(400)->rows(2),
-                    Field::number('price', 'Price (BDT)', 0, 100000000)->required(),
+                    // ৳0 would show "Starting from ৳0" and make a free booking.
+                    Field::number('price', 'Price (BDT)', 1, 100000000)->required(),
                     Field::select('unit', 'Price unit', Package::UNITS),
                     Field::repeater('hotels', 'Hotel details', [
                         Field::text('heading', 'Heading')->max(120)->required()->placeholder('Makkah'),

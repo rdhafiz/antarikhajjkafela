@@ -128,18 +128,20 @@ class ContentProcessor
 
     /**
      * Readable names for the paths rules() generates, so a failed save says
-     * "Text → Body (Bangla)" instead of "sections.3.content.body.bn".
+     * "Text → Body (Bangla)" instead of "sections.3.content.body.bn". Without
+     * a section (forms that show each error under its field) just the field:
+     * "Price (BDT)", "Heading (Bangla)".
      *
      * @param  list<Field>  $fields
      * @return array<string, string>
      */
-    public function attributes(array $fields, string $prefix, string $section): array
+    public function attributes(array $fields, string $prefix, string $section = ''): array
     {
         $names = [];
 
         foreach ($fields as $field) {
             $path = "{$prefix}.{$field->key}";
-            $label = "{$section} → {$field->label}";
+            $label = $section !== '' ? "{$section} → {$field->label}" : $field->label;
             $names[$path] = $label;
 
             switch ($field->type) {

@@ -196,6 +196,21 @@ class TravelTest extends AdminTestCase
         $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['advance_type' => 'fixed', 'advance_value' => $lowest]))
             ->assertOk();
 
+        // #98: a price must be at least ৳1. #100: nested fields are named by their label, not their key.
+        $types = $this->payload($package)['types'];
+        $types[0]['prices'][0]['price'] = 0;
+        $types[0]['prices'][0]['hotels'] = [['heading' => ['en' => ''], 'subheading' => ['en' => 'Near the Haram']]];
+        $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['types' => $types]))
+            ->assertJsonValidationErrors([
+                'types.0.prices.0.price' => 'Enter a price of at least ৳1.',
+                'types.0.prices.0.hotels.0.heading.en' => 'The Heading (English) field is required.',
+            ]);
+        $types[0]['prices'][0]['price'] = null;
+        $types[0]['prices'][0]['hotels'] = [];
+        $types[0]['prices'][0]['title'] = ['en' => str_repeat('x', 200)];
+        $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['types' => $types]))
+            ->assertJsonValidationErrors(['types.0.prices.0.price' => 'Enter the price.', 'types.0.prices.0.title.en' => 'The Title (English) field must not be greater than 120 characters.']);
+
         // #54: per-language fields have readable names.
         $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['name' => ['en' => '', 'bn' => '']]))
             ->assertJsonValidationErrors(['name.en' => 'An English name is needed for the web address.']);

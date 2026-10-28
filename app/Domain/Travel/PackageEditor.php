@@ -226,6 +226,23 @@ class PackageEditor
      *
      * @return array<string, mixed>
      */
+    /**
+     * Readable names for those fields ("Price (BDT)", "Heading (Bangla)"),
+     * instead of keys like "types.0.prices.0.price".
+     *
+     * @return array<string, string>
+     */
+    public function nestedAttributes(): array
+    {
+        $names = [
+            ...$this->content->attributes(PackageSchema::flights(), 'nested'),
+            ...$this->content->attributes(PackageSchema::types(), 'nested'),
+            ...$this->content->attributes(PackageSchema::sections(), 'nested'),
+        ];
+
+        return Arr::mapWithKeys($names, fn ($name, $key) => [Str::after($key, 'nested.') => $name]);
+    }
+
     public function nestedRules(): array
     {
         $rules = [
