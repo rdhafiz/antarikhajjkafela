@@ -120,6 +120,7 @@ function markRead(row: InquiryRow): void {
             Object.assign(row, data.data);
             unread.value = Math.max(0, unread.value - 1);
             app.inquiriesUnread = unread.value;
+            list.refreshCounts();
         })
         .catch(() => {
             // Marking as read is not critical.
@@ -138,6 +139,7 @@ async function setStatus(row: InquiryRow, status: InquiryStatus): Promise<void> 
     try {
         const { data } = await http.put<{ data: InquiryRow }>(`/inquiries/${row.id}`, { status, notes: row.notes });
         Object.assign(row, data.data);
+        list.refreshCounts();
         toast.success(`Marked as ${inquiryStatus[status].label.toLowerCase()}`);
     } catch (e) {
         toast.error(errorMessage(e));
@@ -150,6 +152,7 @@ async function saveDetail(): Promise<void> {
     try {
         const { data } = await http.put<{ data: InquiryRow }>(`/inquiries/${current.value.id}`, { status: editStatus.value, notes: editNotes.value || null });
         Object.assign(current.value, data.data);
+        list.refreshCounts();
         toast.success('Inquiry updated');
         detailOpen.value = false;
     } catch (e) {

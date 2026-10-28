@@ -41,6 +41,22 @@ export function useListQuery<Row, Response extends Paginated<Row> = Paginated<Ro
         return Object.fromEntries(Object.entries(filters).filter(([key, value]) => value !== '' && !(key === 'page' && value === 1)));
     }
 
+    /**
+     * Fetch the response again for its counts (filter chips, badges) after a
+     * row changed, without touching the rows on screen.
+     */
+    async function refreshCounts(): Promise<void> {
+        try {
+            const { data } = await http.get<Response>(endpoint, { params: { ...params(), per_page: 1, page: 1 } });
+            if (!response.value) return;
+            const { data: _rows, meta: _meta, ...rest } = data as Response & { data: unknown; meta: unknown };
+            response.value = { ...response.value, ...rest };
+            options.onLoaded?.({ ...response.value });
+        } catch {
+            // Counts are a convenience: the next load brings them anyway.
+        }
+    }
+
     let sequence = 0;
     async function load(): Promise<void> {
         const mine = ++sequence;
@@ -99,5 +115,5 @@ export function useListQuery<Row, Response extends Paginated<Row> = Paginated<Ro
         Object.assign(filters, { ...defaults, search: filters.search });
     }
 
-    return { filters, rows, meta, response, loading, active, load, goTo, setPerPage, clear };
+    return { filters, rows, meta, response, loading, active, load, refreshCounts, goTo, setPerPage, clear };
 }
