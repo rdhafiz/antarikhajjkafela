@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Domain\Menus\MenuRepository;
 use App\Models\Menu;
 use App\Models\MenuItem;
+use App\Models\Page;
 use Database\Seeders\MenuSeeder;
 use Illuminate\Support\Facades\URL;
 
@@ -126,6 +127,35 @@ class MenuTest extends AdminTestCase
 
         app()->setLocale('en');
         $this->assertSame(['Home'], array_column($repository->tree('primary'), 'label'));
+    }
+
+    public function test_links_to_pages_that_are_not_live_stay_out_of_the_menu(): void
+    {
+        $admin = $this->superAdmin();
+        $draft = Page::create(['type' => Page::TYPE_CUSTOM, 'title' => ['en' => 'Refunds'], 'slug' => 'refunds', 'status' => Page::STATUS_DRAFT]);
+        $campaign = Page::create(['type' => Page::TYPE_CAMPAIGN, 'title' => ['en' => 'Eid offer'], 'slug' => 'eid-offer', 'status' => Page::STATUS_PUBLISHED, 'starts_at' => now()->addDay()]);
+
+        // #124: campaign pages can be picked; #123: the builder says which targets aren't on the website yet.
+        $pages = collect($this->asAdmin($admin)->getJson('/api/admin/menus/primary')->json('link_types'))->firstWhere('type', 'page')['targets'];
+        $this->assertSame('Draft', collect($pages)->firstWhere('value', (string) $draft->id)['offline']);
+        $this->assertSame(['value' => (string) $campaign->id, 'label' => 'Eid offer · campaign (Scheduled)', 'offline' => 'Scheduled'], collect($pages)->firstWhere('value', (string) $campaign->id));
+
+        $this->asAdmin($admin)->putJson('/api/admin/menus/primary', ['items' => [
+            $this->item('Home'),
+            ['label' => ['en' => 'Refunds'], 'link_type' => 'page', 'link_target' => (string) $draft->id],
+            ['label' => ['en' => 'Eid'], 'link_type' => 'page', 'link_target' => (string) $campaign->id],
+            ['label' => ['en' => 'More'], 'link_type' => 'page', 'link_target' => (string) $draft->id, 'children' => [$this->item('Sub')]],
+        ]])->assertOk();
+
+        // Not live: left out of the menu (no dead "#" link); with sub-items it stays as a heading.
+        $tree = app(MenuRepository::class)->tree('primary');
+        $this->assertSame(['Home', 'More'], array_column($tree, 'label'));
+        $this->assertNull($tree[1]['url']);
+
+        // Live again: back in the menu (pages flush the menus when saved; campaigns also expire from the cache).
+        $draft->update(['status' => Page::STATUS_PUBLISHED]);
+        $campaign->update(['starts_at' => now()->subHour()]);
+        $this->assertSame(['Home', 'Refunds', 'Eid', 'More'], array_column(app(MenuRepository::class)->tree('primary'), 'label'));
     }
 
     public function test_cached_links_follow_the_current_domain(): void

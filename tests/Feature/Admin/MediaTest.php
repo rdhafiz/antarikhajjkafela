@@ -157,6 +157,15 @@ class MediaTest extends AdminTestCase
         $this->asAdmin($admin)->deleteJson("/api/admin/media/{$logo->id}")->assertStatus(409)->assertJsonPath('used_in.0', 'Settings → Branding: Website logo');
         $this->assertNotSoftDeleted($cover);
 
+        // #113: a photo of an album counts while the album exists, not once the album is in the Trash.
+        $photo = $upload('photo.jpg');
+        $album = GalleryAlbum::create(['title' => ['en' => 'Hajj 2026'], 'slug' => 'hajj-2026', 'is_published' => true]);
+        $album->items()->create(['type' => 'image', 'media_id' => $photo->id, 'sort' => 1]);
+        $this->asAdmin($admin)->getJson("/api/admin/media/{$photo->id}/used-in")->assertJsonPath('data', ['Album "Hajj 2026" (photo)']);
+        $album->delete();
+        $this->asAdmin($admin)->getJson("/api/admin/media/{$photo->id}/used-in")->assertJsonPath('data', []);
+        $this->asAdmin($admin)->deleteJson("/api/admin/media/{$photo->id}")->assertNoContent();
+
         // Unused images go to the Trash as before.
         $this->asAdmin($admin)->getJson("/api/admin/media/{$free->id}/used-in")->assertJsonPath('data', []);
         $this->asAdmin($admin)->deleteJson("/api/admin/media/{$free->id}")->assertNoContent();

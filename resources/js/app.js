@@ -635,6 +635,8 @@ Alpine.data('siteHeader', () => ({
     mobileOpen: false,
     // Where the menu portal grows from: the centre of the button that opened it.
     origin: '100% 0%',
+    // How much the desktop bar gives up to fit: 0 everything, 1 the phone number, 2 the menu (menu button instead).
+    fit: 0,
 
     init() {
         const update = () => (this.scrolled = window.scrollY > 24);
@@ -642,6 +644,34 @@ Alpine.data('siteHeader', () => ({
         window.addEventListener('scroll', update, { passive: true });
 
         this.$watch('mobileOpen', (open) => document.documentElement.classList.toggle('overflow-hidden', open));
+
+        // The menu's length is up to the admin, so check that it fits rather than trusting a breakpoint.
+        let frame = 0;
+        const refit = () => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => this.fitMenu());
+        };
+        this.fitMenu();
+        window.addEventListener('resize', refit, { passive: true });
+        document.fonts?.ready.then(refit);
+    },
+
+    /** Steps down (number, then menu) until the bar no longer overflows; runs before the next paint. */
+    async fitMenu() {
+        const bar = this.$refs.bar;
+        if (!bar || !window.matchMedia('(min-width: 1024px)').matches) {
+            this.fit = 0;
+            return;
+        }
+        const overflows = () => bar.scrollWidth > bar.clientWidth + 1;
+
+        for (const level of [0, 1, 2]) {
+            this.fit = level;
+            await this.$nextTick();
+            if (!overflows()) break;
+        }
+        // The full menu is back: a menu portal left open would be hidden but still lock scrolling.
+        if (this.fit < 2 && this.mobileOpen) this.mobileOpen = false;
     },
 
     openMenu(button) {

@@ -84,14 +84,18 @@ class HardeningTest extends AdminTestCase
         }
     }
 
-    public function test_search_engines_and_first_visits_get_english(): void
+    public function test_search_engines_and_first_visits_get_the_default_language(): void
     {
         $this->seed(PageSeeder::class);
         settings()->set('localization', ['default_locale' => 'bn']);
 
-        // No language chosen (search engines, first visits): English, whatever the admin's default.
+        // No language chosen (search engines, first visits): the admin's default language.
+        $this->get('/')->assertOk()->assertSee('<html lang="bn"', false);
+        $this->withUnencryptedCookie('locale', 'en')->get('/')->assertOk()->assertSee('<html lang="en"', false);
+        $this->withUnencryptedCookie('locale', 'xx')->get('/')->assertOk()->assertSee('<html lang="bn"', false);
+
+        settings()->set('localization', ['default_locale' => 'en']);
         $this->get('/')->assertOk()->assertSee('<html lang="en"', false);
-        $this->withUnencryptedCookie('locale', 'bn')->get('/')->assertOk()->assertSee('<html lang="bn"', false);
     }
 
     public function test_test_servers_are_closed_to_search_engines_and_php_is_not_announced(): void

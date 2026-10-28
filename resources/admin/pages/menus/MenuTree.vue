@@ -4,6 +4,7 @@ import { DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenu
 import {
     ChevronDown,
     ChevronRight,
+    Clock,
     Compass,
     CornerDownRight,
     EllipsisVertical,
@@ -59,6 +60,12 @@ function linkSummary(item: MenuItemNode): string {
     return type?.targets?.find((t) => t.value === item.link_target)?.label ?? item.link_target ?? '';
 }
 
+/** Why the linked page, service or package isn't on the website yet (the item stays out of the live menu). */
+function offline(item: MenuItemNode): string | null {
+    const type = props.linkTypes.find((t) => t.type === item.link_type);
+    return type?.targets?.find((t) => t.value === item.link_target)?.offline ?? null;
+}
+
 function label(item: MenuItemNode): string {
     return item.label[props.locale] || item.label.en || Object.values(item.label).find(Boolean) || 'Untitled';
 }
@@ -101,6 +108,13 @@ function label(item: MenuItemNode): string {
                         <span v-if="item.children.length" class="mt-badge"><ChevronDown class="size-3" aria-hidden="true" />{{ item.children.length }}</span>
                         <span v-if="item.open_in_new_tab" class="mt-badge" title="Opens in a new tab"><ExternalLink class="size-3" aria-hidden="true" /><span class="max-sm:sr-only">New tab</span></span>
                         <span v-if="!item.is_visible" class="mt-badge is-hidden"><EyeOff class="size-3" aria-hidden="true" />Hidden</span>
+                        <span
+                            v-else-if="offline(item)"
+                            class="mt-badge is-offline"
+                            :title="`Not in the website's menu until the ${kind(item).label.toLowerCase()} is live`"
+                        >
+                            <Clock class="size-3" aria-hidden="true" />Not shown: {{ offline(item)!.toLowerCase() }}
+                        </span>
                     </span>
                     <span class="mt-summary"><span class="mt-kind-name">{{ kind(item).label }}</span> · {{ linkSummary(item) || '—' }}</span>
                 </button>
@@ -212,6 +226,11 @@ function label(item: MenuItemNode): string {
     &.is-hidden {
         background: #eef1f5;
         color: #475569;
+    }
+
+    &.is-offline {
+        background: #fef3c7;
+        color: #92400e;
     }
 }
 

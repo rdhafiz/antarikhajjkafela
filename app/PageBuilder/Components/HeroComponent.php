@@ -43,8 +43,8 @@ class HeroComponent extends Component
                 'centered' => 'Slides: full-width images, with or without text',
             ]),
             Field::text('eyebrow', 'Eyebrow')->max(60)->showIf('variant', $split),
-            Field::text('title', 'Headline')->max(120)->showIf('variant', $split),
-            Field::text('highlight', 'Highlighted words')->max(80)->hint('Shown in gold on a second line.')->showIf('variant', $split),
+            Field::text('title', 'Headline')->max(120)->placeholder('e.g. Travel the world,')->showIf('variant', $split),
+            Field::text('highlight', 'Highlighted words')->max(80)->placeholder('e.g. with people who care.')->hint('Shown in gold on a second line.')->showIf('variant', $split),
             Field::textarea('text', 'Supporting text')->max(400)->rows(3)->showIf('variant', $split),
             Field::image('image', 'Image', 'hero')->showIf('variant', $split),
             Field::link('primary', 'Primary button')->showIf('variant', $split),
@@ -69,15 +69,6 @@ class HeroComponent extends Component
                 Field::text('value', 'Value')->notTranslatable()->max(12)->placeholder('1500+'),
                 Field::text('label', 'Label')->max(40),
             ])->max(4)->itemLabel('label')->hint('Optional strip of key numbers under the hero.'),
-        ];
-    }
-
-    public function defaults(): array
-    {
-        return [
-            ...parent::defaults(),
-            'title' => ['en' => 'A sacred journey,', 'bn' => 'একটি পবিত্র যাত্রা,'],
-            'highlight' => ['en' => 'guided with care.', 'bn' => 'যত্নের সাথে পরিচালিত।'],
         ];
     }
 

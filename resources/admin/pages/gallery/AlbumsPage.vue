@@ -305,7 +305,7 @@ onMounted(() => list.load());
         <AppModal v-model:open="createOpen" title="New album" description="You'll add photos and videos next." :persistent="form.processing">
             <form id="new-album" class="space-y-4" novalidate @submit.prevent="create">
                 <TranslatableInput v-model="form.data.title" label="Title" required :errors="form.errors" error-key="title" placeholder="Hajj 2025: Arafat day" />
-                <FormField label="Date" for="new-album-date" :error="form.error('event_date')" hint="When the photos were taken. Albums are sorted by this date.">
+                <FormField label="Event date (optional)" for="new-album-date" :error="form.error('event_date')" hint="When the photos were taken. It is shown on the album, and albums are listed newest first by it.">
                     <AppDatePicker id="new-album-date" v-model="form.data.event_date" mode="date" :invalid="!!form.error('event_date')" />
                 </FormField>
             </form>

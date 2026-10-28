@@ -169,39 +169,43 @@ onMounted(list.load);
         </div>
         <ul v-else class="grid gap-3" :class="{ 'opacity-60 transition-opacity': list.loading.value }" aria-label="Deleted items">
             <li v-for="(row, i) in list.rows.value" :key="`${row.type}:${row.id}`" class="tr-row card" :style="{ '--tone': look(row.type).tone, '--i': i }">
-                <span class="tr-icon" aria-hidden="true"><component :is="look(row.type).icon" class="size-5" /></span>
-                <div class="min-w-0 flex-1">
-                    <p class="tr-title">{{ row.title }}</p>
-                    <p class="tr-meta">
-                        <span class="tr-kind">{{ row.type_label }}</span>
-                        <span v-if="row.detail">{{ row.detail }}</span>
-                    </p>
-                    <p class="tr-when">Deleted {{ formatDate(row.deleted_at, true) }}<template v-if="row.deleted_by"> by {{ row.deleted_by }}</template></p>
-                    <p v-if="row.blocker" class="tr-blocker">{{ row.blocker }}</p>
+                <div class="tr-inner">
+                    <span class="tr-icon" aria-hidden="true"><component :is="look(row.type).icon" class="size-5" /></span>
+                    <div class="min-w-0 flex-1">
+                        <p class="tr-title">{{ row.title }}</p>
+                        <p class="tr-meta">
+                            <span class="tr-kind">{{ row.type_label }}</span>
+                            <span v-if="row.detail">{{ row.detail }}</span>
+                        </p>
+                        <p class="tr-when">Deleted {{ formatDate(row.deleted_at, true) }}<template v-if="row.deleted_by"> by {{ row.deleted_by }}</template></p>
+                        <p v-if="row.blocker" class="tr-blocker">{{ row.blocker }}</p>
+                    </div>
+                    <div class="tr-actions">
+                        <AppButton
+                            variant="secondary"
+                            size="sm"
+                            :icon="RotateCcw"
+                            :loading="restoring === `${row.type}:${row.id}`"
+                            :disabled="!!row.blocker || (restoring !== null && restoring !== `${row.type}:${row.id}`)"
+                            :aria-label="`Restore ${row.type_label.toLowerCase()} ${row.title}`"
+                            @click="restore(row)"
+                        >
+                            Restore
+                        </AppButton>
+                        <AppButton
+                            v-if="auth.can('trash.delete')"
+                            variant="ghost"
+                            size="sm"
+                            :icon="Trash2"
+                            class="text-red-600 hover:bg-red-50"
+                            :disabled="restoring !== null"
+                            :aria-label="`Delete ${row.type_label.toLowerCase()} ${row.title} for good`"
+                            @click="askPurge(row)"
+                        >
+                            Delete forever
+                        </AppButton>
+                    </div>
                 </div>
-                <AppButton
-                    variant="secondary"
-                    size="sm"
-                    :icon="RotateCcw"
-                    :loading="restoring === `${row.type}:${row.id}`"
-                    :disabled="!!row.blocker || (restoring !== null && restoring !== `${row.type}:${row.id}`)"
-                    :aria-label="`Restore ${row.type_label.toLowerCase()} ${row.title}`"
-                    @click="restore(row)"
-                >
-                    Restore
-                </AppButton>
-                <AppButton
-                    v-if="auth.can('trash.delete')"
-                    variant="ghost"
-                    size="sm"
-                    :icon="Trash2"
-                    class="text-red-600 hover:bg-red-50"
-                    :disabled="restoring !== null"
-                    :aria-label="`Delete ${row.type_label.toLowerCase()} ${row.title} for good`"
-                    @click="askPurge(row)"
-                >
-                    Delete forever
-                </AppButton>
             </li>
         </ul>
 
@@ -250,13 +254,38 @@ onMounted(list.load);
 }
 
 .tr-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.9rem 1rem;
+    /* Narrow cards (phones, small windows) put the actions in a row along the bottom. */
+    container-type: inline-size;
     padding: 1rem 1.15rem;
     animation: tr-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
     animation-delay: calc(min(var(--i), 10) * 35ms);
+}
+
+.tr-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem 1rem;
+}
+
+.tr-actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@container (max-width: 36rem) {
+    .tr-inner {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .tr-actions {
+        flex-basis: 100%;
+        justify-content: space-between;
+        border-top: 1px solid var(--color-line);
+        padding-top: 0.75rem;
+    }
 }
 
 .tr-icon {

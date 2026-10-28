@@ -75,7 +75,7 @@ function select(selected: Media): void {
 
 <template>
     <FormField :label="label" :error="error" :hint="hint">
-        <div v-if="media || loading" class="mf max-w-xl overflow-hidden rounded-2xl border border-line bg-white" :class="{ 'border-red-400': error }">
+        <div v-if="media || loading" class="mf @container max-w-xl overflow-hidden rounded-2xl border border-line bg-white" :class="{ 'border-red-400': error }">
             <!-- Preview: click to replace -->
             <button
                 type="button"
@@ -111,7 +111,7 @@ function select(selected: Media): void {
                     <p class="truncate text-[13.5px] font-semibold text-ink" :title="media?.original_name">{{ media?.original_name ?? 'Loading…' }}</p>
                     <p class="mt-0.5 text-[12.5px] text-ink-soft tabular-nums">{{ details || ' ' }}</p>
                 </div>
-                <div class="flex items-center gap-1">
+                <div class="flex flex-wrap items-center gap-1">
                     <button type="button" class="mf-btn" :disabled="!media" @click="pickerOpen = true"><RefreshCw class="size-4" aria-hidden="true" />Replace</button>
                     <a
                         v-if="media?.url"
@@ -120,12 +120,13 @@ function select(selected: Media): void {
                         rel="noopener"
                         class="mf-btn"
                         :aria-label="`Open ${label.toLowerCase()} full size in a new tab`"
+                        title="Open full size"
                     >
-                        <ExternalLink class="size-4" aria-hidden="true" /><span class="max-sm:sr-only">Open</span>
+                        <ExternalLink class="size-4" aria-hidden="true" /><span class="max-sm:sr-only @max-[22rem]:sr-only">Open</span>
                     </a>
                     <span class="mx-1 h-6 w-px bg-line" aria-hidden="true" />
-                    <button type="button" class="mf-btn is-danger" :aria-label="`Remove ${label.toLowerCase()}`" :disabled="!media" @click="model = null">
-                        <Trash2 class="size-4" aria-hidden="true" /><span class="max-sm:sr-only">Remove</span>
+                    <button type="button" class="mf-btn is-danger" :aria-label="`Remove ${label.toLowerCase()}`" title="Remove" :disabled="!media" @click="model = null">
+                        <Trash2 class="size-4" aria-hidden="true" /><span class="max-sm:sr-only @max-[22rem]:sr-only">Remove</span>
                     </button>
                 </div>
             </div>
