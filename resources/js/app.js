@@ -253,6 +253,24 @@ Alpine.data('bookingForm', (config) => ({
         return false;
     },
 
+    /**
+     * "Skip this step": go to the next thing to do (payment, or the terms and
+     * confirm button), focus it and pulse it, so the jump is visible even when
+     * the target is already on screen (the sticky summary on large screens).
+     */
+    skipTo(id) {
+        const to = document.getElementById(id);
+        if (!to) return;
+        const rect = to.getBoundingClientRect();
+        if (rect.top < 80 || rect.bottom > window.innerHeight) to.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        to.querySelector('input')?.focus({ preventScroll: true });
+        to.classList.remove('is-pinged');
+        void to.offsetWidth;
+        to.classList.add('is-pinged');
+        clearTimeout(this.pingTimer);
+        this.pingTimer = setTimeout(() => to.classList.remove('is-pinged'), 2800);
+    },
+
     /** Phone and email fields (data-validate) get a custom message when the value does not look right. */
     validate(el) {
         const kind = el.dataset?.validate;

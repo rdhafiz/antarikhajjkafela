@@ -52,7 +52,7 @@
                     width="224"
                     height="72"
                     @class([
-                        'h-[46px] w-auto min-[380px]:h-[56px] sm:h-[66px] lg:h-[58px] xl:h-[72px]',
+                        'h-[38px] w-auto min-[360px]:h-[46px] min-[380px]:h-[56px] sm:h-[66px] lg:h-[58px] xl:h-[72px]',
                         'logo-full transition-opacity duration-300 group-data-[transparent=true]/header:opacity-0 motion-reduce:transition-none' => $light,
                     ])
                     @unless ($light) fetchpriority="high" @endunless
