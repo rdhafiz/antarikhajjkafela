@@ -134,6 +134,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('bookings', [BookingController::class, 'index'])->middleware('can:bookings.view')->name('bookings.index');
         Route::get('bookings/export', [BookingController::class, 'export'])->middleware('can:bookings.view')->name('bookings.export');
         Route::post('bookings/bulk', [BookingController::class, 'bulk'])->middleware('can:bookings.view')->name('bookings.bulk');
+        Route::get('bookings/options', [BookingController::class, 'options'])->middleware('can:bookings.create')->name('bookings.options');
+        Route::post('bookings', [BookingController::class, 'store'])->middleware('can:bookings.create')->name('bookings.store');
         Route::post('bookings/{booking}/unread', [BookingController::class, 'unread'])->middleware('can:bookings.view')->name('bookings.unread');
         Route::get('bookings/{booking}', [BookingController::class, 'show'])->middleware('can:bookings.view')->name('bookings.show');
         Route::put('bookings/{booking}', [BookingController::class, 'update'])->middleware('can:bookings.update')->name('bookings.update');

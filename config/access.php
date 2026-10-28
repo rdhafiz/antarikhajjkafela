@@ -30,7 +30,7 @@ return [
         'campaigns' => ['label' => 'Campaign pages', 'actions' => ['view', 'create', 'update', 'delete']],
         'services' => ['label' => 'Services', 'actions' => ['view', 'create', 'update', 'delete']],
         'packages' => ['label' => 'Packages', 'actions' => ['view', 'create', 'update', 'delete']],
-        'bookings' => ['label' => 'Bookings', 'actions' => ['view', 'update', 'delete']],
+        'bookings' => ['label' => 'Bookings', 'actions' => ['view', 'create', 'update', 'delete']],
         'payments' => ['label' => 'Payments', 'actions' => ['view', 'create']],
         'blog' => ['label' => 'Blog', 'actions' => ['view', 'create', 'update', 'delete']],
         'reviews' => ['label' => 'Reviews', 'actions' => ['view', 'create', 'update', 'delete']],
