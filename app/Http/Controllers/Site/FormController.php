@@ -9,6 +9,7 @@ use App\Mail\InquiryReceived;
 use App\Models\Inquiry;
 use App\Models\PageSection;
 use App\PageBuilder\ContentProcessor;
+use App\Rules\PlainText;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -78,10 +79,10 @@ class FormController extends Controller
     {
         if ($section->component === 'contact_form') {
             return [
-                'name' => ['required', 'string', 'max:120'],
+                'name' => ['required', 'string', 'max:120', new PlainText],
                 'phone' => ['required', 'string', 'max:25', (new Phone)->international()->country('BD')->type('mobile')],
                 'email' => ['nullable', 'email', 'max:190'],
-                'subject' => ['nullable', 'string', 'max:160'],
+                'subject' => ['nullable', 'string', 'max:160', new PlainText],
                 'message' => ['required', 'string', 'max:2000'],
             ];
         }

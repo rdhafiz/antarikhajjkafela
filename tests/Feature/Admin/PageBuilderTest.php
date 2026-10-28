@@ -461,6 +461,22 @@ class PageBuilderTest extends AdminTestCase
             ->assertSee('name="adults" type="number"', false);
     }
 
+    public function test_names_and_subjects_take_plain_text_only(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $contact = Page::where('system_key', 'contact')->firstOrFail()->sections()->where('component', 'contact_form')->firstOrFail();
+        $base = ['name' => 'Karim', 'phone' => '01711000000', 'message' => 'See https://example.com/visa for the visa I need.'];
+
+        // #61: formulas, links and HTML in names and subjects are refused; a link in the message is fine.
+        $this->postJson(route('forms.submit', $contact), [...$base, 'name' => '=HYPERLINK("http://example.com","x")'])
+            ->assertJsonValidationErrors(['name' => 'Please use plain text here, without links or < >.']);
+        $this->postJson(route('forms.submit', $contact), [...$base, 'subject' => '@SUM(1+1)'])
+            ->assertJsonValidationErrors(['subject' => 'Please start with a letter or number, not = + - or @.']);
+        $this->postJson(route('forms.submit', $contact), [...$base, 'name' => 'QA <b>bold</b>'])->assertJsonValidationErrors('name');
+        $this->postJson(route('forms.submit', $contact), [...$base, 'name' => 'Md. Abdur Rahim', 'subject' => 'Umrah 2027'])->assertOk();
+        $this->postJson(route('forms.submit', $contact), [...$base, 'name' => 'আব্দুর রহিম'])->assertOk();
+    }
+
     public function test_every_form_takes_only_real_mobile_numbers(): void
     {
         $this->withoutMiddleware(ThrottleRequests::class);

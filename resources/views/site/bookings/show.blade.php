@@ -129,6 +129,21 @@
                                 @csrf
                                 <button type="submit" class="btn btn-primary w-full" :disabled="busy">{{ __('Pay advance :amount online', ['amount' => Money::format(app(App\Domain\Payments\OnlinePayments::class)->amountDue($booking))]) }}</button>
                             </form>
+                        @elseif ($balanceDue > 0)
+                            {{-- Advance paid: the balance (or part of it) can be paid online too. --}}
+                            <form method="POST" action="{{ URL::signedRoute('bookings.pay', ['booking' => $booking->reference]) }}" class="mt-6 border-t border-line pt-5 print:hidden"
+                                  x-data="{ busy: false, amount: {{ $balanceDue }} }" @submit="busy = true">
+                                @csrf
+                                <label for="pay-amount" class="block text-[14px] font-semibold text-ink">{{ __('Pay the balance online') }}</label>
+                                <p class="mt-1 text-[13px] text-ink-3">{{ __('All of it, or any part you like.') }}</p>
+                                <div class="mt-3 flex items-center rounded-xl border border-line bg-white focus-within:border-brand focus-within:ring-3 focus-within:ring-brand/15">
+                                    <span class="currency-symbol ps-4 text-ink-2" aria-hidden="true">৳</span>
+                                    <input id="pay-amount" name="amount" type="number" inputmode="decimal" step="1" min="{{ App\Domain\Payments\OnlinePayments::MINIMUM }}" max="{{ $balanceDue }}" x-model.number="amount" required
+                                           class="h-12 w-full min-w-0 rounded-xl border-0 bg-transparent px-2 text-[16px] font-semibold text-ink focus:ring-0 focus:outline-none" dir="ltr">
+                                </div>
+                                @error('amount')<p class="mt-1.5 text-[13px] font-medium text-red-600" role="alert">{{ $message }}</p>@enderror
+                                <button type="submit" class="btn btn-primary mt-3 w-full" :disabled="busy || !(amount >= {{ App\Domain\Payments\OnlinePayments::MINIMUM }} && amount <= {{ $balanceDue }})">{{ __('Pay online') }}</button>
+                            </form>
                         @endif
                     </div>
                 </div>

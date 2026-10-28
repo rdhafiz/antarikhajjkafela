@@ -346,6 +346,36 @@ class BookingTest extends AdminTestCase
         Storage::disk('local')->assertExists($document->path);
     }
 
+    public function test_the_balance_can_be_paid_online_once_the_advance_is_paid(): void
+    {
+        $this->enableSslCommerz();
+        $this->package()->update(['advance_type' => 'fixed', 'advance_value' => 20000]);
+        Http::fake(['sandbox.sslcommerz.com/gwprocess/*' => Http::response(['status' => 'SUCCESS', 'GatewayPageURL' => 'https://sandbox.sslcommerz.com/pay/bal', 'sessionkey' => 'bal'])]);
+
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1, 'payment' => 'later']));
+        $booking = Booking::firstOrFail();
+        $admin = $this->adminWith(['bookings.view', 'payments.create']);
+        $pay = URL::signedRoute('bookings.pay', ['booking' => $booking->reference]);
+
+        // Before the advance is in, the page offers the advance only.
+        $this->get($booking->publicUrl())->assertSeeText('Pay advance')->assertDontSeeText('Pay the balance online');
+
+        // #72: advance paid at the office; the rest (or part of it) can now be paid online.
+        $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => 20000, 'method' => 'bank', 'paid_at' => now()->toDateTimeString()])->assertCreated();
+        $balance = $booking->fresh()->balance();
+        $this->withHeaders(['Accept' => 'text/html'])->get($booking->publicUrl())->assertSeeText('Pay the balance online')->assertSee('max="'.$balance.'"', false);
+
+        $this->withHeaders(['Accept' => 'text/html'])->post($pay, ['amount' => $balance + 1])->assertSessionHasErrors('amount');
+        $this->withHeaders(['Accept' => 'text/html'])->post($pay, ['amount' => 5000])->assertRedirect('https://sandbox.sslcommerz.com/pay/bal');
+        $this->assertSame(5000.0, (float) $booking->payments()->where('status', 'initiated')->value('amount'));
+
+        // Without an advance rule nothing is offered online after booking (paid at the office).
+        $this->package()->update(['advance_type' => 'none', 'advance_value' => null]);
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1, 'phone' => '01711-000002', 'payment' => 'later']));
+        $plain = Booking::latest('id')->firstOrFail();
+        $this->withHeaders(['Accept' => 'text/html'])->get($plain->publicUrl())->assertDontSeeText('Pay the balance online')->assertDontSeeText('Pay advance');
+    }
+
     public function test_sslcommerz_advance_payment_is_verified_with_the_gateway(): void
     {
         $this->enableSslCommerz();

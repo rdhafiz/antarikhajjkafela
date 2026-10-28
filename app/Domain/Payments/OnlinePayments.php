@@ -32,6 +32,23 @@ class OnlinePayments
     }
 
     /**
+     * Once the advance is paid in full, the rest of the price can be paid
+     * online too (bookings without an advance rule are paid at the office).
+     */
+    public function balanceDue(Booking $booking): float
+    {
+        return (float) $booking->advance_amount > 0 && $booking->advanceDue() < 0.005 ? round($booking->balance(), 2) : 0.0;
+    }
+
+    public function canPayBalance(Booking $booking): bool
+    {
+        return ! $booking->isClosed()
+            && ! $booking->hidesPrice()
+            && $this->balanceDue($booking) >= self::MINIMUM
+            && $this->gateways->active() !== null;
+    }
+
+    /**
      * Whether the customer can pay the advance for this booking online now.
      */
     public function canPay(Booking $booking): bool
@@ -43,16 +60,22 @@ class OnlinePayments
     }
 
     /**
-     * Create a payment for the outstanding advance and return the gateway URL.
+     * Create a payment for the outstanding advance (or, once that is paid, for
+     * the balance or the part of it the customer chose) and return the gateway URL.
      *
      * @throws GatewayException
      */
-    public function start(Booking $booking): string
+    public function start(Booking $booking, ?float $amount = null): string
     {
         $gateway = $this->gateways->active() ?? throw new GatewayException('Online payment is not available.');
 
         // Re-checked here, not only when the button was shown: staff may have recorded a payment since.
-        if (! $this->canPay($booking->refresh())) {
+        $booking->refresh();
+        if ($this->canPay($booking)) {
+            $amount = $this->amountDue($booking);
+        } elseif ($this->canPayBalance($booking)) {
+            $amount = round(min(max($amount ?? $this->balanceDue($booking), self::MINIMUM), $this->balanceDue($booking)), 2);
+        } else {
             throw new GatewayException('Nothing is due online for this booking.');
         }
 
@@ -60,7 +83,7 @@ class OnlinePayments
             'method' => $gateway->key(),
             'is_online' => true,
             'status' => 'initiated',
-            'amount' => $this->amountDue($booking),
+            'amount' => $amount,
             'currency' => $booking->currency,
             'transaction_id' => $booking->reference.'-'.Str::upper(Str::random(6)),
         ]);

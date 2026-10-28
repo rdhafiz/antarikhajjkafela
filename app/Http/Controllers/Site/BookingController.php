@@ -14,6 +14,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Models\PackagePrice;
+use App\Rules\PlainText;
 use App\Support\Money;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -97,7 +98,7 @@ class BookingController extends Controller
             'option' => ['required', 'integer', Rule::exists('package_prices', 'id')->whereNull('deleted_at')->whereIn('package_type_id', $package->types()->pluck('id'))],
             'travelers' => ['required', 'integer', 'min:1', 'max:'.self::MAX_TRAVELERS],
             'rooms' => ['nullable', 'integer', 'min:1', 'max:'.self::MAX_TRAVELERS],
-            'name' => ['required', 'string', 'max:120'],
+            'name' => ['required', 'string', 'max:120', new PlainText],
             // A real mobile number: Bangladeshi (01XXXXXXXXX, with or without +88) or international with its country code.
             'phone' => ['required', 'string', 'max:25', (new Phone)->international()->country('BD')->type('mobile')],
             // Required: the confirmation and every later update are emailed (there are no customer accounts).
@@ -197,20 +198,33 @@ class BookingController extends Controller
         return response()->view('site.bookings.show', [
             'booking' => $booking,
             'canPay' => $this->payments->canPay($booking),
+            'balanceDue' => $this->payments->canPayBalance($booking) ? $this->payments->balanceDue($booking) : 0.0,
         ])->header('Referrer-Policy', 'no-referrer');
     }
 
     /**
      * Pay the outstanding advance online from the booking page.
      */
-    public function pay(Booking $booking): RedirectResponse
+    public function pay(Request $request, Booking $booking): RedirectResponse
     {
         // A page left open after staff recorded the payment: back to the booking, which shows what is due now.
-        if (! $this->payments->canPay($booking)) {
+        if (! $this->payments->canPay($booking) && ! $this->payments->canPayBalance($booking)) {
             return redirect()->to($booking->publicUrl());
         }
 
-        return $this->toGateway($booking);
+        // Paying the balance: any part of it, from the minimum up to what is left.
+        $amount = null;
+        if (! $this->payments->canPay($booking)) {
+            $due = $this->payments->balanceDue($booking);
+            $amount = (float) $request->validate([
+                'amount' => ['required', 'numeric', 'min:'.OnlinePayments::MINIMUM, 'max:'.$due],
+            ], [
+                'amount.max' => __('You can pay up to :amount.', ['amount' => Money::format($due)]),
+                'amount.min' => __('Pay at least :amount online.', ['amount' => Money::format(OnlinePayments::MINIMUM)]),
+            ], ['amount' => __('Amount')])['amount'];
+        }
+
+        return $this->toGateway($booking, $amount);
     }
 
     public function status(): Response
@@ -251,18 +265,18 @@ class BookingController extends Controller
         return redirect()->to($booking->publicUrl());
     }
 
-    private function toGateway(Booking $booking): RedirectResponse
+    private function toGateway(Booking $booking, ?float $amount = null): RedirectResponse
     {
-        return redirect()->away($this->gatewayUrl($booking));
+        return redirect()->away($this->gatewayUrl($booking, $amount));
     }
 
     /**
      * The payment page, or the booking page saying online payment is not available right now.
      */
-    private function gatewayUrl(Booking $booking): string
+    private function gatewayUrl(Booking $booking, ?float $amount = null): string
     {
         try {
-            return $this->payments->start($booking);
+            return $this->payments->start($booking, $amount);
         } catch (GatewayException) {
             session()->flash('booking_created', true);
             session()->flash('payment_result', 'unavailable');

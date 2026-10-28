@@ -478,5 +478,13 @@
     "Please keep this to :max characters.": "অনুগ্রহ করে :max অক্ষরের মধ্যে লিখুন।",
     "Follow us": "আমাদের ফলো করুন",
     "Print / Save as PDF": "প্রিন্ট / PDF হিসেবে সেভ",
-    "Printed on :date": "প্রিন্টের তারিখ :date"
+    "Printed on :date": "প্রিন্টের তারিখ :date",
+    "Pay the balance online": "বাকি টাকা অনলাইনে পরিশোধ করুন",
+    "All of it, or any part you like.": "পুরোটা, অথবা যতটুকু চান।",
+    "Pay online": "অনলাইনে পরিশোধ",
+    "You can pay up to :amount.": "সর্বোচ্চ :amount পরিশোধ করা যাবে।",
+    "Pay at least :amount online.": "অনলাইনে কমপক্ষে :amount পরিশোধ করুন।",
+    "Amount": "পরিমাণ",
+    "Please use plain text here, without links or < >.": "এখানে লিংক বা < > ছাড়া সাধারণ লেখা লিখুন।",
+    "Please start with a letter or number, not = + - or @.": "= + - বা @ নয়, অক্ষর বা সংখ্যা দিয়ে শুরু করুন।"
 }
