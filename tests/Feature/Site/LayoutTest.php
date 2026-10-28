@@ -38,6 +38,16 @@ class LayoutTest extends TestCase
             ->assertSee('aria-label="Messenger"', false);
     }
 
+    public function test_the_language_switcher_is_only_in_the_header(): void
+    {
+        $html = $this->get('/')->assertOk()->getContent();
+
+        $this->assertSame(1, substr_count($html, 'aria-label="Language"'));
+        $footer = substr($html, strpos($html, '<footer'));
+        $this->assertStringNotContainsString('aria-label="Language"', $footer);
+        $this->assertStringNotContainsString('/language/', $footer);
+    }
+
     public function test_the_header_shows_the_light_logo_over_dark_page_tops(): void
     {
         // No uploaded logo: the bundled light logo shows over the hero, no white panel.
