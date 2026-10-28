@@ -1354,6 +1354,8 @@
     box-shadow: var(--shadow-pop);
     font-family: var(--font-sans);
     padding: 6px;
+    /* The calendar sits on <body>; an open dialog turns pointer events off there. */
+    pointer-events: auto;
 }
 
 .flatpickr-calendar.arrowTop::before,

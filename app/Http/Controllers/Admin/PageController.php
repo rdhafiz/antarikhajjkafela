@@ -10,6 +10,7 @@ use App\Models\Media;
 use App\Models\Page;
 use App\PageBuilder\ComponentRegistry;
 use App\PageBuilder\SectionStyle;
+use App\Rules\FreeSlug;
 use App\Support\Icons;
 use App\Support\Locales;
 use Illuminate\Http\JsonResponse;
@@ -114,8 +115,8 @@ class PageController extends Controller
             'title' => ['required', 'array'],
             "title.{$locale}" => ['required', 'string', 'max:160'],
             'title.*' => ['nullable', 'string', 'max:160'],
-            'slug' => ['required', 'string', 'max:160', 'regex:'.PageSaveRequest::SLUG_PATTERN, Rule::notIn(config('page-builder.reserved_slugs')), 'unique:pages,slug', 'unique:services,slug'],
-        ], ['slug.regex' => 'Use lowercase letters, numbers and single hyphens only.', 'slug.not_in' => 'This address is used by the website. Choose another.']);
+            'slug' => ['required', 'string', 'max:160', 'regex:'.PageSaveRequest::SLUG_PATTERN, new FreeSlug, 'unique:pages,slug', 'unique:services,slug'],
+        ], ['slug.regex' => 'Use lowercase letters, numbers and single hyphens only.']);
 
         $this->authorizeType($data['type'], 'create');
 

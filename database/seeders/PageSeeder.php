@@ -264,6 +264,7 @@ class PageSeeder extends Seeder
                 'intro' => $this->t('Ready-made holidays from Dhaka with flights, hotels and sightseeing. Every tour can be changed to suit you.', 'ফ্লাইট, হোটেল ও দর্শনীয় স্থানসহ ঢাকা থেকে তৈরি ছুটির প্যাকেজ। প্রতিটি ট্যুর আপনার মতো করে বদলানো যায়।'),
                 'source' => 'service',
                 'service' => (string) Service::where('slug', 'tours')->value('id'),
+                'featured_only' => true,
                 'limit' => 6,
                 'layout' => 'staggered',
                 'cta' => $this->link('/tours', 'All tour packages', 'সব ট্যুর প্যাকেজ'),
