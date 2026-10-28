@@ -48,6 +48,15 @@ class Service extends Model
     }
 
     /**
+     * On the public site: active and with at least one published package
+     * (a service with nothing to book stays hidden until it has one).
+     */
+    public function scopeListed(Builder $query): Builder
+    {
+        return $query->active()->whereHas('packages', fn ($q) => $q->where('status', Package::STATUS_PUBLISHED));
+    }
+
+    /**
      * Services with one of these slugs, including trashed ones (whose slug is
      * set aside until they are restored).
      *

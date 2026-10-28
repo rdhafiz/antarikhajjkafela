@@ -22,7 +22,7 @@ class PackageController extends Controller
      */
     public function index(Request $request): Response
     {
-        $services = Service::active()->orderBy('sort')->get();
+        $services = Service::listed()->orderBy('sort')->get();
         $current = $services->firstWhere('slug', $request->query('service'));
 
         seo()->title(__('All packages'))

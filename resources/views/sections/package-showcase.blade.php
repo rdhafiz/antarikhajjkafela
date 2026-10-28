@@ -19,10 +19,14 @@
                 <x-site.package-card :package="$package" data-reveal :style="'--reveal-delay: '.(($index % 3) * 100).'ms'" />
             @endforeach
         </div>
-        @if ($c['cta'])
-            <div class="mt-12 text-center" data-reveal>
+        {{-- The section's own link (e.g. all tour packages) and always every package. --}}
+        <div class="mt-12 flex flex-col items-center justify-center gap-3 sm:flex-row" data-reveal>
+            @if ($c['cta'])
                 <x-site.link-button :link="$c['cta']" :variant="$style['tone'] === 'dark' ? 'gold' : 'primary'" icon-right="arrow-right" />
-            </div>
-        @endif
+            @endif
+            @if (! $c['cta'] || rtrim(parse_url($c['cta']['url'], PHP_URL_PATH) ?? '', '/') !== '/packages')
+                <x-site.button :href="route('packages.index')" :variant="$style['tone'] === 'dark' ? 'outline-light' : 'outline'" icon-right="arrow-right">{{ __('All packages') }}</x-site.button>
+            @endif
+        </div>
     </x-site.block>
 @endif

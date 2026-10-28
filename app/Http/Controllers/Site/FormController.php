@@ -10,6 +10,7 @@ use App\Models\Inquiry;
 use App\Models\PageSection;
 use App\PageBuilder\ContentProcessor;
 use App\Rules\PlainText;
+use App\Support\Digits;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,6 +33,11 @@ class FormController extends Controller
         // Bots fill the hidden honeypot field; pretend success and store nothing.
         if (filled($request->input('website'))) {
             return $this->success($request, $section);
+        }
+
+        // A phone number typed on a Bangla keyboard (০১৭…) is the same number.
+        if (is_string($request->input('phone'))) {
+            $request->merge(['phone' => Digits::latin($request->input('phone'))]);
         }
 
         // Browsers count a line break as one character but send two (CRLF): count it the way the box did.

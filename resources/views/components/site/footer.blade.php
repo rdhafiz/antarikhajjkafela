@@ -54,6 +54,8 @@
                     @foreach ($mainMenu as $item)
                         <li><a href="{{ $item['url'] }}" class="link-underline transition-colors hover:text-white">{{ $item['label'] }}</a></li>
                     @endforeach
+                    {{-- Every package of every service, whatever the menu holds. --}}
+                    <li><a href="{{ route('packages.index') }}" class="link-underline transition-colors hover:text-white">{{ __('All packages') }}</a></li>
                 </ul>
             </nav>
         @endif

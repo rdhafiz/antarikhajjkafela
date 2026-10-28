@@ -15,6 +15,7 @@ use App\Models\Booking;
 use App\Models\Package;
 use App\Models\PackagePrice;
 use App\Rules\PlainText;
+use App\Support\Digits;
 use App\Support\Money;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -88,6 +89,11 @@ class BookingController extends Controller
 
         // Bots fill the hidden honeypot field.
         abort_if(filled($request->input('website')), 422);
+
+        // A phone number typed on a Bangla keyboard (০১৭…) is the same number.
+        if (is_string($request->input('phone'))) {
+            $request->merge(['phone' => Digits::latin($request->input('phone'))]);
+        }
 
         // Browsers count a line break as one character but send two (CRLF): count it the way the box did.
         if (is_string($request->input('note'))) {

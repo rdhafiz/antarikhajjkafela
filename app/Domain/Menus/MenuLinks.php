@@ -101,7 +101,8 @@ class MenuLinks
         return match ($type) {
             self::ROUTE => isset(config('menus.routes')[$target]) ? url(config("menus.routes.{$target}.path")) : null,
             self::PAGE => ($page = Page::find((int) $target)) && $page->isVisibleToPublic() ? $page->url() : null,
-            self::SERVICE => ($service = Service::find((int) $target)) && $service->is_active ? $service->url() : null,
+            // Hidden from menus until the service has a published package (like its page).
+            self::SERVICE => ($service = Service::listed()->find((int) $target)) ? $service->url() : null,
             self::PACKAGE => ($package = Package::find((int) $target)) && $package->isPublished() ? $package->url() : null,
             self::URL => $this->normalizeUrl($url),
             default => null,

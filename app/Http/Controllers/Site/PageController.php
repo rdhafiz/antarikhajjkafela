@@ -33,12 +33,14 @@ class PageController extends Controller
         $page = Page::where('slug', $slug)->first();
 
         // Service pages such as /hajj and /umrah share the same address space.
-        if ($page === null && ($service = Service::active()->where('slug', $slug)->first())) {
+        // Staff may preview a service that has no packages yet; visitors only see listed ones.
+        $services = auth()->check() ? Service::active() : Service::listed();
+        if ($page === null && ($service = $services->where('slug', $slug)->first())) {
             return app(PackageController::class)->service($service);
         }
 
         // A service that changed its address: the old one redirects.
-        if ($page === null && ($moved = SlugRedirect::target('service', $slug)) && ($service = Service::active()->find($moved))) {
+        if ($page === null && ($moved = SlugRedirect::target('service', $slug)) && ($service = Service::listed()->find($moved))) {
             return redirect()->to(url($service->slug), 301);
         }
 
