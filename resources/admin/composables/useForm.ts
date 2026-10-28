@@ -1,6 +1,7 @@
 import { reactive, ref, toRaw } from 'vue';
 import { errorMessage, validationErrors, type ValidationErrors } from '@admin/lib/http';
 import { useToastStore } from '@admin/stores/toast';
+import { useErrorClearing } from '@admin/composables/useErrorClearing';
 
 /**
  * Form state with Laravel validation error handling.
@@ -12,6 +13,7 @@ export function useForm<T extends object>(initial: T) {
     const data = reactive(structuredClone(toRaw(initial))) as T;
     const errors = ref<ValidationErrors>({});
     const processing = ref(false);
+    useErrorClearing(() => data, errors);
 
     function error(field: string): string | undefined {
         return errors.value[field]?.[0];

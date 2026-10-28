@@ -547,6 +547,24 @@ class BookingTest extends AdminTestCase
         $this->assertSame('fully_paid', $booking->fresh()->status);
     }
 
+    public function test_staff_cannot_pick_a_status_the_payments_contradict(): void
+    {
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1]));
+        $booking = Booking::firstOrFail();
+        $admin = $this->adminWith(['bookings.view', 'bookings.update', 'payments.create']);
+        $url = "/api/admin/bookings/{$booking->id}";
+
+        // #48: "Fully paid" with nothing paid is refused; the paid statuses come from the payments.
+        $this->asAdmin($admin)->putJson($url, ['status' => 'fully_paid'])->assertJsonValidationErrors(['status' => 'follow the payments']);
+        $this->asAdmin($admin)->putJson($url, ['status' => 'confirmed'])->assertOk();
+
+        // With money paid, Pending/Confirmed would hide it; Completed and Cancelled stay possible, and notes save as is.
+        $this->asAdmin($admin)->postJson("{$url}/payments", ['amount' => 1000, 'method' => 'cash', 'paid_at' => now()->toDateTimeString()])->assertJsonPath('data.status', 'partially_paid');
+        $this->asAdmin($admin)->putJson($url, ['status' => 'pending'])->assertJsonValidationErrors('status');
+        $this->asAdmin($admin)->putJson($url, ['status' => 'partially_paid', 'admin_notes' => 'Called'])->assertOk();
+        $this->asAdmin($admin)->putJson($url, ['status' => 'completed'])->assertOk()->assertJsonPath('data.status', 'completed');
+    }
+
     public function test_the_status_follows_the_payments_both_ways(): void
     {
         // No advance on this package: any amount below the total is a partial payment.

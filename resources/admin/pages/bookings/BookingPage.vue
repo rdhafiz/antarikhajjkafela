@@ -52,6 +52,17 @@ function logIcon(entry: BookingActivity): { icon: typeof Mail; tone: string } {
     return logMeta[entry.category] ?? logMeta.staff;
 }
 const statusName = (key: unknown) => statuses[key as BookingStatus] ?? String(key ?? '—');
+
+/**
+ * Partially/advance/fully paid follow the payments, and Pending/Confirmed only
+ * apply while nothing is paid; Completed and Cancelled can always be chosen.
+ */
+const paymentStatuses = ['partially_paid', 'advance_paid', 'fully_paid'];
+function statusChoosable(key: string): boolean {
+    if (!booking.value || key === booking.value.status || key === 'completed' || key === 'cancelled') return true;
+    if (paymentStatuses.includes(key)) return false;
+    return Number(booking.value.paid_amount) === 0;
+}
 /** The details of an entry as short "label: value" lines. */
 function logDetails(entry: BookingActivity): string[] {
     const d = entry.details;
@@ -211,15 +222,18 @@ onMounted(load);
     <div v-else>
         <div class="mb-6 flex flex-wrap items-center gap-3">
             <RouterLink to="/admin/bookings" class="flex size-9 items-center justify-center rounded-lg text-ink-soft hover:bg-white hover:text-ink" aria-label="Back to bookings"><ArrowLeft class="size-5" /></RouterLink>
-            <div class="min-w-0 flex-1">
+            <!-- At least 14rem for the reference: on phones the buttons move to their own row. -->
+            <div class="min-w-0 flex-1 basis-56">
                 <div class="flex flex-wrap items-center gap-2">
-                    <h1 class="text-[17px] font-bold text-ink">{{ booking.reference }}</h1>
+                    <h1 class="text-[17px] font-bold whitespace-nowrap text-ink">{{ booking.reference }}</h1>
                     <AppBadge :tone="statusTone[booking.status]">{{ statuses[booking.status] }}</AppBadge>
                 </div>
                 <p class="text-[12px] text-ink-muted">Booked {{ formatDate(booking.created_at, true) }} · {{ booking.locale === 'bn' ? 'Bangla' : 'English' }} visitor</p>
             </div>
-            <AppButton variant="secondary" :icon="Copy" @click="copyLink">Customer link</AppButton>
-            <AppButton v-if="auth.can('bookings.delete')" variant="ghost" :icon="Trash2" @click="remove">Delete</AppButton>
+            <div class="flex flex-wrap gap-2">
+                <AppButton variant="secondary" :icon="Copy" @click="copyLink">Customer link</AppButton>
+                <AppButton v-if="auth.can('bookings.delete')" variant="ghost" :icon="Trash2" @click="remove">Delete</AppButton>
+            </div>
         </div>
 
         <div class="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -385,7 +399,7 @@ onMounted(load);
                     <fieldset :disabled="!auth.can('bookings.update')" class="space-y-4">
                         <FormField label="Status" for="b-status" :error="edit.error('status')">
                             <select id="b-status" v-model="edit.data.status" class="control">
-                                <option v-for="(label, key) in statuses" :key="key" :value="key">{{ label }}</option>
+                                <option v-for="(label, key) in statuses" :key="key" :value="key" :disabled="!statusChoosable(key)">{{ label }}{{ statusChoosable(key) ? '' : ' (follows payments)' }}</option>
                             </select>
                         </FormField>
                         <FormField label="Message to the customer" for="b-message" :error="edit.error('customer_message')" hint="Optional. Shown on their booking page and in the email.">
