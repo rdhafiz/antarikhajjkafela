@@ -294,7 +294,7 @@
                                     {{ __('You can skip it and complete your booking now; giving us the copies later is fine.') }}
                                 </p>
                                 <a href="#{{ $canPayOnline ? 'step-payment' : 'book-confirm' }}" class="book-skip-link"
-                                   @click.prevent="const to = document.getElementById(@js($canPayOnline ? 'step-payment' : 'book-confirm')); to.scrollIntoView({ behavior: 'smooth', block: 'center' }); to.querySelector('input')?.focus({ preventScroll: true })">
+                                   @click.prevent="skipTo(@js($canPayOnline ? 'step-payment' : 'book-confirm'))">
                                     {{ __('Skip this step') }}<x-site.icon name="arrow-right" class="size-4 rtl:rotate-180" />
                                 </a>
                             </div>

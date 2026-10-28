@@ -38,6 +38,16 @@ class LayoutTest extends TestCase
             ->assertSee('aria-label="Messenger"', false);
     }
 
+    public function test_social_buttons_are_shown_in_their_brand_colours(): void
+    {
+        $footer = strstr($this->get('/')->assertOk()->getContent(), '<footer');
+
+        $this->assertStringContainsString('Follow us', $footer);
+        $this->assertStringContainsString('class="social-btn social-whatsapp"', $footer);
+        $this->assertStringContainsString('class="social-btn social-facebook"', $footer);
+        $this->assertStringContainsString('class="social-btn social-messenger"', $footer);
+    }
+
     public function test_the_language_switcher_is_only_in_the_header(): void
     {
         $html = $this->get('/')->assertOk()->getContent();

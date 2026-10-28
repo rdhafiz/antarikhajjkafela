@@ -44,16 +44,7 @@
                 <span class="font-display text-[1.35rem] leading-tight font-semibold text-white">{{ $site->name() }}</span>
             </a>
             <p class="mt-5 text-[15px] leading-relaxed">{{ setting_t('branding.short_description') }}</p>
-            @if ($socials = $site->socials())
-                <div class="mt-6 flex flex-wrap gap-2">
-                    @foreach ($socials as $social)
-                        <a href="{{ $social['url'] }}" target="_blank" rel="noopener" aria-label="{{ $social['label'] }}"
-                           class="flex size-10 items-center justify-center rounded-full border border-white/12 text-white/80 transition-colors hover:border-gold hover:bg-gold hover:text-brand-950">
-                            <x-site.icon :name="$social['key']" class="size-[18px]" />
-                        </a>
-                    @endforeach
-                </div>
-            @endif
+            <x-site.social-links class="mt-7" />
         </div>
 
         @if ($mainMenu->isNotEmpty())

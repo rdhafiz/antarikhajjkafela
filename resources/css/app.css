@@ -1412,6 +1412,67 @@
     }
 
     /* Package options: a hotel illustration, the option and its price. */
+    /* Where "Skip this step" lands: a gold pulse so the jump is seen. */
+    .is-pinged {
+        animation: ping-ring 1.4s var(--ease-out-soft) 2;
+    }
+
+    @keyframes ping-ring {
+        0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-gold) 75%, transparent); }
+        100% { box-shadow: 0 0 0 14px transparent; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .is-pinged {
+            animation: none;
+            outline: 3px solid var(--color-gold);
+            outline-offset: 3px;
+        }
+    }
+
+    /* Social buttons: each network in its own colour, white icon, 44px target. */
+    .social-btn {
+        display: flex;
+        width: 2.75rem;
+        height: 2.75rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: var(--social, var(--color-brand));
+        color: #fff;
+        box-shadow: 0 10px 24px -12px var(--social, #000), inset 0 0 0 1px rgb(255 255 255 / 0.14);
+        transition: translate 300ms var(--ease-out-soft), box-shadow 300ms var(--ease-out-soft), filter 300ms;
+
+        &:hover {
+            translate: 0 -3px;
+            filter: brightness(1.08);
+            box-shadow: 0 16px 30px -12px var(--social, #000), inset 0 0 0 1px rgb(255 255 255 / 0.2);
+        }
+
+        &:focus-visible {
+            outline: 3px solid var(--color-gold);
+            outline-offset: 3px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+
+            &:hover {
+                translate: none;
+            }
+        }
+    }
+
+    .social-whatsapp { --social: #1fa855; }
+    .social-facebook { --social: #1877f2; }
+    .social-messenger { --social: #0a7cff; background: linear-gradient(45deg, #0a7cff, #a033ff 60%, #ff5280); }
+    .social-instagram { --social: #d62976; background: linear-gradient(45deg, #feda75, #fa7e1e 25%, #d62976 55%, #962fbf 80%, #4f5bd5); }
+    .social-youtube { --social: #e60000; }
+    .social-linkedin { --social: #0a66c2; }
+    .social-twitter { --social: #14171a; }
+    .social-telegram { --social: #229ed9; }
+    .social-tiktok { --social: #14171a; }
+
     .book-option {
         position: relative;
         isolation: isolate;

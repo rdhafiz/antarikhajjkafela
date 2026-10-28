@@ -57,6 +57,8 @@
                     </ul>
                 @endif
 
+                <x-site.social-links class="mt-8" data-reveal style="--reveal-delay: 160ms" />
+
                 {{-- Live local time in Dhaka, for visitors calling from abroad. --}}
                 <div class="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 pt-9 text-[14px] text-white/70" data-reveal style="--reveal-delay: 200ms"
                      x-data="dhakaClock(@js($locale === 'bn' ? 'bn-BD' : 'en-GB'))">
