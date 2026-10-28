@@ -20,12 +20,21 @@ class LocaleController extends Controller
     }
 
     /**
-     * Only redirect back to a page on this site.
+     * Back to the page the switch was used on (the `to` path the link carries),
+     * else the previous page; only ever a page on this site.
      */
     private function safeReturnUrl(Request $request): string
     {
-        $previous = url()->previous();
+        $to = $request->query('to');
 
-        return parse_url($previous, PHP_URL_HOST) === request()->getHost() ? $previous : url('/');
+        if (is_string($to) && str_starts_with($to, '/') && ! str_starts_with($to, '//') && ! str_contains($to, '\\')) {
+            return url($to);
+        }
+
+        $previous = url()->previous();
+        $sameSite = parse_url($previous, PHP_URL_HOST) === $request->getHost();
+
+        // Never back to a language switch link itself (it would redirect in a loop).
+        return $sameSite && ! str_starts_with((string) parse_url($previous, PHP_URL_PATH), '/language/') ? $previous : url('/');
     }
 }

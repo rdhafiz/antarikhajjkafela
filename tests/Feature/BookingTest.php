@@ -498,6 +498,25 @@ class BookingTest extends AdminTestCase
         $this->assertStringContainsString($booking->reference, $this->asAdmin($viewer)->get('/api/admin/bookings/export')->assertOk()->streamedContent());
     }
 
+    public function test_customers_see_how_they_paid_and_trashed_bookings_leave_the_dashboard(): void
+    {
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1]));
+        $booking = Booking::firstOrFail();
+        $admin = $this->adminWith(['bookings.view', 'bookings.update', 'bookings.delete', 'payments.create']);
+
+        $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => 1000, 'method' => 'bank', 'paid_at' => now()->toDateTimeString()])->assertCreated();
+        $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => 500, 'method' => 'cash', 'paid_at' => now()->toDateTimeString()])->assertCreated();
+
+        // #41: the booking page names the method staff recorded, not "Office payment" for all.
+        $page = $this->withHeaders(['Accept' => 'text/html'])->get($booking->publicUrl())->assertOk();
+        $page->assertSeeText('Bank deposit / transfer')->assertSeeText('Cash')->assertDontSeeText('Office payment');
+
+        // #46: deleting the booking takes its payments out of "Collected this month".
+        $this->asAdmin($admin)->getJson('/api/admin/dashboard')->assertJsonPath('bookings.collected_this_month', 1500);
+        $this->asAdmin($admin)->deleteJson("/api/admin/bookings/{$booking->id}")->assertNoContent();
+        $this->asAdmin($admin)->getJson('/api/admin/dashboard')->assertJsonPath('bookings.collected_this_month', 0);
+    }
+
     public function test_a_deleted_payment_cannot_come_back_once_the_booking_is_paid_again(): void
     {
         // #40: delete a payment, record a new one, then try to restore the old one from the Trash.
