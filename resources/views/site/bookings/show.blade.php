@@ -11,40 +11,58 @@
         default => 'bg-emerald text-white',
     };
     $phones = $site->phones();
+    $emails = $site->emails();
 @endphp
 <x-site.layout :analytics="false">
     <section class="section-light relative isolate overflow-clip bg-sky-soft py-12 sm:py-16">
         <x-site.decor />
         <div class="container-site max-w-4xl">
+            {{-- Printed copy only: the agency's letterhead above the booking. --}}
+            <div class="booking-letterhead mb-6 hidden items-center justify-between gap-6 border-b border-line pb-5 print:flex">
+                <img src="{{ app(App\Support\Branding::class)->logoUrl() }}" alt="{{ $site->name() }}" class="h-14 w-auto">
+                <div class="text-right text-[12px] leading-relaxed text-ink-2">
+                    @if ($address = setting_t('contact.address'))<p>{{ $address }}</p>@endif
+                    <p dir="ltr">{{ collect($phones)->pluck('display')->implode(' · ') }}@if ($emails) · {{ $emails[0] }}@endif</p>
+                    <p>{{ __('Printed on :date', ['date' => App\Support\Dates::format(now())]) }}</p>
+                </div>
+            </div>
+
             {{-- Outcome messages --}}
             @if ($result === 'paid')
-                <div class="mb-6 flex gap-4 rounded-2xl bg-emerald/10 p-5 text-emerald ring-1 ring-emerald/25" role="status">
+                <div class="mb-6 flex gap-4 rounded-2xl bg-emerald/10 print:hidden p-5 text-emerald ring-1 ring-emerald/25" role="status">
                     <x-site.icon name="check-circle" class="size-7 shrink-0" />
                     <div><p class="font-semibold text-ink">{{ __('Payment received. Jazakallahu khairan!') }}</p><p class="mt-1 text-[14px] text-ink-2">{{ __('A receipt has been sent to your email. Our team will contact you with the next steps.') }}</p></div>
                 </div>
             @elseif (in_array($result, ['failed', 'cancelled'], true))
-                <div class="mb-6 rounded-2xl bg-red-50 p-5 ring-1 ring-red-200" role="alert">
+                <div class="mb-6 rounded-2xl bg-red-50 print:hidden p-5 ring-1 ring-red-200" role="alert">
                     <p class="font-semibold text-red-800">{{ $result === 'cancelled' ? __('The payment was cancelled.') : __('The payment did not go through.') }}</p>
                     <p class="mt-1 text-[14px] text-red-800/80">{{ __('Your booking is saved. You can try again below or pay us directly.') }}</p>
                 </div>
             @elseif ($result === 'pending')
-                <div class="mb-6 rounded-2xl bg-gold/15 p-5 ring-1 ring-gold/40" role="status">
+                <div class="mb-6 rounded-2xl bg-gold/15 print:hidden p-5 ring-1 ring-gold/40" role="status">
                     <p class="font-semibold text-ink">{{ __('We are confirming your payment.') }}</p>
                     <p class="mt-1 text-[14px] text-ink-2">{{ __('This can take a few minutes. Refresh this page later, or call us if the amount was taken from your account.') }}</p>
                 </div>
             @elseif ($result === 'unavailable')
-                <div class="mb-6 rounded-2xl bg-gold/15 p-5 ring-1 ring-gold/40" role="status">
+                <div class="mb-6 rounded-2xl bg-gold/15 print:hidden p-5 ring-1 ring-gold/40" role="status">
                     <p class="font-semibold text-ink">{{ __('Online payment is not available right now.') }}</p>
                     <p class="mt-1 text-[14px] text-ink-2">{{ __('Your booking is saved. Please try again later or contact us to pay.') }}</p>
                 </div>
             @elseif (session('booking_created'))
-                <div class="mb-6 flex gap-4 rounded-2xl bg-emerald/10 p-5 text-emerald ring-1 ring-emerald/25" role="status">
+                <div class="mb-6 flex gap-4 rounded-2xl bg-emerald/10 print:hidden p-5 text-emerald ring-1 ring-emerald/25" role="status">
                     <x-site.icon name="check-circle" class="size-7 shrink-0" />
                     <div><p class="font-semibold text-ink">{{ __('Your booking has been received.') }}</p><p class="mt-1 text-[14px] text-ink-2">{{ __('Our team will call you shortly to confirm. Save this page or your reference number.') }}</p></div>
                 </div>
             @endif
 
-            <div class="overflow-hidden rounded-[1.75rem] bg-white shadow-[var(--shadow-lift)] ring-1 ring-line">
+            {{-- Print or save the booking as a PDF (the browser's print dialog). --}}
+            <div class="mb-4 flex justify-end print:hidden">
+                <button type="button" onclick="window.print()" class="btn btn-outline btn-sm bg-white">
+                    <x-site.icon name="printer" class="size-4" />{{ __('Print / Save as PDF') }}
+                </button>
+            </div>
+
+            <div class="booking-sheet overflow-hidden rounded-[1.75rem] bg-white shadow-[var(--shadow-lift)] ring-1 ring-line">
                 {{-- Header --}}
                 <div class="relative bg-brand-950 p-6 text-white sm:p-9">
                     <div class="pattern-star absolute inset-0 opacity-[0.05]" aria-hidden="true"></div>
@@ -107,7 +125,7 @@
                         @endif
 
                         @if ($canPay)
-                            <form method="POST" action="{{ URL::signedRoute('bookings.pay', ['booking' => $booking->reference]) }}" class="mt-6" x-data="{ busy: false }" @submit="busy = true">
+                            <form method="POST" action="{{ URL::signedRoute('bookings.pay', ['booking' => $booking->reference]) }}" class="mt-6 print:hidden" x-data="{ busy: false }" @submit="busy = true">
                                 @csrf
                                 <button type="submit" class="btn btn-primary w-full" :disabled="busy">{{ __('Pay advance :amount online', ['amount' => Money::format(app(App\Domain\Payments\OnlinePayments::class)->amountDue($booking))]) }}</button>
                             </form>
@@ -166,7 +184,7 @@
                     </div>
                 @endif
 
-                <div class="flex flex-col gap-4 border-t border-line bg-sand-50/60 p-6 sm:flex-row sm:items-center sm:justify-between sm:px-9">
+                <div class="flex flex-col gap-4 border-t border-line bg-sand-50/60 p-6 sm:flex-row sm:items-center sm:justify-between sm:px-9 print:hidden">
                     <p class="text-[14px] text-ink-2">{{ __('Questions about your booking? Call us with your reference number.') }}</p>
                     <div class="flex gap-3">
                         @if ($phones)

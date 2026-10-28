@@ -676,6 +676,19 @@ class BookingTest extends AdminTestCase
             ->assertDontSeeText('Staff only');
     }
 
+    public function test_customers_can_print_their_booking(): void
+    {
+        $this->post('/packages/umrah-package/book', $this->form());
+        $booking = Booking::firstOrFail();
+
+        // #44: a print button, and a letterhead that only shows on paper.
+        $this->get($booking->publicUrl())->assertOk()
+            ->assertSee('onclick="window.print()"', false)
+            ->assertSeeText('Print / Save as PDF')
+            ->assertSee('booking-letterhead mb-6 hidden', false)
+            ->assertSeeText('Printed on');
+    }
+
     public function test_customers_find_their_booking_with_reference_and_phone(): void
     {
         $this->post('/packages/umrah-package/book', $this->form());
