@@ -476,5 +476,7 @@
     ":attribute cannot be in the past. Choose today or a later date.": ":attribute অতীতের হতে পারে না। আজকের বা পরের কোনো তারিখ বেছে নিন।",
     ":attribute cannot be before the departure date.": ":attribute যাত্রার তারিখের আগে হতে পারে না।",
     "Please keep this to :max characters.": "অনুগ্রহ করে :max অক্ষরের মধ্যে লিখুন।",
-    "Follow us": "আমাদের ফলো করুন"
+    "Follow us": "আমাদের ফলো করুন",
+    "Print / Save as PDF": "প্রিন্ট / PDF হিসেবে সেভ",
+    "Printed on :date": "প্রিন্টের তারিখ :date"
 }
