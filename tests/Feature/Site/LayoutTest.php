@@ -4,6 +4,7 @@ namespace Tests\Feature\Site;
 
 use App\Domain\Access\AccessSynchronizer;
 use App\Domain\Media\MediaUploader;
+use App\Models\Media;
 use App\Models\User;
 use App\Support\SiteContext;
 use Database\Seeders\MenuSeeder;
@@ -36,6 +37,24 @@ class LayoutTest extends TestCase
             ->assertSee('https://www.facebook.com/antariktravelinternational/', false)
             ->assertSee('https://m.me/antariktravelinternational', false)
             ->assertSee('aria-label="Messenger"', false);
+    }
+
+    public function test_the_new_logo_replaces_the_previous_antarik_upload_only(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        $uploader = app(MediaUploader::class);
+        $old = $uploader->upload(UploadedFile::fake()->image('Antarik-Travel-International-Logo-H.png', 900, 280), 'logo');
+        $custom = $uploader->upload(UploadedFile::fake()->image('partner-icon.png', 512, 512), 'icon');
+        settings()->set('branding', ['logo' => $old->id, 'app_icon' => $custom->id]);
+
+        (require database_path('migrations/2026_10_28_140000_use_the_new_logo.php'))->up();
+
+        $logo = Media::findOrFail(settings('branding.logo'));
+        $this->assertSame('antarik-travel-international-logo.webp', $logo->original_name);
+        $this->assertSame('Antarik Travel International', $logo->getTranslation('alt', 'en'));
+        $this->assertSame($custom->id, (int) settings('branding.app_icon'), 'A logo of another name is left alone.');
+        $this->assertNull(settings('branding.logo_light'), 'Nothing is added where nothing was uploaded.');
     }
 
     public function test_social_buttons_are_shown_in_their_brand_colours(): void
