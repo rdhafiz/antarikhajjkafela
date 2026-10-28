@@ -40,14 +40,18 @@ class BookingService
      * @param  array{travelers: int, rooms?: int|null, name: string, phone: string, email?: string|null, address?: string|null, note?: string|null}  $data
      * @param  array<int, array{kind: string, file: UploadedFile}>  $documents
      */
-    public function create(Package $package, PackagePrice $price, array $data, array $documents = [], ?string $ip = null): Booking
+    /**
+     * @param  User|null  $by  staff who made the booking in the admin (null: the customer, on the website)
+     * @param  bool  $notify  staff only: email the customer the confirmation (the office is not emailed)
+     */
+    public function create(Package $package, PackagePrice $price, array $data, array $documents = [], ?string $ip = null, ?User $by = null, bool $notify = true): Booking
     {
         $price->loadMissing('type');
         $amounts = $this->calculator->calculate($package, $price, $data['travelers'], $data['rooms'] ?? null);
         $stored = [];
 
         try {
-            $booking = DB::transaction(function () use ($package, $price, $data, $amounts, $documents, $ip, &$stored) {
+            $booking = DB::transaction(function () use ($package, $price, $data, $amounts, $documents, $ip, $by, $notify, &$stored) {
                 $booking = Booking::create([
                     'reference' => 'TMP-'.Str::random(16),
                     'package_id' => $package->id,
@@ -75,14 +79,19 @@ class BookingService
                     'customer_email' => $data['email'] ?? null,
                     'customer_address' => $data['address'] ?? null,
                     'customer_note' => $data['note'] ?? null,
-                    'locale' => app()->getLocale(),
+                    'locale' => $data['locale'] ?? app()->getLocale(),
                     'ip' => $ip,
                 ]);
+
+                // Made by staff: nothing new to read for them.
+                if ($by) {
+                    $booking->forceFill(['read_at' => now()])->save();
+                }
 
                 // Reference from the row id, e.g. AHK-2026-000123.
                 $booking->forceFill(['reference' => sprintf('AHK-%s-%06d', now()->format('Y'), $booking->id)])->save();
 
-                $booking->updates()->create(['kind' => 'created', 'status' => 'pending', 'notify' => filled($data['email'] ?? null)]);
+                $booking->updates()->create(['kind' => 'created', 'status' => 'pending', 'notify' => filled($data['email'] ?? null) && (! $by || $notify), 'created_by' => $by?->id]);
 
                 foreach ($documents as $document) {
                     $path = $document['file']->store("bookings/{$booking->id}", BookingDocument::DISK);
@@ -114,9 +123,17 @@ class BookingService
             'total' => (float) $booking->total,
             'documents' => count($documents),
             'ip' => $ip,
-        ]);
+            'by_staff' => (bool) $by,
+            'inquiry' => $data['inquiry_id'] ?? null,
+        ], $by);
 
-        $this->sendBookingEmails($booking);
+        if ($by) {
+            if ($notify && $booking->customer_email) {
+                $this->sendMail($booking, $booking->customer_email, $booking->locale, new BookingReceived($booking), 'Booking received', $booking->updates()->where('kind', 'created')->first());
+            }
+        } else {
+            $this->sendBookingEmails($booking);
+        }
 
         return $booking;
     }

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-#[Fillable(['source', 'page_id', 'page_section_id', 'name', 'phone', 'email', 'data', 'status', 'notes', 'locale', 'ip', 'read_at'])]
+#[Fillable(['source', 'page_id', 'page_section_id', 'booking_id', 'name', 'phone', 'email', 'data', 'status', 'notes', 'locale', 'ip', 'read_at'])]
 class Inquiry extends Model
 {
     use Trashable;
@@ -75,6 +75,12 @@ class Inquiry extends Model
 
             return is_array($value) ? implode(', ', array_map(fn ($v) => is_array($v) ? implode(' ', $v) : (string) $v, $value)) : (string) $value;
         })->all();
+    }
+
+    /** The booking staff made from this inquiry, if any. */
+    public function booking(): BelongsTo
+    {
+        return $this->belongsTo(Booking::class);
     }
 
     /** Staff notes, newest first. */

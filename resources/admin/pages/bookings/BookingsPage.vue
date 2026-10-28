@@ -35,6 +35,8 @@ import FilterDrawer, { type FilterGroup } from '@admin/components/ui/FilterDrawe
 import ListHero from '@admin/components/ui/ListHero.vue';
 import ListToolbar from '@admin/components/ui/ListToolbar.vue';
 import BookingListItem from './BookingListItem.vue';
+import NewBookingModal from './NewBookingModal.vue';
+import { useRouter } from 'vue-router';
 import headerPhoto from '@admin/assets/bookings-header.webp';
 import { pickText } from '@admin/pages/content/builder/types';
 import { useListQuery } from '@admin/composables/useListQuery';
@@ -53,6 +55,8 @@ const app = useAppStore();
 const auth = useAuthStore();
 const toast = useToastStore();
 const { confirm } = useConfirm();
+const router = useRouter();
+const newOpen = ref(false);
 
 const list = useListQuery<BookingRow, BookingsResponse>('/bookings', { status: '', package_id: '', payment: '', from: '', to: '', sort: '' });
 const packages = ref<{ id: number; name: Translations }[]>([]);
@@ -218,6 +222,7 @@ onMounted(async () => {
         <ListHero title="Bookings" description="Bookings from the website, their payments and documents." :icon="CalendarCheck" tone="#34d399" :photo="headerPhoto" photo-position="50% 45%">
             <template #actions>
                 <AppButton variant="secondary" :icon="Download" @click="exportCsv">Export CSV</AppButton>
+                <AppButton v-if="auth.can('bookings.create')" :icon="CalendarCheck" @click="newOpen = true">New booking</AppButton>
             </template>
         </ListHero>
 
@@ -348,6 +353,7 @@ onMounted(async () => {
                 </div>
             </template>
         </AppDrawer>
+        <NewBookingModal v-model:open="newOpen" @created="(id) => router.push(`/admin/bookings/${id}`)" />
     </div>
 </template>
 

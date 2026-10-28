@@ -12,6 +12,7 @@ use App\Mail\BookingReceived;
 use App\Mail\BookingUpdated;
 use App\Mail\PaymentReceived;
 use App\Models\Booking;
+use App\Models\Inquiry;
 use App\Models\Package;
 use App\Models\PackagePrice;
 use App\Models\Payment;
@@ -575,6 +576,53 @@ class BookingTest extends AdminTestCase
         $this->asAdmin($super)->postJson("/api/admin/trash/payments/{$old}/restore")->assertSuccessful();
         $this->assertEquals($total, (float) $booking->fresh()->paid_amount);
         $this->assertSame('fully_paid', $booking->fresh()->status);
+    }
+
+    public function test_staff_create_bookings_and_convert_inquiries(): void
+    {
+        Mail::fake();
+        $admin = $this->adminWith(['bookings.view', 'bookings.create', 'bookings.update', 'inquiries.view']);
+        $price = $this->price();
+
+        // The dialog's choices: packages with their options and the travel dates they ask for.
+        $options = collect($this->asAdmin($admin)->getJson('/api/admin/bookings/options')->assertOk()->json('data'));
+        $umrah = $options->firstWhere('id', $this->package()->id);
+        $this->assertContains($price->id, array_column($umrah['options'], 'id'));
+        $this->assertSame('month_year', $umrah['travel']['mode']);
+
+        $inquiry = Inquiry::create(['source' => 'contact_form', 'name' => 'Rahim', 'phone' => '01711000009', 'email' => 'rahim@example.com', 'data' => ['message' => 'Umrah for 2'], 'status' => 'new']);
+        $payload = [
+            'package_id' => $this->package()->id, 'option' => $price->id, 'travelers' => 2, 'rooms' => 1,
+            'travel_month' => now()->addMonth()->month, 'travel_year' => now()->addMonth()->year,
+            'name' => 'Rahim', 'phone' => '01711000009', 'email' => 'rahim@example.com', 'notify' => false, 'inquiry_id' => $inquiry->id,
+        ];
+
+        // #89: the same amounts and rules as the website; validation in plain words.
+        $this->asAdmin($admin)->postJson('/api/admin/bookings', [...$payload, 'option' => null])->assertJsonValidationErrors(['option' => 'Choose the package option.']);
+        $this->asAdmin($this->adminWith(['bookings.view']))->postJson('/api/admin/bookings', $payload)->assertForbidden();
+
+        $id = $this->asAdmin($admin)->postJson('/api/admin/bookings', $payload)->assertCreated()
+            ->assertJsonPath('data.customer_name', 'Rahim')->assertJsonPath('data.travelers', 2)->assertJsonPath('data.inquiry_id', $inquiry->id)
+            ->json('data.id');
+        $booking = Booking::findOrFail($id);
+        $this->assertNotNull($booking->read_at);
+        $this->assertGreaterThan(0, (float) $booking->total);
+
+        // The inquiry points at its booking, is closed and says so in its notes.
+        $inquiry->refresh();
+        $this->assertSame($id, $inquiry->booking_id);
+        $this->assertSame('closed', $inquiry->status);
+        $this->asAdmin($admin)->getJson("/api/admin/inquiries/{$inquiry->id}")->assertJsonPath('data.booking.reference', $booking->reference)
+            ->assertJsonPath('data.notes.0.body', "Booking {$booking->reference} made from this inquiry.");
+
+        // "Email the customer" off: no email; the office is never emailed for staff bookings; the log says who made it.
+        Mail::assertNothingSent();
+        $created = collect($this->asAdmin($admin)->getJson("/api/admin/bookings/{$id}")->json('data.activity'))->firstWhere('event', 'created');
+        $this->assertSame($admin->name, $created['by']);
+
+        $this->asAdmin($admin)->postJson('/api/admin/bookings', [...$payload, 'inquiry_id' => null, 'notify' => true])->assertCreated();
+        Mail::assertSent(BookingReceived::class, fn ($mail) => $mail->hasTo('rahim@example.com'));
+        Mail::assertNotSent(BookingPlaced::class);
     }
 
     public function test_staff_notes_unread_and_bulk_actions(): void

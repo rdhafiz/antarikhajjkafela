@@ -6,12 +6,17 @@ use App\Domain\Booking\BookingLog;
 use App\Domain\Booking\BookingService;
 use App\Domain\Booking\TravelDates;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Site\BookingController as SiteBookingController;
 use App\Models\Booking;
 use App\Models\BookingDocument;
 use App\Models\BookingUpdate;
+use App\Models\Inquiry;
 use App\Models\Note;
+use App\Models\Package;
+use App\Models\PackagePrice;
 use App\Models\Payment;
 use App\Support\Csv;
+use App\Support\Locales;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -20,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Propaganistas\LaravelPhone\Rules\Phone;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BookingController extends Controller
@@ -55,6 +61,83 @@ class BookingController extends Controller
             'counts' => Booking::query()->toBase()->select('status', DB::raw('count(*) as bookings_count'))->groupBy('status')->pluck('bookings_count', 'status')->map(fn ($n) => (int) $n),
             'statuses' => Booking::STATUSES,
         ]);
+    }
+
+    /**
+     * What a booking can be made for, for the "New booking" dialog: packages
+     * that are not in the Trash (draft, published or closed for online
+     * booking), each with its options and the travel dates its service asks for.
+     */
+    public function options(TravelDates $dates): JsonResponse
+    {
+        $packages = Package::with(['service', 'types.prices'])->orderByDesc('status')->latest('id')->get();
+
+        return response()->json(['data' => $packages->map(fn (Package $package) => [
+            'id' => $package->id,
+            'name' => $package->getTranslation('name', 'en', false) ?: collect($package->getTranslations('name'))->first(),
+            'status' => $package->status,
+            'service' => $package->service?->getTranslation('name', 'en'),
+            'travel' => $dates->form($package->service),
+            'options' => $package->types->flatMap(fn ($type) => $type->prices->map(fn (PackagePrice $price) => [
+                'id' => $price->id,
+                'label' => trim($type->getTranslation('name', 'en').' – '.$price->getTranslation('title', 'en'), ' –'),
+                'unit' => $price->unit,
+                'price' => (float) $price->price,
+            ]))->values(),
+        ])->filter(fn ($p) => $p['options']->isNotEmpty())->values()]);
+    }
+
+    /**
+     * A booking made by staff, e.g. from a phone call or an inquiry. The same
+     * amounts and rules as on the website; the customer is emailed the
+     * confirmation only if staff ask for it, and the office is not emailed.
+     */
+    public function store(Request $request, TravelDates $dates): JsonResponse
+    {
+        $package = Package::with('service')->findOrFail((int) $request->input('package_id'));
+        $mode = $dates->mode($package->service);
+
+        $data = $request->validate([
+            'package_id' => ['required', 'integer'],
+            'option' => ['required', 'integer', Rule::exists('package_prices', 'id')->whereNull('deleted_at')->whereIn('package_type_id', $package->types()->pluck('id'))],
+            'travelers' => ['required', 'integer', 'min:1', 'max:'.SiteBookingController::MAX_TRAVELERS],
+            'rooms' => ['nullable', 'integer', 'min:1', 'max:'.SiteBookingController::MAX_TRAVELERS],
+            'name' => ['required', 'string', 'max:120'],
+            'phone' => ['required', 'string', 'max:25', (new Phone)->international()->country('BD')],
+            'email' => ['nullable', 'email:rfc,filter', 'max:190'],
+            'address' => ['nullable', 'string', 'max:300'],
+            'note' => ['nullable', 'string', 'max:2000'],
+            'locale' => ['nullable', Rule::in(app(Locales::class)->codes())],
+            'notify' => ['boolean'],
+            'inquiry_id' => ['nullable', 'integer', Rule::exists('inquiries', 'id')->whereNull('deleted_at')],
+            ...$dates->rules($mode, $request->integer('travel_year') ?: null),
+        ], [
+            'option.required' => 'Choose the package option.',
+            'option.exists' => 'Choose an option of this package.',
+        ], [
+            'option' => 'Package option',
+            'travel_month' => 'Travel month',
+            'travel_year' => $mode === 'hajj_year' ? 'Hajj year' : 'Travel year',
+        ]);
+
+        $booking = $this->bookings->create(
+            $package,
+            PackagePrice::findOrFail($data['option']),
+            $data,
+            [],
+            $request->ip(),
+            $request->user(),
+            $request->boolean('notify', true),
+        );
+
+        // From an inquiry: they point at each other and the inquiry is done.
+        if ($inquiryId = $data['inquiry_id'] ?? null) {
+            $inquiry = Inquiry::findOrFail($inquiryId);
+            $inquiry->update(['booking_id' => $booking->id, 'status' => 'closed']);
+            $inquiry->notes()->create(['body' => "Booking {$booking->reference} made from this inquiry.", 'user_id' => $request->user()->id]);
+        }
+
+        return response()->json(['data' => $this->detail($booking->refresh())], 201);
     }
 
     public function show(Booking $booking): JsonResponse
@@ -395,6 +478,7 @@ class BookingController extends Controller
             'customer_email' => $booking->customer_email,
             'customer_address' => $booking->customer_address,
             'customer_note' => $booking->customer_note,
+            'inquiry_id' => Inquiry::where('booking_id', $booking->id)->value('id'),
             'notes' => $booking->notes()->with('author:id,name')->get()->map(fn (Note $n) => $n->present(request()->user()))->all(),
             'locale' => $booking->locale,
             'documents' => $booking->documents->map(fn (BookingDocument $d) => [

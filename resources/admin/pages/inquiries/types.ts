@@ -12,6 +12,8 @@ export interface InquiryRow {
     data: Record<string, string>;
     page: { id: number; title: string; type: string } | null;
     status: InquiryStatus;
+    /** The booking made from this inquiry. */
+    booking?: { id: number; reference: string | null } | null;
     locale: string | null;
     read: boolean;
     created_at: string;

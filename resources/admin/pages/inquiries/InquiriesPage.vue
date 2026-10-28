@@ -10,6 +10,8 @@ import EmptyState from '@admin/components/ui/EmptyState.vue';
 import FilterDrawer, { type FilterGroup } from '@admin/components/ui/FilterDrawer.vue';
 import BulkBar from '@admin/components/ui/BulkBar.vue';
 import NotesPanel from '@admin/components/ui/NotesPanel.vue';
+import NewBookingModal, { type BookingPrefill } from '@admin/pages/bookings/NewBookingModal.vue';
+import { useRouter } from 'vue-router';
 import ListHero from '@admin/components/ui/ListHero.vue';
 import ListToolbar from '@admin/components/ui/ListToolbar.vue';
 import InquiryListItem from './InquiryListItem.vue';
@@ -31,6 +33,19 @@ const app = useAppStore();
 const auth = useAuthStore();
 const toast = useToastStore();
 const { confirm } = useConfirm();
+const router = useRouter();
+
+// Convert to a booking: the customer's details come from the inquiry.
+const convertOpen = ref(false);
+const prefill = ref<BookingPrefill | null>(null);
+function convert(row: InquiryRow): void {
+    const count = (key: string) => Number.parseInt(String(row.data[key] ?? row.data[titleCase(key)] ?? ''), 10) || 0;
+    prefill.value = {
+        name: row.name, phone: row.phone, email: row.email, locale: row.locale, inquiryId: row.id,
+        travelers: count('travelers') || count('adults') + count('children') || 1,
+    };
+    convertOpen.value = true;
+}
 
 const unread = ref(0);
 const list = useListQuery<InquiryRow, InquiriesResponse>(
@@ -399,10 +414,13 @@ onMounted(() => list.load());
             <template #footer>
                 <AppButton v-if="canDelete && current" variant="ghost" :icon="Trash2" class="text-red-600 hover:bg-red-50 hover:text-red-700" @click="remove(current)">Delete</AppButton>
                 <AppButton v-if="current" variant="ghost" :icon="Mail" class="mr-auto" @click="setRead(current, false)">Mark as unread</AppButton>
+                <AppButton v-if="current?.booking" variant="secondary" @click="router.push(`/admin/bookings/${current.booking.id}`)">Booking {{ current.booking.reference }}</AppButton>
+                <AppButton v-else-if="current && auth.can('bookings.create')" variant="secondary" @click="convert(current)">Convert to booking</AppButton>
                 <AppButton variant="secondary" class="ml-auto" @click="detailOpen = false">Close</AppButton>
                 <AppButton v-if="canUpdate" :loading="saving" @click="saveDetail">Save</AppButton>
             </template>
         </AppDrawer>
+        <NewBookingModal v-model:open="convertOpen" :prefill="prefill" @created="(id) => router.push(`/admin/bookings/${id}`)" />
     </div>
 </template>
 

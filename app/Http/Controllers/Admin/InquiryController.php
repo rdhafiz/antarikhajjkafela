@@ -193,6 +193,7 @@ class InquiryController extends Controller
             'data' => (object) $inquiry->readableData(),
             'page' => $inquiry->page ? ['id' => $inquiry->page->id, 'title' => $inquiry->page->getTranslation('title', 'en'), 'type' => $inquiry->page->type] : null,
             'status' => $inquiry->status,
+            'booking' => $inquiry->booking_id ? ['id' => $inquiry->booking_id, 'reference' => $inquiry->booking?->reference] : null,
             // The old "notes" column shares the name: read the relation itself.
             'notes' => $inquiry->relationLoaded('notes') ? $inquiry->getRelation('notes')->map(fn (Note $n) => $n->present(request()->user()))->all() : null,
             'locale' => $inquiry->locale,
