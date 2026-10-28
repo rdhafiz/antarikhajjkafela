@@ -286,7 +286,19 @@ class TravelTest extends AdminTestCase
         $this->asAdmin($admin)->postJson('/api/admin/services', ['name' => ['en' => 'Ziyarah tours'], 'slug' => 'about'])
             ->assertJsonValidationErrors('slug'); // used by a page
 
+        // #79: the English name is required (the site shows English first).
+        $this->asAdmin($admin)->postJson('/api/admin/services', ['name' => ['bn' => 'জিয়ারাহ'], 'slug' => 'ziyarah'])
+            ->assertJsonValidationErrors(['name.en' => 'An English name is needed: the website shows English first.']);
+
         $this->asAdmin($admin)->postJson('/api/admin/services', ['name' => ['en' => 'Ziyarah tours'], 'slug' => 'ziyarah-tours'])->assertCreated();
+
+        // #83: a changed address redirects from the old one.
+        $hajj = collect($this->asAdmin($admin)->getJson('/api/admin/services')->json('data'))->firstWhere('slug', 'hajj');
+        $this->asAdmin($admin)->putJson("/api/admin/services/{$hajj['id']}", [...$hajj, 'slug' => 'hajj-packages'])->assertOk();
+        $this->get('/hajj')->assertRedirect(url('hajj-packages'))->assertStatus(301);
+        $this->get('/hajj-packages')->assertOk();
+        $this->asAdmin($admin)->putJson("/api/admin/services/{$hajj['id']}", [...$hajj, 'slug' => 'hajj'])->assertOk();
+        $this->get('/hajj-packages')->assertRedirect(url('hajj'));
         $this->seed(TourSeeder::class);
         $this->get('/tours')->assertOk()
             ->assertSeeTextInOrder(['What your tour includes', 'Halal food noted', 'From Dhaka and back, planned for you', 'At your destination'])

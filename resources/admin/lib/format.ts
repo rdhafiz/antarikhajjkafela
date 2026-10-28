@@ -20,6 +20,24 @@ export function formatDate(value: string | null | undefined, withTime = false): 
     return (withTime ? dateTimeFormat : dateFormat).format(new Date(value));
 }
 
+const timeFormat = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+export function formatTime(value: string | null | undefined): string {
+    return value ? timeFormat.format(new Date(value)) : '';
+}
+
+/**
+ * Dates written as 2026-12-20 inside a value (form answers such as a travel
+ * date or "Flight 2: Dubai → Istanbul · 2026-12-20") in the admin's
+ * "20 Dec 2026" style; everything else is left as it is.
+ */
+export function formatDatesIn(value: unknown): string {
+    return String(value ?? '').replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, (match, y: string, m: string, d: string) => {
+        const date = new Date(Number(y), Number(m) - 1, Number(d));
+        return Number.isNaN(date.getTime()) || date.getDate() !== Number(d) ? match : dateFormat.format(date);
+    });
+}
+
 export function initials(name: string): string {
     return name
         .split(/\s+/)

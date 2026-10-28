@@ -18,7 +18,7 @@ class InquiryReceived extends Mailable
 
     public function envelope(): Envelope
     {
-        $source = $this->inquiry->source === 'lead_form' ? 'Campaign registration' : 'Website message';
+        $source = $this->inquiry->source === 'contact_form' ? 'Website message' : $this->inquiry->sourceLabel();
 
         return new Envelope(
             subject: "{$source}: ".($this->inquiry->name ?: $this->inquiry->phone ?: 'New enquiry'),

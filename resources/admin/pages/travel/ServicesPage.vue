@@ -311,7 +311,13 @@ onMounted(load);
             <form id="service-form" class="space-y-4" novalidate @submit.prevent="save">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <TranslatableInput v-model="form.data.name" label="Name" required :errors="form.errors" error-key="name" />
-                    <FormField label="Web address" for="service-slug" :error="form.error('slug')" required>
+                    <FormField
+                        label="Web address"
+                        for="service-slug"
+                        :error="form.error('slug')"
+                        :hint="editing && form.data.slug && form.data.slug !== editing.slug ? `The old address /${editing.slug} will redirect here, so existing links keep working.` : undefined"
+                        required
+                    >
                         <div class="flex items-stretch overflow-hidden rounded-lg border border-line bg-white focus-within:border-brand">
                             <span class="flex items-center border-r border-line bg-canvas px-3 text-[13px] text-ink-muted">/</span>
                             <input id="service-slug" v-model="form.data.slug" class="min-w-0 flex-1 px-3 py-2 text-sm outline-none" @input="slugTouched = true" @blur="form.data.slug = slugify(form.data.slug)" />

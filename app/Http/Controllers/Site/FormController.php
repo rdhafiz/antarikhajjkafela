@@ -53,7 +53,7 @@ class FormController extends Controller
         }
 
         $inquiry = Inquiry::create([
-            'source' => $section->component,
+            'source' => Inquiry::sourceFor($section, $data),
             'page_id' => $section->page_id,
             'page_section_id' => $section->id,
             'name' => $data['name'] ?? null,

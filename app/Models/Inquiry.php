@@ -14,6 +14,37 @@ class Inquiry extends Model
 
     public const STATUSES = ['new', 'in_progress', 'closed'];
 
+    /** Where an enquiry came from, as staff call it. */
+    public const SOURCES = [
+        'contact_form' => 'Contact form',
+        'fare_quote' => 'Air ticket quote',
+        'visa_enquiry' => 'Visa enquiry',
+        'campaign_form' => 'Campaign form',
+        'lead_form' => 'Enquiry form',
+    ];
+
+    /**
+     * The source of a new enquiry: the contact form, or for lead forms what
+     * they ask (a fare quote, a visa) or where they sit (a campaign page).
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function sourceFor(PageSection $section, array $data): string
+    {
+        return match (true) {
+            $section->component === 'contact_form' => 'contact_form',
+            array_key_exists('trip_type', $data) || array_key_exists('from_city', $data) => 'fare_quote',
+            array_key_exists('visa_country', $data) || array_key_exists('visa_type', $data) => 'visa_enquiry',
+            (bool) $section->page?->isCampaign() => 'campaign_form',
+            default => 'lead_form',
+        };
+    }
+
+    public function sourceLabel(): string
+    {
+        return self::SOURCES[$this->source] ?? ucfirst(str_replace('_', ' ', (string) $this->source));
+    }
+
     protected function casts(): array
     {
         return [

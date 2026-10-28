@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuRoot, DropdownMenuSeparator, DropdownMenuTrigger } from 'reka-ui';
 import { CalendarDays, ChevronRight, CircleCheck, EllipsisVertical, FileText, Globe, Loader, Mail, Megaphone, MessageCircle, MessageSquareText, Phone, Sparkles, Trash2, UserRound } from 'lucide-vue-next';
-import { formatDate, initials, titleCase } from '@admin/lib/format';
+import { formatDate, formatDatesIn, formatTime, initials, titleCase } from '@admin/lib/format';
 import { inquiryStatus, inquirySource, whatsappLink, type InquiryRow, type InquiryStatus } from './types';
 
 /**
@@ -21,7 +21,7 @@ const preview = computed(() => {
     if (props.row.data.message) return props.row.data.message;
     return Object.entries(props.row.data)
         .filter(([key, value]) => !['page', 'name', 'phone', 'email'].includes(key) && value)
-        .map(([key, value]) => `${titleCase(key)}: ${value}`)
+        .map(([key, value]) => `${titleCase(key)}: ${formatDatesIn(value)}`)
         .join(' · ');
 });
 
@@ -34,7 +34,7 @@ const otherStatuses = computed(() => (Object.keys(inquiryStatus) as InquiryStatu
         <div class="iq-avatar" aria-hidden="true">
             <template v-if="row.name">{{ initials(row.name) }}</template>
             <UserRound v-else class="size-5" />
-            <component :is="row.source === 'lead_form' ? Megaphone : MessageSquareText" class="iq-avatar-badge" />
+            <component :is="row.source === 'contact_form' ? MessageSquareText : Megaphone" class="iq-avatar-badge" />
         </div>
 
         <div class="iq-main">
@@ -50,7 +50,7 @@ const otherStatuses = computed(() => (Object.keys(inquiryStatus) as InquiryStatu
             </p>
             <p v-if="preview" class="iq-preview" :class="{ 'is-quote': row.data.message }">{{ row.data.message ? `“${preview}”` : preview }}</p>
             <p class="iq-tags">
-                <span class="iq-tag" :style="{ '--chip': source.tone }"><component :is="row.source === 'lead_form' ? Megaphone : MessageSquareText" class="size-3.5 shrink-0" aria-hidden="true" />{{ source.label }}</span>
+                <span class="iq-tag" :style="{ '--chip': source.tone }"><component :is="row.source === 'contact_form' ? MessageSquareText : Megaphone" class="size-3.5 shrink-0" aria-hidden="true" />{{ source.label }}</span>
                 <span v-if="row.page" class="iq-tag" style="--chip: #60a5fa" :title="row.page.title"><FileText class="size-3.5 shrink-0" aria-hidden="true" /><span class="truncate">{{ row.page.title }}</span></span>
                 <span v-if="row.locale" class="iq-tag" style="--chip: #2dd4bf"><Globe class="size-3.5 shrink-0" aria-hidden="true" />{{ row.locale.toUpperCase() }}</span>
             </p>
@@ -66,6 +66,7 @@ const otherStatuses = computed(() => (Object.keys(inquiryStatus) as InquiryStatu
             <span>
                 <span class="iq-label">Received</span>
                 <span class="block text-[14px] font-medium whitespace-nowrap text-ink">{{ formatDate(row.created_at) }}</span>
+                <span class="block text-[12.5px] whitespace-nowrap text-ink-muted">{{ formatTime(row.created_at) }}</span>
             </span>
         </div>
 

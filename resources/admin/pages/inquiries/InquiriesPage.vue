@@ -16,7 +16,7 @@ import headerPhoto from '@admin/assets/inquiries-header.webp';
 import { useConfirm } from '@admin/composables/useConfirm';
 import { useListQuery } from '@admin/composables/useListQuery';
 import { errorMessage, http, type Paginated } from '@admin/lib/http';
-import { formatDate, titleCase } from '@admin/lib/format';
+import { formatDate, formatDatesIn, titleCase } from '@admin/lib/format';
 import { useAppStore } from '@admin/stores/app';
 import { useAuthStore } from '@admin/stores/auth';
 import { useToastStore } from '@admin/stores/toast';
@@ -59,7 +59,7 @@ const counts = computed(() => list.response.value?.counts);
 const filterGroups = computed<FilterGroup[]>(() => {
     const statusCounts = counts.value?.statuses ?? {};
     const sourceCounts = counts.value?.sources ?? {};
-    const sourceKeys = [...new Set(['contact_form', 'lead_form', ...Object.keys(sourceCounts)])];
+    const sourceKeys = [...new Set(['contact_form', 'fare_quote', 'visa_enquiry', 'campaign_form', ...Object.keys(sourceCounts)])];
     const all = Object.values(statusCounts).reduce<number>((sum, n) => sum + (n ?? 0), 0);
     return [
         {
@@ -299,7 +299,7 @@ onMounted(() => list.load());
                     <template v-for="(value, key) in current.data" :key="key">
                         <template v-if="!['message', 'page', 'name', 'phone', 'email'].includes(String(key))">
                             <dt>{{ titleCase(String(key)) }}</dt>
-                            <dd class="whitespace-pre-line">{{ value }}</dd>
+                            <dd class="whitespace-pre-line">{{ formatDatesIn(value) }}</dd>
                         </template>
                     </template>
                 </dl>

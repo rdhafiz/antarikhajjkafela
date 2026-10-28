@@ -84,7 +84,7 @@ class InquiryController extends Controller
                 foreach ($rows as $inquiry) {
                     fputcsv($out, Csv::row([
                         $inquiry->created_at?->format('Y-m-d H:i'),
-                        $inquiry->source,
+                        $inquiry->sourceLabel(),
                         $inquiry->page?->getTranslation('title', 'en'),
                         $inquiry->name,
                         Csv::phone($inquiry->phone),
