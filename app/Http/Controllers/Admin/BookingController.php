@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingDocument;
 use App\Models\BookingUpdate;
+use App\Models\Note;
 use App\Models\Payment;
 use App\Support\Csv;
 use App\Support\Money;
@@ -67,8 +68,47 @@ class BookingController extends Controller
         return response()->json(['data' => $this->detail($booking), 'was_unread' => $wasUnread]);
     }
 
+    /** Back to unread, e.g. to deal with it later; the menu badge counts it again. */
+    public function unread(Request $request, Booking $booking): JsonResponse
+    {
+        $booking->forceFill(['read_at' => null])->save();
+        $this->log->record($booking, 'marked_unread', [], $request->user());
+
+        return response()->json(status: 204);
+    }
+
     /**
-     * Change the status and internal notes. A new status or a message to the
+     * Several bookings at once: mark read or unread, or move them to the Trash.
+     */
+    public function bulk(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:200'],
+            'ids.*' => ['integer'],
+            'action' => ['required', Rule::in(['read', 'unread', 'delete'])],
+        ]);
+
+        if ($data['action'] === 'delete') {
+            abort_unless($request->user()->can('bookings.delete'), 403, 'You do not have permission to delete bookings.');
+        }
+
+        $bookings = Booking::whereIn('id', $data['ids'])->get();
+
+        DB::transaction(function () use ($bookings, $data) {
+            foreach ($bookings as $booking) {
+                match ($data['action']) {
+                    'read' => $booking->read_at ?? $booking->forceFill(['read_at' => now()])->save(),
+                    'unread' => $booking->forceFill(['read_at' => null])->save(),
+                    'delete' => [$booking->documents->each->delete(), $booking->delete()],
+                };
+            }
+        });
+
+        return response()->json(['data' => ['count' => $bookings->count()]]);
+    }
+
+    /**
+     * Change the status. A new status or a message to the
      * customer goes into the customer's history and, unless staff untick
      * "Email the customer", out to them by email with the latest details.
      */
@@ -76,23 +116,17 @@ class BookingController extends Controller
     {
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(Booking::STATUSES)), $this->statusFollowsPayments($booking)],
-            'admin_notes' => ['nullable', 'string', 'max:10000'],
             'customer_message' => ['nullable', 'string', 'max:2000'],
             'notify' => ['sometimes', 'boolean'],
         ]);
 
         $before = $booking->status;
-        $notesBefore = (string) $booking->admin_notes;
-        $booking->update(['status' => $data['status'], 'admin_notes' => $data['admin_notes'] ?? null]);
+        $booking->update(['status' => $data['status']]);
         $message = trim((string) ($data['customer_message'] ?? '')) ?: null;
         $notify = $request->boolean('notify', true) && $booking->customer_email;
 
         if ($booking->status !== $before) {
             $this->log->record($booking, 'status_changed', ['from' => $before, 'to' => $booking->status, 'notify' => (bool) $notify], $request->user());
-        }
-
-        if ((string) $booking->admin_notes !== $notesBefore) {
-            $this->log->record($booking, 'notes_changed', ['from' => $notesBefore, 'to' => (string) $booking->admin_notes], $request->user());
         }
 
         if ($message) {
@@ -283,6 +317,8 @@ class BookingController extends Controller
             'sort' => ['nullable', Rule::in(['newest', 'oldest', 'total_desc', 'balance_desc'])],
             'search' => ['nullable', 'string', 'max:100'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            // Export only the rows ticked in the list.
+            'ids' => ['nullable', 'string', 'max:2000', 'regex:/^\d+(,\d+)*$/'],
         ]);
     }
 
@@ -292,6 +328,7 @@ class BookingController extends Controller
     private function query(array $filters): Builder
     {
         return Booking::query()
+            ->when($filters['ids'] ?? null, fn ($q, $ids) => $q->whereIn('id', array_map('intval', explode(',', $ids))))
             ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
             ->when($filters['package_id'] ?? null, fn ($q, $id) => $q->where('package_id', $id))
             ->when($filters['payment'] ?? null, fn ($q, $payment) => match ($payment) {
@@ -358,7 +395,7 @@ class BookingController extends Controller
             'customer_email' => $booking->customer_email,
             'customer_address' => $booking->customer_address,
             'customer_note' => $booking->customer_note,
-            'admin_notes' => $booking->admin_notes,
+            'notes' => $booking->notes()->with('author:id,name')->get()->map(fn (Note $n) => $n->present(request()->user()))->all(),
             'locale' => $booking->locale,
             'documents' => $booking->documents->map(fn (BookingDocument $d) => [
                 'id' => $d->id,

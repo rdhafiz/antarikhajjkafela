@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ArrowLeft, BellRing, Globe, CheckCircle2, ChevronDown, Copy, ExternalLink, FileText, Files, History, Image as ImageIcon, Mail, MailCheck, MailX, MessageCircle, MessageSquareText, Package as PackageIcon, Phone, Plus, RefreshCw, Trash2, TriangleAlert, UserRound, Wallet } from 'lucide-vue-next';
+import { ArrowLeft, BellRing, Globe, CheckCircle2, ChevronDown, Copy, ExternalLink, FileText, Files, History, Image as ImageIcon, Mail, MailCheck, MailX, MailOpen, StickyNote, MessageCircle, MessageSquareText, Package as PackageIcon, Phone, Plus, RefreshCw, Trash2, TriangleAlert, UserRound, Wallet } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
 import AppCheckbox from '@admin/components/ui/AppCheckbox.vue';
@@ -9,6 +9,7 @@ import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
 import AppModal from '@admin/components/ui/AppModal.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import FormField from '@admin/components/ui/FormField.vue';
+import NotesPanel from '@admin/components/ui/NotesPanel.vue';
 import { useConfirm } from '@admin/composables/useConfirm';
 import { useForm } from '@admin/composables/useForm';
 import { errorMessage, http } from '@admin/lib/http';
@@ -85,7 +86,7 @@ function logDetails(entry: BookingActivity): string[] {
     if (d.ip) lines.push(`IP ${d.ip}`);
     return lines.filter(Boolean);
 }
-const edit = useForm({ status: 'pending' as BookingStatus, admin_notes: '', customer_message: '', notify: true });
+const edit = useForm({ status: 'pending' as BookingStatus, customer_message: '', notify: true });
 const paymentOpen = ref(false);
 const paymentForm = useForm({ amount: 0 as number | '', method: 'bank', paid_at: '', reference: '', note: '', customer_message: '', notify: true });
 
@@ -121,7 +122,7 @@ const whatsapp = computed(() => {
 
 function apply(data: BookingDetail): void {
     booking.value = data;
-    edit.reset({ status: data.status, admin_notes: data.admin_notes ?? '', customer_message: '', notify: Boolean(data.customer_email) });
+    edit.reset({ status: data.status, customer_message: '', notify: Boolean(data.customer_email) });
 }
 
 // Emails go out just after a save; reload quietly a few times until every requested one shows as sent.
@@ -134,7 +135,7 @@ function followEmails(tries = 4): void {
             const { data } = await http.get<{ data: BookingDetail }>(`/bookings/${booking.value!.id}`);
             // Keep what staff are typing: only the lists are refreshed while the form has changes.
             const b = booking.value!;
-            const dirty = edit.data.status !== b.status || edit.data.admin_notes !== (b.admin_notes ?? '') || edit.data.customer_message.trim() !== '';
+            const dirty = edit.data.status !== b.status || edit.data.customer_message.trim() !== '';
             if (dirty) booking.value = { ...booking.value!, updates: data.data.updates, activity: data.data.activity };
             else apply(data.data);
         } catch {
@@ -208,6 +209,19 @@ async function remove(): Promise<void> {
     }
 }
 
+/** Back to unread (to deal with later) and back to the list, so opening it again does not mark it read. */
+async function markUnread(): Promise<void> {
+    if (!booking.value) return;
+    try {
+        await http.post(`/bookings/${booking.value.id}/unread`);
+        app.bookingsUnread += 1;
+        toast.success('Marked as unread');
+        router.push('/admin/bookings');
+    } catch (e) {
+        toast.error(errorMessage(e));
+    }
+}
+
 async function copyLink(): Promise<void> {
     await navigator.clipboard.writeText(booking.value!.public_url);
     toast.success('Customer link copied', 'Share it with the customer to show their booking and pay online.');
@@ -231,6 +245,7 @@ onMounted(load);
                 <p class="text-[12px] text-ink-muted">Booked {{ formatDate(booking.created_at, true) }} · {{ booking.locale === 'bn' ? 'Bangla' : 'English' }} visitor</p>
             </div>
             <div class="flex flex-wrap gap-2">
+                <AppButton variant="ghost" :icon="MailOpen" @click="markUnread">Mark as unread</AppButton>
                 <AppButton variant="secondary" :icon="Copy" @click="copyLink">Customer link</AppButton>
                 <AppButton v-if="auth.can('bookings.delete')" variant="ghost" :icon="Trash2" @click="remove">Delete</AppButton>
             </div>
@@ -413,12 +428,15 @@ onMounted(load);
                                 <template v-else>Sent when you change the status or write a message.</template>
                             </p>
                         </div>
-                        <FormField label="Internal notes" for="b-notes" :error="edit.error('admin_notes')" hint="Only visible to staff.">
-                            <textarea id="b-notes" v-model="edit.data.admin_notes" rows="5" class="control" />
-                        </FormField>
                         <AppButton v-if="auth.can('bookings.update')" type="submit" block :loading="edit.processing">Save</AppButton>
                     </fieldset>
                 </form>
+
+                <!-- Staff notes: added one by one, with who and when. -->
+                <section class="card p-5" aria-labelledby="b-notes-title">
+                    <h2 id="b-notes-title" class="mb-3 flex items-center gap-2 text-[12px] font-semibold tracking-wide text-ink-muted uppercase"><StickyNote class="size-4 text-amber-500" aria-hidden="true" />Notes</h2>
+                    <NotesPanel v-model:notes="booking.notes" type="bookings" :id="booking.id" :can-add="auth.can('bookings.update')" />
+                </section>
             </aside>
         </div>
 

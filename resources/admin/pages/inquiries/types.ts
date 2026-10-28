@@ -1,15 +1,17 @@
+import type { StaffNote } from '@admin/components/ui/NotesPanel.vue';
 export type InquiryStatus = 'new' | 'in_progress' | 'closed';
 
 export interface InquiryRow {
     id: number;
     source: 'contact_form' | 'lead_form' | string;
+    /** Staff notes (in the detail response; null in the list). */
+    notes?: StaffNote[] | null;
     name: string | null;
     phone: string | null;
     email: string | null;
     data: Record<string, string>;
     page: { id: number; title: string; type: string } | null;
     status: InquiryStatus;
-    notes: string | null;
     locale: string | null;
     read: boolean;
     created_at: string;

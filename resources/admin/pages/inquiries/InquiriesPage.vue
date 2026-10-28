@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { ArrowDownUp, CalendarRange, Check, Download, Inbox, LayoutList, Mail, MailOpen, MessageCircle, MessageSquareText, Phone, Trash2 } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
@@ -8,7 +8,8 @@ import AppDrawer from '@admin/components/ui/AppDrawer.vue';
 import AppPagination from '@admin/components/ui/AppPagination.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
 import FilterDrawer, { type FilterGroup } from '@admin/components/ui/FilterDrawer.vue';
-import FormField from '@admin/components/ui/FormField.vue';
+import BulkBar from '@admin/components/ui/BulkBar.vue';
+import NotesPanel from '@admin/components/ui/NotesPanel.vue';
 import ListHero from '@admin/components/ui/ListHero.vue';
 import ListToolbar from '@admin/components/ui/ListToolbar.vue';
 import InquiryListItem from './InquiryListItem.vue';
@@ -47,7 +48,6 @@ const detailOpen = ref(false);
 const filtersOpen = ref(false);
 const current = ref<InquiryRow | null>(null);
 const editStatus = ref<InquiryStatus>('new');
-const editNotes = ref('');
 const saving = ref(false);
 
 const canUpdate = computed(() => auth.can('inquiries.update'));
@@ -113,31 +113,37 @@ const toDate = computed({ get: () => (list.filters.to as string) || null, set: (
 
 const whatsapp = computed(() => whatsappLink(current.value?.phone ?? null));
 
-function markRead(row: InquiryRow): void {
-    if (row.read) return;
+/** Load the full inquiry (with its notes); opening it marks it read. */
+function loadDetail(row: InquiryRow): void {
+    const wasUnread = !row.read;
     http.get<{ data: InquiryRow }>(`/inquiries/${row.id}`)
         .then(({ data }) => {
             Object.assign(row, data.data);
+            if (!wasUnread) return;
             unread.value = Math.max(0, unread.value - 1);
             app.inquiriesUnread = unread.value;
             list.refreshCounts();
         })
         .catch(() => {
-            // Marking as read is not critical.
+            // The panel still shows what the list had.
         });
 }
 
 function open(row: InquiryRow): void {
     current.value = row;
     editStatus.value = row.status;
-    editNotes.value = row.notes ?? '';
     detailOpen.value = true;
-    markRead(row);
+    loadDetail(row);
 }
+
+const notesOf = computed({
+    get: () => current.value?.notes ?? [],
+    set: (notes) => current.value && (current.value.notes = notes),
+});
 
 async function setStatus(row: InquiryRow, status: InquiryStatus): Promise<void> {
     try {
-        const { data } = await http.put<{ data: InquiryRow }>(`/inquiries/${row.id}`, { status, notes: row.notes });
+        const { data } = await http.put<{ data: InquiryRow }>(`/inquiries/${row.id}`, { status });
         Object.assign(row, data.data);
         list.refreshCounts();
         toast.success(`Marked as ${inquiryStatus[status].label.toLowerCase()}`);
@@ -150,7 +156,7 @@ async function saveDetail(): Promise<void> {
     if (!current.value) return;
     saving.value = true;
     try {
-        const { data } = await http.put<{ data: InquiryRow }>(`/inquiries/${current.value.id}`, { status: editStatus.value, notes: editNotes.value || null });
+        const { data } = await http.put<{ data: InquiryRow }>(`/inquiries/${current.value.id}`, { status: editStatus.value });
         Object.assign(current.value, data.data);
         list.refreshCounts();
         toast.success('Inquiry updated');
@@ -173,6 +179,58 @@ async function remove(row: InquiryRow): Promise<void> {
     } catch (e) {
         toast.error(errorMessage(e));
     }
+}
+
+// Ticked rows for bulk actions; a new page of results starts with none.
+const selected = ref(new Set<number>());
+const bulkBusy = ref(false);
+watch(() => list.rows.value, () => (selected.value = new Set()));
+
+function toggle(row: InquiryRow, on: boolean): void {
+    const next = new Set(selected.value);
+    if (on) next.add(row.id);
+    else next.delete(row.id);
+    selected.value = next;
+}
+
+async function bulk(action: 'read' | 'unread' | 'status' | 'delete', status?: InquiryStatus, ids = [...selected.value]): Promise<boolean> {
+    if (!ids.length) return false;
+    if (action === 'delete') {
+        const ok = await confirm({ title: `Delete ${ids.length} ${ids.length === 1 ? 'inquiry' : 'inquiries'}?`, message: 'They go to the Trash, where a super admin can restore them.', confirmLabel: 'Delete' });
+        if (!ok) return false;
+    }
+    bulkBusy.value = true;
+    try {
+        await http.post('/inquiries/bulk', { ids, action, status });
+        app.refreshBadges();
+        return true;
+    } catch (e) {
+        toast.error(errorMessage(e));
+        return false;
+    } finally {
+        bulkBusy.value = false;
+    }
+}
+
+async function bulkSelected(action: 'read' | 'unread' | 'status' | 'delete', status?: InquiryStatus): Promise<void> {
+    const count = selected.value.size;
+    if (!(await bulk(action, status))) return;
+    const done = { read: 'marked as read', unread: 'marked as unread', status: `marked ${status ? inquiryStatus[status].label.toLowerCase() : ''}`, delete: 'deleted' }[action];
+    toast.success(`${count} ${count === 1 ? 'inquiry' : 'inquiries'} ${done}`);
+    list.load();
+}
+
+/** One row read or unread, from its menu or the panel. */
+async function setRead(row: InquiryRow, read: boolean): Promise<void> {
+    if (!(await bulk(read ? 'read' : 'unread', undefined, [row.id]))) return;
+    row.read = read;
+    unread.value = Math.max(0, unread.value + (read ? -1 : 1));
+    list.refreshCounts();
+    if (!read && current.value?.id === row.id) detailOpen.value = false;
+}
+
+function exportSelected(): void {
+    window.location.href = `/api/admin/inquiries/export?ids=${[...selected.value].join(',')}`;
 }
 
 function clearAll(): void {
@@ -224,11 +282,24 @@ onMounted(() => list.load());
                     :index="i"
                     :can-update="canUpdate"
                     :can-delete="canDelete"
+                    :selected="selected.has(row.id)"
                     @open="open(row)"
                     @status="(status) => setStatus(row, status)"
                     @remove="remove(row)"
+                    @select="(on) => toggle(row, on)"
+                    @read="(read) => setRead(row, read)"
                 />
             </div>
+            <BulkBar :count="selected.size" :page-count="list.rows.value.length" :noun="['inquiry', 'inquiries']" @select-page="selected = new Set(list.rows.value.map((r) => r.id))" @clear="selected = new Set()">
+                <button type="button" class="bulk-btn" :disabled="bulkBusy" @click="bulkSelected('read')"><MailOpen class="size-4" />Mark read</button>
+                <button type="button" class="bulk-btn" :disabled="bulkBusy" @click="bulkSelected('unread')"><Mail class="size-4" />Mark unread</button>
+                <template v-if="canUpdate">
+                    <button type="button" class="bulk-btn" :disabled="bulkBusy" @click="bulkSelected('status', 'in_progress')">In progress</button>
+                    <button type="button" class="bulk-btn" :disabled="bulkBusy" @click="bulkSelected('status', 'closed')"><Check class="size-4" />Closed</button>
+                </template>
+                <button type="button" class="bulk-btn" :disabled="bulkBusy" @click="exportSelected"><Download class="size-4" />Export</button>
+                <button v-if="canDelete" type="button" class="bulk-btn is-danger" :disabled="bulkBusy" @click="bulkSelected('delete')"><Trash2 class="size-4" />Delete</button>
+            </BulkBar>
         </div>
 
         <AppPagination v-if="list.meta.value && list.rows.value.length" :meta="list.meta.value" label="inquiries" @change="list.goTo" @per-page="list.setPerPage" />
@@ -319,13 +390,15 @@ onMounted(() => list.load());
                             </label>
                         </div>
                     </div>
-                    <FormField label="Internal notes" for="inquiry-notes">
-                        <textarea id="inquiry-notes" v-model="editNotes" rows="3" class="control resize-y" placeholder="e.g. Called on Sunday, will visit the office" />
-                    </FormField>
                 </fieldset>
+                <div v-if="current">
+                    <p class="label">Notes</p>
+                    <NotesPanel v-model:notes="notesOf" type="inquiries" :id="current.id" :can-add="canUpdate" />
+                </div>
             </div>
             <template #footer>
-                <AppButton v-if="canDelete && current" variant="ghost" :icon="Trash2" class="mr-auto text-red-600 hover:bg-red-50 hover:text-red-700" @click="remove(current)">Delete</AppButton>
+                <AppButton v-if="canDelete && current" variant="ghost" :icon="Trash2" class="text-red-600 hover:bg-red-50 hover:text-red-700" @click="remove(current)">Delete</AppButton>
+                <AppButton v-if="current" variant="ghost" :icon="Mail" class="mr-auto" @click="setRead(current, false)">Mark as unread</AppButton>
                 <AppButton variant="secondary" class="ml-auto" @click="detailOpen = false">Close</AppButton>
                 <AppButton v-if="canUpdate" :loading="saving" @click="saveDetail">Save</AppButton>
             </template>

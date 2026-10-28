@@ -577,6 +577,43 @@ class BookingTest extends AdminTestCase
         $this->assertSame('fully_paid', $booking->fresh()->status);
     }
 
+    public function test_staff_notes_unread_and_bulk_actions(): void
+    {
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1]));
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1, 'phone' => '01711-000002']));
+        [$one, $two] = Booking::orderBy('id')->get()->all();
+        $writer = $this->adminWith(['bookings.view', 'bookings.update']);
+        $other = $this->adminWith(['bookings.view', 'bookings.update']);
+
+        // #89: notes are added one by one with author and time, newest first; only the author (or a super admin) removes one.
+        $this->asAdmin($writer)->postJson("/api/admin/bookings/{$one->id}/notes", ['body' => 'Called, will pay Sunday'])->assertCreated();
+        $notes = $this->asAdmin($writer)->postJson("/api/admin/bookings/{$one->id}/notes", ['body' => 'Paid at the office'])->assertCreated()->json('data');
+        $this->assertSame(['Paid at the office', 'Called, will pay Sunday'], array_column($notes, 'body'));
+        $this->assertSame($writer->name, $notes[0]['author']);
+        $this->assertTrue($notes[0]['can_delete']);
+        $this->asAdmin($writer)->getJson("/api/admin/bookings/{$one->id}")->assertJsonPath('data.notes.1.body', 'Called, will pay Sunday');
+        $this->asAdmin($other)->deleteJson("/api/admin/bookings/{$one->id}/notes/{$notes[0]['id']}")->assertForbidden();
+        $this->asAdmin($writer)->deleteJson("/api/admin/bookings/{$one->id}/notes/{$notes[0]['id']}")->assertOk()->assertJsonCount(1, 'data');
+        $this->asAdmin($this->adminWith(['bookings.view']))->postJson("/api/admin/bookings/{$one->id}/notes", ['body' => 'x'])->assertForbidden();
+
+        // Mark as unread brings it back to the badge count.
+        $this->asAdmin($writer)->getJson("/api/admin/bookings/{$one->id}");
+        $this->assertNotNull($one->fresh()->read_at);
+        $this->asAdmin($writer)->postJson("/api/admin/bookings/{$one->id}/unread")->assertNoContent();
+        $this->assertNull($one->fresh()->read_at);
+
+        // Bulk: read, unread, export the ticked rows; delete needs the delete permission.
+        $this->asAdmin($writer)->postJson('/api/admin/bookings/bulk', ['ids' => [$one->id, $two->id], 'action' => 'read'])->assertJsonPath('data.count', 2);
+        $this->assertSame(0, Booking::whereNull('read_at')->count());
+        $csv = $this->asAdmin($writer)->get("/api/admin/bookings/export?ids={$two->id}")->streamedContent();
+        $this->assertStringContainsString($two->reference, $csv);
+        $this->assertStringNotContainsString($one->reference, $csv);
+        $this->asAdmin($writer)->postJson('/api/admin/bookings/bulk', ['ids' => [$one->id], 'action' => 'delete'])->assertForbidden();
+        $this->asAdmin($this->superAdmin())->postJson('/api/admin/bookings/bulk', ['ids' => [$one->id, $two->id], 'action' => 'delete'])->assertJsonPath('data.count', 2);
+        $this->assertSoftDeleted($one);
+        $this->assertSoftDeleted($two);
+    }
+
     public function test_staff_cannot_pick_a_status_the_payments_contradict(): void
     {
         $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1]));
@@ -679,7 +716,8 @@ class BookingTest extends AdminTestCase
         $this->get($booking->publicUrl())->assertOk();
         $this->post('/booking/status', ['reference' => $booking->reference, 'contact' => 'karim@example.com']);
 
-        $this->asAdmin($admin)->putJson("/api/admin/bookings/{$booking->id}", ['status' => 'confirmed', 'admin_notes' => 'Called him', 'customer_message' => 'See you soon.'])->assertOk();
+        $this->asAdmin($admin)->putJson("/api/admin/bookings/{$booking->id}", ['status' => 'confirmed', 'customer_message' => 'See you soon.'])->assertOk();
+        $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/notes", ['body' => 'Called him'])->assertCreated();
         $paymentId = $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => 500, 'method' => 'cash', 'paid_at' => now()->toDateTimeString(), 'reference' => 'R-1'])->json('data.payments.0.id');
         $this->asAdmin($admin)->deleteJson("/api/admin/bookings/{$booking->id}/payments/{$paymentId}")->assertOk();
         $document = $booking->documents()->firstOrFail();
@@ -688,7 +726,7 @@ class BookingTest extends AdminTestCase
         $activity = collect($this->asAdmin($admin)->getJson("/api/admin/bookings/{$booking->id}")->json('data.activity'));
         $events = $activity->pluck('event');
 
-        foreach (['created', 'email_sent', 'customer_viewed', 'customer_lookup', 'status_changed', 'notes_changed', 'message_sent', 'payment_recorded', 'status_auto', 'payment_removed', 'document_opened'] as $event) {
+        foreach (['created', 'email_sent', 'customer_viewed', 'customer_lookup', 'status_changed', 'note_added', 'message_sent', 'payment_recorded', 'status_auto', 'payment_removed', 'document_opened'] as $event) {
             $this->assertContains($event, $events, "missing {$event}");
         }
         $this->assertSame(1, $events->filter(fn ($e) => $e === 'customer_viewed')->count());
