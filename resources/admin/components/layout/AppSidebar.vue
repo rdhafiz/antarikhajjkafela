@@ -73,8 +73,10 @@ function isActive(item: NavItem): boolean {
                             </span>
                             <span v-if="!collapsed" class="flex-1 truncate text-[14px] font-medium">{{ item.label }}</span>
                             <span v-else class="sr-only">{{ item.label }}</span>
+                            <!-- Unread = not opened yet (the dashboard's "to handle" counts status New instead). -->
                             <span
                                 v-if="item.badge && app[item.badge] > 0"
+                                :title="`${app[item.badge]} unread (not opened yet)`"
                                 class="sb-badge flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold"
                                 :class="collapsed && 'absolute top-0.5 right-1.5 h-4 min-w-4 px-1 text-[10px]'"
                             >

@@ -56,7 +56,7 @@ class TrashRegistry
                 'with' => ['booking'],
                 'title' => fn (Payment $p) => Money::format((float) $p->amount, 'en').' · '.($p->booking?->reference ?? 'booking in the Trash'),
                 'detail' => fn (Payment $p) => $p->method,
-                'blocker' => fn (Payment $p) => $p->booking ? null : 'Restore its booking first.',
+                'blocker' => fn (Payment $p) => $p->booking ? $this->overpays($p) : 'Restore its booking first.',
                 'link' => fn (Payment $p) => "bookings/{$p->booking_id}",
                 'after' => fn (Payment $p) => app(BookingService::class)->refreshPayments($p->booking),
             ],
@@ -191,6 +191,33 @@ class TrashRegistry
      *
      * @param  list<HasMany>  $relations
      */
+    /**
+     * A paid payment cannot come back if the booking has been paid since:
+     * restoring it would take the paid amount above the total.
+     */
+    private function overpays(Payment $payment): ?string
+    {
+        $booking = $payment->booking;
+
+        if ($payment->status !== 'paid') {
+            return null;
+        }
+
+        $after = (float) $booking->paid_amount + (float) $payment->amount;
+
+        if ($after <= (float) $booking->total + 0.005) {
+            return null;
+        }
+
+        return sprintf(
+            'Restoring this payment would take %s to %s paid, above its %s total (%s too much). It has been paid since this payment was deleted; record a refund or correct the payments instead.',
+            $booking->reference,
+            Money::format($after, 'en'),
+            Money::format((float) $booking->total, 'en'),
+            Money::format($after - (float) $booking->total, 'en'),
+        );
+    }
+
     private function restoreChildren(array $relations, $since): void
     {
         foreach ($relations as $relation) {

@@ -57,12 +57,12 @@ async function signOut(): Promise<void> {
 
         <!-- Quick links -->
         <div class="tb-in flex items-center gap-1.5 sm:gap-2" style="--i: 2">
-            <RouterLink v-if="auth.can('bookings.view')" to="/admin/bookings" class="tb-icon relative hidden sm:flex" :title="`Bookings${app.bookingsUnread ? ` (${app.bookingsUnread} new)` : ''}`">
+            <RouterLink v-if="auth.can('bookings.view')" to="/admin/bookings" class="tb-icon relative hidden sm:flex" :title="`Bookings${app.bookingsUnread ? ` (${app.bookingsUnread} unread)` : ''}`">
                 <CalendarCheck class="size-5" />
                 <span class="sr-only">Bookings</span>
                 <span v-if="app.bookingsUnread > 0" class="tb-dot" aria-hidden="true">{{ app.bookingsUnread > 9 ? '9+' : app.bookingsUnread }}</span>
             </RouterLink>
-            <RouterLink v-if="auth.can('inquiries.view')" to="/admin/inquiries" class="tb-icon relative hidden sm:flex" :title="`Inquiries${app.inquiriesUnread ? ` (${app.inquiriesUnread} new)` : ''}`">
+            <RouterLink v-if="auth.can('inquiries.view')" to="/admin/inquiries" class="tb-icon relative hidden sm:flex" :title="`Inquiries${app.inquiriesUnread ? ` (${app.inquiriesUnread} unread)` : ''}`">
                 <Inbox class="size-5" />
                 <span class="sr-only">Inquiries</span>
                 <span v-if="app.inquiriesUnread > 0" class="tb-dot" aria-hidden="true">{{ app.inquiriesUnread > 9 ? '9+' : app.inquiriesUnread }}</span>

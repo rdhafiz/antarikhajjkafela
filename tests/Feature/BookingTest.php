@@ -498,6 +498,36 @@ class BookingTest extends AdminTestCase
         $this->assertStringContainsString($booking->reference, $this->asAdmin($viewer)->get('/api/admin/bookings/export')->assertOk()->streamedContent());
     }
 
+    public function test_a_deleted_payment_cannot_come_back_once_the_booking_is_paid_again(): void
+    {
+        // #40: delete a payment, record a new one, then try to restore the old one from the Trash.
+        $this->post('/packages/umrah-package/book', $this->form(['travelers' => 1]));
+        $booking = Booking::firstOrFail();
+        $total = (float) $booking->total;
+        $admin = $this->adminWith(['bookings.view', 'bookings.update', 'payments.create']);
+        $super = $this->superAdmin();
+
+        $old = $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => $total, 'method' => 'bank', 'paid_at' => now()->toDateTimeString()])
+            ->assertCreated()->json('data.payments.0.id');
+        $this->asAdmin($admin)->deleteJson("/api/admin/bookings/{$booking->id}/payments/{$old}")->assertOk();
+        $this->asAdmin($admin)->postJson("/api/admin/bookings/{$booking->id}/payments", ['amount' => $total, 'method' => 'cash', 'paid_at' => now()->toDateTimeString()])
+            ->assertCreated()->assertJsonPath('data.status', 'fully_paid');
+
+        $row = collect($this->asAdmin($super)->getJson('/api/admin/trash?type=payments')->assertOk()->json('data'))->firstWhere('id', $old);
+        $this->assertStringContainsString('above its', $row['blocker']);
+
+        $this->asAdmin($super)->postJson("/api/admin/trash/payments/{$old}/restore")->assertStatus(422);
+        $this->assertSoftDeleted(Payment::find($old) ?? Payment::withTrashed()->find($old));
+        $this->assertEquals($total, (float) $booking->fresh()->paid_amount);
+
+        // Without the newer payment the old one comes back as before.
+        $newer = $booking->payments()->where('status', 'paid')->latest('id')->value('id');
+        $this->asAdmin($admin)->deleteJson("/api/admin/bookings/{$booking->id}/payments/{$newer}")->assertOk();
+        $this->asAdmin($super)->postJson("/api/admin/trash/payments/{$old}/restore")->assertSuccessful();
+        $this->assertEquals($total, (float) $booking->fresh()->paid_amount);
+        $this->assertSame('fully_paid', $booking->fresh()->status);
+    }
+
     public function test_the_status_follows_the_payments_both_ways(): void
     {
         // No advance on this package: any amount below the total is a partial payment.
