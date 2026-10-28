@@ -38,7 +38,7 @@ return [
         'inquiries' => ['label' => 'Inquiries', 'actions' => ['view', 'update', 'delete']],
         'activity' => ['label' => 'Activity log', 'actions' => ['view']],
         // Not granted to any default role: only super admins open the Trash.
-        'trash' => ['label' => 'Trash', 'actions' => ['view', 'restore']],
+        'trash' => ['label' => 'Trash', 'actions' => ['view', 'restore', 'delete']],
     ],
 
     /*

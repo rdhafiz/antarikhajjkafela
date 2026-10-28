@@ -126,6 +126,43 @@ class TrashTest extends AdminTestCase
         $this->assertSoftDeleted(PageSection::withTrashed()->find($removed));
     }
 
+    public function test_super_admins_can_delete_trashed_items_for_good(): void
+    {
+        Mail::fake();
+        Storage::fake('local');
+        $super = $this->superAdmin();
+
+        // #53: a booking with a passport copy: deleted for good with its file, rows and activity log.
+        $package = Package::where('slug', 'umrah-package')->firstOrFail();
+        $price = $package->types()->first()->prices()->first();
+        $this->post('/packages/umrah-package/book', [
+            'option' => $price->id, 'travelers' => 1, 'rooms' => 1, 'name' => 'Karim', 'phone' => '01711-000000', 'email' => 'karim@example.com',
+            'payment' => 'later', 'agree' => '1', 'travel_month' => now()->addMonth()->month, 'travel_year' => now()->addMonth()->year,
+            'passport' => [UploadedFile::fake()->image('passport.jpg')],
+        ]);
+        $booking = Booking::firstOrFail();
+        $document = $booking->documents()->firstOrFail();
+        Storage::disk('local')->assertExists($document->path);
+
+        $this->asAdmin($super)->deleteJson("/api/admin/trash/bookings/{$booking->id}")->assertNotFound();
+        $this->asAdmin($super)->deleteJson("/api/admin/bookings/{$booking->id}")->assertNoContent();
+        $this->asAdmin($super)->deleteJson("/api/admin/trash/bookings/{$booking->id}")->assertNoContent();
+
+        $this->assertNull(Booking::withTrashed()->find($booking->id));
+        $this->assertDatabaseMissing('booking_documents', ['id' => $document->id]);
+        $this->assertDatabaseMissing('activity_log', ['subject_type' => $booking->getMorphClass(), 'subject_id' => $booking->id]);
+        Storage::disk('local')->assertMissing($document->path);
+
+        // A service whose packages still exist cannot go for good.
+        $service = $package->service;
+        $service->delete();
+        $this->asAdmin($super)->deleteJson("/api/admin/trash/services/{$service->id}")->assertStatus(422);
+
+        // Restoring is for the restore permission; deleting for good needs trash.delete.
+        $restorer = $this->adminWith(['trash.view', 'trash.restore']);
+        $this->asAdmin($restorer)->deleteJson("/api/admin/trash/services/{$service->id}")->assertForbidden();
+    }
+
     public function test_only_super_admins_open_the_trash(): void
     {
         $admin = User::factory()->create()->assignRole('admin');

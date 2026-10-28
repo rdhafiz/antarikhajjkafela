@@ -5,6 +5,10 @@ export interface ConfirmOptions {
     message?: string;
     confirmLabel?: string;
     tone?: 'danger' | 'primary';
+    /** Information only: one button that closes the dialog (resolves false). */
+    notice?: boolean;
+    /** A short list under the message, e.g. the places an image is used. */
+    items?: string[];
 }
 
 interface PendingConfirm extends ConfirmOptions {
