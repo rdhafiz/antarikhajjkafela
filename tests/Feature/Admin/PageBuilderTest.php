@@ -461,6 +461,31 @@ class PageBuilderTest extends AdminTestCase
             ->assertSee('name="adults" type="number"', false);
     }
 
+    public function test_every_form_takes_only_real_mobile_numbers(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $air = Page::where('slug', 'air-tickets')->firstOrFail()->sections()->where('component', 'lead_form')->firstOrFail();
+        $contact = Page::where('system_key', 'contact')->firstOrFail()->sections()->where('component', 'contact_form')->firstOrFail();
+        $trip = ['trip_type' => 'One way', 'from_city' => 'Dhaka', 'to_city' => 'Dubai', 'departure_date' => now()->addDays(9)->toDateString(), 'adults' => 1, 'name' => 'Karim'];
+        $message = 'Enter a valid mobile number, e.g. 01712-345678, or an international number starting with +.';
+
+        // #37: the number from the report, a landline and a short number are refused on every form.
+        foreach (['123123123123', '029876543', '0171100000'] as $phone) {
+            $this->postJson(route('forms.submit', $air), [...$trip, 'phone' => $phone])->assertJsonValidationErrors(['phone' => $message]);
+            $this->postJson(route('forms.submit', $contact), ['name' => 'Karim', 'phone' => $phone, 'message' => 'Hi'])->assertJsonValidationErrors(['phone' => $message]);
+        }
+
+        // Bangladeshi and international mobiles, as typed or as the picker sends them.
+        foreach (['01711-000000', '+8801811000000', '+971501234567', '+44 7911 123456'] as $phone) {
+            $this->postJson(route('forms.submit', $air), [...$trip, 'phone' => $phone])->assertOk();
+        }
+        $this->assertSame('+971501234567', Inquiry::where('phone', '+971501234567')->value('phone'));
+
+        // The fields carry the picker hook and the message it shows.
+        $this->get('/air-tickets')->assertOk()->assertSee('data-phone data-invalid-message="'.$message.'"', false);
+        $this->get('/contact')->assertOk()->assertSee('data-phone', false);
+    }
+
     public function test_form_messages_use_the_form_labels_and_message_limits(): void
     {
         $this->withoutMiddleware(ThrottleRequests::class);

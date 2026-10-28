@@ -250,8 +250,9 @@
                                         <label for="{{ $key }}" class="book-label">{{ $label }}@if ($required) <span class="text-red-600">*</span>@else <span class="font-normal text-ink-3">({{ __('optional') }})</span>@endif
                                         </label>
                                         <div class="book-picker">
-                                            <x-site.icon :name="$icon" class="book-picker-icon" />
-                                            <input id="{{ $key }}" name="{{ $key }}" type="{{ $type }}" value="{{ old($key) }}" autocomplete="{{ $autocomplete }}" @required($required) @if ($type === 'tel') inputmode="tel" dir="ltr" placeholder="01XXXXXXXXX" data-validate="phone" @endif @if ($type === 'email') dir="ltr" data-validate="email" @endif
+                                            {{-- The phone field shows the country flag picker in place of an icon. --}}
+                                            @unless ($type === 'tel')<x-site.icon :name="$icon" class="book-picker-icon" />@endunless
+                                            <input id="{{ $key }}" name="{{ $key }}" type="{{ $type }}" value="{{ old($key) }}" autocomplete="{{ $autocomplete }}" @required($required) @if ($type === 'tel') inputmode="tel" dir="ltr" data-validate="phone" data-phone @endif @if ($type === 'email') dir="ltr" data-validate="email" @endif
                                                    class="book-select book-input" {!! $invalid($key) !!} @if ($key === 'email' && ! $errors->has('email')) aria-describedby="email-hint" @endif>
                                         </div>
                                         @error($key)<p id="{{ $key }}-error" class="error-site">{{ $message }}</p>@enderror

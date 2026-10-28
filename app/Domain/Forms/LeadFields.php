@@ -2,6 +2,8 @@
 
 namespace App\Domain\Forms;
 
+use Propaganistas\LaravelPhone\Rules\Phone;
+
 /**
  * Fields an admin can switch on in a lead form (campaigns, air ticket quotes,
  * visa enquiries). Each entry knows its input type, autocomplete hint and
@@ -26,7 +28,7 @@ class LeadFields
     {
         return [
             'name' => ['label' => 'Full name', 'type' => 'text', 'autocomplete' => 'name', 'rules' => ['string', 'max:120']],
-            'phone' => ['label' => 'Mobile number', 'type' => 'tel', 'autocomplete' => 'tel', 'rules' => ['string', 'max:20', 'regex:/^[0-9+\-\s()]{7,20}$/']],
+            'phone' => ['label' => 'Mobile number', 'type' => 'tel', 'autocomplete' => 'tel', 'rules' => ['string', 'max:25', (new Phone)->international()->country('BD')->type('mobile')]],
             'email' => ['label' => 'Email', 'type' => 'email', 'autocomplete' => 'email', 'rules' => ['email', 'max:190']],
             'district' => ['label' => 'District', 'type' => 'text', 'autocomplete' => 'address-level2', 'rules' => ['string', 'max:80']],
             'thana' => ['label' => 'Thana / Upazila', 'type' => 'text', 'autocomplete' => 'address-level3', 'rules' => ['string', 'max:80']],

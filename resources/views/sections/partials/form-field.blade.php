@@ -34,7 +34,7 @@
                @if ($type === 'number') min="{{ $min ?? 1 }}" max="50" inputmode="numeric" @endif
                @if (isset($default)) value="{{ $default }}" @endif
                @if ($type === 'date') min="{{ now()->toDateString() }}" data-datepicker data-placeholder="{{ __('Choose a date') }}" @endif
-               @if ($type === 'tel') inputmode="tel" @endif
+               @if ($type === 'tel') inputmode="tel" dir="ltr" data-phone data-invalid-message="{{ __('Enter a valid mobile number, e.g. 01712-345678, or an international number starting with +.') }}" @endif
                :aria-invalid="errors.{{ $name }} ? 'true' : null" :aria-describedby="errors.{{ $name }} ? '{{ $id }}-error' : null"
                class="block h-12 w-full rounded-xl border border-line bg-white px-4 text-[15px] text-ink placeholder:text-ink-3 focus:border-brand focus:ring-3 focus:ring-brand/15 focus:outline-none"
                :class="errors.{{ $name }} && '!border-red-500'">

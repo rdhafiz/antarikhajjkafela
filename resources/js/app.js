@@ -152,6 +152,28 @@ async function recaptchaToken(key) {
     return Promise.race([token, new Promise((resolve) => setTimeout(() => resolve(null), 10000))]);
 }
 
+/**
+ * Phone fields with the country picker (input[data-phone], see phone-input.js):
+ * the full international number to send, and whether it is a real mobile
+ * number for the chosen country (null while the rules are still loading).
+ */
+function phoneValue(input) {
+    return (input.phoneReady && input.iti.getNumber()) || input.value.trim();
+}
+
+function phoneValid(input) {
+    if (!input.phoneReady || !input.value.trim()) return null;
+    return Boolean(input.iti.isValidNumber()) && ['MOBILE', 'FIXED_LINE_OR_MOBILE'].includes(input.iti.getNumberType());
+}
+
+/** Put the full international numbers into a form's data before it is sent. */
+function withPhoneNumbers(form, body) {
+    form.querySelectorAll('input[data-phone]').forEach((input) => {
+        if (input.name && !input.disabled) body.set(input.name, phoneValue(input));
+    });
+    return body;
+}
+
 /** Phone and email checks shared by the public forms (the server checks again, more strictly for phones). */
 const validators = {
     // A Bangladeshi mobile (01XXXXXXXXX, optionally +88/88 in front) or an international number with its + country code.
@@ -275,7 +297,9 @@ Alpine.data('bookingForm', (config) => ({
     validate(el) {
         const kind = el.dataset?.validate;
         if (!kind || !validators[kind]) return;
-        el.setCustomValidity(el.value.trim() && !validators[kind](el.value) ? this.messages[kind] : '');
+        const picked = kind === 'phone' ? phoneValid(el) : null;
+        const ok = picked ?? (el.iti ? true : validators[kind](el.value));
+        el.setCustomValidity(el.value.trim() && !ok ? this.messages[kind] : '');
     },
 
     flag(el, message = null) {
@@ -410,7 +434,7 @@ Alpine.data('bookingForm', (config) => ({
             };
             xhr.onerror = () => reject(new Error('network'));
             xhr.ontimeout = () => reject(new Error('timeout'));
-            xhr.send(new FormData(form));
+            xhr.send(withPhoneNumbers(form, new FormData(form)));
         });
     },
 
@@ -508,12 +532,21 @@ Alpine.data('siteForm', (recaptchaKey = null) => ({
 
     async submit(form) {
         if (this.busy) return;
-        this.busy = true;
         this.errors = {};
         this.message = '';
 
+        // A phone number the picker knows is not a mobile number for that country: say so before sending.
+        const badPhone = [...form.querySelectorAll('input[data-phone]')].find((input) => !input.disabled && phoneValid(input) === false);
+        if (badPhone) {
+            this.errors = { [badPhone.name]: [badPhone.dataset.invalidMessage] };
+            badPhone.focus();
+            return;
+        }
+
+        this.busy = true;
+
         try {
-            const body = new FormData(form);
+            const body = withPhoneNumbers(form, new FormData(form));
             const token = await this.token();
             if (token) body.set('recaptcha_token', token);
 
@@ -939,6 +972,12 @@ Alpine.data('dhakaClock', (locale = 'en-GB') => ({
 
 window.Alpine = Alpine;
 Alpine.start();
+
+// Phone fields get the country picker; it is only downloaded where a form has one.
+const phoneFields = document.querySelectorAll('input[data-phone]');
+if (phoneFields.length) {
+    import('./phone-input.js').then(({ default: phoneInputs }) => phoneInputs(phoneFields));
+}
 
 // Date fields become flatpickr calendars; the picker is only downloaded where a form has one.
 const dateFields = document.querySelectorAll('input[data-datepicker]');
