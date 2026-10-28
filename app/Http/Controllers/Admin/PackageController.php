@@ -168,7 +168,9 @@ class PackageController extends Controller
         ], [
             'name.en.required' => 'An English name is needed for the web address.',
             'advance_value.required_unless' => 'Enter the advance amount.',
-        ]);
+            'types.*.prices.*.price.min' => 'Enter a price of at least ৳1.',
+            'types.*.prices.*.price.required' => 'Enter the price.',
+        ], $this->editor->nestedAttributes());
 
         if ($data['status'] === Package::STATUS_PUBLISHED && empty($data['types'])) {
             return response()->json([
