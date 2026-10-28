@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Propaganistas\LaravelPhone\Rules\Phone;
 use Throwable;
 
 /**
@@ -78,7 +79,7 @@ class FormController extends Controller
         if ($section->component === 'contact_form') {
             return [
                 'name' => ['required', 'string', 'max:120'],
-                'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{7,20}$/'],
+                'phone' => ['required', 'string', 'max:25', (new Phone)->international()->country('BD')->type('mobile')],
                 'email' => ['nullable', 'email', 'max:190'],
                 'subject' => ['nullable', 'string', 'max:160'],
                 'message' => ['required', 'string', 'max:2000'],
@@ -187,6 +188,7 @@ class FormController extends Controller
     private function messages(): array
     {
         return [
+            'phone.phone' => __('Enter a valid mobile number, e.g. 01712-345678, or an international number starting with +.'),
             'return_date.required' => __('Choose your return date, or pick One way.'),
             'legs.required' => __('Add the next flight of your multi-city trip.'),
             'legs.min' => __('Add the next flight of your multi-city trip.'),
