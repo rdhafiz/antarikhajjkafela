@@ -62,7 +62,7 @@ const stats = computed<Stat[]>(() => {
             { label: 'Collected this month', value: money(d.bookings.collected_this_month), hint: 'Paid payments', icon: Wallet, tone: '#a78bfa', to: '/admin/bookings' },
         );
     }
-    if (d.inquiries) list.push({ label: 'New inquiries', value: count.format(d.inquiries.new), hint: 'Not yet handled', icon: Inbox, tone: '#38bdf8', to: '/admin/inquiries?status=new' });
+    if (d.inquiries) list.push({ label: 'Inquiries to handle', value: count.format(d.inquiries.new), hint: 'Still marked New', icon: Inbox, tone: '#38bdf8', to: '/admin/inquiries?status=new' });
     if (d.packages) list.push({ label: 'Live packages', value: count.format(d.packages.published), hint: 'Published', icon: Package, tone: '#fb923c', to: '/admin/packages?status=published' });
     if (d.posts) list.push({ label: 'Live posts', value: count.format(d.posts.published), hint: 'Blog & news', icon: Newspaper, tone: '#fb7185', to: '/admin/blog' });
     if (d.gallery) list.push({ label: 'Gallery albums', value: count.format(d.gallery.albums), hint: 'Photos & videos', icon: GalleryHorizontalEnd, tone: '#2dd4bf', to: '/admin/gallery' });
