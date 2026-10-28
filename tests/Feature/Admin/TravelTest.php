@@ -7,6 +7,7 @@ use App\Domain\Menus\MenuRepository;
 use App\Domain\Settings\Settings;
 use App\Models\Package;
 use App\Models\PackagePrice;
+use App\Models\Page;
 use App\Models\Service;
 use Database\Seeders\PageSeeder;
 use Database\Seeders\TourSeeder;
@@ -293,6 +294,33 @@ class TravelTest extends AdminTestCase
     public function test_home_page_shows_featured_packages(): void
     {
         $this->get('/')->assertSee('data-section="package_showcase"', false)->assertSeeText('Hajj Premium Package');
+    }
+
+    public function test_one_service_package_sections_show_only_featured_packages(): void
+    {
+        $umrah = $this->umrah();
+        $umrah->update(['is_featured' => false]);
+        $section = Page::where('system_key', 'home')->firstOrFail()->sections()->create([
+            'component' => 'package_showcase',
+            'sort' => 99,
+            'content' => ['title' => ['en' => 'Umrah picks'], 'source' => 'service', 'service' => (string) $umrah->service_id, 'limit' => 6],
+            'style' => [],
+        ]);
+
+        // Without the setting (sections saved before it existed) only featured packages show.
+        $this->get('/')->assertDontSeeText('Umrah picks');
+
+        $umrah->update(['is_featured' => true]);
+        $this->get('/')->assertSeeText('Umrah picks')->assertSee($umrah->url(), false);
+
+        $umrah->update(['is_featured' => false]);
+        $section->update(['content' => [...$section->content, 'featured_only' => false]]);
+        $this->get('/')->assertSeeText('Umrah picks')->assertSee($umrah->url(), false);
+
+        // Existing sections are switched to featured only by the migration.
+        $section->update(['content' => array_diff_key($section->content, ['featured_only' => 0])]);
+        (require database_path('migrations/2026_10_29_130000_featured_packages_on_service_showcases.php'))->up();
+        $this->assertTrue($section->fresh()->content['featured_only']);
     }
 
     public function test_services_admin_and_permissions(): void

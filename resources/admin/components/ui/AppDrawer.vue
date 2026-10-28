@@ -26,6 +26,12 @@ const props = withDefaults(
 // Drawers render outside <main>, so they take the module colour themselves.
 const route = useRoute();
 const toneValue = computed(() => props.tone ?? findNavItem(route.path)?.item.tone ?? '#818cf8');
+
+/** Date pickers open their calendar outside the sheet; picking a day must not close it. */
+function keepOpenForPopups(event: CustomEvent<{ originalEvent: Event }>): void {
+    const target = event.detail?.originalEvent?.target;
+    if (target instanceof Element && target.closest('.flatpickr-calendar')) event.preventDefault();
+}
 </script>
 
 <template>
@@ -36,6 +42,7 @@ const toneValue = computed(() => props.tone ?? findNavItem(route.path)?.item.ton
                 class="dw-sheet fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-white shadow-[-24px_0_60px_-30px_rgb(2_12_27/0.45)] outline-none"
                 :class="width === 'lg' ? 'sm:max-w-[640px]' : 'sm:max-w-[460px]'"
                 :style="{ '--tone': toneValue }"
+                @interact-outside="keepOpenForPopups"
             >
                 <header class="flex items-start gap-3.5 border-b border-line px-5 py-4 sm:px-6">
                     <span v-if="icon" class="dw-tile flex size-11 shrink-0 items-center justify-center rounded-xl" aria-hidden="true">

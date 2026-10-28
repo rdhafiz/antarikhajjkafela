@@ -8,9 +8,11 @@
 @endphp
 <x-site.layout header="overlay">
     @if ($preview)
-        <div class="relative z-50 bg-gold px-4 py-2 text-center text-[13px] font-semibold text-brand-950">
-            {{ __('Preview') }} · {{ match ($post->state()) { 'scheduled' => __('Scheduled for :date', ['date' => $p['date']]), 'draft' => __('Draft, not visible to visitors'), default => __('Published') } }}
-        </div>
+        <x-site.preview-bar
+            :state="$post->state()"
+            :label="match ($post->state()) { 'scheduled' => __('Scheduled for :date', ['date' => $p['date']]), 'draft' => __('Draft, not visible to visitors'), default => __('Published') }"
+            :edit-url="admin_url('blog/'.$post->id)"
+        />
     @endif
 
     <article>

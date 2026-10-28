@@ -5,12 +5,14 @@
     :footer-cta="$footerCta"
 >
     @if ($preview)
-        <div class="relative z-50 flex items-center justify-center gap-3 bg-gold px-4 py-2 text-center text-[13px] font-semibold text-brand-950">
-            {{ __('Preview') }} · {{ $page->isPublished() ? __('Published') : __('Draft, not visible to visitors') }}
-            @if ($page->isCampaign() && $page->campaignState() !== 'live' && $page->isPublished())
-                · {{ ucfirst($page->campaignState()) }}
-            @endif
-        </div>
+        @php
+            $state = $page->isCampaign() ? $page->campaignState() : ($page->isPublished() ? 'published' : 'draft');
+        @endphp
+        <x-site.preview-bar
+            :state="$state"
+            :label="match ($state) { 'draft' => __('Draft, not visible to visitors'), 'published', 'live' => __('Published'), default => __('Published').' · '.ucfirst($state) }"
+            :edit-url="admin_url('pages/'.$page->id)"
+        />
     @endif
 
     {!! $html !!}

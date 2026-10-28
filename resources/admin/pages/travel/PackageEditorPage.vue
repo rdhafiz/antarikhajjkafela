@@ -222,7 +222,7 @@ const bookingTone = { open: 'success', upcoming: 'warning', closed: 'danger' } a
                         <p v-if="errors.types?.[0]" class="mt-1.5 text-[13px] font-medium text-red-600">{{ errors.types[0] }}</p>
                     </FormField>
                     <div class="rounded-lg border border-line p-3.5">
-                        <AppSwitch v-model="(data.is_featured as boolean)" label="Featured" description="Shown first and in 'featured packages' sections." />
+                        <AppSwitch v-model="(data.is_featured as boolean)" label="Featured" description="Shown on the home page and in other 'featured' package sections; listed first everywhere." />
                     </div>
                     <div class="rounded-lg border border-line p-3.5">
                         <AppSwitch

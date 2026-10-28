@@ -9,6 +9,7 @@ use App\Models\Media;
 use App\Models\Page;
 use App\Models\Service;
 use App\Models\SlugRedirect;
+use App\Rules\FreeSlug;
 use App\Support\Icons;
 use App\Support\Locales;
 use Illuminate\Http\JsonResponse;
@@ -93,7 +94,7 @@ class ServiceController extends Controller
             'slug' => [
                 'required', 'string', 'max:120', 'regex:'.PageSaveRequest::SLUG_PATTERN,
                 Rule::unique('services', 'slug')->ignore($service?->id),
-                Rule::notIn(array_diff(config('page-builder.reserved_slugs'), ['hajj', 'umrah'])),
+                new FreeSlug(except: ['hajj', 'umrah']),
             ],
             'summary.*' => ['nullable', 'string', 'max:300'],
             'headline.*' => ['nullable', 'string', 'max:90'],

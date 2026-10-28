@@ -287,7 +287,34 @@ class PageBuilderTest extends AdminTestCase
         $this->get(URL::temporarySignedRoute('pages.preview', now()->addHour(), ['page' => $campaign->id]))
             ->assertOk()
             ->assertSee('noindex, nofollow', false)
-            ->assertSeeText('Draft, not visible to visitors');
+            ->assertSeeText('Draft, not visible to visitors')
+            ->assertSee('href="'.admin_url('pages/'.$campaign->id).'"', false);
+    }
+
+    public function test_every_style_setting_is_saved(): void
+    {
+        $page = $this->page('services');
+        $payload = $this->payload($page);
+        $payload['sections'][1]['style'] = [
+            ...(array) $payload['sections'][1]['style'],
+            'background' => 'mint-soft', 'decor' => 'shapes', 'spacing' => 'sm', 'anchor' => 'Our Services',
+            'overlay_opacity' => 40, 'text_color' => '#A93232',
+        ];
+
+        $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $payload)
+            ->assertOk()
+            ->assertJsonPath('data.sections.1.style.background', 'mint-soft')
+            ->assertJsonPath('data.sections.1.style.decor', 'shapes')
+            ->assertJsonPath('data.sections.1.style.spacing', 'sm')
+            ->assertJsonPath('data.sections.1.style.anchor', 'our-services')
+            ->assertJsonPath('data.sections.1.style.overlay_opacity', 40)
+            ->assertJsonPath('data.sections.1.style.text_color', '#a93232');
+
+        $this->get('/services')->assertSee('id="our-services"', false)->assertSee('bg-mint-soft', false);
+
+        $payload['sections'][1]['style']['spacing'] = 'huge';
+        $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $payload)
+            ->assertJsonValidationErrors(['sections.1.style.spacing' => '→ Vertical spacing is invalid']);
     }
 
     public function test_saving_reorders_hides_and_removes_sections(): void
@@ -364,6 +391,9 @@ class PageBuilderTest extends AdminTestCase
             ->assertJsonValidationErrors('slug');
         $this->asAdmin($admin)->postJson('/api/admin/pages', ['type' => 'custom', 'title' => ['en' => 'Refund policy'], 'slug' => 'Refund Policy'])
             ->assertJsonValidationErrors('slug');
+        // Old-site addresses already redirect elsewhere, so a page there could never be reached.
+        $this->asAdmin($admin)->postJson('/api/admin/pages', ['type' => 'custom', 'title' => ['en' => 'About us'], 'slug' => 'about-us'])
+            ->assertJsonValidationErrors(['slug' => 'already redirects to /about']);
 
         $id = $this->asAdmin($admin)->postJson('/api/admin/pages', ['type' => 'custom', 'title' => ['en' => 'Refund policy'], 'slug' => 'refund-policy'])
             ->assertCreated()
@@ -384,6 +414,9 @@ class PageBuilderTest extends AdminTestCase
         $sections[1]['content']['body'] = ['en' => '<p>Our refund terms.</p>'];
         $this->asAdmin($admin)->putJson("/api/admin/pages/{$id}", array_replace($draft, ['status' => 'published', 'sections' => $sections]))->assertOk();
         $this->get('/refund-policy')->assertOk()->assertSeeText('Refund policy');
+
+        $this->asAdmin($admin)->putJson("/api/admin/pages/{$id}", array_replace($draft, ['slug' => 'contact-us', 'sections' => $sections]))
+            ->assertJsonValidationErrors(['slug' => 'already redirects to /contact']);
 
         $this->asAdmin($admin)->deleteJson("/api/admin/pages/{$this->page('about')->id}")->assertStatus(422);
     }

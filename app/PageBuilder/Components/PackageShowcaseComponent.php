@@ -53,6 +53,8 @@ class PackageShowcaseComponent extends Component
             ...$this->headingFields(),
             Field::select('source', 'Show', ['featured' => 'Featured packages', 'service' => 'Packages of one service', 'latest' => 'All packages, newest first']),
             Field::select('service', 'Service', $services)->default(null)->showIf('source', ['service']),
+            Field::toggle('featured_only', 'Only featured packages')->default(true)->showIf('source', ['service'])
+                ->hint('Mark packages as Featured in Packages to choose which ones show here. Turn off to show every package of this service.'),
             Field::number('limit', 'How many', 1, 12)->default(3),
             Field::select('layout', 'Layout', ['grid' => 'Plain background', 'staggered' => 'Background pattern that moves while scrolling'])->default('grid'),
             Field::link('cta', 'Button below the cards'),
@@ -65,6 +67,7 @@ class PackageShowcaseComponent extends Component
             ->with('banner', 'service')
             ->when(($content['source'] ?? 'featured') === 'featured', fn ($q) => $q->where('is_featured', true))
             ->when(($content['source'] ?? null) === 'service' && $content['service'], fn ($q) => $q->where('service_id', (int) $content['service']))
+            ->when(($content['source'] ?? null) === 'service' && ($content['featured_only'] ?? true), fn ($q) => $q->where('is_featured', true))
             ->orderByDesc('is_featured')
             ->orderBy('sort')
             ->latest('id')

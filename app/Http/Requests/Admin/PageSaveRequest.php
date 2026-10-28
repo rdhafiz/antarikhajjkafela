@@ -7,6 +7,7 @@ use App\PageBuilder\ComponentRegistry;
 use App\PageBuilder\ContentProcessor;
 use App\PageBuilder\Field;
 use App\PageBuilder\SectionStyle;
+use App\Rules\FreeSlug;
 use App\Support\Locales;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -49,7 +50,7 @@ class PageSaveRequest extends FormRequest
         if ($page->type !== Page::TYPE_DEFAULT) {
             $rules['slug'] = [
                 'required', 'string', 'max:160', 'regex:'.self::SLUG_PATTERN,
-                Rule::notIn(config('page-builder.reserved_slugs')),
+                new FreeSlug,
                 Rule::unique('pages', 'slug')->ignore($page->id),
                 Rule::unique('services', 'slug'),
             ];
@@ -77,12 +78,18 @@ class PageSaveRequest extends FormRequest
                 $rules = [...$rules, ...$processor->rules($registry->get($key)->fields(), "sections.{$index}.content", $publishing)];
             }
 
+            // Every style key needs a rule, or validated() leaves it out.
             foreach (SectionStyle::fields() as $field) {
                 if ($field->type === Field::COLOR) {
                     $rules["sections.{$index}.style.{$field->key}"] = ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'];
                 }
             }
+            $rules["sections.{$index}.style.background"] = ['nullable', Rule::in(array_keys(SectionStyle::BACKGROUNDS))];
             $rules["sections.{$index}.style.background_image"] = ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'];
+            $rules["sections.{$index}.style.overlay_opacity"] = ['nullable', 'integer', 'between:0,95'];
+            $rules["sections.{$index}.style.decor"] = ['nullable', Rule::in(array_keys(SectionStyle::DECORS))];
+            $rules["sections.{$index}.style.spacing"] = ['nullable', Rule::in(array_keys(SectionStyle::SPACINGS))];
+            $rules["sections.{$index}.style.anchor"] = ['nullable', 'string', 'max:40'];
         }
 
         return $rules;
@@ -156,6 +163,7 @@ class PageSaveRequest extends FormRequest
                 $names["sections.{$index}"] = $component->name();
                 $names["sections.{$index}.content"] = $component->name();
                 $names = [...$names, ...$processor->attributes($component->fields(), "sections.{$index}.content", $component->name())];
+                $names = [...$names, ...$processor->attributes(SectionStyle::fields(), "sections.{$index}.style", $component->name())];
             }
         }
 
@@ -169,7 +177,6 @@ class PageSaveRequest extends FormRequest
     {
         return [
             'slug.regex' => 'Use lowercase letters, numbers and single hyphens only, e.g. hajj-registration-2027.',
-            'slug.not_in' => 'This address is used by the website. Choose another.',
             'expires_at.after' => 'The expiry must be after the start date.',
         ];
     }
