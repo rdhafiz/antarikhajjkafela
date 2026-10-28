@@ -31,7 +31,7 @@ class SitemapController extends Controller
                 ->values()
                 ->all();
 
-            foreach (Service::active()->orderBy('sort')->get() as $service) {
+            foreach (Service::listed()->orderBy('sort')->get() as $service) {
                 $urls[] = ['loc' => $service->url(), 'lastmod' => $service->updated_at?->toAtomString()];
             }
 

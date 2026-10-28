@@ -178,7 +178,7 @@ function withPhoneNumbers(form, body) {
 const validators = {
     // A Bangladeshi mobile (01XXXXXXXXX, optionally +88/88 in front) or an international number with its + country code.
     phone: (value) => {
-        const v = value.replace(/[\s\-().]/g, '');
+        const v = value.replace(/[০-৯]/g, (d) => String(d.charCodeAt(0) - 0x09e6)).replace(/[\s\-().]/g, '');
         return /^(?:\+?88)?01[3-9]\d{8}$/.test(v) || /^\+(?!88)[1-9]\d{7,14}$/.test(v);
     },
     email: (value) => /^[^\s@]+@[^\s@]+\.[^\s@.]{2,}$/.test(value.trim()),

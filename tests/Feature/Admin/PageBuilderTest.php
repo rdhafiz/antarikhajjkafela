@@ -7,6 +7,7 @@ use App\Models\Media;
 use App\Models\Page;
 use App\Models\Review;
 use App\PageBuilder\SectionStyle;
+use Database\Seeders\MenuSeeder;
 use Database\Seeders\PageSeeder;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Storage;
@@ -460,6 +461,29 @@ class PageBuilderTest extends AdminTestCase
         $this->withUnencryptedCookie('locale', 'bn')->get('/air-tickets')->assertOk()
             ->assertSee('<option value="Return" selected>রিটার্ন</option>', false)
             ->assertSee('name="adults" type="number"', false);
+    }
+
+    public function test_bangla_digits_links_to_all_packages_and_the_reviews_button(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $contact = Page::where('system_key', 'contact')->firstOrFail()->sections()->where('component', 'contact_form')->firstOrFail();
+
+        // #86: a number typed on a Bangla keyboard is accepted and stored in Latin digits.
+        $this->postJson(route('forms.submit', $contact), ['name' => 'Karim', 'phone' => '০১৭১১-০০০০০০', 'message' => 'Hi'])->assertOk();
+        $this->assertSame('01711-000000', Inquiry::latest('id')->value('phone'));
+
+        // #77: every page's footer links to all packages.
+        $this->seed(MenuSeeder::class);
+        $this->assertStringContainsString('href="'.route('packages.index').'"', strstr($this->get('/')->getContent(), '<footer'));
+
+        // #87: "Read all reviews" only while the Reviews page is live.
+        $home = Page::where('system_key', 'home')->firstOrFail();
+        $home->sections()->create(['component' => 'testimonials', 'sort' => 99, 'is_visible' => true, 'content' => ['title' => ['en' => 'Stories'], 'cta' => ['label' => ['en' => 'Read all reviews'], 'url' => '/reviews']], 'style' => []]);
+        Review::create(['name' => ['en' => 'Karim'], 'text' => ['en' => 'Very good.'], 'is_published' => true]);
+        Page::where('slug', 'reviews')->update(['status' => Page::STATUS_DRAFT]);
+        $this->get('/')->assertOk()->assertDontSeeText('Read all reviews');
+        Page::where('slug', 'reviews')->update(['status' => Page::STATUS_PUBLISHED]);
+        $this->get('/')->assertOk()->assertSeeText('Read all reviews');
     }
 
     public function test_inquiries_are_named_by_what_they_ask(): void

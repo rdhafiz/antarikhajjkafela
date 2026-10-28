@@ -61,6 +61,10 @@
                     @endforeach
                 </div>
             @endif
+            {{-- Packages of the other services, in one list. --}}
+            <p class="mt-10 text-center" data-reveal>
+                <a href="{{ route('packages.index') }}" class="link-underline inline-flex items-center gap-1.5 font-semibold text-brand">{{ __('See all packages') }}<x-site.icon name="arrow-right" class="size-4 rtl:rotate-180" /></a>
+            </p>
         </div>
     </section>
 

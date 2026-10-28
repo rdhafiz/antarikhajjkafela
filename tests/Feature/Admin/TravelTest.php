@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Domain\Menus\MenuLinks;
 use App\Domain\Menus\MenuRepository;
 use App\Domain\Settings\Settings;
 use App\Models\Package;
@@ -315,6 +316,15 @@ class TravelTest extends AdminTestCase
             'highlight' => ['en' => 'in Makkah and Madinah.'],
         ])->assertOk()->assertJsonPath('data.headline.en', 'Walk where the Prophet walked,');
         $this->get('/ziyarah-tours')->assertOk()->assertSeeTextInOrder(['Walk where the Prophet walked,', 'in Makkah and Madinah.']);
+
+        // #78: staff can preview it, but visitors don't see a service with nothing to book, nor its menu link or sitemap entry.
+        $this->app['auth']->guard('web')->logout();
+        $this->app['auth']->forgetGuards();
+        $this->get('/ziyarah-tours')->assertNotFound();
+        $this->get('/packages')->assertOk()->assertViewHas('services', fn ($services) => ! $services->contains('slug', 'ziyarah-tours'));
+        $this->assertStringNotContainsString('/ziyarah-tours', $this->get('/sitemap.xml')->getContent());
+        $this->assertNull(app(MenuLinks::class)->resolve('service', (string) $ziyarah->id, null));
+        $this->get('/hajj')->assertOk()->assertSee('href="'.route('packages.index').'"', false)->assertSeeText('See all packages');
 
         $hajj = Service::where('slug', 'hajj')->firstOrFail();
         $this->asAdmin($admin)->deleteJson("/api/admin/services/{$hajj->id}")->assertJsonValidationErrors('service');

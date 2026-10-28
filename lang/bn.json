@@ -486,5 +486,6 @@
     "Pay at least :amount online.": "অনলাইনে কমপক্ষে :amount পরিশোধ করুন।",
     "Amount": "পরিমাণ",
     "Please use plain text here, without links or < >.": "এখানে লিংক বা < > ছাড়া সাধারণ লেখা লিখুন।",
-    "Please start with a letter or number, not = + - or @.": "= + - বা @ নয়, অক্ষর বা সংখ্যা দিয়ে শুরু করুন।"
+    "Please start with a letter or number, not = + - or @.": "= + - বা @ নয়, অক্ষর বা সংখ্যা দিয়ে শুরু করুন।",
+    "See all packages": "সব প্যাকেজ দেখুন"
 }
