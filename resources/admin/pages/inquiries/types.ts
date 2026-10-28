@@ -23,7 +23,10 @@ export const inquiryStatus: Record<InquiryStatus, { label: string; tone: string 
 
 const sources: Record<string, { label: string; tone: string }> = {
     contact_form: { label: 'Contact form', tone: '#38bdf8' },
-    lead_form: { label: 'Campaign form', tone: '#a78bfa' },
+    fare_quote: { label: 'Air ticket quote', tone: '#34d399' },
+    visa_enquiry: { label: 'Visa enquiry', tone: '#fbbf24' },
+    campaign_form: { label: 'Campaign form', tone: '#a78bfa' },
+    lead_form: { label: 'Enquiry form', tone: '#fb923c' },
 };
 
 export function inquirySource(source: string): { label: string; tone: string } {

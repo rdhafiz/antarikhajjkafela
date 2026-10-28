@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Media;
 use App\Models\Page;
 use App\Models\Service;
+use App\Models\SlugRedirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 
@@ -34,6 +35,11 @@ class PageController extends Controller
         // Service pages such as /hajj and /umrah share the same address space.
         if ($page === null && ($service = Service::active()->where('slug', $slug)->first())) {
             return app(PackageController::class)->service($service);
+        }
+
+        // A service that changed its address: the old one redirects.
+        if ($page === null && ($moved = SlugRedirect::target('service', $slug)) && ($service = Service::active()->find($moved))) {
+            return redirect()->to(url($service->slug), 301);
         }
 
         abort_if($page === null, 404);

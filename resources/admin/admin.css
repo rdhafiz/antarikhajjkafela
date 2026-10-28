@@ -1090,12 +1090,18 @@
     /* Detail lists inside drawers */
     .dl {
         display: grid;
-        grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+        /* The label column fits its icon and word (at least 6.5rem), the value takes the rest. */
+        grid-template-columns: minmax(6.5rem, max-content) minmax(0, 1fr);
         gap: 0.65rem 1rem;
         font-size: 14px;
 
         dt {
             color: var(--color-ink-muted);
+
+            /* Icons keep their size however narrow the drawer is. */
+            svg {
+                flex-shrink: 0;
+            }
         }
 
         dd {

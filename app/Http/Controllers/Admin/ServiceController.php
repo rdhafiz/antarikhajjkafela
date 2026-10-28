@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\PageSaveRequest;
 use App\Models\Media;
 use App\Models\Page;
 use App\Models\Service;
+use App\Models\SlugRedirect;
 use App\Support\Icons;
 use App\Support\Locales;
 use Illuminate\Http\JsonResponse;
@@ -39,7 +40,13 @@ class ServiceController extends Controller
 
     public function update(Request $request, Service $service): JsonResponse
     {
+        $oldSlug = $service->slug;
         $service->update($this->validated($request, $service));
+
+        // The old address keeps working: links and search results redirect to the new one.
+        if ($oldSlug !== $service->slug) {
+            SlugRedirect::remember('service', $oldSlug, $service->id);
+        }
         Cache::forget('sitemap.xml');
 
         return response()->json(['data' => $this->present($service->loadCount('packages'))]);
@@ -80,6 +87,8 @@ class ServiceController extends Controller
         $data = $request->validate([
             'name' => ['required', 'array'],
             "name.{$default}" => ['required', 'string', 'max:80'],
+            // English always: the public site and search engines show English first.
+            'name.en' => ['required', 'string', 'max:80'],
             'name.*' => ['nullable', 'string', 'max:80'],
             'slug' => [
                 'required', 'string', 'max:120', 'regex:'.PageSaveRequest::SLUG_PATTERN,
@@ -97,7 +106,10 @@ class ServiceController extends Controller
             'seo.title.*' => ['nullable', 'string', 'max:70'],
             'seo.description.*' => ['nullable', 'string', 'max:200'],
             'seo.image' => ['nullable', 'integer', Rule::exists(Media::class, 'id')->whereNull('deleted_at')],
-        ], ['slug.regex' => 'Use lowercase letters, numbers and single hyphens only.']);
+        ], [
+            'slug.regex' => 'Use lowercase letters, numbers and single hyphens only.',
+            'name.en.required' => 'An English name is needed: the website shows English first.',
+        ]);
 
         if (Page::where('slug', $data['slug'])->exists()) {
             throw ValidationException::withMessages(['slug' => 'A page already uses this address.']);

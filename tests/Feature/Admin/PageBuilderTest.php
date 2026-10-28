@@ -431,7 +431,8 @@ class PageBuilderTest extends AdminTestCase
             ->assertOk();
 
         $inquiry = Inquiry::firstOrFail();
-        $this->assertSame('lead_form', $inquiry->source);
+        $this->assertSame('campaign_form', $inquiry->source);
+        $this->assertSame('Campaign form', $inquiry->sourceLabel());
         $this->assertSame('Dhaka', $inquiry->data['district']);
         $this->assertSame($campaign->id, $inquiry->page_id);
     }
@@ -459,6 +460,23 @@ class PageBuilderTest extends AdminTestCase
         $this->withUnencryptedCookie('locale', 'bn')->get('/air-tickets')->assertOk()
             ->assertSee('<option value="Return" selected>রিটার্ন</option>', false)
             ->assertSee('name="adults" type="number"', false);
+    }
+
+    public function test_inquiries_are_named_by_what_they_ask(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $air = Page::where('slug', 'air-tickets')->firstOrFail()->sections()->where('component', 'lead_form')->firstOrFail();
+        $visa = Page::where('slug', 'visa')->firstOrFail()->sections()->where('component', 'lead_form')->firstOrFail();
+
+        // #85: fare quotes and visa enquiries are not "Campaign form".
+        $this->postJson(route('forms.submit', $air), ['trip_type' => 'One way', 'from_city' => 'Dhaka', 'to_city' => 'Dubai', 'departure_date' => now()->addDays(9)->toDateString(), 'adults' => 1, 'name' => 'Karim', 'phone' => '01711000000'])->assertOk();
+        $this->postJson(route('forms.submit', $visa), ['visa_type' => 'Student', 'visa_country' => 'কানাডা', 'name' => 'Rahima', 'phone' => '01711000001'])->assertOk();
+
+        $this->assertSame(['fare_quote', 'visa_enquiry'], Inquiry::orderBy('id')->pluck('source')->all());
+        $admin = $this->asAdmin($this->superAdmin());
+        $admin->getJson('/api/admin/inquiries')->assertJsonPath('counts.sources.fare_quote', 1)->assertJsonPath('counts.sources.visa_enquiry', 1);
+        $admin->getJson('/api/admin/inquiries?source=visa_enquiry')->assertJsonCount(1, 'data');
+        $this->assertStringContainsString('Air ticket quote', $admin->get('/api/admin/inquiries/export')->streamedContent());
     }
 
     public function test_names_and_subjects_take_plain_text_only(): void

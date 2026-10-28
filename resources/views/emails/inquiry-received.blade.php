@@ -1,5 +1,5 @@
 @extends('emails.layout', [
-    'eyebrow' => $inquiry->source === 'lead_form' ? 'Campaign registration' : 'Website message',
+    'eyebrow' => $inquiry->source === 'contact_form' ? 'Website message' : $inquiry->sourceLabel(),
     'title' => $inquiry->name ?: 'New enquiry',
     'intro' => 'A new enquiry was received'.(isset($inquiry->data['page']) ? ' on "'.$inquiry->data['page'].'"' : '').'.',
 ])
