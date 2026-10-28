@@ -14,6 +14,7 @@ use App\Support\Locales;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -189,6 +190,8 @@ class PackageController extends Controller
     public function destroy(Package $package): JsonResponse
     {
         $package->delete();
+        // Its page leaves the sitemap now, and so does its service if this was its last package.
+        Cache::forget('sitemap.xml');
 
         return response()->json(status: 204);
     }
