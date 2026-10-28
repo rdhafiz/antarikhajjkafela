@@ -654,7 +654,14 @@ class PageBuilderTest extends AdminTestCase
 
         $this->asAdmin($admin)->getJson('/api/admin/inquiries')->assertOk()->assertJsonPath('counts.unread', 1)->assertJsonPath('data.0.name', 'Rahim');
         $this->asAdmin($admin)->getJson("/api/admin/inquiries/{$id}")->assertOk()->assertJsonPath('data.read', true);
-        $this->asAdmin($admin)->putJson("/api/admin/inquiries/{$id}", ['status' => 'closed', 'notes' => 'Called back'])->assertOk()->assertJsonPath('data.status', 'closed');
+        $this->asAdmin($admin)->putJson("/api/admin/inquiries/{$id}", ['status' => 'closed'])->assertOk()->assertJsonPath('data.status', 'closed');
+        // #89: notes, unread and bulk actions on inquiries too.
+        $this->asAdmin($admin)->postJson("/api/admin/inquiries/{$id}/notes", ['body' => 'Called back'])->assertCreated()->assertJsonPath('data.0.body', 'Called back');
+        $this->asAdmin($admin)->getJson("/api/admin/inquiries/{$id}")->assertJsonPath('data.notes.0.body', 'Called back')->assertJsonPath('data.read', true);
+        $this->asAdmin($admin)->postJson("/api/admin/inquiries/{$id}/unread")->assertOk()->assertJsonPath('data.read', false);
+        $this->asAdmin($admin)->postJson('/api/admin/inquiries/bulk', ['ids' => [$id], 'action' => 'status', 'status' => 'in_progress'])->assertJsonPath('data.count', 1);
+        $this->assertSame('in_progress', Inquiry::find($id)->status);
+        $this->assertStringContainsString('Called back', $this->asAdmin($admin)->get("/api/admin/inquiries/export?ids={$id}")->streamedContent());
         $this->asAdmin($admin)->get('/api/admin/inquiries/export')->assertOk()->assertHeader('content-type', 'text/csv; charset=UTF-8');
     }
 

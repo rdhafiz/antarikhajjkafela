@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
+use App\Models\Note;
 use App\Support\Csv;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -46,19 +47,55 @@ class InquiryController extends Controller
             $inquiry->forceFill(['read_at' => now()])->save();
         }
 
-        return response()->json(['data' => $this->format($inquiry->load('page:id,title,type,slug'))]);
+        return response()->json(['data' => $this->format($inquiry->load(['page:id,title,type,slug', 'notes.author:id,name']))]);
     }
 
     public function update(Request $request, Inquiry $inquiry): JsonResponse
     {
         $data = $request->validate([
             'status' => ['required', Rule::in(Inquiry::STATUSES)],
-            'notes' => ['nullable', 'string', 'max:5000'],
         ]);
 
         $inquiry->update($data);
 
         return response()->json(['data' => $this->format($inquiry)]);
+    }
+
+    /** Back to unread, e.g. to deal with it later; the menu badge counts it again. */
+    public function unread(Inquiry $inquiry): JsonResponse
+    {
+        $inquiry->forceFill(['read_at' => null])->save();
+
+        return response()->json(['data' => $this->format($inquiry)]);
+    }
+
+    /**
+     * Several inquiries at once: mark read or unread, set a status, or move them to the Trash.
+     */
+    public function bulk(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:200'],
+            'ids.*' => ['integer'],
+            'action' => ['required', Rule::in(['read', 'unread', 'status', 'delete'])],
+            'status' => ['required_if:action,status', 'nullable', Rule::in(Inquiry::STATUSES)],
+        ]);
+
+        $permission = ['status' => 'inquiries.update', 'delete' => 'inquiries.delete'][$data['action']] ?? null;
+        abort_if($permission && ! $request->user()->can($permission), 403, 'You do not have permission to do that.');
+
+        $inquiries = Inquiry::whereIn('id', $data['ids'])->get();
+
+        foreach ($inquiries as $inquiry) {
+            match ($data['action']) {
+                'read' => $inquiry->read_at ?? $inquiry->forceFill(['read_at' => now()])->save(),
+                'unread' => $inquiry->forceFill(['read_at' => null])->save(),
+                'status' => $inquiry->update(['status' => $data['status']]),
+                'delete' => $inquiry->delete(),
+            };
+        }
+
+        return response()->json(['data' => ['count' => $inquiries->count()]]);
     }
 
     public function destroy(Inquiry $inquiry): JsonResponse
@@ -91,7 +128,7 @@ class InquiryController extends Controller
                         $inquiry->email,
                         collect($inquiry->readableData())->map(fn ($v, $k) => "{$k}: ".str_replace("\n", '; ', $v))->implode(' | '),
                         $inquiry->status,
-                        $inquiry->notes,
+                        $inquiry->notes()->oldest('id')->pluck('body')->implode(' | '),
                     ]));
                 }
             });
@@ -119,12 +156,15 @@ class InquiryController extends Controller
             'sort' => ['nullable', Rule::in(['newest', 'oldest'])],
             'search' => ['nullable', 'string', 'max:100'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            // Export only the rows ticked in the list.
+            'ids' => ['nullable', 'string', 'max:2000', 'regex:/^\d+(,\d+)*$/'],
         ]);
     }
 
     private function query(array $filters)
     {
         return Inquiry::query()
+            ->when($filters['ids'] ?? null, fn ($q, $ids) => $q->whereIn('id', array_map('intval', explode(',', $ids))))
             ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
             ->when($filters['source'] ?? null, fn ($q, $source) => $q->where('source', $source))
             ->when($filters['read'] ?? null, fn ($q, $read) => $read === 'unread' ? $q->whereNull('read_at') : $q->whereNotNull('read_at'))
@@ -153,7 +193,8 @@ class InquiryController extends Controller
             'data' => (object) $inquiry->readableData(),
             'page' => $inquiry->page ? ['id' => $inquiry->page->id, 'title' => $inquiry->page->getTranslation('title', 'en'), 'type' => $inquiry->page->type] : null,
             'status' => $inquiry->status,
-            'notes' => $inquiry->notes,
+            // The old "notes" column shares the name: read the relation itself.
+            'notes' => $inquiry->relationLoaded('notes') ? $inquiry->getRelation('notes')->map(fn (Note $n) => $n->present(request()->user()))->all() : null,
             'locale' => $inquiry->locale,
             'read' => $inquiry->read_at !== null,
             'created_at' => $inquiry->created_at?->toIso8601String(),

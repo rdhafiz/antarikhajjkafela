@@ -1603,3 +1603,94 @@ input[type='search']::-webkit-search-decoration {
     appearance: none;
     display: none;
 }
+
+/* Bulk actions bar: floats at the bottom of a list while rows are ticked. */
+.bulk-bar {
+    position: sticky;
+    bottom: 1rem;
+    z-index: 30;
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-radius: 1rem;
+    background: var(--color-brand-950, #0b1a2c);
+    padding: 0.75rem 0.75rem 0.75rem 1.1rem;
+    box-shadow: 0 18px 40px -16px rgb(11 26 44 / 0.55);
+}
+
+.bulk-btn {
+    display: inline-flex;
+    height: 2.25rem;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 0.6rem;
+    background: rgb(255 255 255 / 0.1);
+    padding: 0 0.8rem;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+
+    &:hover {
+        background: rgb(255 255 255 / 0.18);
+    }
+
+    &.is-danger:hover {
+        background: #dc2626;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+    }
+}
+
+.bulk-clear {
+    display: flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.6rem;
+    color: rgb(255 255 255 / 0.75);
+
+    &:hover {
+        background: rgb(255 255 255 / 0.12);
+        color: #fff;
+    }
+}
+
+.bulk-enter-active,
+.bulk-leave-active {
+    transition: opacity 200ms, translate 200ms;
+}
+
+.bulk-enter-from,
+.bulk-leave-to {
+    opacity: 0;
+    translate: 0 0.75rem;
+}
+
+/* A row's tick box (bookings, inquiries): top-left of the row, above the photo or avatar. */
+.row-check {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    z-index: 5;
+    display: flex;
+    width: 1.75rem;
+    height: 1.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    background: rgb(255 255 255 / 0.92);
+    box-shadow: 0 2px 8px -2px rgb(11 26 44 / 0.3);
+
+    input {
+        width: 1.05rem;
+        height: 1.05rem;
+        cursor: pointer;
+        accent-color: var(--color-brand);
+    }
+}

@@ -6,6 +6,7 @@ use App\Models\Concerns\Trashable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 #[Fillable(['source', 'page_id', 'page_section_id', 'name', 'phone', 'email', 'data', 'status', 'notes', 'locale', 'ip', 'read_at'])]
 class Inquiry extends Model
@@ -74,6 +75,12 @@ class Inquiry extends Model
 
             return is_array($value) ? implode(', ', array_map(fn ($v) => is_array($v) ? implode(' ', $v) : (string) $v, $value)) : (string) $value;
         })->all();
+    }
+
+    /** Staff notes, newest first. */
+    public function notes(): MorphMany
+    {
+        return $this->morphMany(Note::class, 'notable')->latest('id');
     }
 
     public function page(): BelongsTo

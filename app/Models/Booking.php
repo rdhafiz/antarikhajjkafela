@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\URL;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -54,6 +55,12 @@ class Booking extends Model
     public function price(): BelongsTo
     {
         return $this->belongsTo(PackagePrice::class, 'package_price_id');
+    }
+
+    /** Staff notes, newest first. */
+    public function notes(): MorphMany
+    {
+        return $this->morphMany(Note::class, 'notable')->latest('id');
     }
 
     public function payments(): HasMany

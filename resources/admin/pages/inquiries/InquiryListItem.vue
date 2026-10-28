@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuRoot, DropdownMenuSeparator, DropdownMenuTrigger } from 'reka-ui';
-import { CalendarDays, ChevronRight, CircleCheck, EllipsisVertical, FileText, Globe, Loader, Mail, Megaphone, MessageCircle, MessageSquareText, Phone, Sparkles, Trash2, UserRound } from 'lucide-vue-next';
+import { CalendarDays, ChevronRight, CircleCheck, EllipsisVertical, FileText, Globe, Loader, Mail, MailOpen, Megaphone, MessageCircle, MessageSquareText, Phone, Sparkles, Trash2, UserRound } from 'lucide-vue-next';
 import { formatDate, formatDatesIn, formatTime, initials, titleCase } from '@admin/lib/format';
 import { inquiryStatus, inquirySource, whatsappLink, type InquiryRow, type InquiryStatus } from './types';
 
 /**
  * One inquiry: a wide row when the list has room (container queries), a card otherwise.
  */
-const props = defineProps<{ row: InquiryRow; index: number; canUpdate: boolean; canDelete: boolean }>();
-const emit = defineEmits<{ open: []; status: [status: InquiryStatus]; remove: [] }>();
+const props = defineProps<{ row: InquiryRow; index: number; canUpdate: boolean; canDelete: boolean; selected?: boolean }>();
+const emit = defineEmits<{ open: []; status: [status: InquiryStatus]; remove: []; select: [selected: boolean]; read: [read: boolean] }>();
 
 const status = computed(() => inquiryStatus[props.row.status]);
 const source = computed(() => inquirySource(props.row.source));
@@ -30,7 +30,10 @@ const otherStatuses = computed(() => (Object.keys(inquiryStatus) as InquiryStatu
 </script>
 
 <template>
-    <article class="iq-item group" :class="{ 'is-unread': !row.read }" :style="{ '--i': index, '--src': source.tone, '--st': status.tone }" @click="emit('open')">
+    <article class="iq-item group relative" :class="{ 'is-unread': !row.read, 'ring-2 ring-brand': selected }" :style="{ '--i': index, '--src': source.tone, '--st': status.tone }" @click="emit('open')">
+        <label class="row-check" @click.stop>
+            <input type="checkbox" :checked="selected" :aria-label="`Select inquiry from ${name}`" @change="emit('select', ($event.target as HTMLInputElement).checked)" />
+        </label>
         <div class="iq-avatar" aria-hidden="true">
             <template v-if="row.name">{{ initials(row.name) }}</template>
             <UserRound v-else class="size-5" />
@@ -77,6 +80,9 @@ const otherStatuses = computed(() => (Object.keys(inquiryStatus) as InquiryStatu
                 </DropdownMenuTrigger>
                 <DropdownMenuPortal>
                     <DropdownMenuContent align="end" :side-offset="6" class="z-50 min-w-56 rounded-2xl border border-line bg-white p-1.5 shadow-[var(--shadow-pop)]">
+                        <DropdownMenuItem class="lm-item" @select="emit('read', !row.read)">
+                            <span class="lm-icon" style="--tone: #fbbf24"><MailOpen class="size-4" /></span>{{ row.read ? 'Mark as unread' : 'Mark as read' }}
+                        </DropdownMenuItem>
                         <DropdownMenuItem v-if="row.phone" as="a" :href="`tel:${row.phone}`" class="lm-item">
                             <span class="lm-icon" style="--tone: #38bdf8"><Phone class="size-4" /></span>Call {{ row.phone }}
                         </DropdownMenuItem>

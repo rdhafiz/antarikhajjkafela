@@ -61,6 +61,17 @@ export const useAppStore = defineStore('app', () => {
         return data.user;
     }
 
+    /** Refresh the unread badges after marking items read or unread in bulk. */
+    async function refreshBadges(): Promise<void> {
+        try {
+            const { data } = await http.get<Bootstrap>('/bootstrap');
+            inquiriesUnread.value = data.counts?.inquiries_unread ?? 0;
+            bookingsUnread.value = data.counts?.bookings_unread ?? 0;
+        } catch {
+            // Badges catch up on the next page load.
+        }
+    }
+
     /** Apply admin theme colors live (e.g. right after saving settings). */
     function applyTheme(theme: Partial<AdminTheme>): void {
         const root = document.documentElement.style;
@@ -71,5 +82,5 @@ export const useAppStore = defineStore('app', () => {
         }
     }
 
-    return { loaded, name, siteUrl, logo, icon, locales, defaultLocale, currency, mediaMode, inquiriesUnread, bookingsUnread, load, applyTheme };
+    return { loaded, name, siteUrl, logo, icon, locales, defaultLocale, currency, mediaMode, inquiriesUnread, bookingsUnread, load, refreshBadges, applyTheme };
 });

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\NoteController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PostCategoryController;
@@ -132,6 +133,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Bookings & payments
         Route::get('bookings', [BookingController::class, 'index'])->middleware('can:bookings.view')->name('bookings.index');
         Route::get('bookings/export', [BookingController::class, 'export'])->middleware('can:bookings.view')->name('bookings.export');
+        Route::post('bookings/bulk', [BookingController::class, 'bulk'])->middleware('can:bookings.view')->name('bookings.bulk');
+        Route::post('bookings/{booking}/unread', [BookingController::class, 'unread'])->middleware('can:bookings.view')->name('bookings.unread');
         Route::get('bookings/{booking}', [BookingController::class, 'show'])->middleware('can:bookings.view')->name('bookings.show');
         Route::put('bookings/{booking}', [BookingController::class, 'update'])->middleware('can:bookings.update')->name('bookings.update');
         Route::delete('bookings/{booking}', [BookingController::class, 'destroy'])->middleware('can:bookings.delete')->name('bookings.destroy');
@@ -146,6 +149,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('inquiries', [InquiryController::class, 'index'])->middleware('can:inquiries.view')->name('inquiries.index');
         Route::get('inquiries/export', [InquiryController::class, 'export'])->middleware('can:inquiries.view')->name('inquiries.export');
+        Route::post('inquiries/bulk', [InquiryController::class, 'bulk'])->middleware('can:inquiries.view')->name('inquiries.bulk');
+        Route::post('inquiries/{inquiry}/unread', [InquiryController::class, 'unread'])->middleware('can:inquiries.view')->name('inquiries.unread');
+        // Staff notes on bookings and inquiries (permission checked per type).
+        Route::post('{type}/{id}/notes', [NoteController::class, 'store'])->whereIn('type', ['bookings', 'inquiries'])->whereNumber('id')->name('notes.store');
+        Route::delete('{type}/{id}/notes/{note}', [NoteController::class, 'destroy'])->whereIn('type', ['bookings', 'inquiries'])->whereNumber('id')->name('notes.destroy');
         Route::get('inquiries/{inquiry}', [InquiryController::class, 'show'])->middleware('can:inquiries.view')->name('inquiries.show');
         Route::put('inquiries/{inquiry}', [InquiryController::class, 'update'])->middleware('can:inquiries.update')->name('inquiries.update');
         Route::delete('inquiries/{inquiry}', [InquiryController::class, 'destroy'])->middleware('can:inquiries.delete')->name('inquiries.destroy');

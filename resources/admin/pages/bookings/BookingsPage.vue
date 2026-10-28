@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, type Component } from 'vue';
+import { computed, onMounted, ref, watch, type Component } from 'vue';
 import {
     ArrowDownUp,
     Ban,
@@ -14,7 +14,9 @@ import {
     Hash,
     LayoutList,
     Mail,
+    MailOpen,
     MessageCircle,
+    Trash2,
     Package as PackageIcon,
     Phone,
     PiggyBank,
@@ -27,6 +29,7 @@ import AppButton from '@admin/components/ui/AppButton.vue';
 import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
 import AppDrawer from '@admin/components/ui/AppDrawer.vue';
 import AppPagination from '@admin/components/ui/AppPagination.vue';
+import BulkBar from '@admin/components/ui/BulkBar.vue';
 import EmptyState from '@admin/components/ui/EmptyState.vue';
 import FilterDrawer, { type FilterGroup } from '@admin/components/ui/FilterDrawer.vue';
 import ListHero from '@admin/components/ui/ListHero.vue';
@@ -35,7 +38,10 @@ import BookingListItem from './BookingListItem.vue';
 import headerPhoto from '@admin/assets/bookings-header.webp';
 import { pickText } from '@admin/pages/content/builder/types';
 import { useListQuery } from '@admin/composables/useListQuery';
-import { http, type Paginated } from '@admin/lib/http';
+import { errorMessage, http, type Paginated } from '@admin/lib/http';
+import { useConfirm } from '@admin/composables/useConfirm';
+import { useAuthStore } from '@admin/stores/auth';
+import { useToastStore } from '@admin/stores/toast';
 import { formatDate } from '@admin/lib/format';
 import { useAppStore } from '@admin/stores/app';
 import type { Translations } from '@admin/types';
@@ -44,6 +50,9 @@ import { money, statusTone, type BookingRow, type BookingStatus } from './types'
 type BookingsResponse = Paginated<BookingRow> & { counts: Partial<Record<BookingStatus, number>>; statuses: Record<BookingStatus, string> };
 
 const app = useAppStore();
+const auth = useAuthStore();
+const toast = useToastStore();
+const { confirm } = useConfirm();
 
 const list = useListQuery<BookingRow, BookingsResponse>('/bookings', { status: '', package_id: '', payment: '', from: '', to: '', sort: '' });
 const packages = ref<{ id: number; name: Translations }[]>([]);
@@ -135,6 +144,53 @@ function open(row: BookingRow): void {
     drawerOpen.value = true;
 }
 
+// Ticked rows for bulk actions; a new page of results starts with none.
+const selected = ref(new Set<number>());
+const bulkBusy = ref(false);
+watch(() => list.rows.value, () => (selected.value = new Set()));
+
+function toggle(row: BookingRow, on: boolean): void {
+    const next = new Set(selected.value);
+    if (on) next.add(row.id);
+    else next.delete(row.id);
+    selected.value = next;
+}
+
+async function bulk(action: 'read' | 'unread' | 'delete', ids = [...selected.value]): Promise<boolean> {
+    if (!ids.length) return false;
+    if (action === 'delete') {
+        const ok = await confirm({ title: `Delete ${ids.length} ${ids.length === 1 ? 'booking' : 'bookings'}?`, message: 'They go to the Trash with their documents and payments, where a super admin can restore them.', confirmLabel: 'Delete' });
+        if (!ok) return false;
+    }
+    bulkBusy.value = true;
+    try {
+        await http.post('/bookings/bulk', { ids, action });
+        app.refreshBadges();
+        return true;
+    } catch (e) {
+        toast.error(errorMessage(e));
+        return false;
+    } finally {
+        bulkBusy.value = false;
+    }
+}
+
+async function bulkSelected(action: 'read' | 'unread' | 'delete'): Promise<void> {
+    const count = selected.value.size;
+    if (!(await bulk(action))) return;
+    toast.success(`${count} ${count === 1 ? 'booking' : 'bookings'} ${{ read: 'marked as read', unread: 'marked as unread', delete: 'deleted' }[action]}`);
+    list.load();
+}
+
+/** One row read or unread, from its menu. */
+async function setRead(row: BookingRow, read: boolean): Promise<void> {
+    if (await bulk(read ? 'read' : 'unread', [row.id])) row.is_unread = !read;
+}
+
+function exportSelected(): void {
+    window.location.href = `/api/admin/bookings/export?ids=${[...selected.value].join(',')}`;
+}
+
 function clearAll(): void {
     list.clear();
     list.filters.search = '';
@@ -190,9 +246,18 @@ onMounted(async () => {
                     :status-label="statusLabel(row.status)"
                     :status="statusMeta[row.status]"
                     :index="i"
+                    :selected="selected.has(row.id)"
                     @open="open(row)"
+                    @select="(on) => toggle(row, on)"
+                    @read="(read) => setRead(row, read)"
                 />
             </div>
+            <BulkBar :count="selected.size" :page-count="list.rows.value.length" :noun="['booking', 'bookings']" @select-page="selected = new Set(list.rows.value.map((r) => r.id))" @clear="selected = new Set()">
+                <button type="button" class="bulk-btn" :disabled="bulkBusy" @click="bulkSelected('read')"><MailOpen class="size-4" />Mark read</button>
+                <button type="button" class="bulk-btn" :disabled="bulkBusy" @click="bulkSelected('unread')"><Mail class="size-4" />Mark unread</button>
+                <button type="button" class="bulk-btn" :disabled="bulkBusy" @click="exportSelected"><Download class="size-4" />Export</button>
+                <button v-if="auth.can('bookings.delete')" type="button" class="bulk-btn is-danger" :disabled="bulkBusy" @click="bulkSelected('delete')"><Trash2 class="size-4" />Delete</button>
+            </BulkBar>
         </div>
 
         <AppPagination v-if="list.meta.value && list.rows.value.length" :meta="list.meta.value" label="bookings" @change="list.goTo" @per-page="list.setPerPage" />

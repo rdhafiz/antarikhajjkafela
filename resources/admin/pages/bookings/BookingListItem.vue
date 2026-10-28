@@ -2,7 +2,7 @@
 import { computed, type Component } from 'vue';
 import { useRouter } from 'vue-router';
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuRoot, DropdownMenuTrigger } from 'reka-ui';
-import { CalendarDays, ChevronRight, EllipsisVertical, ExternalLink, Mail, MessageCircle, Package as PackageIcon, Phone, Users } from 'lucide-vue-next';
+import { CalendarDays, ChevronRight, EllipsisVertical, ExternalLink, Mail, MailOpen, MessageCircle, Package as PackageIcon, Phone, Users } from 'lucide-vue-next';
 import { formatDate } from '@admin/lib/format';
 import { money, type BookingRow } from './types';
 
@@ -14,8 +14,10 @@ const props = defineProps<{
     statusLabel: string;
     status: { icon: Component; tone: string };
     index: number;
+    /** Ticked for a bulk action. */
+    selected?: boolean;
 }>();
-const emit = defineEmits<{ open: [] }>();
+const emit = defineEmits<{ open: []; select: [selected: boolean]; read: [read: boolean] }>();
 
 const router = useRouter();
 
@@ -36,7 +38,10 @@ const travellers = computed(() => `${props.row.travelers} ${props.row.travelers 
 </script>
 
 <template>
-    <article class="bk-item group" :class="{ 'is-unread': row.is_unread }" :style="{ '--i': index, '--pay': payment.tone, '--st': status.tone }" @click="emit('open')">
+    <article class="bk-item group relative" :class="{ 'is-unread': row.is_unread, 'ring-2 ring-brand': selected }" :style="{ '--i': index, '--pay': payment.tone, '--st': status.tone }" @click="emit('open')">
+        <label class="row-check" @click.stop>
+            <input type="checkbox" :checked="selected" :aria-label="`Select booking ${row.reference}`" @change="emit('select', ($event.target as HTMLInputElement).checked)" />
+        </label>
         <div class="bk-media">
             <img v-if="row.package_photo" :src="row.package_photo" alt="" class="bk-photo" loading="lazy" />
             <div v-else class="bk-photo bk-photo-empty"><PackageIcon class="size-6" aria-hidden="true" /></div>
@@ -95,6 +100,9 @@ const travellers = computed(() => `${props.row.travelers} ${props.row.travelers 
                     <DropdownMenuContent align="end" :side-offset="6" class="z-50 min-w-56 rounded-2xl border border-line bg-white p-1.5 shadow-[var(--shadow-pop)]">
                         <DropdownMenuItem class="lm-item" @select="router.push({ name: 'booking', params: { id: row.id } })">
                             <span class="lm-icon" style="--tone: #818cf8"><ExternalLink class="size-4" /></span>Open booking
+                        </DropdownMenuItem>
+                        <DropdownMenuItem class="lm-item" @select="emit('read', row.is_unread)">
+                            <span class="lm-icon" style="--tone: #fbbf24"><MailOpen class="size-4" /></span>{{ row.is_unread ? 'Mark as read' : 'Mark as unread' }}
                         </DropdownMenuItem>
                         <DropdownMenuItem v-if="row.customer_phone" as="a" :href="`tel:${row.customer_phone}`" class="lm-item">
                             <span class="lm-icon" style="--tone: #38bdf8"><Phone class="size-4" /></span>Call {{ row.customer_phone }}
