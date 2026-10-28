@@ -81,7 +81,7 @@ return [
             'fields' => [
                 'default_locale' => [
                     'type' => 'select', 'options' => 'locales', 'label' => 'Default language', 'default' => 'en',
-                    'hint' => 'Content in this language is required. First-time visitors and search engines see English; visitors can switch. Add a language by adding its translation file.',
+                    'hint' => 'First-time visitors and search engines see the website in this language, and content in it is required. Visitors can switch with the language buttons. Add a language by adding its translation file.',
                 ],
                 'timezone' => ['type' => 'timezone', 'label' => 'Timezone', 'hint' => 'Used for dates, booking times and scheduled posts.', 'default' => 'Asia/Dhaka'],
                 'currency' => [

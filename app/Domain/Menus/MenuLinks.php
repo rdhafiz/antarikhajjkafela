@@ -30,8 +30,11 @@ class MenuLinks
 
     /**
      * Link types and their selectable targets, for the admin menu builder.
+     * A target the website doesn't show yet (a draft, a scheduled campaign, a
+     * service without published packages) carries `offline`, the reason: menu
+     * items linking to it stay out of the website's menus until it goes live.
      *
-     * @return list<array{type: string, label: string, targets: list<array{value: string, label: string}>|null}>
+     * @return list<array{type: string, label: string, targets: list<array{value: string, label: string, offline?: string}>|null}>
      */
     public function types(): array
     {
@@ -46,28 +49,55 @@ class MenuLinks
             ],
             [
                 'type' => self::PAGE,
-                'label' => 'Custom page',
-                'targets' => Page::where('type', Page::TYPE_CUSTOM)->orderBy('id')->get()
-                    ->map(fn (Page $page) => ['value' => (string) $page->id, 'label' => $page->getTranslation('title', 'en').($page->isPublished() ? '' : ' (draft)')])
+                'label' => 'Custom or campaign page',
+                'targets' => Page::whereIn('type', [Page::TYPE_CUSTOM, Page::TYPE_CAMPAIGN])->orderBy('type')->orderBy('id')->get()
+                    ->map(fn (Page $page) => $this->target(
+                        (string) $page->id,
+                        $page->getTranslation('title', 'en').($page->isCampaign() ? ' · campaign' : ''),
+                        match ($page->isCampaign() ? $page->campaignState() : ($page->isPublished() ? 'live' : 'draft')) {
+                            'draft' => 'Draft',
+                            'scheduled' => 'Scheduled',
+                            'expired' => 'Expired',
+                            default => null,
+                        },
+                    ))
                     ->all(),
             ],
             [
                 'type' => self::SERVICE,
                 'label' => 'Service',
-                'targets' => Service::orderBy('sort')->get()
-                    ->map(fn (Service $service) => ['value' => (string) $service->id, 'label' => $service->getTranslation('name', 'en')])
+                'targets' => Service::withExists(['packages as has_published' => fn ($q) => $q->where('status', Package::STATUS_PUBLISHED)])->orderBy('sort')->get()
+                    ->map(fn (Service $service) => $this->target(
+                        (string) $service->id,
+                        $service->getTranslation('name', 'en'),
+                        match (true) {
+                            ! $service->is_active => 'Hidden',
+                            ! $service->has_published => 'No published packages',
+                            default => null,
+                        },
+                    ))
                     ->all(),
             ],
             [
                 'type' => self::PACKAGE,
                 'label' => 'Package',
                 'targets' => Package::orderBy('service_id')->orderBy('sort')->get()
-                    ->map(fn (Package $package) => ['value' => (string) $package->id, 'label' => $package->getTranslation('name', 'en').($package->isPublished() ? '' : ' (draft)')])
+                    ->map(fn (Package $package) => $this->target((string) $package->id, $package->getTranslation('name', 'en'), $package->isPublished() ? null : 'Draft'))
                     ->all(),
             ],
             ['type' => self::URL, 'label' => 'Custom link', 'targets' => null],
             ['type' => self::NONE, 'label' => 'Dropdown heading (no link)', 'targets' => null],
         ];
+    }
+
+    /**
+     * @return array{value: string, label: string, offline?: string}
+     */
+    private function target(string $value, string $label, ?string $offline): array
+    {
+        return $offline === null
+            ? ['value' => $value, 'label' => $label]
+            : ['value' => $value, 'label' => "{$label} ({$offline})", 'offline' => $offline];
     }
 
     /**
@@ -90,7 +120,7 @@ class MenuLinks
 
         return match ($type) {
             self::ROUTE => array_key_exists($target, config('menus.routes')),
-            self::PAGE => Page::whereKey((int) $target)->where('type', Page::TYPE_CUSTOM)->exists(),
+            self::PAGE => Page::whereKey((int) $target)->whereIn('type', [Page::TYPE_CUSTOM, Page::TYPE_CAMPAIGN])->exists(),
             self::SERVICE => Service::whereKey((int) $target)->exists(),
             self::PACKAGE => Package::whereKey((int) $target)->exists(),
         };

@@ -283,7 +283,7 @@ onMounted(load);
                     <fieldset :disabled="!canEdit" class="space-y-4">
                         <TranslatableInput v-model="details.title" label="Title" required :errors="errors" error-key="title" />
                         <TranslatableInput v-model="details.description" label="Description" multiline :rows="3" :errors="errors" error-key="description" />
-                        <FormField label="Date" for="album-date" :error="errors.event_date?.[0]">
+                        <FormField label="Event date (optional)" for="album-date" :error="errors.event_date?.[0]" hint="When the photos were taken. Shown on the album; albums are listed newest first by it.">
                             <AppDatePicker id="album-date" v-model="details.event_date" mode="date" :disabled="!canEdit" :invalid="!!errors.event_date" />
                         </FormField>
                         <FormField label="Web address" for="album-slug" :error="errors.slug?.[0]">

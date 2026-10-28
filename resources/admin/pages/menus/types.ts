@@ -16,7 +16,7 @@ export interface MenuItemNode {
 export interface LinkType {
     type: string;
     label: string;
-    targets: { value: string; label: string }[] | null;
+    targets: { value: string; label: string; offline?: string }[] | null;
 }
 
 export interface MenuLocation {

@@ -60,9 +60,15 @@ const dirty = computed(() => saved.value !== '' && JSON.stringify(data.value) !=
 const stateTone = { draft: 'neutral', scheduled: 'warning', published: 'success' } as const;
 
 const publishHint = computed(() => {
-    if (!data.value || data.value.status === 'draft') return 'Drafts are only visible to admins.';
+    // Past dates are allowed on purpose: older articles keep the date they first appeared.
+    const future = Boolean(data.value?.published_at) && new Date(data.value!.published_at!) > new Date();
+    if (!data.value || data.value.status === 'draft') {
+        return future
+            ? 'Drafts are only visible to admins. Once published, it appears automatically at this time.'
+            : 'Drafts are only visible to admins. A future date schedules the post; a past date back-dates an older article.';
+    }
     if (!data.value.published_at) return 'Publishes now when you save.';
-    return new Date(data.value.published_at) > new Date() ? 'Scheduled: appears automatically at this time.' : 'Published at this date.';
+    return future ? 'Scheduled: appears automatically at this time.' : 'On the website now, shown with this date (a past date back-dates an older article).';
 });
 
 function apply(payload: PostData): void {

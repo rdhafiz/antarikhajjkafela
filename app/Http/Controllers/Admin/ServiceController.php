@@ -88,7 +88,7 @@ class ServiceController extends Controller
         $data = $request->validate([
             'name' => ['required', 'array'],
             "name.{$default}" => ['required', 'string', 'max:80'],
-            // English always: the public site and search engines show English first.
+            // English always: the web address is built from the English name.
             'name.en' => ['required', 'string', 'max:80'],
             'name.*' => ['nullable', 'string', 'max:80'],
             'slug' => [

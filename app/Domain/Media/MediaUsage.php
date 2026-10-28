@@ -95,8 +95,9 @@ class MediaUsage
             $used[] = "Album {$name($album, 'title')} (cover)";
         }
 
-        foreach (GalleryItem::with('album')->where('media_id', $id)->get() as $item) {
-            $used[] = 'Album '.($item->album ? $name($item->album, 'title') : '').' (photo)';
+        // Photos of an album in the Trash don't count: the album isn't on the website.
+        foreach (GalleryItem::with('album')->whereHas('album')->where('media_id', $id)->get() as $item) {
+            $used[] = "Album {$name($item->album, 'title')} (photo)";
         }
 
         foreach (Page::with('sections')->get() as $page) {

@@ -4,6 +4,8 @@ namespace App\Domain\Menus;
 
 use App\Models\Menu;
 use App\Models\MenuItem;
+use App\Models\Page;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
@@ -28,7 +30,15 @@ class MenuRepository
         $locale = app()->getLocale();
 
         try {
-            $items = Cache::rememberForever($this->cacheKey($location), fn () => $this->load($location));
+            $items = Cache::get($this->cacheKey($location));
+
+            if ($items === null) {
+                $items = $this->load($location);
+                // Campaign pages go live and expire on their own, so menus linking to one are rebuilt every few minutes.
+                $this->linksCampaign($location)
+                    ? Cache::put($this->cacheKey($location), $items, now()->addMinutes(5))
+                    : Cache::forever($this->cacheKey($location), $items);
+            }
         } catch (Throwable) {
             return [];
         }
@@ -69,7 +79,18 @@ class MenuRepository
         return $this->branch($items->groupBy('parent_id'), null);
     }
 
+    private function linksCampaign(string $location): bool
+    {
+        $pageIds = MenuItem::whereHas('menu', fn ($q) => $q->where('location', $location))
+            ->where('link_type', MenuLinks::PAGE)->where('is_visible', true)->pluck('link_target');
+
+        return $pageIds->isNotEmpty() && Page::whereIn('id', $pageIds->map(fn ($id) => (int) $id))->where('type', Page::TYPE_CAMPAIGN)->exists();
+    }
+
     /**
+     * Items whose page, service or package isn't live are left out (no dead
+     * "#" links); one that has sub-items stays as a plain dropdown heading.
+     *
      * @param  Collection<string|int, Collection<int, MenuItem>>  $byParent
      * @return list<array<string, mixed>>
      */
@@ -81,7 +102,10 @@ class MenuRepository
                 'url' => $this->toPath($this->links->resolve($item->link_type, $item->link_target, $item->url)),
                 'new_tab' => $item->open_in_new_tab,
                 'children' => $this->branch($byParent, $item->id),
+                'linked' => $item->link_type !== MenuLinks::NONE,
             ])
+            ->reject(fn (array $item) => $item['linked'] && $item['url'] === null && $item['children'] === [])
+            ->map(fn (array $item) => Arr::except($item, 'linked'))
             ->values()
             ->all();
     }
@@ -131,9 +155,9 @@ class MenuRepository
         return $url !== null && str_starts_with($url, '/') && ! str_starts_with($url, '//') ? url($url) : $url;
     }
 
-    /** "v2": entries from before paths were cached held full URLs. */
+    /** "v3": v2 entries kept links to pages that weren't live, shown as "#". */
     private function cacheKey(string $location): string
     {
-        return "menus.v2.{$location}";
+        return "menus.v3.{$location}";
     }
 }

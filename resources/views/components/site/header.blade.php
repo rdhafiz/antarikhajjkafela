@@ -33,7 +33,7 @@
         ])
         :class="scrolled && '!border-line/70 !bg-white/92 shadow-[0_8px_30px_-18px_rgb(13_27_46/0.35)] backdrop-blur-md'"
     >
-        <div class="container-site flex h-20 items-center justify-between gap-6">
+        <div class="container-site flex h-20 items-center justify-between gap-6" x-ref="bar">
             {{--
                 Over a dark hero the light logo shows; once the header turns white on scroll it
                 crossfades to the full-colour logo. A custom logo without a light version sits
@@ -73,7 +73,8 @@
             </a>
 
             {{-- Desktop navigation --}}
-            <nav class="hidden lg:block" aria-label="{{ __('Main') }}">
+            {{-- Long menus on laptop widths fall back to the menu button instead of pushing the page sideways (siteHeader.fitMenu()). --}}
+            <nav class="hidden lg:block" :class="fit === 2 && 'lg:!hidden'" aria-label="{{ __('Main') }}">
                 <ul class="flex items-center gap-0.5 xl:gap-1">
                     @foreach ($menu as $item)
                         @php($active = $isActive($item))
@@ -153,9 +154,10 @@
                     <x-site.language-switcher :languages="$languages" tone="header" />
                 @endif
                 @if ($phones)
-                    <a href="{{ $phones[0]['href'] }}" class="btn btn-gold btn-sm hidden sm:inline-flex">
+                    <a href="{{ $phones[0]['href'] }}" class="btn btn-gold btn-sm hidden sm:inline-flex" aria-label="{{ __('Call us') }}: {{ $phones[0]['display'] }}">
                         <x-site.icon name="phone" />
-                        <span class="hidden xl:inline">{{ $phones[0]['display'] }}</span>
+                        {{-- The number shows when the full menu leaves room for it (fit 0, see siteHeader). --}}
+                        <span class="hidden xl:inline" :class="fit >= 1 && '!hidden'">{{ $phones[0]['display'] }}</span>
                         {{-- Icon only beside the full menu on small laptops, where the text does not fit. --}}
                         <span class="lg:max-xl:sr-only xl:hidden">{{ __('Call us') }}</span>
                     </a>
@@ -163,7 +165,7 @@
                 <button
                     type="button"
                     class="-mr-2 flex size-11 items-center justify-center rounded-full transition-colors lg:hidden"
-                    :class="!scrolled && {{ $overlay ? 'true' : 'false' }} ? 'text-white hover:bg-white/10' : 'text-brand hover:bg-sand-100'"
+                    :class="[!scrolled && {{ $overlay ? 'true' : 'false' }} ? 'text-white hover:bg-white/10' : 'text-brand hover:bg-sand-100', fit === 2 && 'lg:!flex']"
                     x-ref="menuButton"
                     @click="openMenu($el)"
                     aria-controls="mobile-menu"
@@ -185,7 +187,7 @@
     <div
         id="mobile-menu"
         class="mm lg:hidden"
-        :class="mobileOpen && 'is-open'"
+        :class="[mobileOpen && 'is-open', fit === 2 && 'lg:!block']"
         :style="`--mm-origin: ${origin}`"
         role="dialog"
         aria-modal="true"
