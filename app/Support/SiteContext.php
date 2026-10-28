@@ -105,7 +105,8 @@ class SiteContext
             ->map(fn ($locale) => [
                 ...$locale,
                 'active' => $locale['code'] === app()->getLocale(),
-                'url' => route('locale.switch', $locale['code']),
+                // Come back to this page: some pages (the private booking page) send no Referer.
+                'url' => route('locale.switch', ['locale' => $locale['code'], 'to' => request()->getRequestUri()]),
             ])
             ->values()
             ->all();

@@ -76,6 +76,12 @@ class HardeningTest extends AdminTestCase
 
         $this->get('/language/bn', ['Referer' => "http://{$host}.evil.test/phish"])->assertRedirect(url('/'));
         $this->get('/language/bn', ['Referer' => url('/about')])->assertRedirect(url('/about'));
+
+        // #47: the switch link names the page to come back to (the booking page sends no Referer); other sites never.
+        $this->get('/language/bn?to='.urlencode('/bookings/AHK-2026-000001?signature=abc'))->assertRedirect(url('/bookings/AHK-2026-000001?signature=abc'));
+        foreach (['//evil.test/x', '/\\evil.test', 'https://evil.test/'] as $to) {
+            $this->get('/language/bn?to='.urlencode($to))->assertRedirect(url('/'));
+        }
     }
 
     public function test_search_engines_and_first_visits_get_english(): void

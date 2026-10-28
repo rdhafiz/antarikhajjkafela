@@ -35,7 +35,8 @@ class DashboardController extends Controller
                 'pending' => Booking::where('status', 'pending')->count(),
                 'this_month' => Booking::where('created_at', '>=', $monthStart)->count(),
                 'travelers_this_month' => (int) Booking::where('created_at', '>=', $monthStart)->where('status', '!=', 'cancelled')->sum('travelers'),
-                'collected_this_month' => (float) Payment::where('status', 'paid')->where('paid_at', '>=', $monthStart)->sum('amount'),
+                // Payments of bookings in the Trash do not count.
+                'collected_this_month' => (float) Payment::where('status', 'paid')->where('paid_at', '>=', $monthStart)->whereHas('booking')->sum('amount'),
                 'trend' => $months->map(fn (int $zero, string $month) => ['month' => $month, 'count' => $perMonth[$month] ?? 0])->values(),
                 'recent' => Booking::latest('id')->limit(5)->get()->map(fn (Booking $booking) => [
                     'id' => $booking->id,

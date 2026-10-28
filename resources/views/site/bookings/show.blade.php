@@ -139,7 +139,7 @@
                         <ul class="mt-3 divide-y divide-line">
                             @foreach ($booking->payments as $payment)
                                 <li class="flex flex-wrap justify-between gap-3 py-3 text-[15px]">
-                                    <span class="text-ink-2">{{ App\Support\Dates::format($payment->paid_at) }} · {{ $payment->is_online ? $payment->methodLabel() : __('Office payment') }}</span>
+                                    <span class="text-ink-2">{{ App\Support\Dates::format($payment->paid_at) }} · {{ $payment->customerMethodLabel() }}</span>
                                     <span class="font-semibold text-ink">{{ Money::html($payment->amount) }}</span>
                                 </li>
                             @endforeach
