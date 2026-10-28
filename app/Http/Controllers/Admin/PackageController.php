@@ -144,6 +144,20 @@ class PackageController extends Controller
             'advance_value' => [
                 'nullable', 'required_unless:advance_type,none', 'numeric', 'min:1',
                 Rule::when($request->input('advance_type') === 'percentage', ['max:100']),
+                // A fixed advance is per traveler: never more than the cheapest per-person price.
+                function (string $attribute, mixed $value, \Closure $fail) use ($request) {
+                    if ($request->input('advance_type') !== 'fixed' || ! is_numeric($value)) {
+                        return;
+                    }
+
+                    $prices = collect($request->input('types', []))->flatMap(fn ($type) => $type['prices'] ?? [])
+                        ->filter(fn ($price) => ($price['unit'] ?? 'person') === 'person' && is_numeric($price['price'] ?? null))
+                        ->pluck('price')->map(fn ($price) => (float) $price);
+
+                    if ($prices->isNotEmpty() && (float) $value > $prices->min()) {
+                        $fail('The advance per traveler cannot be more than the lowest price per person (৳'.number_format($prices->min()).').');
+                    }
+                },
             ],
             'seo.title.*' => ['nullable', 'string', 'max:70'],
             'seo.description.*' => ['nullable', 'string', 'max:200'],

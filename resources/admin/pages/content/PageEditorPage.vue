@@ -19,6 +19,7 @@ import PageSettingsPanel, { type PageForm } from './builder/PageSettingsPanel.vu
 import { componentIcon } from './builder/componentIcons';
 import { deepClone, pickText, uid, type BuilderMeta, type ComponentDef, type PageDetail, type SectionData } from './builder/types';
 import { useConfirm } from '@admin/composables/useConfirm';
+import { useErrorClearing } from '@admin/composables/useErrorClearing';
 import { errorMessage, http, validationErrors, type ValidationErrors } from '@admin/lib/http';
 import { useAppStore } from '@admin/stores/app';
 import { useAuthStore } from '@admin/stores/auth';
@@ -40,6 +41,8 @@ const tab = ref<'content' | 'style'>('content');
 const pickerOpen = ref(false);
 const saving = ref(false);
 const errors = ref<ValidationErrors>({});
+// Section errors are keyed by position (sections.2.content.title), like the data sent.
+useErrorClearing(() => ({ ...form.value, sections: sections.value }), errors);
 const saved = ref('');
 
 const pageId = computed(() => Number(route.params.id));

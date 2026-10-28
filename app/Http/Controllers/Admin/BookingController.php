@@ -75,7 +75,7 @@ class BookingController extends Controller
     public function update(Request $request, Booking $booking): JsonResponse
     {
         $data = $request->validate([
-            'status' => ['required', Rule::in(array_keys(Booking::STATUSES))],
+            'status' => ['required', Rule::in(array_keys(Booking::STATUSES)), $this->statusFollowsPayments($booking)],
             'admin_notes' => ['nullable', 'string', 'max:10000'],
             'customer_message' => ['nullable', 'string', 'max:2000'],
             'notify' => ['sometimes', 'boolean'],
@@ -251,6 +251,27 @@ class BookingController extends Controller
     /**
      * @return array<string, mixed>
      */
+    /**
+     * Partially paid, advance paid and fully paid follow the payments; staff
+     * cannot pick them, and while money has been paid Pending/Confirmed would
+     * hide it. Completed and Cancelled are always theirs to choose; an
+     * unchanged status always saves (notes, messages).
+     */
+    private function statusFollowsPayments(Booking $booking): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail) use ($booking) {
+            if ($value === $booking->status || in_array($value, ['completed', 'cancelled'], true)) {
+                return;
+            }
+
+            if (in_array($value, BookingService::PAYMENT_STATUSES, true)) {
+                $fail('Partially paid, advance paid and fully paid follow the payments. Record a payment and the status changes by itself.');
+            } elseif ((float) $booking->paid_amount > 0) {
+                $fail('This booking has payments, so its status follows them. Remove the payments first, or choose Completed or Cancelled.');
+            }
+        };
+    }
+
     private function filters(Request $request): array
     {
         return $request->validate([

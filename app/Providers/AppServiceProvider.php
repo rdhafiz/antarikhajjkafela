@@ -9,6 +9,7 @@ use App\Models\Page;
 use App\Models\Service;
 use App\Support\Branding;
 use App\Support\Locales;
+use App\Support\ReadableValidator;
 use App\Support\Seo\Seo;
 use App\Support\SiteContext;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -39,6 +40,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->applyRuntimeSettings();
+
+        // "name.bn" reads "Name (Bangla)" in validation messages.
+        $this->app['validator']->resolver(fn ($translator, $data, $rules, $messages, $attributes) => new ReadableValidator($translator, $data, $rules, $messages, $attributes));
 
         // Super admins pass every permission check.
         Gate::before(fn ($user) => $user->isSuperAdmin() ? true : null);

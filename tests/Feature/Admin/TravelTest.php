@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Domain\Menus\MenuRepository;
+use App\Domain\Settings\Settings;
 use App\Models\Package;
 use App\Models\PackagePrice;
 use App\Models\Service;
@@ -186,6 +187,21 @@ class TravelTest extends AdminTestCase
 
         $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['advance_type' => 'percentage', 'advance_value' => 150]))
             ->assertJsonValidationErrors('advance_value');
+
+        // #50: a fixed advance cannot be more than the cheapest price per person.
+        $lowest = collect($this->payload($package)['types'])->flatMap(fn ($t) => $t['prices'])->where('unit', 'person')->min('price');
+        $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['advance_type' => 'fixed', 'advance_value' => 999999]))
+            ->assertJsonValidationErrors(['advance_value' => 'cannot be more than the lowest price per person']);
+        $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['advance_type' => 'fixed', 'advance_value' => $lowest]))
+            ->assertOk();
+
+        // #54: per-language fields have readable names.
+        $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['name' => ['en' => '', 'bn' => '']]))
+            ->assertJsonValidationErrors(['name.en' => 'An English name is needed for the web address.']);
+        app(Settings::class)->set('localization', ['default_locale' => 'bn']);
+        $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['name' => ['en' => 'Umrah', 'bn' => '']]))
+            ->assertJsonValidationErrors(['name.bn' => 'The Name (Bangla) field is required.']);
+        app(Settings::class)->set('localization', ['default_locale' => 'en']);
 
         $this->asAdmin($admin)->putJson("/api/admin/packages/{$package->id}", $this->payload($package, ['booking_starts_on' => '2027-05-01', 'booking_ends_on' => '2027-04-01']))
             ->assertJsonValidationErrors('booking_ends_on');

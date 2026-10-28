@@ -9,6 +9,7 @@ import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import AppSwitch from '@admin/components/ui/AppSwitch.vue';
 import FormField from '@admin/components/ui/FormField.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
+import { useErrorClearing } from '@admin/composables/useErrorClearing';
 import MediaField from '@admin/components/media/MediaField.vue';
 import BlocksEditor from '@admin/pages/content/builder/BlocksEditor.vue';
 import TagsInput from './TagsInput.vue';
@@ -50,6 +51,7 @@ const { confirm } = useConfirm();
 const meta = ref<PostMeta | null>(null);
 const data = ref<PostData | null>(null);
 const errors = ref<ValidationErrors>({});
+useErrorClearing(() => data.value, errors);
 const saving = ref(false);
 const saved = ref('');
 

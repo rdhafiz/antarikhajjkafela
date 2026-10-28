@@ -10,7 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from 'reka-ui';
-import { CalendarCheck, ChevronDown, Globe, Inbox, LogOut, Menu, PanelLeftClose, PanelLeftOpen, UserRound } from 'lucide-vue-next';
+import { CalendarCheck, ChevronDown, ExternalLink, Inbox, LogOut, Menu, PanelLeftClose, PanelLeftOpen, UserRound } from 'lucide-vue-next';
 import { findNavItem } from '@admin/navigation';
 import { useAuthStore } from '@admin/stores/auth';
 import { useAppStore } from '@admin/stores/app';
@@ -69,9 +69,10 @@ async function signOut(): Promise<void> {
             </RouterLink>
 
             <a :href="app.siteUrl" target="_blank" rel="noopener" class="tb-visit group">
-                <Globe class="size-[18px] transition-[rotate] duration-700 group-hover:rotate-[20deg]" aria-hidden="true" />
+                <!-- "Open in a new tab" icon and a label on every screen: a globe alone read like a language switch. -->
+                <ExternalLink class="size-[17px] transition-[translate] duration-300 group-hover:translate-x-px group-hover:-translate-y-px" aria-hidden="true" />
+                <span class="md:hidden">Website</span>
                 <span class="hidden md:inline">Visit website</span>
-                <span class="sr-only md:hidden">Visit website</span>
                 <span class="sr-only">(opens in a new tab)</span>
             </a>
 
@@ -101,7 +102,7 @@ async function signOut(): Promise<void> {
                             <UserRound class="size-4 text-ink-muted" /> My profile
                         </DropdownMenuItem>
                         <DropdownMenuItem as="a" :href="app.siteUrl" target="_blank" rel="noopener" class="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium text-ink outline-none data-[highlighted]:bg-canvas">
-                            <Globe class="size-4 text-ink-muted" /> Visit website
+                            <ExternalLink class="size-4 text-ink-muted" /> Visit website
                         </DropdownMenuItem>
                         <DropdownMenuSeparator class="my-1 h-px bg-line" />
                         <DropdownMenuItem class="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium text-red-600 outline-none data-[highlighted]:bg-red-50" @select="signOut">
