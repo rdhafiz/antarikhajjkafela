@@ -43,7 +43,7 @@ class MenuLinks
                 'type' => self::ROUTE,
                 'label' => 'Website page',
                 'targets' => collect(config('menus.routes'))
-                    ->map(fn ($route, $key) => ['value' => (string) $key, 'label' => $route['label']])
+                    ->map(fn ($route, $key) => $this->target((string) $key, $route['label'], $this->routeOffline((string) $key)))
                     ->values()
                     ->all(),
             ],
@@ -91,6 +91,31 @@ class MenuLinks
     }
 
     /**
+     * Why a built-in website page isn't shown yet, or null when it is: its page
+     * (About, Contact, Gallery…, matched by system key) is a draft, or its
+     * service (Hajj, Umrah, matched by address) is hidden or has no published package.
+     */
+    private function routeOffline(string $key): ?string
+    {
+        $page = Page::where('type', Page::TYPE_DEFAULT)->where('system_key', $key)->first();
+
+        if ($page) {
+            return $page->isPublished() ? null : 'Draft';
+        }
+
+        $service = Service::withExists(['packages as has_published' => fn ($q) => $q->where('status', Package::STATUS_PUBLISHED)])
+            ->where('slug', $key)
+            ->first();
+
+        return match (true) {
+            $service === null => null,
+            ! $service->is_active => 'Hidden',
+            ! $service->has_published => 'No published packages',
+            default => null,
+        };
+    }
+
+    /**
      * @return array{value: string, label: string, offline?: string}
      */
     private function target(string $value, string $label, ?string $offline): array
@@ -129,7 +154,7 @@ class MenuLinks
     public function resolve(string $type, ?string $target, ?string $url): ?string
     {
         return match ($type) {
-            self::ROUTE => isset(config('menus.routes')[$target]) ? url(config("menus.routes.{$target}.path")) : null,
+            self::ROUTE => isset(config('menus.routes')[$target]) && $this->routeOffline($target) === null ? url(config("menus.routes.{$target}.path")) : null,
             self::PAGE => ($page = Page::find((int) $target)) && $page->isVisibleToPublic() ? $page->url() : null,
             // Hidden from menus until the service has a published package (like its page).
             self::SERVICE => ($service = Service::listed()->find((int) $target)) ? $service->url() : null,

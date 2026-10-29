@@ -43,12 +43,12 @@ const open = computed({
                         <TriangleAlert class="size-5" />
                     </div>
                     <div class="min-w-0">
-                        <AlertDialogTitle class="text-base font-bold text-ink">{{ shown.title }}</AlertDialogTitle>
-                        <AlertDialogDescription v-if="shown.message" class="mt-1.5 text-sm leading-relaxed text-ink-soft">
+                        <AlertDialogTitle class="text-base font-bold text-ink [overflow-wrap:anywhere]">{{ shown.title }}</AlertDialogTitle>
+                        <AlertDialogDescription v-if="shown.message" class="mt-1.5 text-sm leading-relaxed text-ink-soft [overflow-wrap:anywhere]">
                             {{ shown.message }}
                         </AlertDialogDescription>
                         <ul v-if="shown.items?.length" class="mt-3 max-h-48 space-y-1 overflow-y-auto rounded-lg bg-canvas px-3 py-2 text-[13px] text-ink">
-                            <li v-for="item in shown.items" :key="item" class="flex gap-2"><span class="text-ink-muted" aria-hidden="true">•</span>{{ item }}</li>
+                            <li v-for="item in shown.items" :key="item" class="flex gap-2 [overflow-wrap:anywhere]"><span class="text-ink-muted" aria-hidden="true">•</span>{{ item }}</li>
                         </ul>
                     </div>
                 </div>
