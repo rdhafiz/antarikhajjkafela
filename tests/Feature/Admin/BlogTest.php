@@ -165,6 +165,26 @@ class BlogTest extends AdminTestCase
         $this->get('/blog/packing-list-for-hajj')->assertOk()->assertSeeText('Bring comfortable sandals.')->assertSeeText('Unscented soap');
     }
 
+    public function test_the_publish_date_cannot_be_moved_into_the_past(): void
+    {
+        $post = Post::where('slug', 'what-is-umrah')->firstOrFail();
+        $post->update(['published_at' => '2025-08-10 09:00:00']);
+        $admin = $this->superAdmin();
+
+        // A past date is refused, a future one schedules the post.
+        $this->asAdmin($admin)->putJson("/api/admin/posts/{$post->id}", $this->payload($post, ['published_at' => now()->subDay()->format('Y-m-d\TH:i')]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['published_at' => 'cannot be in the past']);
+
+        // The date a post already has is kept, so older articles can still be edited.
+        $this->asAdmin($admin)->putJson("/api/admin/posts/{$post->id}", $this->payload($post, ['slug' => 'umrah-basics']))->assertOk();
+        $this->assertSame('2025-08-10 09:00', $post->fresh()->published_at->format('Y-m-d H:i'));
+
+        $this->asAdmin($admin)->putJson("/api/admin/posts/{$post->id}", $this->payload($post->fresh(), ['published_at' => now()->addDay()->format('Y-m-d\TH:i')]))
+            ->assertOk()
+            ->assertJsonPath('data.state', 'scheduled');
+    }
+
     public function test_changing_the_slug_redirects_the_old_address(): void
     {
         $post = Post::where('slug', 'what-is-umrah')->firstOrFail();
