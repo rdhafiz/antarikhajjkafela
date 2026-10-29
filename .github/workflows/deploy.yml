@@ -1,12 +1,13 @@
 name: Test and deploy
 
-# Every push and pull request is tested. Pushes to main are then built and
+# Pushes and pull requests to production are tested. A push is then built and
 # deployed to Hostinger over SSH (see docs/DEPLOYMENT.md for the secrets and
 # the DEPLOY_ENABLED variable that switches deploys on).
 on:
   push:
-    branches: [main]
+    branches: [production]
   pull_request:
+    branches: [production]
   workflow_dispatch:
 
 concurrency:
@@ -59,7 +60,7 @@ jobs:
   deploy:
     needs: test
     # Turned on by the repository variable DEPLOY_ENABLED=true once the server is set up.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/production' && vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
