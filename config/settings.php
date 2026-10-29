@@ -60,6 +60,12 @@ return [
                 'app_icon' => ['type' => 'media', 'usage' => 'icon', 'label' => 'App icon', 'hint' => 'Square image, at least 512×512. Used when the site is added to a phone home screen.', 'default' => null],
                 'favicon' => ['type' => 'media', 'usage' => 'icon', 'label' => 'Favicon', 'hint' => 'Square image shown in browser tabs.', 'default' => null],
                 'default_banner' => ['type' => 'media', 'usage' => 'banner', 'label' => 'Default page banner', 'hint' => 'Background for page tops that have no image of their own, such as the package list and booking pages.', 'default' => null],
+                'hajj_name' => [
+                    'type' => 'string', 'label' => 'Hajj & Umrah name', 'translatable' => true, 'rules' => ['max:120'], 'section' => 'Hajj & Umrah division',
+                    'hint' => 'Used instead of the website name on the Hajj and Umrah pages, their packages, bookings and booking emails.',
+                    'default' => ['en' => 'Antarik Hajj Kafela', 'bn' => 'আন্তরিক হজ্জ কাফেলা'],
+                ],
+                'hajj_logo' => ['type' => 'media', 'usage' => 'logo', 'label' => 'Hajj & Umrah logo', 'section' => 'Hajj & Umrah division', 'hint' => 'Shown in the header of those pages, over the photo and on white alike, so a logo on a transparent background works best. Without one the bundled Antarik Hajj Kafela logo is used.', 'default' => null],
             ],
         ],
 

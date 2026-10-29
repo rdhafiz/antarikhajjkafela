@@ -5,9 +5,10 @@
     Variables: $eyebrow (label in the header), $title (heading), $intro (line under it), $status (booking status for the pill).
 --}}
 @php
-    $brand = app(App\Support\Branding::class);
+    // Hajj and Umrah bookings are written as Antarik Hajj Kafela.
+    $brand = app(App\Support\Branding::class)->forBooking($booking ?? null);
     $logo = $brand->lightLogo()['src'] ?? null;
-    $siteName = setting_t('branding.site_name');
+    $siteName = $brand->siteName();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}">

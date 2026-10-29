@@ -8,6 +8,7 @@ use App\Models\Media;
 use App\Models\Package;
 use App\Models\Service;
 use App\Models\SlugRedirect;
+use App\Support\Branding;
 use App\Support\Seo\SeoText;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,6 +52,7 @@ class PackageController extends Controller
     public function service(Service $service): Response
     {
         $locale = app()->getLocale();
+        app(Branding::class)->usePilgrimage($service->isPilgrimage());
 
         $shareImage = ! empty($service->seo['image']) ? Media::find($service->seo['image']) : null;
 
@@ -127,6 +129,7 @@ class PackageController extends Controller
 
         $locale = app()->getLocale();
         $data = $this->presenter->detail($package);
+        app(Branding::class)->usePilgrimage((bool) $package->service?->isPilgrimage());
 
         seo()->title(SeoText::single($package->seo['title'] ?? null, $locale) ?? $data['name'])
             ->description(SeoText::single($package->seo['description'] ?? null, $locale) ?? $data['summary'])

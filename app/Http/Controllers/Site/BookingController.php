@@ -15,6 +15,7 @@ use App\Models\Booking;
 use App\Models\Package;
 use App\Models\PackagePrice;
 use App\Rules\PlainText;
+use App\Support\Branding;
 use App\Support\Digits;
 use App\Support\Money;
 use Illuminate\Http\JsonResponse;
@@ -46,6 +47,7 @@ class BookingController extends Controller
         $package = $this->bookablePackage($slug);
         $locale = app()->getLocale();
         $name = $package->getTranslation('name', $locale);
+        app(Branding::class)->usePilgrimage((bool) $package->service?->isPilgrimage());
 
         seo()->title(__('Book :package', ['package' => $name]))
             ->noindex()
@@ -190,6 +192,7 @@ class BookingController extends Controller
      */
     public function show(Booking $booking): Response
     {
+        app(Branding::class)->usePilgrimage($booking->isPilgrimage());
         $booking->load(['payments' => fn ($q) => $q->where('status', 'paid'), 'updates']);
 
         // Logged at most every half hour, and not when staff open the customer link while signed in.
