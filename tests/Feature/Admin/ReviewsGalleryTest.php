@@ -74,7 +74,7 @@ class ReviewsGalleryTest extends AdminTestCase
         ])->assertCreated()->json('data.id');
 
         $albumId = $this->asAdmin($admin)->postJson('/api/admin/gallery', [
-            'title' => ['en' => 'Hajj 2025: Arafat', 'bn' => 'হজ ২০২৫: আরাফাত'],
+            'title' => ['en' => 'Hajj 2025: Arafat', 'bn' => 'হজ্জ ২০২৫: আরাফাত'],
             'event_date' => '2025-06-05',
         ])->assertCreated()->assertJsonPath('data.slug', 'hajj-2025-arafat')->json('data.id');
 

@@ -140,7 +140,7 @@ class BlogTest extends AdminTestCase
         $category = PostCategory::where('slug', 'guides')->first();
 
         $id = $this->asAdmin($admin)->postJson('/api/admin/posts', [
-            'title' => ['en' => 'Packing list for Hajj', 'bn' => 'হজের প্যাকিং তালিকা'],
+            'title' => ['en' => 'Packing list for Hajj', 'bn' => 'হজ্জের প্যাকিং তালিকা'],
             'category_id' => $category->id,
         ])->assertCreated()->assertJsonPath('data.slug', 'packing-list-for-hajj')->assertJsonPath('data.state', 'draft')->json('data.id');
 

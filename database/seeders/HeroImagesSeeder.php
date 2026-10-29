@@ -311,7 +311,7 @@ class HeroImagesSeeder extends Seeder
 
     private function travelImages(): void
     {
-        $crowd = fn () => $this->importImage('heroes/hajj-crowd.webp', 'banner', ['Hajj pilgrims around the Kaaba', 'কাবার চারপাশে হজযাত্রীগণ']);
+        $crowd = fn () => $this->importImage('heroes/hajj-crowd.webp', 'banner', ['Hajj pilgrims around the Kaaba', 'কাবার চারপাশে হজ্জযাত্রীগণ']);
         $wide = fn () => $this->importImage('heroes/haram-wide.webp', 'banner', ['Masjid al-Haram in Makkah', 'মক্কার মসজিদুল হারাম']);
 
         Service::where('slug', 'hajj')->whereNull('image_id')->first()?->update(['image_id' => $crowd()->id]);

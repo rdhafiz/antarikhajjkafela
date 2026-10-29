@@ -35,22 +35,22 @@ class OldSiteMediaSeeder extends Seeder
         }
 
         $album = GalleryAlbum::create([
-            'title' => ['en' => 'Hajj workshop 2025', 'bn' => 'হজ প্রশিক্ষণ কর্মশালা ২০২৫'],
+            'title' => ['en' => 'Hajj workshop 2025', 'bn' => 'হজ্জ প্রশিক্ষণ কর্মশালা ২০২৫'],
             'slug' => 'hajj-workshop-2025',
             // The date shown on the workshop banner in the photos.
             'event_date' => '2025-04-19',
             'description' => [
                 'en' => 'Our scholars preparing pilgrims for Hajj: the rituals step by step, the supplications, and practical advice for the journey.',
-                'bn' => 'হজের জন্য হাজিদের প্রস্তুত করছেন আমাদের আলেমগণ: ধাপে ধাপে আমল, দোয়া এবং সফরের ব্যবহারিক পরামর্শ।',
+                'bn' => 'হজ্জের জন্য হাজিদের প্রস্তুত করছেন আমাদের আলেমগণ: ধাপে ধাপে আমল, দোয়া এবং সফরের ব্যবহারিক পরামর্শ।',
             ],
             'is_published' => true,
         ]);
 
         $captions = [
-            1 => ['A session of the Hajj workshop', 'হজ কর্মশালার একটি অধিবেশন'],
-            2 => ['Explaining the rituals of Hajj', 'হজের আমলসমূহের ব্যাখ্যা'],
+            1 => ['A session of the Hajj workshop', 'হজ্জ কর্মশালার একটি অধিবেশন'],
+            2 => ['Explaining the rituals of Hajj', 'হজ্জের আমলসমূহের ব্যাখ্যা'],
             3 => ['Guidance from our scholars', 'আমাদের আলেমদের দিকনির্দেশনা'],
-            4 => ['Questions and answers for first-time pilgrims', 'প্রথমবার হজযাত্রীদের প্রশ্নোত্তর'],
+            4 => ['Questions and answers for first-time pilgrims', 'প্রথমবার হজ্জযাত্রীদের প্রশ্নোত্তর'],
             5 => ['Pilgrims attending the workshop', 'কর্মশালায় অংশ নেওয়া হাজিগণ'],
         ];
 
@@ -65,9 +65,9 @@ class OldSiteMediaSeeder extends Seeder
 
     private function aboutImages(): void
     {
-        $scholar = fn () => $this->importImage('hajj-workshop-2025-1.webp', 'content', ['A scholar teaching at our Hajj workshop', 'আমাদের হজ কর্মশালায় একজন আলেমের আলোচনা']);
+        $scholar = fn () => $this->importImage('hajj-workshop-2025-1.webp', 'content', ['A scholar teaching at our Hajj workshop', 'আমাদের হজ্জ কর্মশালায় একজন আলেমের আলোচনা']);
         $team = fn () => $this->importImage('office-guests.webp', 'card', ['Our team with guests at the office', 'অফিসে অতিথিদের সাথে আমাদের টিম']);
-        $audience = fn () => $this->importImage('hajj-workshop-2025-5.webp', 'content', ['Pilgrims at our Hajj workshop', 'আমাদের হজ কর্মশালায় হাজিগণ']);
+        $audience = fn () => $this->importImage('hajj-workshop-2025-5.webp', 'content', ['Pilgrims at our Hajj workshop', 'আমাদের হজ্জ কর্মশালায় হাজিগণ']);
 
         foreach (Page::whereIn('system_key', ['home', 'about'])->get() as $page) {
             foreach ($page->sections()->where('component', 'about')->get() as $section) {

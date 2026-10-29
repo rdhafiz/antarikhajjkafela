@@ -52,7 +52,7 @@ return [
                     'hint' => 'One or two sentences about the agency, used in the footer and as a fallback description.',
                     'default' => [
                         'en' => 'Trusted international travel services from Dhaka: Hajj & Umrah, air tickets, visa processing and tour packages.',
-                        'bn' => 'ঢাকা থেকে বিশ্বস্ত আন্তর্জাতিক ট্রাভেল সেবা: হজ ও উমরাহ, এয়ার টিকেট, ভিসা প্রসেসিং ও ট্যুর প্যাকেজ।',
+                        'bn' => 'ঢাকা থেকে বিশ্বস্ত আন্তর্জাতিক ট্রাভেল সেবা: হজ্জ ও উমরাহ, এয়ার টিকেট, ভিসা প্রসেসিং ও ট্যুর প্যাকেজ।',
                     ],
                 ],
                 'logo' => ['type' => 'media', 'usage' => 'logo', 'label' => 'Website logo', 'hint' => 'Shown in the header. A wide logo on a transparent or white background works best.', 'default' => null],
