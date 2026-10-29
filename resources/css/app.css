@@ -2578,6 +2578,33 @@
     }
 
     /*
+     * motion-lite (phones, touch screens, low-memory devices): the hero holds
+     * still. Photos don't zoom and the text simply fades in; slides still
+     * crossfade, since that is how the slider changes.
+     */
+    .motion-lite .hero-media > img,
+    .motion-lite .hs-slide .hero-media > img,
+    .motion-lite .hs-slide.is-active .hero-media > img {
+        animation: none;
+        transform: none;
+        transition: none;
+    }
+
+    .motion-lite .hero-reveal > *,
+    .motion-lite .hero-reveal .hero-line {
+        animation: hero-fade 0.5s ease-out both;
+    }
+
+    .motion-lite .hs-line {
+        transform: none;
+        transition: opacity 0.3s ease-in;
+    }
+
+    .motion-lite .hs-slide.is-active .hs-line {
+        animation: hero-fade 0.5s ease-out 0.2s both;
+    }
+
+    /*
      * Colourful icons (features "icon_style": colorful): each item takes the
      * next pair of the palette as a gradient tile with a white glyph.
      */
@@ -3164,6 +3191,12 @@
 
     to {
         transform: scale(1.04);
+    }
+}
+
+@keyframes hero-fade {
+    from {
+        opacity: 0;
     }
 }
 
