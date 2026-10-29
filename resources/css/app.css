@@ -654,6 +654,49 @@
         will-change: translate;
     }
 
+    /*
+     * motion-lite (phones, touch screens, low-memory devices; set in the page
+     * head): reveals play once, quicker and shorter, the wipe becomes a fade,
+     * and parallax layers stay still and off the GPU.
+     */
+    .motion-lite .reveal {
+        --reveal-shift: 1.25rem;
+        transition-duration: 500ms, 600ms;
+    }
+
+    .motion-lite .reveal[data-reveal='left'] {
+        transform: translate3d(-1.5rem, 0, 0);
+    }
+
+    .motion-lite .reveal[data-reveal='right'] {
+        transform: translate3d(1.5rem, 0, 0);
+    }
+
+    .motion-lite .reveal[data-reveal='scale'] {
+        transform: translate3d(0, calc(var(--reveal-shift) / 2), 0) scale(0.96);
+    }
+
+    .motion-lite .reveal.is-revealed {
+        transform: none;
+    }
+
+    .motion-lite .reveal[data-reveal='wipe'] {
+        opacity: 0;
+    }
+
+    .motion-lite .reveal[data-reveal='wipe'].is-revealed {
+        opacity: 1;
+    }
+
+    .motion-lite .reveal[data-reveal='wipe'] > * {
+        clip-path: none;
+        transition: none;
+    }
+
+    .motion-lite [data-parallax] {
+        will-change: auto;
+    }
+
     /* Large outlined numerals (numbered rows) that fill with gold on hover. */
     .numeral-outline {
         color: transparent;
@@ -2438,6 +2481,17 @@
         will-change: transform;
     }
 
+    /* Nothing moves it on motion-lite devices, so it fits the section and needs no GPU layer. */
+    .motion-lite .hero-media {
+        inset: 0;
+        will-change: auto;
+    }
+
+    /* Hidden slides give their GPU layer back: one full-screen photo layer each adds up on small phones. */
+    .hs-slide:not(.is-active, .is-leaving) .hero-media {
+        will-change: auto;
+    }
+
     .hero-media > img {
         width: 100%;
         height: 100%;
@@ -3095,13 +3149,11 @@
     from {
         opacity: 0;
         transform: translate3d(0, 2.25rem, 0);
-        filter: blur(6px);
     }
 
     to {
         opacity: 1;
         transform: none;
-        filter: none;
     }
 }
 
@@ -3160,6 +3212,21 @@
 
     :lang(bn) :is(.text-\[11px\], .text-\[12px\], .text-\[12\.5px\]) {
         font-size: 13px;
+    }
+
+    /*
+     * Frosted glass (header, hero stats strip, sticky section bars) is redrawn on
+     * every scrolled frame, which phones can't keep up with. Their backgrounds
+     * are nearly opaque already, so motion-lite devices simply skip the blur.
+     */
+    .motion-lite :is(.backdrop-blur-sm, .backdrop-blur-md) {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    /* Without the blur, text would show through the white header. */
+    .motion-lite .group\/header.backdrop-blur-md {
+        background-color: #fff !important;
     }
 }
 

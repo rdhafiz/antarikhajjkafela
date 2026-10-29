@@ -16,6 +16,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    {{-- Phones, touch screens and low-memory devices get calm motion: no parallax, reveals play once. Set before the CSS so the hero never jumps. --}}
+    <script>(function(n,m){if(m('(max-width: 767px)').matches||m('(pointer: coarse)').matches||4>=n.deviceMemory||4>=n.hardwareConcurrency||(n.connection&&n.connection.saveData))document.documentElement.classList.add('motion-lite')})(navigator,matchMedia)</script>
 
     <x-site.seo-head />
     <x-site.brand-head />

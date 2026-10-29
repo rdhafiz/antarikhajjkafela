@@ -7,17 +7,20 @@ Alpine.plugin(collapse);
 Alpine.plugin(focus);
 Alpine.plugin(intersect);
 
+// Set in the page head for phones, touch screens and low-memory devices: no scroll-linked motion there.
+const liteMotion = document.documentElement.classList.contains('motion-lite');
+
 /**
  * Hero parallax: as the page scrolls, the background photo ([data-parallax-bg])
- * moves at half speed and slowly zooms, while the text ([data-parallax-content])
- * drifts down and fades out. Transform and opacity only, one rAF per frame,
- * softer on phones and off for visitors who prefer reduced motion.
+ * moves at half speed, while the text ([data-parallax-content]) drifts down and
+ * fades out. Transform and opacity only (no zoom, which would redraw the photo
+ * every frame), one rAF per frame. Off with reduced motion and on motion-lite
+ * devices, where JavaScript-driven parallax trails the finger.
  */
 function heroParallax() {
     const heroes = [...document.querySelectorAll('[data-hero]')];
-    if (!heroes.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!heroes.length || liteMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const phone = window.matchMedia('(max-width: 767px)');
     const parts = heroes.map((hero) => ({
         hero,
         bg: hero.querySelectorAll('[data-parallax-bg]'),
@@ -28,22 +31,23 @@ function heroParallax() {
     const update = () => {
         queued = false;
         const scrolled = window.scrollY;
-        const strength = phone.matches ? 0.6 : 1;
+        // Measure every hero before moving anything, so the layout is read once per frame.
+        const sizes = parts.map(({ hero }) => [hero.offsetTop, hero.offsetHeight]);
 
-        for (const { hero, bg, content } of parts) {
-            const height = hero.offsetHeight;
+        parts.forEach(({ bg, content }, i) => {
+            const [top, height] = sizes[i];
             // Heroes open the page, so scroll distance equals progress through them.
-            if (scrolled > hero.offsetTop + height) continue;
+            if (scrolled > top + height) return;
 
             const progress = Math.min(1, scrolled / height);
             bg.forEach((el) => {
-                el.style.transform = `translate3d(0, ${(scrolled * 0.5 * strength).toFixed(1)}px, 0) scale(${(1 + progress * 0.12).toFixed(3)})`;
+                el.style.transform = `translate3d(0, ${(scrolled * 0.5).toFixed(1)}px, 0)`;
             });
             content.forEach((el) => {
-                el.style.transform = `translate3d(0, ${(scrolled * 0.32 * strength).toFixed(1)}px, 0)`;
+                el.style.transform = `translate3d(0, ${(scrolled * 0.32).toFixed(1)}px, 0)`;
                 el.style.opacity = Math.max(0, 1 - progress * 1.8).toFixed(3);
             });
-        }
+        });
     };
 
     const queue = () => {
@@ -710,8 +714,17 @@ Alpine.data('dropdown', () => ({
 }));
 
 /**
+ * Sets the progress (--t) of a stepper's rails or a slider's dots on the bars
+ * themselves: set on the root, it would restyle the whole section every frame.
+ */
+function paintProgress(root, value) {
+    root._bars ??= root.querySelectorAll('.journey-rail > span, .hs-dot-fill');
+    root._bars.forEach((bar) => bar.style.setProperty('--t', value));
+}
+
+/**
  * Process stepper: tabs beside a stage. While on screen it moves to the next
- * step every few seconds (--t on the root fills the active step's rail).
+ * step every few seconds (--t on the rails fills the active step's one).
  * Hover or focus pauses it; a click, or reduced motion, stops it for good.
  */
 Alpine.data('journey', (count, duration = 6500) => ({
@@ -743,7 +756,7 @@ Alpine.data('journey', (count, duration = 6500) => ({
     },
 
     paint() {
-        this.$el.style.setProperty('--t', this.auto ? this.t.toFixed(4) : 1);
+        paintProgress(this.$el, this.auto ? this.t.toFixed(4) : 1);
     },
 
     go(index) {
@@ -777,7 +790,7 @@ Alpine.data('journey', (count, duration = 6500) => ({
 
 /**
  * Hero slider. The leaving slide stays underneath while the next one fades in
- * over it (CSS in .hs-*); the current dot fills with the time left (--t).
+ * over it (CSS in .hs-*); the current dot fills with the time left (--t on the fills).
  * Autoplay waits while the hero is hovered, focused, off-screen or the tab is
  * hidden, can be paused, and is off with reduced motion.
  */
@@ -813,7 +826,7 @@ Alpine.data('heroSlider', (count, duration = 7000) => ({
     },
 
     paint() {
-        this.$el.style.setProperty('--t', this.auto ? this.t.toFixed(4) : 1);
+        paintProgress(this.$el, this.auto ? this.t.toFixed(4) : 1);
     },
 
     go(index) {
@@ -1024,9 +1037,11 @@ if (dateFields.length) {
  *                          while scrolling down and down from above while
  *                          scrolling up. Optional value: up (default), left,
  *                          right, scale or wipe. --reveal-delay staggers items.
+ *                          On motion-lite devices it reveals once and stays.
  * [data-parallax="0.1"]    Moves by speed × its distance from the screen centre
  *                          (negative values move against the scroll). Uses the
  *                          CSS translate property, so it combines with reveals.
+ *                          Not on motion-lite devices.
  * [data-scroll-progress]   Gets --progress from 0 to 1 while it crosses the screen.
  */
 function scrollMotion() {
@@ -1054,6 +1069,8 @@ function scrollMotion() {
                 // 12% in view, or (for elements taller than the screen) a fifth of the screen filled.
                 if (isIntersecting && (intersectionRatio >= 0.12 || intersectionRect.height >= window.innerHeight * 0.2)) {
                     target.classList.add('is-revealed');
+                    // Fast flicks on a phone would otherwise restart dozens of animations at once.
+                    if (liteMotion) revealer.unobserve(target);
                 } else if (!isIntersecting) {
                     // Remember which side it left from, so it re-enters from there.
                     target.classList.remove('is-revealed');
@@ -1070,7 +1087,7 @@ function scrollMotion() {
         revealer.observe(el);
     });
 
-    const movers = [...document.querySelectorAll('[data-parallax], [data-scroll-progress]')];
+    const movers = [...document.querySelectorAll(liteMotion ? '[data-scroll-progress]' : '[data-parallax], [data-scroll-progress]')];
     if (!movers.length) return;
 
     const active = new Set();
@@ -1083,19 +1100,17 @@ function scrollMotion() {
     );
     movers.forEach((el) => watcher.observe(el));
 
-    const phone = window.matchMedia('(max-width: 767px)');
     let queued = false;
 
     const update = () => {
         queued = false;
         const vh = window.innerHeight;
-        const scale = phone.matches ? 0.5 : 1;
+        // Measure everything first, then move: reading a position after a move forces a new layout each time.
+        const rects = [...active].map((el) => [el, el.getBoundingClientRect()]);
 
-        for (const el of active) {
-            const rect = el.getBoundingClientRect();
-
+        for (const [el, rect] of rects) {
             if (el.dataset.parallax !== undefined) {
-                const offset = (rect.top + rect.height / 2 - vh / 2) * parseFloat(el.dataset.parallax || '0.1') * scale;
+                const offset = (rect.top + rect.height / 2 - vh / 2) * parseFloat(el.dataset.parallax || '0.1');
                 el.style.translate = `0 ${(-offset).toFixed(1)}px`;
             }
 
