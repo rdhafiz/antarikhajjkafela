@@ -637,8 +637,9 @@ Alpine.data('charCount', (max) => ({
 Alpine.data('siteHeader', () => ({
     scrolled: false,
     mobileOpen: false,
-    // Where the menu portal grows from: the centre of the button that opened it.
-    origin: '100% 0%',
+    // Where the menu portal grows from (the centre of the button that opened it) and the
+    // radius that covers the screen from there, as the menu's --mm-x/--mm-y/--mm-r.
+    origin: '',
     // How much the desktop bar gives up to fit: 0 everything, 1 the phone number, 2 the menu (menu button instead).
     fit: 0,
 
@@ -680,7 +681,11 @@ Alpine.data('siteHeader', () => ({
 
     openMenu(button) {
         const r = button.getBoundingClientRect();
-        this.origin = `${r.left + r.width / 2}px ${r.top + r.height / 2}px`;
+        const x = r.left + r.width / 2;
+        const y = r.top + r.height / 2;
+        // Distance to the farthest corner: the discs are just big enough, so the GPU draws no more than it must.
+        const radius = Math.ceil(Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))) + 2;
+        this.origin = `--mm-x: ${x}px; --mm-y: ${y}px; --mm-r: ${radius}px`;
         this.mobileOpen = true;
     },
 
@@ -714,17 +719,25 @@ Alpine.data('dropdown', () => ({
 }));
 
 /**
- * Sets the progress (--t) of a stepper's rails or a slider's dots on the bars
- * themselves: set on the root, it would restyle the whole section every frame.
+ * Autoplay timing shared by the stepper and the slider: the progress bar of the
+ * current item fills with a CSS animation (--duration), paused through the
+ * root's is-held class, and its animationend moves to the next item. A
+ * requestAnimationFrame loop did this before and kept the whole page
+ * rendering every frame, which made scrolling and the mobile menu stutter.
  */
-function paintProgress(root, value) {
-    root._bars ??= root.querySelectorAll('.journey-rail > span, .hs-dot-fill');
-    root._bars.forEach((bar) => bar.style.setProperty('--t', value));
+function autoplay(component, duration, bar, next) {
+    component.$el.style.setProperty('--duration', `${duration}ms`);
+    if (!component.auto) return;
+
+    document.addEventListener('visibilitychange', () => (component.tabHidden = document.hidden));
+    component.$el.addEventListener('animationend', (event) => {
+        if (component.auto && event.target.matches(bar)) next();
+    });
 }
 
 /**
  * Process stepper: tabs beside a stage. While on screen it moves to the next
- * step every few seconds (--t on the rails fills the active step's one).
+ * step every few seconds (the active step's rail fills in the meantime).
  * Hover or focus pauses it; a click, or reduced motion, stops it for good.
  */
 Alpine.data('journey', (count, duration = 6500) => ({
@@ -732,42 +745,25 @@ Alpine.data('journey', (count, duration = 6500) => ({
     auto: count > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     held: false,
     visible: false,
-    t: 0,
+    tabHidden: false,
 
     init() {
-        this.paint();
-        if (!this.auto) return;
-
+        autoplay(this, duration, '.journey-rail > span', () => this.go((this.active + 1) % count));
+        // Also spins the icon ring (is-onscreen) only while the section shows.
         new IntersectionObserver(([entry]) => (this.visible = entry.isIntersecting), { threshold: 0.4 }).observe(this.$el);
-
-        let last = performance.now();
-        const tick = (now) => {
-            const dt = Math.min(now - last, 100);
-            last = now;
-            if (!this.auto) return this.paint();
-            if (this.visible && !this.held && !document.hidden) {
-                this.t += dt / duration;
-                if (this.t >= 1) this.go((this.active + 1) % count);
-                this.paint();
-            }
-            requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
     },
 
-    paint() {
-        paintProgress(this.$el, this.auto ? this.t.toFixed(4) : 1);
+    get running() {
+        return this.auto && this.visible && !this.held && !this.tabHidden;
     },
 
     go(index) {
         this.active = index;
-        this.t = 0;
     },
 
     select(index) {
         this.auto = false;
         this.go(index);
-        this.paint();
     },
 
     hold(on) {
@@ -790,7 +786,7 @@ Alpine.data('journey', (count, duration = 6500) => ({
 
 /**
  * Hero slider. The leaving slide stays underneath while the next one fades in
- * over it (CSS in .hs-*); the current dot fills with the time left (--t on the fills).
+ * over it (CSS in .hs-*); the current dot fills with the time left.
  * Autoplay waits while the hero is hovered, focused, off-screen or the tab is
  * hidden, can be paused, and is off with reduced motion.
  */
@@ -801,38 +797,21 @@ Alpine.data('heroSlider', (count, duration = 7000) => ({
     paused: false,
     holds: { hover: false, focus: false },
     visible: true,
-    t: 0,
+    tabHidden: false,
     timer: null,
     touchX: null,
 
     init() {
-        this.paint();
-        if (!this.auto) return;
-
-        new IntersectionObserver(([entry]) => (this.visible = entry.isIntersecting), { threshold: 0.25 }).observe(this.$el);
-
-        let last = performance.now();
-        const tick = (now) => {
-            const dt = Math.min(now - last, 100);
-            last = now;
-            if (!this.paused && !this.holds.hover && !this.holds.focus && this.visible && !document.hidden) {
-                this.t += dt / duration;
-                if (this.t >= 1) this.go(this.i + 1);
-                this.paint();
-            }
-            requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
+        autoplay(this, duration, '.hs-dot-fill', () => this.go(this.i + 1));
+        if (this.auto) new IntersectionObserver(([entry]) => (this.visible = entry.isIntersecting), { threshold: 0.25 }).observe(this.$el);
     },
 
-    paint() {
-        paintProgress(this.$el, this.auto ? this.t.toFixed(4) : 1);
+    get running() {
+        return this.auto && !this.paused && !this.holds.hover && !this.holds.focus && this.visible && !this.tabHidden;
     },
 
     go(index) {
         const next = (index + count) % count;
-        this.t = 0;
-        this.paint();
         if (next === this.i) return;
 
         this.leaving = this.i;

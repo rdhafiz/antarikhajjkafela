@@ -18,6 +18,7 @@
     --}}
     <div
         x-data="journey({{ $count }})"
+        :class="{ 'is-auto': auto, 'is-held': !running, 'is-onscreen': visible }"
         @mouseenter="hold(true)" @mouseleave="hold(false)" @focusin="hold(true)" @focusout="hold(false)"
         class="journey grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-8"
     >

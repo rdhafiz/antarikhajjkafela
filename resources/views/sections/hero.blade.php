@@ -45,6 +45,7 @@
             @class(['hs relative min-h-[560px] sm:min-h-[620px]', '-mt-20' => $first, 'flex-1' => $height, 'lg:min-h-[680px]' => ! $height])
             @if ($isSlider)
                 x-data="heroSlider({{ count($slides) }})"
+                :class="{ 'is-auto': auto, 'is-held': !running }"
                 role="region" aria-roledescription="carousel" aria-label="{{ __('Highlights') }}"
                 @pointerenter="$event.pointerType === 'mouse' && hold('hover', true)" @pointerleave="hold('hover', false)"
                 @focusin="hold('focus', $event.target.matches(':focus-visible'))" @focusout="hold('focus', $el.contains($event.relatedTarget) && $event.relatedTarget.matches(':focus-visible'))"
