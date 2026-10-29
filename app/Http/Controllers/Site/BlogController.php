@@ -8,6 +8,7 @@ use App\Models\Media;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\SlugRedirect;
+use App\Support\Seo\SeoText;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 
@@ -47,8 +48,8 @@ class BlogController extends Controller
         $blog = Page::where('system_key', 'blog')->first();
         $blogUrl = $blog?->url() ?? url('blog');
 
-        $seo = seo()->title($post->seo['title'][$locale] ?? $data['title'])
-            ->description($post->seo['description'][$locale] ?? $data['excerpt'])
+        $seo = seo()->title(SeoText::single($post->seo['title'] ?? null, $locale) ?? $data['title'])
+            ->description(SeoText::single($post->seo['description'] ?? null, $locale) ?? $data['excerpt'])
             ->canonical($post->url())
             ->type('article')
             ->noindex($preview || (bool) ($post->seo['noindex'] ?? false))

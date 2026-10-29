@@ -105,8 +105,8 @@ class ServiceController extends Controller
             'image_id' => ['nullable', 'integer', Rule::exists(Media::class, 'id')->whereNull('deleted_at')],
             'is_active' => ['boolean'],
             'travel_date' => ['nullable', Rule::in(array_keys(TravelDates::MODES))],
-            'seo.title.*' => ['nullable', 'string', 'max:70'],
-            'seo.description.*' => ['nullable', 'string', 'max:200'],
+            'seo.title' => ['nullable', 'string', 'max:70'],
+            'seo.description' => ['nullable', 'string', 'max:200'],
             'seo.image' => ['nullable', 'integer', Rule::exists(Media::class, 'id')->whereNull('deleted_at')],
             'seo.schema' => ['nullable', 'string', 'max:20000', new JsonLd],
         ], [
@@ -129,7 +129,7 @@ class ServiceController extends Controller
             'image_id' => $data['image_id'] ?? null,
             'is_active' => (bool) ($data['is_active'] ?? true),
             'travel_date' => $data['travel_date'] ?? $service?->travel_date ?? 'none',
-            'seo' => ['title' => array_filter($data['seo']['title'] ?? []), 'description' => array_filter($data['seo']['description'] ?? []), 'image' => $data['seo']['image'] ?? null, 'schema' => filled($data['seo']['schema'] ?? null) ? trim($data['seo']['schema']) : null],
+            'seo' => ['title' => filled($data['seo']['title'] ?? null) ? trim($data['seo']['title']) : null, 'description' => filled($data['seo']['description'] ?? null) ? trim($data['seo']['description']) : null, 'image' => $data['seo']['image'] ?? null, 'schema' => filled($data['seo']['schema'] ?? null) ? trim($data['seo']['schema']) : null],
         ];
     }
 
@@ -151,7 +151,7 @@ class ServiceController extends Controller
             'image_id' => $service->image_id,
             'is_active' => $service->is_active,
             'travel_date' => $service->travel_date ?? 'none',
-            'seo' => ['title' => (object) ($service->seo['title'] ?? []), 'description' => (object) ($service->seo['description'] ?? []), 'image' => $service->seo['image'] ?? null, 'schema' => $service->seo['schema'] ?? null],
+            'seo' => ['title' => $service->seo['title'] ?? null, 'description' => $service->seo['description'] ?? null, 'image' => $service->seo['image'] ?? null, 'schema' => $service->seo['schema'] ?? null],
             'packages_count' => $service->packages_count ?? 0,
             'live_packages_count' => $service->live_packages_count ?? 0,
             'image_url' => $service->relationLoaded('image') ? $service->image?->url('admin') : null,

@@ -8,6 +8,7 @@ use App\Models\Media;
 use App\Models\Package;
 use App\Models\Service;
 use App\Models\SlugRedirect;
+use App\Support\Seo\SeoText;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -53,8 +54,8 @@ class PackageController extends Controller
 
         $shareImage = ! empty($service->seo['image']) ? Media::find($service->seo['image']) : null;
 
-        seo()->title($service->seo['title'][$locale] ?? $service->getTranslation('name', $locale))
-            ->description($service->seo['description'][$locale] ?? $service->getTranslation('summary', $locale))
+        seo()->title(SeoText::single($service->seo['title'] ?? null, $locale) ?? $service->getTranslation('name', $locale))
+            ->description(SeoText::single($service->seo['description'] ?? null, $locale) ?? $service->getTranslation('summary', $locale))
             ->canonical($service->url())
             ->image($shareImage?->url('og') ?? $service->image?->url('lg'))
             ->breadcrumb(__('Home'), url('/'))
@@ -127,8 +128,8 @@ class PackageController extends Controller
         $locale = app()->getLocale();
         $data = $this->presenter->detail($package);
 
-        seo()->title($package->seo['title'][$locale] ?? $data['name'])
-            ->description($package->seo['description'][$locale] ?? $data['summary'])
+        seo()->title(SeoText::single($package->seo['title'] ?? null, $locale) ?? $data['name'])
+            ->description(SeoText::single($package->seo['description'] ?? null, $locale) ?? $data['summary'])
             ->canonical($package->url())
             ->image((! empty($package->seo['image']) ? Media::find($package->seo['image'])?->url('og') : null) ?? $package->banner?->url('lg'))
             ->type('product')

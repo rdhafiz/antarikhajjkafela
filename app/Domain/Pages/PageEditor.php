@@ -157,8 +157,8 @@ class PageEditor
     private function seo(array $seo): array
     {
         return [
-            'title' => array_filter($seo['title'] ?? []),
-            'description' => array_filter($seo['description'] ?? []),
+            'title' => filled($seo['title'] ?? null) ? trim($seo['title']) : null,
+            'description' => filled($seo['description'] ?? null) ? trim($seo['description']) : null,
             'image' => ! empty($seo['image']) ? (int) $seo['image'] : null,
             'noindex' => (bool) ($seo['noindex'] ?? false),
             'schema' => filled($seo['schema'] ?? null) ? trim($seo['schema']) : null,

@@ -4,6 +4,7 @@ import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
 import AppSwitch from '@admin/components/ui/AppSwitch.vue';
 import FormField from '@admin/components/ui/FormField.vue';
 import SchemaInput from '@admin/components/ui/SchemaInput.vue';
+import SeoTextInputs from '@admin/components/ui/SeoTextInputs.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
 import MediaField from '@admin/components/media/MediaField.vue';
 import { useAppStore } from '@admin/stores/app';
@@ -13,7 +14,7 @@ export interface PageForm {
     title: Translations;
     slug: string;
     status: 'draft' | 'published';
-    seo: { title: Translations; description: Translations; image: number | null; noindex: boolean; schema: string | null };
+    seo: { title: string | null; description: string | null; image: number | null; noindex: boolean; schema: string | null };
     starts_at: string | null;
     expires_at: string | null;
     focused_layout: boolean;
@@ -27,8 +28,8 @@ const id = useId();
 const app = useAppStore();
 const siteHost = computed(() => app.siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, ''));
 
-const previewTitle = computed(() => form.value.seo.title[app.defaultLocale] || form.value.title[app.defaultLocale] || 'Page title');
-const previewDescription = computed(() => form.value.seo.description[app.defaultLocale] || 'Add a description to control what Google shows under the title.');
+const previewTitle = computed(() => form.value.seo.title || form.value.title[app.defaultLocale] || 'Page title');
+const previewDescription = computed(() => form.value.seo.description || 'Add a description to control what Google shows under the title.');
 
 function error(key: string): string | undefined {
     return props.errors[key]?.[0];
@@ -113,8 +114,7 @@ function local(value: string | null): string | null {
                 <p class="mt-0.5 truncate text-[18px] leading-snug text-[#1a0dab]">{{ previewTitle }}</p>
                 <p class="mt-1 line-clamp-2 text-[13px] text-[#4d5156]">{{ previewDescription }}</p>
             </div>
-            <TranslatableInput v-model="form.seo.title" label="SEO title" placeholder="Defaults to the page title" :errors="errors" error-key="seo.title" hint="Up to about 60 characters." />
-            <TranslatableInput v-model="form.seo.description" label="SEO description" multiline :rows="3" :errors="errors" error-key="seo.description" hint="Around 150 characters that make people want to click." />
+            <SeoTextInputs v-model:title="form.seo.title" v-model:description="form.seo.description" :errors="errors" title-placeholder="Defaults to the page title" />
             <MediaField v-model="form.seo.image" label="Social share image" usage="og" aspect="1200 / 630" hint="Shown when the page is shared on Facebook or WhatsApp." />
             <div class="rounded-lg border border-line p-3.5">
                 <AppSwitch v-model="form.seo.noindex" label="Hide from search engines" description="Adds noindex, e.g. for thank-you or private pages." />

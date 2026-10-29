@@ -161,8 +161,8 @@ class PackageController extends Controller
                     }
                 },
             ],
-            'seo.title.*' => ['nullable', 'string', 'max:70'],
-            'seo.description.*' => ['nullable', 'string', 'max:200'],
+            'seo.title' => ['nullable', 'string', 'max:70'],
+            'seo.description' => ['nullable', 'string', 'max:200'],
             'seo.image' => ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'],
             'seo.noindex' => ['nullable', 'boolean'],
             'seo.schema' => ['nullable', 'string', 'max:20000', new JsonLd],

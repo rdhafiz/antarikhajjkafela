@@ -10,6 +10,7 @@ import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import AppSwitch from '@admin/components/ui/AppSwitch.vue';
 import FormField from '@admin/components/ui/FormField.vue';
 import SchemaInput from '@admin/components/ui/SchemaInput.vue';
+import SeoTextInputs from '@admin/components/ui/SeoTextInputs.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
 import { useErrorClearing } from '@admin/composables/useErrorClearing';
 import MediaField from '@admin/components/media/MediaField.vue';
@@ -38,7 +39,7 @@ type PackageData = Record<string, unknown> & {
     url: string;
     status: 'draft' | 'published';
     booking_state: 'open' | 'upcoming' | 'closed';
-    seo: { title: Translations; description: Translations; image: number | null; noindex: boolean; schema: string | null };
+    seo: { title: string | null; description: string | null; image: number | null; noindex: boolean; schema: string | null };
 };
 
 const route = useRoute();
@@ -260,8 +261,7 @@ const bookingTone = { open: 'success', upcoming: 'warning', closed: 'danger' } a
 
             <!-- SEO -->
             <div v-show="tab === 'seo'" class="max-w-2xl space-y-4">
-                <TranslatableInput v-model="data.seo.title" label="SEO title" placeholder="Defaults to the package name" :errors="errors" error-key="seo.title" />
-                <TranslatableInput v-model="data.seo.description" label="SEO description" multiline :rows="3" placeholder="Defaults to the card summary" :errors="errors" error-key="seo.description" />
+                <SeoTextInputs v-model:title="data.seo.title" v-model:description="data.seo.description" :errors="errors" title-placeholder="Defaults to the package name" description-placeholder="Defaults to the card summary" />
                 <MediaField v-model="data.seo.image" label="Social share image" usage="og" aspect="1200 / 630" hint="Defaults to the banner." />
                 <div class="rounded-lg border border-line p-3.5">
                     <AppSwitch v-model="data.seo.noindex" label="Hide from search engines" />
