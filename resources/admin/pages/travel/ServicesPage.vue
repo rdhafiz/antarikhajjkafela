@@ -12,6 +12,7 @@ import FilterDrawer, { type FilterGroup } from '@admin/components/ui/FilterDrawe
 import FormField from '@admin/components/ui/FormField.vue';
 import ListHero from '@admin/components/ui/ListHero.vue';
 import ListToolbar from '@admin/components/ui/ListToolbar.vue';
+import SchemaInput from '@admin/components/ui/SchemaInput.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
 import MediaField from '@admin/components/media/MediaField.vue';
 import IconPicker from '@admin/pages/content/builder/IconPicker.vue';
@@ -39,7 +40,7 @@ interface ServiceRow {
     image_id: number | null;
     is_active: boolean;
     travel_date: 'none' | 'month_year' | 'hajj_year';
-    seo: { title: Translations; description: Translations; image: number | null };
+    seo: { title: Translations; description: Translations; image: number | null; schema: string | null };
     packages_count: number;
     live_packages_count: number;
     image_url: string | null;
@@ -131,7 +132,7 @@ function preview(service: ServiceRow): void {
     drawerOpen.value = true;
 }
 
-const blank = { name: {} as Translations, slug: '', summary: {} as Translations, headline: {} as Translations, highlight: {} as Translations, description: {} as Translations, icon: null as string | null, image_id: null as number | null, is_active: true, travel_date: 'none' as ServiceRow['travel_date'], seo: { title: {} as Translations, description: {} as Translations, image: null as number | null } };
+const blank = { name: {} as Translations, slug: '', summary: {} as Translations, headline: {} as Translations, highlight: {} as Translations, description: {} as Translations, icon: null as string | null, image_id: null as number | null, is_active: true, travel_date: 'none' as ServiceRow['travel_date'], seo: { title: {} as Translations, description: {} as Translations, image: null as number | null, schema: null as string | null } };
 const form = useForm({ ...blank });
 
 async function load(): Promise<void> {
@@ -349,6 +350,7 @@ onMounted(load);
                     <TranslatableInput v-model="form.data.seo.description" label="SEO description" :errors="form.errors" error-key="seo.description" />
                     <MediaField v-model="form.data.seo.image" label="Social share image" usage="og" aspect="1200 / 630" hint="Shown when the page is shared on Facebook or WhatsApp. Defaults to the banner." />
                 </div>
+                <SchemaInput v-model="form.data.seo.schema" :error="form.error('seo.schema')" />
             </form>
             <template #footer>
                 <AppButton variant="secondary" @click="open = false">Cancel</AppButton>

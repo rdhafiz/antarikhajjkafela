@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Package;
 use App\Models\Service;
 use App\PageBuilder\Field;
+use App\Rules\JsonLd;
 use App\Support\Icons;
 use App\Support\Locales;
 use Illuminate\Database\Eloquent\Builder;
@@ -164,6 +165,7 @@ class PackageController extends Controller
             'seo.description.*' => ['nullable', 'string', 'max:200'],
             'seo.image' => ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'],
             'seo.noindex' => ['nullable', 'boolean'],
+            'seo.schema' => ['nullable', 'string', 'max:20000', new JsonLd],
             ...$this->editor->nestedRules(),
         ], [
             'name.en.required' => 'An English name is needed for the web address.',

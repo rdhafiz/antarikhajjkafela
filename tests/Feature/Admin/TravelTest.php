@@ -388,4 +388,22 @@ class TravelTest extends AdminTestCase
 
         $this->assertSame(3, PackagePrice::whereIn('package_type_id', Package::find($id)->types()->pluck('id'))->count());
     }
+
+    public function test_services_and_packages_take_their_own_schema(): void
+    {
+        $admin = $this->asAdmin($this->superAdmin());
+
+        $umrah = collect($admin->getJson('/api/admin/services')->json('data'))->firstWhere('slug', 'umrah');
+        $admin->putJson('/api/admin/services/'.$umrah['id'], [...$umrah, 'seo' => [...$umrah['seo'], 'schema' => 'not json']])
+            ->assertJsonValidationErrors('seo.schema');
+        $admin->putJson('/api/admin/services/'.$umrah['id'], [...$umrah, 'seo' => [...$umrah['seo'], 'schema' => '{"@type": "FAQPage", "name": "Umrah questions"}']])
+            ->assertOk();
+        $this->get('/umrah')->assertOk()->assertSee('{"@type":"FAQPage","name":"Umrah questions"}', false);
+
+        $package = $this->umrah();
+        $payload = $this->payload($package);
+        $payload['seo']['schema'] = '[{"@type": "Offer", "name": "Early bird"}]';
+        $admin->putJson("/api/admin/packages/{$package->id}", $payload)->assertOk()->assertJsonPath('data.seo.schema', '[{"@type": "Offer", "name": "Early bird"}]');
+        $this->get($package->fresh()->url())->assertOk()->assertSee('{"@type":"Offer","name":"Early bird"}', false);
+    }
 }

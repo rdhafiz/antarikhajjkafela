@@ -3,6 +3,7 @@ import { computed, useId } from 'vue';
 import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
 import AppSwitch from '@admin/components/ui/AppSwitch.vue';
 import FormField from '@admin/components/ui/FormField.vue';
+import SchemaInput from '@admin/components/ui/SchemaInput.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
 import MediaField from '@admin/components/media/MediaField.vue';
 import { useAppStore } from '@admin/stores/app';
@@ -12,7 +13,7 @@ export interface PageForm {
     title: Translations;
     slug: string;
     status: 'draft' | 'published';
-    seo: { title: Translations; description: Translations; image: number | null; noindex: boolean };
+    seo: { title: Translations; description: Translations; image: number | null; noindex: boolean; schema: string | null };
     starts_at: string | null;
     expires_at: string | null;
     focused_layout: boolean;
@@ -118,6 +119,7 @@ function local(value: string | null): string | null {
             <div class="rounded-lg border border-line p-3.5">
                 <AppSwitch v-model="form.seo.noindex" label="Hide from search engines" description="Adds noindex, e.g. for thank-you or private pages." />
             </div>
+            <SchemaInput v-model="form.seo.schema" :error="errors['seo.schema']" />
         </section>
     </div>
 </template>

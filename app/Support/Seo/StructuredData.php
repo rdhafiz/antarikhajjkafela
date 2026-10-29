@@ -30,11 +30,7 @@ class StructuredData
             $graph[] = $schema;
         }
 
-        $custom = json_decode((string) settings('seo.schema'), true);
-
-        if (is_array($custom) && $custom !== []) {
-            array_push($graph, ...(array_is_list($custom) ? $custom : [$custom]));
-        }
+        array_push($graph, ...JsonLd::nodes((string) settings('seo.schema')));
 
         return $graph;
     }

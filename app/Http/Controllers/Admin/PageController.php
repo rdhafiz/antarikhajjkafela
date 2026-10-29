@@ -226,6 +226,7 @@ class PageController extends Controller
                 'description' => (object) ($page->seo['description'] ?? []),
                 'image' => $page->seo['image'] ?? null,
                 'noindex' => (bool) ($page->seo['noindex'] ?? false),
+                'schema' => $page->seo['schema'] ?? null,
             ],
             'focused_layout' => $page->focused_layout,
             'tracking' => (object) ($page->tracking ?? []),

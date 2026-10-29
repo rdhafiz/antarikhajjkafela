@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Models\SlugRedirect;
 use App\Models\User;
 use App\PageBuilder\ContentBlocks;
+use App\Rules\JsonLd;
 use App\Support\Locales;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -50,6 +51,7 @@ class PostEditor
             'seo.description.*' => ['nullable', 'string', 'max:200'],
             'seo.image' => ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'],
             'seo.noindex' => ['nullable', 'boolean'],
+            'seo.schema' => ['nullable', 'string', 'max:20000', new JsonLd],
             ...$this->blocks->rules('blocks', 60),
         ];
     }
@@ -86,6 +88,7 @@ class PostEditor
                     'description' => array_filter($data['seo']['description'] ?? []),
                     'image' => $data['seo']['image'] ?? null,
                     'noindex' => (bool) ($data['seo']['noindex'] ?? false),
+                    'schema' => filled($data['seo']['schema'] ?? null) ? trim($data['seo']['schema']) : null,
                 ],
                 'updated_by' => $user->id,
             ])->save();
@@ -157,6 +160,7 @@ class PostEditor
                 'description' => (object) ($post->seo['description'] ?? []),
                 'image' => $post->seo['image'] ?? null,
                 'noindex' => (bool) ($post->seo['noindex'] ?? false),
+                'schema' => $post->seo['schema'] ?? null,
             ],
             'updated_at' => $post->updated_at?->toIso8601String(),
         ];

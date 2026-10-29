@@ -54,6 +54,7 @@ class PackageEditor
                     'description' => array_filter($data['seo']['description'] ?? []),
                     'image' => $data['seo']['image'] ?? null,
                     'noindex' => (bool) ($data['seo']['noindex'] ?? false),
+                    'schema' => filled($data['seo']['schema'] ?? null) ? trim($data['seo']['schema']) : null,
                 ],
                 'updated_by' => $user->id,
             ])->save();
@@ -199,6 +200,7 @@ class PackageEditor
                 'description' => (object) ($package->seo['description'] ?? []),
                 'image' => $package->seo['image'] ?? null,
                 'noindex' => (bool) ($package->seo['noindex'] ?? false),
+                'schema' => $package->seo['schema'] ?? null,
             ],
             'types' => $package->types->map(fn (PackageType $type) => [
                 'id' => $type->id,

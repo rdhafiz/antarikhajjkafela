@@ -59,7 +59,7 @@ class BlogController extends Controller
             $seo->breadcrumb($post->category->getTranslation('name', $locale), $post->category->url());
         }
 
-        $seo->breadcrumb($data['title'], $post->url())->schema($this->presenter->schema($post, $data));
+        $seo->breadcrumb($data['title'], $post->url())->schema($this->presenter->schema($post, $data))->customSchema($post->seo['schema'] ?? null);
 
         $shareImage = ! empty($post->seo['image']) ? Media::find($post->seo['image']) : null;
         $seo->image($shareImage?->url('og') ?? $post->banner?->url('lg'));

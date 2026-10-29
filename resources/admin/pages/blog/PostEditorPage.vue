@@ -8,6 +8,7 @@ import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import AppSwitch from '@admin/components/ui/AppSwitch.vue';
 import FormField from '@admin/components/ui/FormField.vue';
+import SchemaInput from '@admin/components/ui/SchemaInput.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
 import { useErrorClearing } from '@admin/composables/useErrorClearing';
 import MediaField from '@admin/components/media/MediaField.vue';
@@ -38,7 +39,7 @@ interface PostData {
     state: PostState;
     published_at: string | null;
     is_featured: boolean;
-    seo: { title: Translations; description: Translations; image: number | null; noindex: boolean };
+    seo: { title: Translations; description: Translations; image: number | null; noindex: boolean; schema: string | null };
 }
 
 const route = useRoute();
@@ -197,6 +198,7 @@ onBeforeUnmount(() => {
                     <div class="rounded-lg border border-line p-3.5">
                         <AppSwitch v-model="data.seo.noindex" label="Hide from search engines" />
                     </div>
+                    <SchemaInput v-model="data.seo.schema" :error="errors['seo.schema']" />
                 </div>
             </div>
 

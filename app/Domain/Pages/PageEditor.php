@@ -161,6 +161,7 @@ class PageEditor
             'description' => array_filter($seo['description'] ?? []),
             'image' => ! empty($seo['image']) ? (int) $seo['image'] : null,
             'noindex' => (bool) ($seo['noindex'] ?? false),
+            'schema' => filled($seo['schema'] ?? null) ? trim($seo['schema']) : null,
         ];
     }
 

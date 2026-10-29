@@ -221,4 +221,15 @@ class BlogTest extends AdminTestCase
             ->assertSee(url('/blog/how-to-perform-umrah'), false)
             ->assertDontSee(url('/blog/what-is-umrah'), false);
     }
+
+    public function test_posts_take_their_own_schema(): void
+    {
+        $post = Post::where('slug', 'what-is-umrah')->firstOrFail();
+        $payload = $this->payload($post);
+        $payload['seo']['schema'] = '{"@type": "HowTo", "name": "Perform Umrah"}';
+
+        $this->asAdmin($this->superAdmin())->putJson("/api/admin/posts/{$post->id}", $payload)->assertOk();
+
+        $this->get($post->fresh()->url())->assertOk()->assertSee('{"@type":"HowTo","name":"Perform Umrah"}', false)->assertSee('"@type":"BlogPosting"', false);
+    }
 }

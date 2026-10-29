@@ -715,4 +715,42 @@ class PageBuilderTest extends AdminTestCase
             ->assertJsonPath('style_fields.0.key', 'background')
             ->assertJsonPath('icons.0.name', 'kaaba');
     }
+
+    public function test_pages_take_their_own_schema(): void
+    {
+        $page = $this->page('about');
+        $admin = $this->asAdmin($this->superAdmin());
+        $event = ['@context' => 'https://schema.org', '@type' => 'Event', 'name' => 'Hajj seminar 2027'];
+
+        // Not JSON, or JSON without an @type: refused with a reason.
+        $admin->putJson("/api/admin/pages/{$page->id}", $this->payload($page, ['seo' => ['schema' => '{"@type": "Event",']]))
+            ->assertJsonValidationErrors(['seo.schema' => 'not valid JSON']);
+        $admin->putJson("/api/admin/pages/{$page->id}", $this->payload($page, ['seo' => ['schema' => '{"name": "No type"}']]))
+            ->assertJsonValidationErrors(['seo.schema' => '@type']);
+
+        // Saved as typed and given back to the editor.
+        $payload = $this->payload($page);
+        $payload['seo']['schema'] = json_encode($event, JSON_PRETTY_PRINT);
+        $admin->putJson("/api/admin/pages/{$page->id}", $payload)->assertOk()->assertJsonPath('data.seo.schema', json_encode($event, JSON_PRETTY_PRINT));
+
+        // Added to the page's JSON-LD graph, without its own @context; other pages don't get it.
+        $html = $this->get('/about')->assertOk()->getContent();
+        preg_match('#<script type="application/ld\+json">(.+?)</script>#s', $html, $match);
+        $graph = json_decode($match[1], true)['@graph'];
+        $this->assertContains(['@type' => 'Event', 'name' => 'Hajj seminar 2027'], $graph);
+        $this->assertContains('AboutPage', array_column($graph, '@type'));
+        $this->app->forgetScopedInstances(); // seo() lives for one request, as on the site
+        $this->get('/contact')->assertDontSee('Hajj seminar 2027');
+
+        // A full {"@context", "@graph"} document is flattened into the page's graph.
+        $payload['seo']['schema'] = json_encode(['@context' => 'https://schema.org', '@graph' => [['@type' => 'Event', 'name' => 'Seminar A'], ['@type' => 'Offer', 'name' => 'Offer B']]]);
+        $admin->putJson("/api/admin/pages/{$page->id}", $payload)->assertOk();
+        $this->app->forgetScopedInstances();
+        $this->get('/about')->assertSee('{"@type":"Event","name":"Seminar A"}', false)->assertSee('{"@type":"Offer","name":"Offer B"}', false);
+
+        // Emptied: nothing is stored.
+        $payload['seo']['schema'] = '  ';
+        $admin->putJson("/api/admin/pages/{$page->id}", $payload)->assertOk();
+        $this->assertNull($page->fresh()->seo['schema']);
+    }
 }

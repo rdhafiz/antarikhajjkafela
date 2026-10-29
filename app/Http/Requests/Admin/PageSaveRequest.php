@@ -8,6 +8,7 @@ use App\PageBuilder\ContentProcessor;
 use App\PageBuilder\Field;
 use App\PageBuilder\SectionStyle;
 use App\Rules\FreeSlug;
+use App\Rules\JsonLd;
 use App\Support\Locales;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -39,6 +40,7 @@ class PageSaveRequest extends FormRequest
             'seo.description.*' => ['nullable', 'string', 'max:200'],
             'seo.image' => ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'],
             'seo.noindex' => ['nullable', 'boolean'],
+            'seo.schema' => ['nullable', 'string', 'max:20000', new JsonLd],
             'sections' => ['present', 'array', 'max:40'],
             'sections.*' => ['array'],
             'sections.*.id' => ['nullable', 'integer'],

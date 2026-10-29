@@ -63,7 +63,7 @@ class PackageController extends Controller
         $packages = $this->listing($service->id)->load('types.prices');
         $durations = $packages->pluck('duration_days')->filter();
 
-        seo()->schema($this->serviceSchema($service, $packages))->schema($this->itemList($packages));
+        seo()->schema($this->serviceSchema($service, $packages))->schema($this->itemList($packages))->customSchema($service->seo['schema'] ?? null);
 
         return response()->view('site.packages.service', [
             'service' => $service,
@@ -137,7 +137,8 @@ class PackageController extends Controller
             ->breadcrumb(__('Home'), url('/'))
             ->breadcrumb($package->service->getTranslation('name', $locale), $package->service->url())
             ->breadcrumb($data['name'], $package->url())
-            ->schema($this->presenter->schema($package));
+            ->schema($this->presenter->schema($package))
+            ->customSchema($package->seo['schema'] ?? null);
 
         $related = Package::published()
             ->with('banner', 'service')

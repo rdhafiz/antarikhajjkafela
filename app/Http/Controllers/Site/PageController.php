@@ -96,6 +96,7 @@ class PageController extends Controller
         foreach ($rendered['schema'] as $schema) {
             $seo->schema($schema);
         }
+        $seo->customSchema($seoData['schema'] ?? null);
 
         return response()->view('site.page', [
             'page' => $page,

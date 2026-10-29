@@ -84,7 +84,7 @@ export interface PageSummary {
 
 export interface PageDetail extends PageSummary {
     has_listing: boolean;
-    seo: { title: Translations; description: Translations; image: number | null; noindex: boolean };
+    seo: { title: Translations; description: Translations; image: number | null; noindex: boolean; schema: string | null };
     focused_layout: boolean;
     tracking: { gtm_id?: string | null; facebook_pixel_id?: string | null };
     sections: Omit<SectionData, 'uid'>[];
