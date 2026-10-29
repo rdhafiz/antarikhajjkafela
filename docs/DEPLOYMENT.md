@@ -1,6 +1,6 @@
 # Deployment (Hostinger + GitHub Actions)
 
-Every push to `main` is tested in GitHub Actions. If the tests pass, the site is built (PHP dependencies and CSS/JS) and uploaded to Hostinger over SSH, then switched live in one step. The server never needs Node or Composer. Each deploy is kept in its own folder, so a rollback takes one command.
+Every push and pull request to `production` is tested in GitHub Actions. A push that passes is then built (PHP dependencies and CSS/JS) and uploaded to Hostinger over SSH, then switched live in one step. The server never needs Node or Composer. Each deploy is kept in its own folder, so a rollback takes one command.
 
 ```
 ~/antarik/                       APP_DIR
@@ -115,7 +115,7 @@ Optionally, add yourself as a required reviewer on the environment so every depl
 
 ## 3. Deploying
 
-- Push to `main`, or open Actions → **Test and deploy** → Run workflow.
+- Push to `production`. Pull requests into `production` are tested only. Opening Actions → **Test and deploy** → Run workflow also runs the tests without deploying.
 - The deploy runs the database migrations, syncs the admin permissions, rebuilds the caches and switches the live folder.
 - Follow the progress under the Actions tab. If any test fails, nothing is deployed.
 
