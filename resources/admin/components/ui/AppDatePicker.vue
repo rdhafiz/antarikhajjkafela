@@ -17,8 +17,10 @@ const props = withDefaults(
         id?: string;
         mode?: 'date' | 'datetime';
         placeholder?: string;
-        minDate?: string | null;
+        minDate?: string | Date | null;
         maxDate?: string | null;
+        /** A date that stays selectable before minDate (the date a record already has). */
+        keepDate?: string | null;
         clearable?: boolean;
         disabled?: boolean;
         invalid?: boolean;
@@ -28,6 +30,19 @@ const props = withDefaults(
 
 const input = ref<HTMLInputElement | null>(null);
 let picker: Instance | null = null;
+
+const dayOf = (value: string | Date) => new Date(typeof value === 'string' ? value.slice(0, 10) + 'T00:00' : new Date(value).setHours(0, 0, 0, 0));
+
+/** minDate as flatpickr limits; a kept earlier date turns it into an "enable" rule so that day stays pickable. */
+function lowerLimit(): { minDate?: string | Date; enable?: ((date: Date) => boolean)[] } {
+    if (!props.minDate) return {};
+    if (!props.keepDate || dayOf(props.keepDate) >= dayOf(props.minDate)) return { minDate: props.minDate };
+
+    const min = dayOf(props.minDate).getTime();
+    const kept = dayOf(props.keepDate).getTime();
+
+    return { enable: [(date: Date) => date.getTime() >= min || dayOf(date).getTime() === kept] };
+}
 
 const valueFormat = () => (props.mode === 'datetime' ? 'Y-m-d\\TH:i' : 'Y-m-d');
 
@@ -45,7 +60,7 @@ onMounted(() => {
         allowInput: false,
         disableMobile: true,
         monthSelectorType: 'static',
-        minDate: props.minDate ?? undefined,
+        ...lowerLimit(),
         maxDate: props.maxDate ?? undefined,
         defaultDate: model.value || undefined,
         onChange: (_dates, value) => {
@@ -68,7 +83,14 @@ watch(model, (value) => {
     if ((value || null) !== current) picker.setDate(value || '', false);
 });
 
-watch(() => props.minDate, (value) => picker?.set('minDate', value ?? undefined));
+watch(
+    () => [props.minDate, props.keepDate],
+    () => {
+        if (!picker) return;
+        const limit = lowerLimit();
+        picker.set({ minDate: limit.minDate ?? undefined, enable: limit.enable ?? [() => true] });
+    },
+);
 watch(() => props.maxDate, (value) => picker?.set('maxDate', value ?? undefined));
 watch(() => props.disabled, (value) => picker?.altInput && (picker.altInput.disabled = value));
 watch(() => props.invalid, (value) => picker?.altInput?.toggleAttribute('aria-invalid', value));

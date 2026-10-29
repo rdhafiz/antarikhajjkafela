@@ -61,16 +61,19 @@ const canEdit = computed(() => auth.can('blog.update'));
 const dirty = computed(() => saved.value !== '' && JSON.stringify(data.value) !== saved.value);
 const stateTone = { draft: 'neutral', scheduled: 'warning', published: 'success' } as const;
 
+// Publish dates start today; the date a post was saved with stays pickable.
+const today = new Date(new Date().setHours(0, 0, 0, 0));
+const savedDate = computed<string | null>(() => (saved.value ? (JSON.parse(saved.value) as PostData).published_at : null));
+
 const publishHint = computed(() => {
-    // Past dates are allowed on purpose: older articles keep the date they first appeared.
     const future = Boolean(data.value?.published_at) && new Date(data.value!.published_at!) > new Date();
     if (!data.value || data.value.status === 'draft') {
         return future
             ? 'Drafts are only visible to admins. Once published, it appears automatically at this time.'
-            : 'Drafts are only visible to admins. A future date schedules the post; a past date back-dates an older article.';
+            : 'Drafts are only visible to admins. A future date schedules the post; leave it empty to publish when you publish.';
     }
     if (!data.value.published_at) return 'Publishes now when you save.';
-    return future ? 'Scheduled: appears automatically at this time.' : 'On the website now, shown with this date (a past date back-dates an older article).';
+    return future ? 'Scheduled: appears automatically at this time.' : 'On the website now, shown with this date.';
 });
 
 function apply(payload: PostData): void {
@@ -215,7 +218,7 @@ onBeforeUnmount(() => {
                         </div>
                     </FormField>
                     <FormField label="Publish date" for="post-date" :error="errors.published_at?.[0]" :hint="publishHint">
-                        <AppDatePicker id="post-date" v-model="data.published_at" mode="datetime" placeholder="Publish now" :disabled="!canEdit" :invalid="Boolean(errors.published_at)" />
+                        <AppDatePicker id="post-date" v-model="data.published_at" mode="datetime" placeholder="Publish now" :min-date="today" :keep-date="savedDate" :disabled="!canEdit" :invalid="Boolean(errors.published_at)" />
                     </FormField>
                     <div class="rounded-lg border border-line p-3.5">
                         <AppSwitch v-model="data.is_featured" label="Featured" description="Leads the blog page when it is the newest featured post." />

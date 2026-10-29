@@ -45,7 +45,7 @@ class PostEditor
             'tags' => ['nullable', 'array', 'max:12'],
             'tags.*' => ['string', 'max:40'],
             'status' => ['required', Rule::in([Post::STATUS_DRAFT, Post::STATUS_PUBLISHED])],
-            'published_at' => ['nullable', 'date'],
+            'published_at' => ['nullable', 'date', $this->notInThePast($post)],
             'is_featured' => ['boolean'],
             'seo.title' => ['nullable', 'string', 'max:70'],
             'seo.description' => ['nullable', 'string', 'max:200'],
@@ -54,6 +54,29 @@ class PostEditor
             'seo.schema' => ['nullable', 'string', 'max:20000', new JsonLd],
             ...$this->blocks->rules('blocks', 60),
         ];
+    }
+
+    /**
+     * A publish date may not be in the past. The date a post already has is kept as it is,
+     * so articles published earlier can still be saved; a few minutes of grace cover a form left open.
+     */
+    private function notInThePast(Post $post): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail) use ($post): void {
+            try {
+                $date = Carbon::parse($value);
+            } catch (\Throwable) {
+                return;
+            }
+
+            if ($post->published_at?->format('Y-m-d H:i') === $date->format('Y-m-d H:i')) {
+                return;
+            }
+
+            if ($date->lt(now()->subMinutes(15))) {
+                $fail('The publish date cannot be in the past. Pick a time from now on, or leave it empty to publish now.');
+            }
+        };
     }
 
     /**
