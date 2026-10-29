@@ -32,8 +32,8 @@ class MenuSeeder extends Seeder
         return [
             'primary' => [
                 $this->route('home', 'Home', 'হোম'),
-                [...$this->route('hajj', 'Hajj & Umrah', 'হজ ও উমরাহ'), 'children' => [
-                    $this->route('hajj', 'Hajj', 'হজ'),
+                [...$this->route('hajj', 'Hajj & Umrah', 'হজ্জ ও উমরাহ'), 'children' => [
+                    $this->route('hajj', 'Hajj', 'হজ্জ'),
                     $this->route('umrah', 'Umrah', 'উমরাহ'),
                 ]],
                 $this->page('air-tickets', 'Air Tickets', 'এয়ার টিকেট'),

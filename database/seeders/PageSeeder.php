@@ -117,21 +117,21 @@ class PageSeeder extends Seeder
                     'gallery' => [
                         ['page_listing', [
                             'eyebrow' => $this->t('Our gallery', 'আমাদের গ্যালারি'),
-                            'intro' => $this->t('Moments from our tours, Hajj and Umrah journeys, workshops and gatherings.', 'আমাদের ট্যুর, হজ ও উমরাহ সফর, কর্মশালা ও আয়োজনের কিছু মুহূর্ত।'),
+                            'intro' => $this->t('Moments from our tours, Hajj and Umrah journeys, workshops and gatherings.', 'আমাদের ট্যুর, হজ্জ ও উমরাহ সফর, কর্মশালা ও আয়োজনের কিছু মুহূর্ত।'),
                         ], ['background' => 'mint-soft', 'decor' => 'shapes']],
                         $this->cta(),
                     ],
                     'blog' => [
                         ['page_listing', [
                             'eyebrow' => $this->t('Guides & news', 'গাইড ও সংবাদ'),
-                            'intro' => $this->t('Travel tips, visa updates and guidance for Hajj and Umrah pilgrims.', 'ভ্রমণ টিপস, ভিসার হালনাগাদ এবং হজ ও উমরাহ যাত্রীদের জন্য দিকনির্দেশনা।'),
+                            'intro' => $this->t('Travel tips, visa updates and guidance for Hajj and Umrah pilgrims.', 'ভ্রমণ টিপস, ভিসার হালনাগাদ এবং হজ্জ ও উমরাহ যাত্রীদের জন্য দিকনির্দেশনা।'),
                         ], ['background' => 'sky-soft', 'decor' => 'shapes']],
                         $this->cta(),
                     ],
                     default => [
                         $this->banner($page['title'], match ($key) {
                             'reviews' => $this->t('In the words of the travellers and pilgrims who went with us.', 'আমাদের সাথে সফর করা ভ্রমণকারী ও হাজীদের নিজের কথায়।'),
-                            default => $this->t('Guidance, news and updates for Hajj and Umrah pilgrims.', 'হজ ও উমরাহ যাত্রীদের জন্য দিকনির্দেশনা, সংবাদ ও আপডেট।'),
+                            default => $this->t('Guidance, news and updates for Hajj and Umrah pilgrims.', 'হজ্জ ও উমরাহ যাত্রীদের জন্য দিকনির্দেশনা, সংবাদ ও আপডেট।'),
                         }),
                         ['page_listing', [], ['background' => 'lilac-soft', 'decor' => 'shapes']],
                         $this->cta(),
@@ -179,7 +179,7 @@ class PageSeeder extends Seeder
             'variant' => 'banner',
             'eyebrow' => $this->t('Plan your next trip', 'পরবর্তী সফরের পরিকল্পনা করুন'),
             'title' => $this->t('Tell us where you want to go. We will take care of the rest.', 'কোথায় যেতে চান বলুন, বাকিটা আমরা দেখব।'),
-            'text' => $this->t('Air tickets, visas, tours, Hajj and Umrah: one team, honest advice and clear prices.', 'এয়ার টিকেট, ভিসা, ট্যুর, হজ ও উমরাহ—একটি টিম, আন্তরিক পরামর্শ ও স্পষ্ট মূল্য।'),
+            'text' => $this->t('Air tickets, visas, tours, Hajj and Umrah: one team, honest advice and clear prices.', 'এয়ার টিকেট, ভিসা, ট্যুর, হজ্জ ও উমরাহ—একটি টিম, আন্তরিক পরামর্শ ও স্পষ্ট মূল্য।'),
             'contact_buttons' => true,
         ], []];
     }
@@ -198,14 +198,14 @@ class PageSeeder extends Seeder
             ['hero', [
                 'variant' => 'centered',
                 'slides' => [
-                    $this->slide('Hajj & Umrah · Air Tickets · Visa Processing · Tour Packages', 'হজ ও উমরাহ · এয়ার টিকেট · ভিসা প্রসেসিং · ট্যুর প্যাকেজ', 'Trusted travel services,', 'বিশ্বস্ত ট্রাভেল সেবা,', 'for every journey you make.', 'আপনার প্রতিটি যাত্রায়।',
+                    $this->slide('Hajj & Umrah · Air Tickets · Visa Processing · Tour Packages', 'হজ্জ ও উমরাহ · এয়ার টিকেট · ভিসা প্রসেসিং · ট্যুর প্যাকেজ', 'Trusted travel services,', 'বিশ্বস্ত ট্রাভেল সেবা,', 'for every journey you make.', 'আপনার প্রতিটি যাত্রায়।',
                         'From the sacred journey of Hajj and Umrah to air tickets, visas and holidays around the world, one licensed team in Dhaka plans every step with you.',
-                        'হজ ও উমরাহর পবিত্র সফর থেকে এয়ার টিকেট, ভিসা ও বিশ্বজুড়ে ছুটির ভ্রমণ—ঢাকার একটি লাইসেন্সপ্রাপ্ত টিম প্রতিটি ধাপ আপনার সাথে সাজিয়ে দেয়।',
+                        'হজ্জ ও উমরাহর পবিত্র সফর থেকে এয়ার টিকেট, ভিসা ও বিশ্বজুড়ে ছুটির ভ্রমণ—ঢাকার একটি লাইসেন্সপ্রাপ্ত টিম প্রতিটি ধাপ আপনার সাথে সাজিয়ে দেয়।',
                         $this->link('/services', 'Explore our services', 'আমাদের সেবাসমূহ'), $this->link('/air-tickets', 'Get a fare quote', 'ভাড়া জানতে চান')),
-                    $this->slide('Hajj & Umrah · Antarik Hajj Kafela', 'হজ ও উমরাহ · আন্তরিক হজ্জ কাফেলা', 'Hajj and Umrah,', 'হজ ও উমরাহ,', 'with scholars beside you.', 'আলেমদের সান্নিধ্যে।',
+                    $this->slide('Hajj & Umrah · Antarik Hajj Kafela', 'হজ্জ ও উমরাহ · আন্তরিক হজ্জ কাফেলা', 'Hajj and Umrah,', 'হজ্জ ও উমরাহ,', 'with scholars beside you.', 'আলেমদের সান্নিধ্যে।',
                         'Our Hajj and Umrah division has guided pilgrims from Bangladesh since 2016: Hajj licence 602, Umrah licence 411.',
-                        '২০১৬ সাল থেকে আমাদের হজ ও উমরাহ বিভাগ বাংলাদেশের হাজিদের সেবা দিচ্ছে: হজ লাইসেন্স ৬০২, উমরাহ লাইসেন্স ৪১১।',
-                        $this->link('/hajj', 'Hajj packages', 'হজ প্যাকেজ'), $this->link('/umrah', 'Umrah packages', 'উমরাহ প্যাকেজ')),
+                        '২০১৬ সাল থেকে আমাদের হজ্জ ও উমরাহ বিভাগ বাংলাদেশের হাজিদের সেবা দিচ্ছে: হজ্জ লাইসেন্স ৬০২, উমরাহ লাইসেন্স ৪১১।',
+                        $this->link('/hajj', 'Hajj packages', 'হজ্জ প্যাকেজ'), $this->link('/umrah', 'Umrah packages', 'উমরাহ প্যাকেজ')),
                     $this->slide('Air tickets', 'এয়ার টিকেট', 'Fly anywhere,', 'যেকোনো গন্তব্যে উড়ুন,', 'at the right fare.', 'সঠিক ভাড়ায়।',
                         'Fares from every major airline compared for you, with date changes and group bookings handled by our ticketing team.',
                         'সব বড় এয়ারলাইনের ভাড়া তুলনা করে দিই; তারিখ পরিবর্তন ও গ্রুপ বুকিং দেখে আমাদের টিকেটিং টিম।',
@@ -229,7 +229,7 @@ class PageSeeder extends Seeder
             ['features', [
                 'eyebrow' => $this->t('What we do', 'আমরা যা করি'),
                 'title' => $this->t('Four services, one trusted team', 'চারটি সেবা, একটি বিশ্বস্ত টিম'),
-                'intro' => $this->t('Whether you are flying for work, a holiday, your studies or the pilgrimage, we arrange every part of the journey.', 'কাজ, ছুটি, পড়াশোনা বা হজ-উমরাহ—যে কারণেই যান, সফরের প্রতিটি অংশ আমরা সাজিয়ে দিই।'),
+                'intro' => $this->t('Whether you are flying for work, a holiday, your studies or the pilgrimage, we arrange every part of the journey.', 'কাজ, ছুটি, পড়াশোনা বা হজ্জ-উমরাহ—যে কারণেই যান, সফরের প্রতিটি অংশ আমরা সাজিয়ে দিই।'),
                 'layout' => 'cards',
                 'icon_style' => 'colorful',
                 'columns' => '4',
@@ -237,21 +237,21 @@ class PageSeeder extends Seeder
             ], ['background' => 'white', 'decor' => 'shapes']],
             ['features', $this->credentials(), ['background' => 'navy-deep', 'spacing' => 'md', 'decor' => 'shapes']],
             ['image_text', [
-                'eyebrow' => $this->t('Hajj & Umrah · Antarik Hajj Kafela', 'হজ ও উমরাহ · আন্তরিক হজ্জ কাফেলা'),
-                'title' => $this->t('Hajj and Umrah, the way they deserve to be performed', 'যেভাবে হজ ও উমরাহ পালন করা উচিত, ঠিক সেভাবেই'),
+                'eyebrow' => $this->t('Hajj & Umrah · Antarik Hajj Kafela', 'হজ্জ ও উমরাহ · আন্তরিক হজ্জ কাফেলা'),
+                'title' => $this->t('Hajj and Umrah, the way they deserve to be performed', 'যেভাবে হজ্জ ও উমরাহ পালন করা উচিত, ঠিক সেভাবেই'),
                 'body' => $this->t(
                     '<p>Antarik Hajj Kafela is our Hajj and Umrah division. Since 2016 it has guided pilgrims from Bangladesh with hotels near the Haram, Bangladeshi meals and experienced scholars beside them from the first workshop to the journey home.</p>',
-                    '<p>আন্তরিক হজ্জ কাফেলা আমাদের হজ ও উমরাহ বিভাগ। ২০১৬ সাল থেকে হারামের কাছে হোটেল, বাংলাদেশি খাবার এবং প্রথম কর্মশালা থেকে দেশে ফেরা পর্যন্ত অভিজ্ঞ আলেমদের সান্নিধ্যে বাংলাদেশের হাজিদের সেবা দিয়ে আসছে।</p>'
+                    '<p>আন্তরিক হজ্জ কাফেলা আমাদের হজ্জ ও উমরাহ বিভাগ। ২০১৬ সাল থেকে হারামের কাছে হোটেল, বাংলাদেশি খাবার এবং প্রথম কর্মশালা থেকে দেশে ফেরা পর্যন্ত অভিজ্ঞ আলেমদের সান্নিধ্যে বাংলাদেশের হাজিদের সেবা দিয়ে আসছে।</p>'
                 ),
                 'bullets' => [
-                    ['text' => $this->t('Government Hajj licence 602 and Umrah licence 411', 'সরকারি হজ লাইসেন্স ৬০২ ও উমরাহ লাইসেন্স ৪১১')],
-                    ['text' => $this->t('Hajj 2028 registration is open', 'হজ ২০২৮-এর নিবন্ধন চলছে')],
+                    ['text' => $this->t('Government Hajj licence 602 and Umrah licence 411', 'সরকারি হজ্জ লাইসেন্স ৬০২ ও উমরাহ লাইসেন্স ৪১১')],
+                    ['text' => $this->t('Hajj 2028 registration is open', 'হজ্জ ২০২৮-এর নিবন্ধন চলছে')],
                     ['text' => $this->t('Umrah groups every month of the year', 'বছরের প্রতি মাসে উমরাহ গ্রুপ')],
                     ['text' => $this->t('Scholar-led workshops before you travel', 'যাত্রার আগে আলেমদের কর্মশালা')],
                 ],
                 'image_position' => 'left',
                 'badge' => $this->t('Since 2016', '২০১৬ থেকে'),
-                'primary' => $this->link('/hajj', 'Hajj packages', 'হজ প্যাকেজ'),
+                'primary' => $this->link('/hajj', 'Hajj packages', 'হজ্জ প্যাকেজ'),
                 'secondary' => $this->link('/umrah', 'Umrah packages', 'উমরাহ প্যাকেজ'),
             ], ['background' => 'peach-soft', 'decor' => 'shapes']],
             ['lead_form', $this->airQuoteForm(home: true), ['background' => 'sky-soft', 'anchor' => 'air-quote', 'decor' => 'shapes']],
@@ -338,7 +338,7 @@ class PageSeeder extends Seeder
                 'title' => $this->t('An international travel agency built on sincerity', 'আন্তরিকতার ওপর গড়া একটি আন্তর্জাতিক ট্রাভেল এজেন্সি'),
                 'body' => $this->t(
                     '<p>Antarik Travel International began in Dhaka in 2016 as a Hajj and Umrah agency. The families we served soon asked us for more: tickets for their children studying abroad, visas for business trips, a holiday after the exams. Today we arrange air tickets, visas and tour packages around the world, and our Hajj and Umrah division, Antarik Hajj Kafela, still guides pilgrims every year.</p><p>Whatever the trip, we work the same way: honest advice, written prices, payments only to the company\'s official account, and a team that stays reachable until you are home.</p>',
-                    '<p>আন্তরিক ট্রাভেল ইন্টারন্যাশনাল ২০১৬ সালে ঢাকায় একটি হজ ও উমরাহ এজেন্সি হিসেবে যাত্রা শুরু করে। যে পরিবারগুলোকে আমরা সেবা দিতাম, তারা শিগগিরই আরও চাইলেন: বিদেশে পড়তে যাওয়া সন্তানের টিকেট, ব্যবসায়িক সফরের ভিসা, পরীক্ষার পর একটি ছুটির ভ্রমণ। আজ আমরা সারা বিশ্বের এয়ার টিকেট, ভিসা ও ট্যুর প্যাকেজের ব্যবস্থা করি, আর আমাদের হজ ও উমরাহ বিভাগ আন্তরিক হজ্জ কাফেলা প্রতি বছর হাজিদের সেবা দিয়ে যাচ্ছে।</p><p>সফর যেমনই হোক, আমাদের কাজের ধরন একই: আন্তরিক পরামর্শ, লিখিত মূল্য, শুধু কোম্পানির অফিসিয়াল অ্যাকাউন্টে পেমেন্ট এবং দেশে ফেরা পর্যন্ত সবসময় পাশে থাকা একটি টিম।</p>'
+                    '<p>আন্তরিক ট্রাভেল ইন্টারন্যাশনাল ২০১৬ সালে ঢাকায় একটি হজ্জ ও উমরাহ এজেন্সি হিসেবে যাত্রা শুরু করে। যে পরিবারগুলোকে আমরা সেবা দিতাম, তারা শিগগিরই আরও চাইলেন: বিদেশে পড়তে যাওয়া সন্তানের টিকেট, ব্যবসায়িক সফরের ভিসা, পরীক্ষার পর একটি ছুটির ভ্রমণ। আজ আমরা সারা বিশ্বের এয়ার টিকেট, ভিসা ও ট্যুর প্যাকেজের ব্যবস্থা করি, আর আমাদের হজ্জ ও উমরাহ বিভাগ আন্তরিক হজ্জ কাফেলা প্রতি বছর হাজিদের সেবা দিয়ে যাচ্ছে।</p><p>সফর যেমনই হোক, আমাদের কাজের ধরন একই: আন্তরিক পরামর্শ, লিখিত মূল্য, শুধু কোম্পানির অফিসিয়াল অ্যাকাউন্টে পেমেন্ট এবং দেশে ফেরা পর্যন্ত সবসময় পাশে থাকা একটি টিম।</p>'
                 ),
                 'years_value' => '2016',
                 'years_label' => $this->t('Founded in Dhaka', 'ঢাকায় প্রতিষ্ঠিত'),
@@ -352,7 +352,7 @@ class PageSeeder extends Seeder
                 'icon_style' => 'colorful',
                 'columns' => '2',
                 'items' => [
-                    ['icon' => 'star', 'title' => $this->t('Vision', 'ভিশন'), 'text' => $this->t('To be the travel agency Bangladeshi families trust first, for the pilgrimage and for every journey after it.', 'বাংলাদেশি পরিবারগুলোর প্রথম ভরসার ট্রাভেল এজেন্সি হওয়া—হজ-উমরাহ এবং তার পরের প্রতিটি সফরে।'), 'link' => null],
+                    ['icon' => 'star', 'title' => $this->t('Vision', 'ভিশন'), 'text' => $this->t('To be the travel agency Bangladeshi families trust first, for the pilgrimage and for every journey after it.', 'বাংলাদেশি পরিবারগুলোর প্রথম ভরসার ট্রাভেল এজেন্সি হওয়া—হজ্জ-উমরাহ এবং তার পরের প্রতিটি সফরে।'), 'link' => null],
                     ['icon' => 'heart', 'title' => $this->t('Mission', 'মিশন'), 'text' => $this->t('To make international travel simple, safe and fairly priced, with clear advice and real support before, during and after every trip.', 'স্পষ্ট পরামর্শ এবং প্রতিটি সফরের আগে, চলাকালীন ও পরে সত্যিকারের সহায়তার মাধ্যমে আন্তর্জাতিক ভ্রমণকে সহজ, নিরাপদ ও ন্যায্যমূল্যের করা।'), 'link' => null],
                 ],
             ], ['background' => 'sky-soft', 'spacing' => 'md', 'decor' => 'shapes']],
@@ -365,20 +365,20 @@ class PageSeeder extends Seeder
                 'items' => $this->coreServices(short: true),
             ], ['background' => 'mint-soft', 'decor' => 'shapes']],
             ['image_text', [
-                'eyebrow' => $this->t('Our Hajj & Umrah division', 'আমাদের হজ ও উমরাহ বিভাগ'),
+                'eyebrow' => $this->t('Our Hajj & Umrah division', 'আমাদের হজ্জ ও উমরাহ বিভাগ'),
                 'title' => $this->t('Antarik Hajj Kafela', 'আন্তরিক হজ্জ কাফেলা'),
                 'body' => $this->t(
                     '<p>The pilgrimage is where we started, and it is still at the heart of our work. Antarik Hajj Kafela holds government Hajj licence 602 and Umrah licence 411, and travels with a team of experienced scholars who manage, supervise and guide every group.</p><p>Language barriers, lack of guidance and unclear dealings keep many pilgrims from the Hajj they hoped for. Our division was built to prevent exactly that.</p>',
-                    '<p>হজ-উমরাহ দিয়েই আমাদের শুরু, আর এটিই এখনো আমাদের কাজের কেন্দ্রে। আন্তরিক হজ্জ কাফেলার রয়েছে সরকারি হজ লাইসেন্স ৬০২ ও উমরাহ লাইসেন্স ৪১১, এবং প্রতিটি দলের ব্যবস্থাপনা, তত্ত্বাবধান ও দিকনির্দেশনায় থাকেন অভিজ্ঞ আলেমদের একটি টিম।</p><p>ভাষাগত বাধা, দিকনির্দেশনার অভাব ও অস্বচ্ছ লেনদেনের কারণে অনেকেই কাঙ্ক্ষিত হজ করতে পারেন না। ঠিক এগুলো দূর করতেই আমাদের এই বিভাগ।</p>'
+                    '<p>হজ্জ-উমরাহ দিয়েই আমাদের শুরু, আর এটিই এখনো আমাদের কাজের কেন্দ্রে। আন্তরিক হজ্জ কাফেলার রয়েছে সরকারি হজ্জ লাইসেন্স ৬০২ ও উমরাহ লাইসেন্স ৪১১, এবং প্রতিটি দলের ব্যবস্থাপনা, তত্ত্বাবধান ও দিকনির্দেশনায় থাকেন অভিজ্ঞ আলেমদের একটি টিম।</p><p>ভাষাগত বাধা, দিকনির্দেশনার অভাব ও অস্বচ্ছ লেনদেনের কারণে অনেকেই কাঙ্ক্ষিত হজ্জ করতে পারেন না। ঠিক এগুলো দূর করতেই আমাদের এই বিভাগ।</p>'
                 ),
                 'bullets' => [
                     ['text' => $this->t('Qualified, skilled and well-mannered management', 'যোগ্য, দক্ষ ও সদাচারী ব্যবস্থাপনা')],
-                    ['text' => $this->t('Scholars with practical knowledge of Hajj', 'হজের ব্যবহারিক জ্ঞানসম্পন্ন আলেম')],
-                    ['text' => $this->t('Itineraries that follow the rulings of Hajj', 'হজের বিধান মেনে সাজানো সফরসূচি')],
+                    ['text' => $this->t('Scholars with practical knowledge of Hajj', 'হজ্জের ব্যবহারিক জ্ঞানসম্পন্ন আলেম')],
+                    ['text' => $this->t('Itineraries that follow the rulings of Hajj', 'হজ্জের বিধান মেনে সাজানো সফরসূচি')],
                     ['text' => $this->t('Transparent and fair financial dealings', 'স্বচ্ছ ও ন্যায্য আর্থিক লেনদেন')],
                 ],
                 'image_position' => 'left',
-                'primary' => $this->link('/hajj', 'Hajj packages', 'হজ প্যাকেজ'),
+                'primary' => $this->link('/hajj', 'Hajj packages', 'হজ্জ প্যাকেজ'),
                 'secondary' => $this->link('/umrah', 'Umrah packages', 'উমরাহ প্যাকেজ'),
             ], ['background' => 'peach-soft', 'decor' => 'shapes']],
             ['features', $this->credentials(), ['background' => 'navy-deep', 'spacing' => 'md', 'decor' => 'shapes']],
@@ -388,7 +388,7 @@ class PageSeeder extends Seeder
                 'members' => [
                     ['name' => $this->t('Mesbah Uddin Saeed', 'মেসবাহ উদ্দিন সাঈদ'), 'role' => $this->t('Chairman', 'চেয়ারম্যান')],
                     ['name' => $this->t('Hafiz Rashedul Islam', 'হাফেজ রাশেদুল ইসলাম'), 'role' => $this->t('Managing Director', 'ব্যবস্থাপনা পরিচালক')],
-                    ['name' => $this->t('A.B.M. Azizur Rahman Belal', 'এ.বি.এম. আজিজুর রহমান বেলাল'), 'role' => $this->t('Hajj Director', 'হজ পরিচালক')],
+                    ['name' => $this->t('A.B.M. Azizur Rahman Belal', 'এ.বি.এম. আজিজুর রহমান বেলাল'), 'role' => $this->t('Hajj Director', 'হজ্জ পরিচালক')],
                     ['name' => $this->t('Maulana Hossain Ahmad', 'মাওলানা হোসাইন আহমাদ'), 'role' => $this->t('Official Representative', 'অফিসিয়াল প্রতিনিধি')],
                     ['name' => $this->t('Maulana Saiful Islam', 'মাওলানা সাইফুল ইসলাম'), 'role' => $this->t('Official Representative', 'অফিসিয়াল প্রতিনিধি')],
                 ],
@@ -405,7 +405,7 @@ class PageSeeder extends Seeder
         return [
             $this->banner(
                 $this->t('Our services', 'আমাদের সেবাসমূহ'),
-                $this->t('Air tickets, visa processing, tour packages, Hajj and Umrah, arranged by one licensed team in Dhaka.', 'এয়ার টিকেট, ভিসা প্রসেসিং, ট্যুর প্যাকেজ, হজ ও উমরাহ—ঢাকার একটি লাইসেন্সপ্রাপ্ত টিমের মাধ্যমে।'),
+                $this->t('Air tickets, visa processing, tour packages, Hajj and Umrah, arranged by one licensed team in Dhaka.', 'এয়ার টিকেট, ভিসা প্রসেসিং, ট্যুর প্যাকেজ, হজ্জ ও উমরাহ—ঢাকার একটি লাইসেন্সপ্রাপ্ত টিমের মাধ্যমে।'),
                 $this->t('What we do', 'আমরা যা করি'),
             ),
             ['features', [
@@ -444,7 +444,7 @@ class PageSeeder extends Seeder
             ['contact_form', [
                 'eyebrow' => $this->t('Get in touch', 'যোগাযোগ'),
                 'title' => $this->t('Talk to our team', 'আমাদের টিমের সাথে কথা বলুন'),
-                'intro' => $this->t('For air tickets, visas, tours, Hajj, Umrah or any question about your trip.', 'এয়ার টিকেট, ভিসা, ট্যুর, হজ, উমরাহ বা আপনার সফর সম্পর্কিত যেকোনো প্রশ্নে।'),
+                'intro' => $this->t('For air tickets, visas, tours, Hajj, Umrah or any question about your trip.', 'এয়ার টিকেট, ভিসা, ট্যুর, হজ্জ, উমরাহ বা আপনার সফর সম্পর্কিত যেকোনো প্রশ্নে।'),
                 'layout' => 'concierge',
             ], ['background' => 'sky-soft', 'decor' => 'shapes']],
             ['faq', array_replace($this->faqContent(), [
@@ -596,7 +596,7 @@ class PageSeeder extends Seeder
                         ['Can you guarantee my visa?', 'আপনারা কি ভিসার নিশ্চয়তা দেন?', '<p>No agency can: only the embassy decides. What we guarantee is a complete, correct file and honest advice before you apply.</p>', '<p>কোনো এজেন্সিই পারে না—সিদ্ধান্ত শুধু দূতাবাসের। আমরা নিশ্চয়তা দিই সম্পূর্ণ ও নির্ভুল ফাইল এবং আবেদনের আগে আন্তরিক পরামর্শের।</p>'],
                         ['How long does a visa take?', 'ভিসা হতে কত সময় লাগে?', '<p>From a few days for many e-visas to several weeks for Schengen, UK, US or student visas. We tell you the current time when you enquire, so plan early.</p>', '<p>অনেক ই-ভিসার ক্ষেত্রে কয়েক দিন থেকে শেনজেন, যুক্তরাজ্য, যুক্তরাষ্ট্র বা স্টুডেন্ট ভিসায় কয়েক সপ্তাহ। জিজ্ঞাসা করলে বর্তমান সময় জানিয়ে দিই, তাই আগে থেকে পরিকল্পনা করুন।</p>'],
                         ['Is the embassy fee included in your service charge?', 'দূতাবাসের ফি কি সার্ভিস চার্জে অন্তর্ভুক্ত?', '<p>No. Embassy and visa centre fees are paid at cost, and our service charge is quoted separately in writing.</p>', '<p>না। দূতাবাস ও ভিসা সেন্টারের ফি প্রকৃত খরচে পরিশোধ করতে হয়; আমাদের সার্ভিস চার্জ আলাদাভাবে লিখিত জানানো হয়।</p>'],
-                        ['Do you handle Umrah visas too?', 'উমরাহ ভিসাও কি করেন?', '<p>Yes. Umrah visas are arranged by our Hajj and Umrah division with every Umrah package, or on their own.</p>', '<p>হ্যাঁ। আমাদের হজ ও উমরাহ বিভাগ প্রতিটি উমরাহ প্যাকেজের সাথে, অথবা আলাদাভাবে উমরাহ ভিসার ব্যবস্থা করে।</p>'],
+                        ['Do you handle Umrah visas too?', 'উমরাহ ভিসাও কি করেন?', '<p>Yes. Umrah visas are arranged by our Hajj and Umrah division with every Umrah package, or on their own.</p>', '<p>হ্যাঁ। আমাদের হজ্জ ও উমরাহ বিভাগ প্রতিটি উমরাহ প্যাকেজের সাথে, অথবা আলাদাভাবে উমরাহ ভিসার ব্যবস্থা করে।</p>'],
                     ]),
                     'cta' => $this->link('/contact', 'Contact us', 'যোগাযোগ করুন'),
                 ], ['background' => 'white', 'decor' => 'shapes']],
@@ -647,12 +647,12 @@ class PageSeeder extends Seeder
     private function coreServices(bool $short): array
     {
         $items = [
-            ['kaaba', '/hajj', 'Hajj & Umrah', 'হজ ও উমরাহ',
+            ['kaaba', '/hajj', 'Hajj & Umrah', 'হজ্জ ও উমরাহ',
                 'Scholar-guided Hajj and Umrah from Antarik Hajj Kafela, our licensed division.',
-                'আমাদের লাইসেন্সপ্রাপ্ত বিভাগ আন্তরিক হজ্জ কাফেলার মাধ্যমে আলেমদের তত্ত্বাবধানে হজ ও উমরাহ।',
+                'আমাদের লাইসেন্সপ্রাপ্ত বিভাগ আন্তরিক হজ্জ কাফেলার মাধ্যমে আলেমদের তত্ত্বাবধানে হজ্জ ও উমরাহ।',
                 'Hajj packages for 2028 and Umrah every month, with hotels near the Haram, Bangladeshi meals, visas, flights and experienced scholars beside you. Hajj licence 602, Umrah licence 411.',
-                'হজ ২০২৮-এর প্যাকেজ ও প্রতি মাসে উমরাহ—হারামের কাছে হোটেল, বাংলাদেশি খাবার, ভিসা, ফ্লাইট ও অভিজ্ঞ আলেমদের সান্নিধ্যে। হজ লাইসেন্স ৬০২, উমরাহ লাইসেন্স ৪১১।',
-                'Hajj & Umrah packages', 'হজ ও উমরাহ প্যাকেজ'],
+                'হজ্জ ২০২৮-এর প্যাকেজ ও প্রতি মাসে উমরাহ—হারামের কাছে হোটেল, বাংলাদেশি খাবার, ভিসা, ফ্লাইট ও অভিজ্ঞ আলেমদের সান্নিধ্যে। হজ্জ লাইসেন্স ৬০২, উমরাহ লাইসেন্স ৪১১।',
+                'Hajj & Umrah packages', 'হজ্জ ও উমরাহ প্যাকেজ'],
             ['plane', '/air-tickets', 'Air tickets', 'এয়ার টিকেট',
                 'Domestic and international fares on every major airline, compared for you.',
                 'সব বড় এয়ারলাইনের অভ্যন্তরীণ ও আন্তর্জাতিক ভাড়া, তুলনা করে।',
@@ -695,11 +695,11 @@ class PageSeeder extends Seeder
     public static function credentialItems(callable $t): array
     {
         return [
-            ['icon' => 'kaaba', 'title' => $t('Hajj 602 · Umrah 411', 'হজ ৬০২ · উমরাহ ৪১১'), 'text' => $t('Government Hajj and Umrah licences, Ministry of Religious Affairs.', 'ধর্ম বিষয়ক মন্ত্রণালয়ের সরকারি হজ ও উমরাহ লাইসেন্স।'), 'link' => null],
+            ['icon' => 'kaaba', 'title' => $t('Hajj 602 · Umrah 411', 'হজ্জ ৬০২ · উমরাহ ৪১১'), 'text' => $t('Government Hajj and Umrah licences, Ministry of Religious Affairs.', 'ধর্ম বিষয়ক মন্ত্রণালয়ের সরকারি হজ্জ ও উমরাহ লাইসেন্স।'), 'link' => null],
             ['icon' => 'plane', 'title' => $t('IATA accredited', 'আইএটিএ স্বীকৃত'), 'text' => $t('Accredited by the International Air Transport Association to issue tickets.', 'টিকেট ইস্যুর জন্য ইন্টারন্যাশনাল এয়ার ট্রান্সপোর্ট অ্যাসোসিয়েশনের স্বীকৃতি।'), 'link' => null],
             ['icon' => 'users', 'title' => $t('ATAB member', 'আটাব সদস্য'), 'text' => $t('Member of the Association of Travel Agents of Bangladesh.', 'অ্যাসোসিয়েশন অব ট্রাভেল এজেন্টস অব বাংলাদেশের সদস্য।'), 'link' => null],
-            ['icon' => 'mosque', 'title' => $t('HAAB member', 'হাব সদস্য'), 'text' => $t('Member of the Hajj Agencies Association of Bangladesh.', 'হজ এজেন্সিজ অ্যাসোসিয়েশন অব বাংলাদেশের সদস্য।'), 'link' => null],
-            ['icon' => 'plane', 'title' => $t('Biman Bangladesh Airlines', 'বিমান বাংলাদেশ এয়ারলাইন্স'), 'text' => $t('Tickets and Hajj flights on the national airline of Bangladesh.', 'বাংলাদেশের জাতীয় এয়ারলাইনে টিকেট ও হজ ফ্লাইট।'), 'link' => null],
+            ['icon' => 'mosque', 'title' => $t('HAAB member', 'হাব সদস্য'), 'text' => $t('Member of the Hajj Agencies Association of Bangladesh.', 'হজ্জ এজেন্সিজ অ্যাসোসিয়েশন অব বাংলাদেশের সদস্য।'), 'link' => null],
+            ['icon' => 'plane', 'title' => $t('Biman Bangladesh Airlines', 'বিমান বাংলাদেশ এয়ারলাইন্স'), 'text' => $t('Tickets and Hajj flights on the national airline of Bangladesh.', 'বাংলাদেশের জাতীয় এয়ারলাইনে টিকেট ও হজ্জ ফ্লাইট।'), 'link' => null],
             ['icon' => 'shield', 'title' => $t('Civil Aviation licence', 'সিভিল এভিয়েশন লাইসেন্স'), 'text' => $t('Licensed travel agency under the Ministry of Civil Aviation and Tourism.', 'বেসামরিক বিমান পরিবহন ও পর্যটন মন্ত্রণালয়ের লাইসেন্সপ্রাপ্ত ট্রাভেল এজেন্সি।'), 'link' => null],
         ];
     }
@@ -798,12 +798,12 @@ class PageSeeder extends Seeder
             'intro' => $this->t('Can\'t find your answer? Call or message us any time.', 'উত্তর খুঁজে পাচ্ছেন না? যেকোনো সময় কল বা বার্তা দিন।'),
             'layout' => 'split',
             'items' => $this->qa([
-                ['What services do you offer?', 'আপনারা কী কী সেবা দেন?', '<p>Air tickets, visa processing, tour packages, and Hajj and Umrah through our division Antarik Hajj Kafela. We also book hotels, transfers and travel insurance with any trip.</p>', '<p>এয়ার টিকেট, ভিসা প্রসেসিং, ট্যুর প্যাকেজ এবং আমাদের বিভাগ আন্তরিক হজ্জ কাফেলার মাধ্যমে হজ ও উমরাহ। যেকোনো সফরের সাথে হোটেল, ট্রান্সফার ও ভ্রমণ বিমাও বুক করি।</p>'],
+                ['What services do you offer?', 'আপনারা কী কী সেবা দেন?', '<p>Air tickets, visa processing, tour packages, and Hajj and Umrah through our division Antarik Hajj Kafela. We also book hotels, transfers and travel insurance with any trip.</p>', '<p>এয়ার টিকেট, ভিসা প্রসেসিং, ট্যুর প্যাকেজ এবং আমাদের বিভাগ আন্তরিক হজ্জ কাফেলার মাধ্যমে হজ্জ ও উমরাহ। যেকোনো সফরের সাথে হোটেল, ট্রান্সফার ও ভ্রমণ বিমাও বুক করি।</p>'],
                 ['Can you book tickets on any airline?', 'যেকোনো এয়ারলাইনের টিকেট বুক করা যায়?', '<p>Yes. As an IATA accredited agent we issue tickets on every major airline, for domestic and international routes.</p>', '<p>হ্যাঁ। আইএটিএ স্বীকৃত এজেন্ট হিসেবে আমরা অভ্যন্তরীণ ও আন্তর্জাতিক রুটে সব বড় এয়ারলাইনের টিকেট ইস্যু করি।</p>'],
                 ['Do you guarantee visa approval?', 'ভিসা হওয়ার নিশ্চয়তা দেন?', '<p>Only the embassy can decide. We make sure your file is complete and correct, and we tell you honestly if we think it is not ready.</p>', '<p>সিদ্ধান্ত শুধু দূতাবাসের। আমরা নিশ্চিত করি আপনার ফাইল সম্পূর্ণ ও নির্ভুল, আর প্রস্তুত না মনে হলে আন্তরিকভাবে জানিয়ে দিই।</p>'],
                 ['Can a tour package be changed?', 'ট্যুর প্যাকেজ কি বদলানো যায়?', '<p>Yes. Dates, hotels, the number of days and the places you visit can all be changed, or we can plan a tour from scratch around your budget.</p>', '<p>হ্যাঁ। তারিখ, হোটেল, দিনের সংখ্যা ও দর্শনীয় স্থান—সবই বদলানো যায়, অথবা আপনার বাজেট অনুযায়ী নতুন করে ট্যুর সাজাতে পারি।</p>'],
                 ['How should I make payments?', 'পেমেন্ট কীভাবে করব?', '<p>Pay only to Antarik Travel International\'s official account (Current Account No. 2711, Islami Bank Bangladesh Limited, Paltan Branch) or through the online payment on this website. Never pay any individual or other account.</p>', '<p>শুধুমাত্র আন্তরিক ট্রাভেল ইন্টারন্যাশনালের অফিসিয়াল অ্যাকাউন্টে (চলতি হিসাব নং ২৭১১, ইসলামী ব্যাংক বাংলাদেশ লিমিটেড, পল্টন শাখা) অথবা এই ওয়েবসাইটের অনলাইন পেমেন্টে পরিশোধ করুন। কোনো ব্যক্তি বা অন্য অ্যাকাউন্টে পেমেন্ট করবেন না।</p>'],
-                ['Do you still arrange Hajj and Umrah?', 'আপনারা কি এখনো হজ ও উমরাহর ব্যবস্থা করেন?', '<p>Yes. Our division Antarik Hajj Kafela (Hajj licence 602, Umrah licence 411) is registering pilgrims for Hajj 2028 and runs Umrah groups throughout the year.</p>', '<p>হ্যাঁ। আমাদের বিভাগ আন্তরিক হজ্জ কাফেলা (হজ লাইসেন্স ৬০২, উমরাহ লাইসেন্স ৪১১) হজ ২০২৮-এর নিবন্ধন নিচ্ছে এবং সারা বছর উমরাহ গ্রুপ পরিচালনা করে।</p>'],
+                ['Do you still arrange Hajj and Umrah?', 'আপনারা কি এখনো হজ্জ ও উমরাহর ব্যবস্থা করেন?', '<p>Yes. Our division Antarik Hajj Kafela (Hajj licence 602, Umrah licence 411) is registering pilgrims for Hajj 2028 and runs Umrah groups throughout the year.</p>', '<p>হ্যাঁ। আমাদের বিভাগ আন্তরিক হজ্জ কাফেলা (হজ্জ লাইসেন্স ৬০২, উমরাহ লাইসেন্স ৪১১) হজ্জ ২০২৮-এর নিবন্ধন নিচ্ছে এবং সারা বছর উমরাহ গ্রুপ পরিচালনা করে।</p>'],
             ]),
             'cta' => $this->link('/contact', 'Contact us', 'যোগাযোগ করুন'),
         ];
@@ -822,10 +822,10 @@ class PageSeeder extends Seeder
             'intro' => $this->t('Can\'t find your answer? Call or message us any time.', 'উত্তর খুঁজে পাচ্ছেন না? যেকোনো সময় কল বা বার্তা দিন।'),
             'layout' => 'split',
             'items' => $this->qa([
-                ['What is Umrah?', 'উমরাহ কী?', '<p>Umrah, meaning "a visit" to the Holy Kaaba, can be performed at any time of the year, unlike Hajj, which has fixed dates. It purifies the heart and brings a Muslim closer to Allah.</p>', '<p>উমরাহ অর্থ পবিত্র কাবা "যিয়ারত"। হজের নির্দিষ্ট সময়ের বিপরীতে উমরাহ বছরের যেকোনো সময় পালন করা যায়। এটি হৃদয়কে পবিত্র করে এবং আল্লাহর নৈকট্য এনে দেয়।</p>'],
+                ['What is Umrah?', 'উমরাহ কী?', '<p>Umrah, meaning "a visit" to the Holy Kaaba, can be performed at any time of the year, unlike Hajj, which has fixed dates. It purifies the heart and brings a Muslim closer to Allah.</p>', '<p>উমরাহ অর্থ পবিত্র কাবা "যিয়ারত"। হজ্জের নির্দিষ্ট সময়ের বিপরীতে উমরাহ বছরের যেকোনো সময় পালন করা যায়। এটি হৃদয়কে পবিত্র করে এবং আল্লাহর নৈকট্য এনে দেয়।</p>'],
                 ['Who can perform Umrah?', 'কারা উমরাহ করতে পারেন?', '<p>A Muslim who has reached maturity, is physically and mentally able, and can afford the cost of travel.</p>', '<p>প্রাপ্তবয়স্ক, শারীরিক ও মানসিকভাবে সক্ষম এবং সফরের খরচ বহনে সামর্থ্যবান যেকোনো মুসলিম।</p>'],
                 ['What is forbidden in the state of Ihram?', 'ইহরাম অবস্থায় কী কী নিষিদ্ধ?', '<p>Cutting hair or nails, using perfume, marital relations, hunting and, for men, wearing stitched clothing.</p>', '<p>চুল বা নখ কাটা, সুগন্ধি ব্যবহার, দাম্পত্য সম্পর্ক, শিকার এবং পুরুষদের জন্য সেলাই করা পোশাক পরা।</p>'],
-                ['How do I pre-register for Hajj?', 'হজের প্রাক-নিবন্ধন কীভাবে করব?', '<p>We are now registering pilgrims for Hajj 2028. Bring a copy of your NID or passport, an active mobile number and your bank account details; we complete the government pre-registration as soon as the Ministry opens the Hajj 2028 window.</p>', '<p>আমরা এখন হজ ২০২৮-এর নিবন্ধন নিচ্ছি। জাতীয় পরিচয়পত্র বা পাসপোর্টের কপি, সক্রিয় মোবাইল নম্বর ও ব্যাংক হিসাবের তথ্য নিয়ে আসুন; মন্ত্রণালয় হজ ২০২৮-এর নিবন্ধন চালু করলেই সরকারি প্রাক-নিবন্ধন আমরা সম্পন্ন করব।</p>'],
+                ['How do I pre-register for Hajj?', 'হজ্জের প্রাক-নিবন্ধন কীভাবে করব?', '<p>We are now registering pilgrims for Hajj 2028. Bring a copy of your NID or passport, an active mobile number and your bank account details; we complete the government pre-registration as soon as the Ministry opens the Hajj 2028 window.</p>', '<p>আমরা এখন হজ্জ ২০২৮-এর নিবন্ধন নিচ্ছি। জাতীয় পরিচয়পত্র বা পাসপোর্টের কপি, সক্রিয় মোবাইল নম্বর ও ব্যাংক হিসাবের তথ্য নিয়ে আসুন; মন্ত্রণালয় হজ্জ ২০২৮-এর নিবন্ধন চালু করলেই সরকারি প্রাক-নিবন্ধন আমরা সম্পন্ন করব।</p>'],
                 ['How should I make payments?', 'পেমেন্ট কীভাবে করব?', '<p>Pay only to Antarik Travel International\'s official account (Current Account No. 2711, Islami Bank Bangladesh Limited, Paltan Branch). Never pay any individual or other account.</p>', '<p>শুধুমাত্র আন্তরিক ট্রাভেল ইন্টারন্যাশনালের অফিসিয়াল অ্যাকাউন্টে (চলতি হিসাব নং ২৭১১, ইসলামী ব্যাংক বাংলাদেশ লিমিটেড, পল্টন শাখা) পেমেন্ট করুন। কোনো ব্যক্তি বা অন্য অ্যাকাউন্টে পেমেন্ট করবেন না।</p>'],
             ]),
             'cta' => $this->link('/contact', 'Contact us', 'যোগাযোগ করুন'),
@@ -860,21 +860,21 @@ class PageSeeder extends Seeder
             'type' => Page::TYPE_CAMPAIGN,
             'system_key' => null,
             'slug' => 'hajj-pre-registration',
-            'title' => $this->t('Hajj 2028 pre-registration', 'হজ ২০২৮ প্রাক-নিবন্ধন'),
+            'title' => $this->t('Hajj 2028 pre-registration', 'হজ্জ ২০২৮ প্রাক-নিবন্ধন'),
             'status' => Page::STATUS_DRAFT,
             'focused_layout' => true,
             'sections' => [
                 ['hero', [
                     'variant' => 'split',
-                    'eyebrow' => $this->t('Hajj 2028 registration is open', 'হজ ২০২৮-এর নিবন্ধন চলছে'),
+                    'eyebrow' => $this->t('Hajj 2028 registration is open', 'হজ্জ ২০২৮-এর নিবন্ধন চলছে'),
                     'title' => $this->t('Answer the call of the House of Allah.', 'আল্লাহর ঘরের ডাকে সাড়া দিন।'),
-                    'highlight' => $this->t('Register for Hajj 2028 today.', 'আজই হজ ২০২৮-এর নিবন্ধন করুন।'),
+                    'highlight' => $this->t('Register for Hajj 2028 today.', 'আজই হজ্জ ২০২৮-এর নিবন্ধন করুন।'),
                     'text' => $this->t('17, 21, 30 and 42-day Regular, Standard, Premium and VIP packages, guided by experienced scholars.', '১৭, ২১, ৩০ ও ৪২ দিনের রেগুলার, স্ট্যান্ডার্ড, প্রিমিয়াম ও ভিআইপি প্যাকেজ—অভিজ্ঞ আলেমদের তত্ত্বাবধানে।'),
                     'primary' => $this->link('#register', 'Register now', 'এখনই নিবন্ধন করুন'),
                 ], []],
                 ['lead_form', [
                     'eyebrow' => $this->t('Pre-registration', 'প্রাক-নিবন্ধন'),
-                    'title' => $this->t('Take the first step toward your Hajj', 'আপনার হজের প্রথম ধাপ নিন'),
+                    'title' => $this->t('Take the first step toward your Hajj', 'আপনার হজ্জের প্রথম ধাপ নিন'),
                     'intro' => $this->t('Leave your details and our team will call you to complete the registration.', 'আপনার তথ্য দিন, নিবন্ধন সম্পন্ন করতে আমাদের টিম আপনাকে কল করবে।'),
                     'fields' => [
                         ['field' => 'name', 'required' => true],
@@ -884,12 +884,12 @@ class PageSeeder extends Seeder
                         ['field' => 'package', 'required' => false],
                         ['field' => 'email', 'required' => false],
                     ],
-                    'package_options' => $this->t("Regular Hajj package\nPremium Hajj package\nVIP Hajj package\nNot sure yet", "রেগুলার হজ প্যাকেজ\nপ্রিমিয়াম হজ প্যাকেজ\nভিআইপি হজ প্যাকেজ\nএখনো নিশ্চিত নই"),
+                    'package_options' => $this->t("Regular Hajj package\nPremium Hajj package\nVIP Hajj package\nNot sure yet", "রেগুলার হজ্জ প্যাকেজ\nপ্রিমিয়াম হজ্জ প্যাকেজ\nভিআইপি হজ্জ প্যাকেজ\nএখনো নিশ্চিত নই"),
                     'submit_label' => $this->t('Register now', 'নিবন্ধন করুন'),
                     'bullets' => [
                         ['text' => $this->t('Copy of NID or passport', 'জাতীয় পরিচয়পত্র বা পাসপোর্টের কপি')],
                         ['text' => $this->t('An active mobile number', 'সক্রিয় মোবাইল নম্বর')],
-                        ['text' => $this->t('A bank account (required for Hajj 2027 registration)', 'ব্যাংক হিসাব (হজ ২০২৭-এর নিবন্ধনে বাধ্যতামূলক ছিল)')],
+                        ['text' => $this->t('A bank account (required for Hajj 2027 registration)', 'ব্যাংক হিসাব (হজ্জ ২০২৭-এর নিবন্ধনে বাধ্যতামূলক ছিল)')],
                         ['text' => $this->t('Government pre-registration deposit, as the Ministry announces it', 'মন্ত্রণালয়ের ঘোষণা অনুযায়ী সরকারি প্রাক-নিবন্ধন জমা')],
                         ['text' => $this->t('VIP Mina tents and an experienced Muallim', 'ভিআইপি মিনা তাঁবু ও অভিজ্ঞ মুয়াল্লিম')],
                     ],
@@ -919,13 +919,13 @@ HTML;
     private function termsHtmlBn(): string
     {
         return <<<'HTML'
-<p>আন্তরিক ট্রাভেল ইন্টারন্যাশনালের মাধ্যমে বুক করা প্রতিটি সেবার ক্ষেত্রে এই শর্তাবলী প্রযোজ্য: এয়ার টিকেট, ভিসা প্রসেসিং, ট্যুর প্যাকেজ এবং আমাদের বিভাগ আন্তরিক হজ্জ কাফেলার মাধ্যমে হজ ও উমরাহ।</p>
+<p>আন্তরিক ট্রাভেল ইন্টারন্যাশনালের মাধ্যমে বুক করা প্রতিটি সেবার ক্ষেত্রে এই শর্তাবলী প্রযোজ্য: এয়ার টিকেট, ভিসা প্রসেসিং, ট্যুর প্যাকেজ এবং আমাদের বিভাগ আন্তরিক হজ্জ কাফেলার মাধ্যমে হজ্জ ও উমরাহ।</p>
 <h2>১. বুকিং</h2><p>সকল বুকিং প্রাপ্যতা সাপেক্ষে এবং পেমেন্ট ও আমাদের লিখিত নিশ্চিতকরণের পরই নিশ্চিত হয়। নিশ্চিত হওয়ার আগে জানানো মূল্য এয়ারলাইনের ভাড়া, হোটেলের রেট, বিনিময় হার বা সরকারি ফি অনুযায়ী বদলাতে পারে।</p>
 <h2>২. পেমেন্ট</h2><p>শুধুমাত্র আন্তরিক ট্রাভেল ইন্টারন্যাশনালের অফিসিয়াল অ্যাকাউন্টে অথবা এই ওয়েবসাইটের অনলাইন পেমেন্টে পরিশোধ করুন। কোনো ব্যক্তি বা অন্য অ্যাকাউন্টে দেওয়া অর্থের দায় আমাদের নয়। লিখিতভাবে ভিন্ন কিছু সম্মত না হলে টিকেট, ভিসা বা ভাউচার ইস্যুর আগে সম্পূর্ণ মূল্য পরিশোধ করতে হবে।</p>
 <h2>৩. এয়ার টিকেট</h2><p>টিকেট এয়ারলাইনের ফেয়ার রুলস অনুযায়ী চলে, যা পেমেন্টের আগেই আমরা জানাই। তারিখ পরিবর্তন, নাম সংশোধন ও রিফান্ড এই নিয়ম ও এয়ারলাইনের চার্জ এবং আমাদের সার্ভিস চার্জ সাপেক্ষে। যাত্রীদের বৈধ কাগজপত্রসহ সময়মতো চেক-ইন করতে হবে।</p>
 <h2>৪. ভিসা প্রসেসিং</h2><p>ভিসা মঞ্জুর বা প্রত্যাখ্যানের সিদ্ধান্ত শুধু দূতাবাস বা ইমিগ্রেশন কর্তৃপক্ষের। আমাদের সার্ভিস চার্জ আপনার ফাইল প্রস্তুত ও জমা দেওয়ার জন্য, ভিসা প্রত্যাখ্যাত হলে তা ফেরতযোগ্য নয়। দূতাবাস, ভিসা সেন্টার ও কুরিয়ার ফি প্রকৃত খরচে পরিশোধ করতে হয়। ভুল বা মিথ্যা তথ্যের কারণে প্রত্যাখ্যানের দায় আবেদনকারীর।</p>
 <h2>৫. ট্যুর প্যাকেজ</h2><p>ভ্রমণসূচিতে বর্ণিত অনুযায়ী ট্যুর পরিচালিত হয়। আমাদের নিয়ন্ত্রণের বাইরের কারণে হোটেল, দর্শনীয় স্থানের ক্রম বা পরিবহন বদলাতে পারে, তবে সমমানের বা আরও ভালো সেবা দেওয়া হবে। ঐচ্ছিক কার্যক্রম, তালিকায় নেই এমন খাবার ও ব্যক্তিগত খরচ অন্তর্ভুক্ত নয়।</p>
-<h2>৬. হজ ও উমরাহ</h2><p>হজ ও উমরাহ প্যাকেজ ধর্ম বিষয়ক মন্ত্রণালয় ও সৌদি কর্তৃপক্ষের নিয়মও মেনে চলে। প্রাক-নিবন্ধনের জন্য বৈধ এনআইডি বা পাসপোর্টের কপি, সচল মোবাইল নম্বর এবং মন্ত্রণালয় ঘোষিত ফি প্রয়োজন। হাজিগণ আন্তরিক হজ্জ কাফেলার কর্মশালায় অংশ নেবেন এবং দলের সময়সূচি ও মুয়াল্লিমদের নির্দেশনা মেনে চলবেন।</p>
+<h2>৬. হজ্জ ও উমরাহ</h2><p>হজ্জ ও উমরাহ প্যাকেজ ধর্ম বিষয়ক মন্ত্রণালয় ও সৌদি কর্তৃপক্ষের নিয়মও মেনে চলে। প্রাক-নিবন্ধনের জন্য বৈধ এনআইডি বা পাসপোর্টের কপি, সচল মোবাইল নম্বর এবং মন্ত্রণালয় ঘোষিত ফি প্রয়োজন। হাজিগণ আন্তরিক হজ্জ কাফেলার কর্মশালায় অংশ নেবেন এবং দলের সময়সূচি ও মুয়াল্লিমদের নির্দেশনা মেনে চলবেন।</p>
 <h2>৭. বাতিল ও অর্থ ফেরত</h2><p>বাতিলের অনুরোধ লিখিতভাবে করতে হবে। প্রাপ্য ক্ষেত্রে এয়ারলাইনের জরিমানা, ভিসা ফি ও আগে পরিশোধিত হোটেল চার্জের মতো অফেরতযোগ্য খরচ এবং আমাদের সার্ভিস চার্জ কেটে অর্থ ফেরত দেওয়া হয়। সফর শুরু হওয়ার পর অব্যবহৃত সেবার জন্য কোনো অর্থ ফেরত দেওয়া হয় না।</p>
 <h2>৮. ভ্রমণের কাগজপত্র ও স্বাস্থ্য</h2><p>যাত্রীদের অন্তত ছয় মাস মেয়াদি পাসপোর্ট, গন্তব্যের প্রয়োজনীয় ভিসা ও টিকা এবং পরামর্শ অনুযায়ী ভ্রমণ বিমা থাকতে হবে। কাগজপত্রের ঘাটতির কারণে বোর্ডিং বা প্রবেশে বাধার দায় আমাদের নয়।</p>
 <h2>৯. অনিবার্য পরিস্থিতি</h2><p>প্রাকৃতিক দুর্যোগ, রাজনৈতিক অস্থিরতা, মহামারি, এয়ারলাইনের সূচি পরিবর্তন বা আমাদের নিয়ন্ত্রণের বাইরের যেকোনো পরিস্থিতিতে বিলম্ব, বাতিল বা পরিবর্তনের জন্য আমরা দায়ী নই, তবে সেরা বিকল্প খুঁজে পেতে আমরা সহায়তা করব।</p>
@@ -936,9 +936,9 @@ HTML;
     private function privacyHtmlBn(): string
     {
         return <<<'HTML'
-<p>আন্তরিক ট্রাভেল ইন্টারন্যাশনাল আপনার গোপনীয়তাকে সম্মান করে এবং আপনার ব্যক্তিগত তথ্য সুরক্ষায় প্রতিশ্রুতিবদ্ধ। এয়ার টিকেট, ভিসা, ট্যুর, হজ ও উমরাহ সেবা ব্যবহারের সময় আমরা কীভাবে আপনার তথ্য সংগ্রহ, ব্যবহার, সংরক্ষণ ও সুরক্ষা করি, এই নীতিতে তা ব্যাখ্যা করা হয়েছে।</p>
+<p>আন্তরিক ট্রাভেল ইন্টারন্যাশনাল আপনার গোপনীয়তাকে সম্মান করে এবং আপনার ব্যক্তিগত তথ্য সুরক্ষায় প্রতিশ্রুতিবদ্ধ। এয়ার টিকেট, ভিসা, ট্যুর, হজ্জ ও উমরাহ সেবা ব্যবহারের সময় আমরা কীভাবে আপনার তথ্য সংগ্রহ, ব্যবহার, সংরক্ষণ ও সুরক্ষা করি, এই নীতিতে তা ব্যাখ্যা করা হয়েছে।</p>
 <h2>আমরা যে তথ্য সংগ্রহ করি</h2><ul><li>পূর্ণ নাম, জাতীয়তা ও জন্মতারিখ</li><li>পাসপোর্ট ও এনআইডির তথ্য</li><li>যোগাযোগের তথ্য: ফোন নম্বর, ইমেইল ও ঠিকানা</li><li>ভিসা ফাইলের কাগজপত্র, যেমন ব্যাংক স্টেটমেন্ট ও চাকরির প্রত্যয়নপত্র</li><li>পেমেন্ট ও বিলিংয়ের তথ্য</li><li>স্বাস্থ্য-সংক্রান্ত তথ্য, শুধু গন্তব্য দেশের নিয়মে প্রয়োজন হলে</li></ul>
-<h2>আমরা আপনার তথ্য যেভাবে ব্যবহার করি</h2><ul><li>টিকেট বুকিং, ভিসা আবেদন, ট্যুর এবং হজ ও উমরাহ নিবন্ধন সম্পন্ন করতে</li><li>ফ্লাইট, আবাসন ও পরিবহনের ব্যবস্থা করতে</li><li>গুরুত্বপূর্ণ হালনাগাদ তথ্য ও বিজ্ঞপ্তি পাঠাতে</li><li>আপনার নিরাপত্তা নিশ্চিত করতে ও আইনগত বাধ্যবাধকতা মানতে</li><li>আপনার মতামতের ভিত্তিতে আমাদের সেবার মান উন্নত করতে</li></ul>
+<h2>আমরা আপনার তথ্য যেভাবে ব্যবহার করি</h2><ul><li>টিকেট বুকিং, ভিসা আবেদন, ট্যুর এবং হজ্জ ও উমরাহ নিবন্ধন সম্পন্ন করতে</li><li>ফ্লাইট, আবাসন ও পরিবহনের ব্যবস্থা করতে</li><li>গুরুত্বপূর্ণ হালনাগাদ তথ্য ও বিজ্ঞপ্তি পাঠাতে</li><li>আপনার নিরাপত্তা নিশ্চিত করতে ও আইনগত বাধ্যবাধকতা মানতে</li><li>আপনার মতামতের ভিত্তিতে আমাদের সেবার মান উন্নত করতে</li></ul>
 <h2>তথ্য শেয়ার ও প্রকাশ</h2><p>আপনার সফরের ব্যবস্থা করতে আমরা প্রয়োজনীয় তথ্য এয়ারলাইন, হোটেল, দূতাবাস ও ভিসা সেন্টার, সৌদি কর্তৃপক্ষ এবং ভ্রমণ সহযোগীদের সাথে শেয়ার করি। আমরা কখনো আপনার ব্যক্তিগত তথ্য বিক্রি, ভাড়া বা বিনিময় করি না। আইনগতভাবে প্রয়োজন হলেই কেবল সরকারি বা আইন প্রয়োগকারী সংস্থার কাছে তথ্য প্রকাশ করা হয়।</p>
 <h2>সংরক্ষণ ও নিরাপত্তা</h2><p>ব্যক্তিগত তথ্য ও আপলোড করা কাগজপত্র নিরাপদে সংরক্ষণ করা হয় এবং অননুমোদিত প্রবেশ, হারানো বা অপব্যবহার থেকে সুরক্ষিত রাখা হয়। কাগজের নথিপত্র নিরাপদ স্থানে রাখা হয়।</p>
 <h2>কুকিজ</h2><p>আপনার অভিজ্ঞতা উন্নত করতে এবং ভাষার মতো পছন্দ মনে রাখতে আমাদের ওয়েবসাইট কুকিজ ব্যবহার করতে পারে। আপনি ব্রাউজারের সেটিংস থেকে কুকিজ বন্ধ করতে পারেন।</p>

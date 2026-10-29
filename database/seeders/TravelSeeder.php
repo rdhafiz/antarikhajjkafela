@@ -48,7 +48,7 @@ class TravelSeeder extends Seeder
             'content' => app(ContentProcessor::class)->sanitize($component->fields(), [
                 'eyebrow' => $this->t('Our packages', 'আমাদের প্যাকেজ'),
                 'title' => $this->t('Choose your journey', 'আপনার সফর বেছে নিন'),
-                'intro' => $this->t('Hajj and Umrah packages for every budget, each with scholars beside you.', 'সব বাজেটের হজ ও উমরাহ প্যাকেজ—প্রতিটিতে আলেমগণ আপনার পাশে।'),
+                'intro' => $this->t('Hajj and Umrah packages for every budget, each with scholars beside you.', 'সব বাজেটের হজ্জ ও উমরাহ প্যাকেজ—প্রতিটিতে আলেমগণ আপনার পাশে।'),
                 'source' => 'featured',
                 'limit' => 3,
                 'layout' => 'staggered',
@@ -62,20 +62,20 @@ class TravelSeeder extends Seeder
     {
 
         $hajj = Service::create([
-            'name' => $this->t('Hajj', 'হজ'),
+            'name' => $this->t('Hajj', 'হজ্জ'),
             'slug' => 'hajj',
             'travel_date' => 'hajj_year',
             'icon' => 'kaaba',
             'sort' => 0,
-            'headline' => $this->t('Answer the call of Hajj,', 'হজের ডাকে সাড়া দিন,'),
+            'headline' => $this->t('Answer the call of Hajj,', 'হজ্জের ডাকে সাড়া দিন,'),
             'highlight' => $this->t('with scholars beside you.', 'আলেমদের সান্নিধ্যে।'),
             'summary' => $this->t(
                 'Hajj packages from Bangladesh with hotels near the Haram, Bangladeshi meals and scholars beside you throughout the journey.',
-                'হারামের কাছে হোটেল, বাংলাদেশি খাবার এবং পুরো সফরে আলেমদের সান্নিধ্যসহ বাংলাদেশ থেকে হজ প্যাকেজ।'
+                'হারামের কাছে হোটেল, বাংলাদেশি খাবার এবং পুরো সফরে আলেমদের সান্নিধ্যসহ বাংলাদেশ থেকে হজ্জ প্যাকেজ।'
             ),
             'description' => $this->t(
                 "Since the beginning of human existence, the Holy Kaaba has been the centre of worship for those who worship the One God. Almighty Allah ordained Hajj, which in Arabic means \"to make an intention for visitation\", and every year millions of Muslims answer His call.\n\n\"And proclaim to the people the Hajj; they will come to you on foot and on every lean camel; they will come from every distant pass.\" (Surah Al-Hajj 22:27)",
-                "মানব ইতিহাসের শুরু থেকেই পবিত্র কাবা এক আল্লাহর ইবাদতকারীদের কেন্দ্র। মহান আল্লাহ হজ ফরজ করেছেন, আরবিতে যার অর্থ \"যিয়ারতের নিয়ত করা\"; প্রতি বছর লাখো মুসলমান তাঁর ডাকে সাড়া দেন।\n\n\"আর মানুষের মধ্যে হজের ঘোষণা দাও; তারা তোমার কাছে আসবে পায়ে হেঁটে এবং সব ধরনের কৃশকায় উটের পিঠে চড়ে, দূর-দূরান্তের পথ অতিক্রম করে।\" (সূরা আল-হাজ্জ ২২:২৭)"
+                "মানব ইতিহাসের শুরু থেকেই পবিত্র কাবা এক আল্লাহর ইবাদতকারীদের কেন্দ্র। মহান আল্লাহ হজ্জ ফরজ করেছেন, আরবিতে যার অর্থ \"যিয়ারতের নিয়ত করা\"; প্রতি বছর লাখো মুসলমান তাঁর ডাকে সাড়া দেন।\n\n\"আর মানুষের মধ্যে হজ্জের ঘোষণা দাও; তারা তোমার কাছে আসবে পায়ে হেঁটে এবং সব ধরনের কৃশকায় উটের পিঠে চড়ে, দূর-দূরান্তের পথ অতিক্রম করে।\" (সূরা আল-হাজ্জ ২২:২৭)"
             ),
         ]);
 
@@ -93,7 +93,7 @@ class TravelSeeder extends Seeder
             ),
             'description' => $this->t(
                 "Umrah is a means of purifying the soul, seeking forgiveness and renewing faith. It can be performed at any time of the year and carries great reward.\n\nThe Prophet Muhammad (peace be upon him) said: \"From one Umrah to another is an expiation for the sins committed between them, and the reward for an accepted Hajj is Paradise.\" (Sahih Bukhari & Muslim)",
-                "উমরাহ আত্মশুদ্ধি, ক্ষমা প্রার্থনা ও ঈমান নবায়নের মাধ্যম। বছরের যেকোনো সময় এটি পালন করা যায় এবং এর রয়েছে মহান প্রতিদান।\n\nরাসূলুল্লাহ (সা.) বলেছেন: \"এক উমরাহ থেকে আরেক উমরাহ মধ্যবর্তী গুনাহের কাফফারা, আর কবুল হজের প্রতিদান জান্নাত।\" (সহীহ বুখারী ও মুসলিম)"
+                "উমরাহ আত্মশুদ্ধি, ক্ষমা প্রার্থনা ও ঈমান নবায়নের মাধ্যম। বছরের যেকোনো সময় এটি পালন করা যায় এবং এর রয়েছে মহান প্রতিদান।\n\nরাসূলুল্লাহ (সা.) বলেছেন: \"এক উমরাহ থেকে আরেক উমরাহ মধ্যবর্তী গুনাহের কাফফারা, আর কবুল হজ্জের প্রতিদান জান্নাত।\" (সহীহ বুখারী ও মুসলিম)"
             ),
         ]);
 
@@ -119,13 +119,13 @@ class TravelSeeder extends Seeder
     {
         $hajjFlights = [[
             'airline' => $this->t('Saudia / Biman Bangladesh', 'সৌদিয়া / বিমান বাংলাদেশ'),
-            'schedule' => $this->t('According to the government Hajj flight schedule', 'সরকারি হজ ফ্লাইট সূচি অনুযায়ী'),
+            'schedule' => $this->t('According to the government Hajj flight schedule', 'সরকারি হজ্জ ফ্লাইট সূচি অনুযায়ী'),
             'description' => $this->t('Or another government-approved airline. Return tickets included.', 'অথবা সরকার অনুমোদিত অন্য এয়ারলাইন। রিটার্ন টিকেট অন্তর্ভুক্ত।'),
         ]];
 
         $hajjSections = [
             $this->listSection('Included', 'অন্তর্ভুক্ত', 'Everything included in the package', 'প্যাকেজে যা যা অন্তর্ভুক্ত', 'check', [
-                ['Detailed Hajj guidelines from an experienced scholar before departure', 'যাত্রার আগে অভিজ্ঞ আলেমের বিস্তারিত হজ নির্দেশনা'],
+                ['Detailed Hajj guidelines from an experienced scholar before departure', 'যাত্রার আগে অভিজ্ঞ আলেমের বিস্তারিত হজ্জ নির্দেশনা'],
                 ['Three meals a day with Bangladeshi cuisine cooked by a Bangladeshi chef', 'বাংলাদেশি বাবুর্চির রান্না দিনে তিন বেলা বাংলাদেশি খাবার'],
                 ['Workshops and help performing every rite, with a scholar and guide during the journey', 'সফরে আলেম ও গাইডের উপস্থিতিতে কর্মশালা ও প্রতিটি আমলে সহায়তা'],
                 ['Air-conditioned buses: Jeddah–Makkah, Makkah–Madinah, Mina–Arafah–Muzdalifah, Madinah–Jeddah', 'শীতাতপ নিয়ন্ত্রিত বাস: জেদ্দা–মক্কা, মক্কা–মদিনা, মিনা–আরাফাহ–মুজদালিফা, মদিনা–জেদ্দা'],
@@ -142,14 +142,14 @@ class TravelSeeder extends Seeder
                 ['Handbag for passports and documents', 'পাসপোর্ট ও কাগজপত্রের জন্য হ্যান্ডব্যাগ'],
                 ['Cloth bag for Mina and a bag for collecting stones', 'মিনার জন্য কাপড়ের ব্যাগ ও পাথর সংগ্রহের ব্যাগ'],
                 ['Main trolley bag', 'প্রধান ট্রলি ব্যাগ'],
-                ['Pocket and detailed Hajj guidebooks', 'পকেট ও বিস্তারিত হজ গাইড বই'],
+                ['Pocket and detailed Hajj guidebooks', 'পকেট ও বিস্তারিত হজ্জ গাইড বই'],
             ]),
         ];
 
         return [
             [
                 'service_id' => $hajj->id,
-                'name' => $this->t('Hajj Regular Package', 'হজ রেগুলার প্যাকেজ'),
+                'name' => $this->t('Hajj Regular Package', 'হজ্জ রেগুলার প্যাকেজ'),
                 'summary' => $this->t('VIP short stay or 35–40 day shifting and permanent packages, with three Bangladeshi meals daily.', 'ভিআইপি স্বল্পমেয়াদি অথবা ৩৫–৪০ দিনের শিফটিং ও পার্মানেন্ট প্যাকেজ, দিনে তিন বেলা বাংলাদেশি খাবারসহ।'),
                 'duration_days' => 40,
                 'status' => Package::STATUS_PUBLISHED,
@@ -158,19 +158,19 @@ class TravelSeeder extends Seeder
                 'flights' => $hajjFlights,
                 'sections' => $hajjSections,
                 'types' => [
-                    $this->type('HJ-VIP', 'Hajj VIP Package', 'হজ ভিআইপি প্যাকেজ', 'Short & permanent package, 12–15 days.', 'স্বল্পমেয়াদি ও পার্মানেন্ট প্যাকেজ, ১২–১৫ দিন।', [
+                    $this->type('HJ-VIP', 'Hajj VIP Package', 'হজ্জ ভিআইপি প্যাকেজ', 'Short & permanent package, 12–15 days.', 'স্বল্পমেয়াদি ও পার্মানেন্ট প্যাকেজ, ১২–১৫ দিন।', [
                         $this->price('4-bed shared room', '৪ বেডের শেয়ার্ড রুম', 'Without meals.', 'খাবার ছাড়া।', 1200000, [
                             $this->hotel('Makkah', 'মক্কা', 'Zamzam Tower / Makkah Tower', 'জমজম টাওয়ার / মক্কা টাওয়ার', 'Adjacent to the Masjid al-Haram courtyard.', 'মসজিদুল হারামের চত্বরের একদম পাশে।'),
                             $this->hotel('Madinah', 'মদিনা', '5-star hotel', '৫ তারকা হোটেল', 'Within 150 metres of the Masjid an-Nabawi courtyard.', 'মসজিদে নববীর চত্বর থেকে সর্বোচ্চ ১৫০ মিটার।'),
                         ]),
                     ]),
-                    $this->type('HJ-A', 'Hajj Package A (Shifting)', 'হজ প্যাকেজ এ (শিফটিং)', 'Shifting package, 35–40 days, three Bangladeshi meals daily.', 'শিফটিং প্যাকেজ, ৩৫–৪০ দিন, দিনে তিন বেলা বাংলাদেশি খাবার।', [
+                    $this->type('HJ-A', 'Hajj Package A (Shifting)', 'হজ্জ প্যাকেজ এ (শিফটিং)', 'Shifting package, 35–40 days, three Bangladeshi meals daily.', 'শিফটিং প্যাকেজ, ৩৫–৪০ দিন, দিনে তিন বেলা বাংলাদেশি খাবার।', [
                         $this->price('4/5-bed shared room', '৪/৫ বেডের শেয়ার্ড রুম', 'Three meals daily with Bangladeshi cuisine.', 'দিনে তিন বেলা বাংলাদেশি খাবার।', 619999, [
                             $this->hotel('Makkah', 'মক্কা', 'Standard hotel', 'স্ট্যান্ডার্ড হোটেল', 'Within 400 metres of the Masjid al-Haram courtyard.', 'মসজিদুল হারামের চত্বর থেকে সর্বোচ্চ ৪০০ মিটার।'),
                             $this->hotel('Madinah', 'মদিনা', 'Star-rated hotel', 'স্টার মানের হোটেল', 'Within 300 metres of the Masjid an-Nabawi courtyard.', 'মসজিদে নববীর চত্বর থেকে সর্বোচ্চ ৩০০ মিটার।'),
                         ]),
                     ]),
-                    $this->type('HJ-B', 'Hajj Package B', 'হজ প্যাকেজ বি', 'Permanent package, 35–40 days, without meals.', 'পার্মানেন্ট প্যাকেজ, ৩৫–৪০ দিন, খাবার ছাড়া।', [
+                    $this->type('HJ-B', 'Hajj Package B', 'হজ্জ প্যাকেজ বি', 'Permanent package, 35–40 days, without meals.', 'পার্মানেন্ট প্যাকেজ, ৩৫–৪০ দিন, খাবার ছাড়া।', [
                         $this->price('4/5-bed shared room', '৪/৫ বেডের শেয়ার্ড রুম', 'Without meals.', 'খাবার ছাড়া।', 483000, [
                             $this->hotel('Makkah', 'মক্কা', 'Standard hotel / house', 'স্ট্যান্ডার্ড হোটেল / বাসা', 'Within 3,000 metres of the Masjid al-Haram courtyard.', 'মসজিদুল হারামের চত্বর থেকে সর্বোচ্চ ৩,০০০ মিটার।'),
                             $this->hotel('Madinah', 'মদিনা', 'Standard hotel / house', 'স্ট্যান্ডার্ড হোটেল / বাসা', 'Within 1,500 metres of the Masjid an-Nabawi courtyard.', 'মসজিদে নববীর চত্বর থেকে সর্বোচ্চ ১,৫০০ মিটার।'),
@@ -180,7 +180,7 @@ class TravelSeeder extends Seeder
             ],
             [
                 'service_id' => $hajj->id,
-                'name' => $this->t('Hajj Premium Package', 'হজ প্রিমিয়াম প্যাকেজ'),
+                'name' => $this->t('Hajj Premium Package', 'হজ্জ প্রিমিয়াম প্যাকেজ'),
                 'summary' => $this->t('Permanent packages closer to the Haram, with buffet or Bangladeshi meals and star-rated hotels in Madinah.', 'হারামের আরও কাছে পার্মানেন্ট প্যাকেজ, বুফে বা বাংলাদেশি খাবার এবং মদিনায় স্টার মানের হোটেল।'),
                 'duration_days' => 35,
                 'status' => Package::STATUS_PUBLISHED,
@@ -189,7 +189,7 @@ class TravelSeeder extends Seeder
                 'flights' => $hajjFlights,
                 'sections' => $hajjSections,
                 'types' => [
-                    $this->type('HP-PREMIUM', 'Hajj Premium Package', 'হজ প্রিমিয়াম প্যাকেজ', 'Permanent package, 30–35 days, three buffet meals (Bangladeshi food) daily.', 'পার্মানেন্ট প্যাকেজ, ৩০–৩৫ দিন, দিনে তিন বেলা বুফে (বাংলাদেশি খাবার)।', [
+                    $this->type('HP-PREMIUM', 'Hajj Premium Package', 'হজ্জ প্রিমিয়াম প্যাকেজ', 'Permanent package, 30–35 days, three buffet meals (Bangladeshi food) daily.', 'পার্মানেন্ট প্যাকেজ, ৩০–৩৫ দিন, দিনে তিন বেলা বুফে (বাংলাদেশি খাবার)।', [
                         $this->price('4/5-bed sharing room', '৪/৫ বেডের শেয়ারিং রুম', 'Three buffet meals daily.', 'দিনে তিন বেলা বুফে খাবার।', 900000, [
                             $this->hotel('Makkah', 'মক্কা', '3-star hotel', '৩ তারকা হোটেল', 'Within 300 metres of Masjid al-Haram.', 'মসজিদুল হারাম থেকে সর্বোচ্চ ৩০০ মিটার।'),
                             $this->hotel('Madinah', 'মদিনা', 'Star-rated hotel', 'স্টার মানের হোটেল', 'Within 100 metres of Masjid an-Nabawi.', 'মসজিদে নববী থেকে সর্বোচ্চ ১০০ মিটার।'),
