@@ -8,6 +8,7 @@ use App\Models\Package;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Service;
+use App\Support\Locales;
 use Database\Seeders\Concerns\ImportsSeedImages;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
@@ -204,12 +205,15 @@ class SeoSeeder extends Seeder
 
         $seo = $model->seo ?? [];
 
-        if ($title && blank(array_filter($seo['title'] ?? []))) {
-            $seo['title'] = ['en' => $title[0], 'bn' => $title[1]];
+        // SEO texts are one text each: the one in the site's default language.
+        $pick = app(Locales::class)->default() === 'bn' ? 1 : 0;
+
+        if ($title && blank($seo['title'] ?? null)) {
+            $seo['title'] = $title[$pick];
         }
 
-        if ($description && blank(array_filter($seo['description'] ?? []))) {
-            $seo['description'] = ['en' => $description[0], 'bn' => $description[1]];
+        if ($description && blank($seo['description'] ?? null)) {
+            $seo['description'] = $description[$pick];
         }
 
         if (empty($seo['image'])) {

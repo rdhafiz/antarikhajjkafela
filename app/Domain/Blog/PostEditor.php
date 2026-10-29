@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Models\SlugRedirect;
 use App\Models\User;
 use App\PageBuilder\ContentBlocks;
+use App\Rules\JsonLd;
 use App\Support\Locales;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -46,10 +47,11 @@ class PostEditor
             'status' => ['required', Rule::in([Post::STATUS_DRAFT, Post::STATUS_PUBLISHED])],
             'published_at' => ['nullable', 'date'],
             'is_featured' => ['boolean'],
-            'seo.title.*' => ['nullable', 'string', 'max:70'],
-            'seo.description.*' => ['nullable', 'string', 'max:200'],
+            'seo.title' => ['nullable', 'string', 'max:70'],
+            'seo.description' => ['nullable', 'string', 'max:200'],
             'seo.image' => ['nullable', 'integer', 'exists:media,id,deleted_at,NULL'],
             'seo.noindex' => ['nullable', 'boolean'],
+            'seo.schema' => ['nullable', 'string', 'max:20000', new JsonLd],
             ...$this->blocks->rules('blocks', 60),
         ];
     }
@@ -82,10 +84,11 @@ class PostEditor
                 'published_at' => $publishedAt,
                 'is_featured' => (bool) ($data['is_featured'] ?? false),
                 'seo' => [
-                    'title' => array_filter($data['seo']['title'] ?? []),
-                    'description' => array_filter($data['seo']['description'] ?? []),
+                    'title' => filled($data['seo']['title'] ?? null) ? trim($data['seo']['title']) : null,
+                    'description' => filled($data['seo']['description'] ?? null) ? trim($data['seo']['description']) : null,
                     'image' => $data['seo']['image'] ?? null,
                     'noindex' => (bool) ($data['seo']['noindex'] ?? false),
+                    'schema' => filled($data['seo']['schema'] ?? null) ? trim($data['seo']['schema']) : null,
                 ],
                 'updated_by' => $user->id,
             ])->save();
@@ -153,10 +156,11 @@ class PostEditor
             'published_at' => $post->published_at?->format('Y-m-d\TH:i'),
             'is_featured' => $post->is_featured,
             'seo' => [
-                'title' => (object) ($post->seo['title'] ?? []),
-                'description' => (object) ($post->seo['description'] ?? []),
+                'title' => $post->seo['title'] ?? null,
+                'description' => $post->seo['description'] ?? null,
                 'image' => $post->seo['image'] ?? null,
                 'noindex' => (bool) ($post->seo['noindex'] ?? false),
+                'schema' => $post->seo['schema'] ?? null,
             ],
             'updated_at' => $post->updated_at?->toIso8601String(),
         ];

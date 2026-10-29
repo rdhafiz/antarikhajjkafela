@@ -222,10 +222,11 @@ class PageController extends Controller
             ...$this->summary($page),
             'has_listing' => (bool) config("page-builder.default_pages.{$page->system_key}.listing", false),
             'seo' => [
-                'title' => (object) ($page->seo['title'] ?? []),
-                'description' => (object) ($page->seo['description'] ?? []),
+                'title' => $page->seo['title'] ?? null,
+                'description' => $page->seo['description'] ?? null,
                 'image' => $page->seo['image'] ?? null,
                 'noindex' => (bool) ($page->seo['noindex'] ?? false),
+                'schema' => $page->seo['schema'] ?? null,
             ],
             'focused_layout' => $page->focused_layout,
             'tracking' => (object) ($page->tracking ?? []),

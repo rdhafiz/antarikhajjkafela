@@ -8,6 +8,8 @@ import AppDatePicker from '@admin/components/ui/AppDatePicker.vue';
 import AppSpinner from '@admin/components/ui/AppSpinner.vue';
 import AppSwitch from '@admin/components/ui/AppSwitch.vue';
 import FormField from '@admin/components/ui/FormField.vue';
+import SchemaInput from '@admin/components/ui/SchemaInput.vue';
+import SeoTextInputs from '@admin/components/ui/SeoTextInputs.vue';
 import TranslatableInput from '@admin/components/ui/TranslatableInput.vue';
 import { useErrorClearing } from '@admin/composables/useErrorClearing';
 import MediaField from '@admin/components/media/MediaField.vue';
@@ -38,7 +40,7 @@ interface PostData {
     state: PostState;
     published_at: string | null;
     is_featured: boolean;
-    seo: { title: Translations; description: Translations; image: number | null; noindex: boolean };
+    seo: { title: string | null; description: string | null; image: number | null; noindex: boolean; schema: string | null };
 }
 
 const route = useRoute();
@@ -191,12 +193,12 @@ onBeforeUnmount(() => {
 
                 <div class="card space-y-4 p-6">
                     <h2 class="text-[15px] font-semibold text-ink">Search & sharing</h2>
-                    <TranslatableInput v-model="data.seo.title" label="SEO title" placeholder="Defaults to the post title" :errors="errors" error-key="seo.title" />
-                    <TranslatableInput v-model="data.seo.description" label="SEO description" multiline :rows="2" placeholder="Defaults to the summary" :errors="errors" error-key="seo.description" />
+                    <SeoTextInputs v-model:title="data.seo.title" v-model:description="data.seo.description" :errors="errors" title-placeholder="Defaults to the post title" description-placeholder="Defaults to the summary" />
                     <MediaField v-model="data.seo.image" label="Social share image" usage="og" aspect="1200 / 630" hint="Defaults to the banner." />
                     <div class="rounded-lg border border-line p-3.5">
                         <AppSwitch v-model="data.seo.noindex" label="Hide from search engines" />
                     </div>
+                    <SchemaInput v-model="data.seo.schema" :error="errors['seo.schema']" />
                 </div>
             </div>
 

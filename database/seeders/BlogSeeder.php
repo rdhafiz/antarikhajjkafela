@@ -44,7 +44,7 @@ class BlogSeeder extends Seeder
                 'status' => Post::STATUS_PUBLISHED,
                 'published_at' => Carbon::parse($data['published_at']),
                 'is_featured' => $data['is_featured'] ?? false,
-                'seo' => ['title' => [], 'description' => [], 'image' => null, 'noindex' => false],
+                'seo' => ['title' => null, 'description' => null, 'image' => null, 'noindex' => false],
             ]);
         }
     }

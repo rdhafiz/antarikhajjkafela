@@ -50,10 +50,11 @@ class PackageEditor
                 'flights' => $flights,
                 'sections' => $sections,
                 'seo' => [
-                    'title' => array_filter($data['seo']['title'] ?? []),
-                    'description' => array_filter($data['seo']['description'] ?? []),
+                    'title' => filled($data['seo']['title'] ?? null) ? trim($data['seo']['title']) : null,
+                    'description' => filled($data['seo']['description'] ?? null) ? trim($data['seo']['description']) : null,
                     'image' => $data['seo']['image'] ?? null,
                     'noindex' => (bool) ($data['seo']['noindex'] ?? false),
+                    'schema' => filled($data['seo']['schema'] ?? null) ? trim($data['seo']['schema']) : null,
                 ],
                 'updated_by' => $user->id,
             ])->save();
@@ -195,10 +196,11 @@ class PackageEditor
             'flights' => $package->flights ?? [],
             'sections' => $package->sections ?? [],
             'seo' => [
-                'title' => (object) ($package->seo['title'] ?? []),
-                'description' => (object) ($package->seo['description'] ?? []),
+                'title' => $package->seo['title'] ?? null,
+                'description' => $package->seo['description'] ?? null,
                 'image' => $package->seo['image'] ?? null,
                 'noindex' => (bool) ($package->seo['noindex'] ?? false),
+                'schema' => $package->seo['schema'] ?? null,
             ],
             'types' => $package->types->map(fn (PackageType $type) => [
                 'id' => $type->id,

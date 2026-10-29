@@ -66,7 +66,7 @@ function fromDetail(detail: PageDetail): void {
         title: { ...detail.title },
         slug: detail.slug,
         status: detail.status,
-        seo: { title: { ...detail.seo.title }, description: { ...detail.seo.description }, image: detail.seo.image, noindex: detail.seo.noindex },
+        seo: { title: detail.seo.title, description: detail.seo.description, image: detail.seo.image, noindex: detail.seo.noindex, schema: detail.seo.schema ?? null },
         starts_at: detail.starts_at,
         expires_at: detail.expires_at,
         focused_layout: detail.focused_layout,

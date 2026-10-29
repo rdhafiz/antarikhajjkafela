@@ -146,20 +146,14 @@ return [
             'icon' => 'search',
             'fields' => [
                 'meta_title' => [
-                    'type' => 'string', 'label' => 'Meta title', 'translatable' => true, 'rules' => ['max:70'],
-                    'hint' => 'Up to 60 characters shows fully in Google results.',
-                    'default' => [
-                        'en' => 'Antarik Travel International | Hajj, Umrah, Air Tickets, Visa & Tours',
-                        'bn' => 'আন্তরিক ট্রাভেল ইন্টারন্যাশনাল | হজ, উমরাহ, এয়ার টিকেট, ভিসা ও ট্যুর',
-                    ],
+                    'type' => 'string', 'label' => 'Meta title', 'rules' => ['max:70'],
+                    'hint' => 'One title in the language you choose (English or Bangla). Up to 60 characters shows fully in Google results.',
+                    'default' => 'Antarik Travel International | Hajj, Umrah, Air Tickets, Visa & Tours',
                 ],
                 'meta_description' => [
-                    'type' => 'text', 'label' => 'Meta description', 'translatable' => true, 'rules' => ['max:200'],
-                    'hint' => 'Around 150 characters that describe the agency in search results.',
-                    'default' => [
-                        'en' => 'Trusted international travel agency in Dhaka since 2016: Hajj & Umrah, air tickets, visa processing and tour packages worldwide.',
-                        'bn' => '২০১৬ সাল থেকে ঢাকার বিশ্বস্ত আন্তর্জাতিক ট্রাভেল এজেন্সি: হজ ও উমরাহ, এয়ার টিকেট, ভিসা প্রসেসিং ও বিশ্বজুড়ে ট্যুর প্যাকেজ।',
-                    ],
+                    'type' => 'text', 'label' => 'Meta description', 'rules' => ['max:200'],
+                    'hint' => 'One description in the language you choose. Around 150 characters that describe the agency in search results.',
+                    'default' => 'Trusted international travel agency in Dhaka since 2016: Hajj & Umrah, air tickets, visa processing and tour packages worldwide.',
                 ],
                 'og_image' => ['type' => 'media', 'usage' => 'og', 'label' => 'Social share image', 'hint' => 'Shown when a link is shared on Facebook or WhatsApp. 1200×630 works best.', 'default' => null],
                 'schema' => [

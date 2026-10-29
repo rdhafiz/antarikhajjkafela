@@ -102,6 +102,18 @@ class Seo
         return $this;
     }
 
+    /**
+     * The page's own structured data typed in the admin (seo.schema), after the generated nodes.
+     */
+    public function customSchema(?string $json): static
+    {
+        foreach (JsonLd::nodes($json) as $node) {
+            $this->schema($node);
+        }
+
+        return $this;
+    }
+
     public function resolvedTitle(): string
     {
         $site = setting_t('branding.site_name');

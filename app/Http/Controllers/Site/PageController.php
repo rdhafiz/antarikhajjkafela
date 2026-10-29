@@ -8,6 +8,7 @@ use App\Models\Media;
 use App\Models\Page;
 use App\Models\Service;
 use App\Models\SlugRedirect;
+use App\Support\Seo\SeoText;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 
@@ -67,11 +68,12 @@ class PageController extends Controller
     {
         $seoData = $page->seo ?? [];
         $locale = app()->getLocale();
+        $seoTitle = SeoText::single($seoData['title'] ?? null, $locale);
         $title = $page->getTranslation('title', $locale);
 
         $seo = seo()
-            ->title($seoData['title'][$locale] ?? ($page->isHome() ? null : $title), appendSiteName: ! $page->isHome() || filled($seoData['title'][$locale] ?? null))
-            ->description($seoData['description'][$locale] ?? null)
+            ->title($seoTitle ?? ($page->isHome() ? null : $title), appendSiteName: ! $page->isHome() || filled($seoTitle))
+            ->description(SeoText::single($seoData['description'] ?? null, $locale))
             ->canonical($page->url())
             ->pageType(match ($page->system_key) {
                 'about' => 'AboutPage',
@@ -96,6 +98,7 @@ class PageController extends Controller
         foreach ($rendered['schema'] as $schema) {
             $seo->schema($schema);
         }
+        $seo->customSchema($seoData['schema'] ?? null);
 
         return response()->view('site.page', [
             'page' => $page,
