@@ -37,12 +37,19 @@
     <div class="container-site relative grid grid-cols-2 gap-x-6 gap-y-12 py-16 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr] lg:gap-10">
         {{-- Each column reveals a beat after the one before. --}}
         <div class="col-span-2 max-w-sm lg:col-span-1" data-reveal>
-            <a href="{{ url('/') }}" class="inline-flex items-center gap-3">
-                <span class="flex size-14 items-center justify-center rounded-2xl bg-white p-1.5">
-                    <img src="{{ $branding->iconUrl(96) }}" alt="" aria-hidden="true" width="48" height="48" class="size-full object-contain" loading="lazy" decoding="async">
-                </span>
-                <span class="font-display text-[1.35rem] leading-tight font-semibold text-white">{{ $site->name() }}</span>
-            </a>
+            @if ($branding->isPilgrimage())
+                {{-- Hajj & Umrah pages: the Antarik Hajj Kafela logo carries the name. --}}
+                <a href="{{ url('/') }}" class="inline-flex rounded-2xl bg-white px-3 py-2" aria-label="{{ $site->name() }} – {{ __('Home') }}">
+                    <img src="{{ $branding->logoUrl() }}" srcset="{{ $branding->logoSrcset() }}" sizes="220px" alt="{{ $site->name() }}" width="220" height="75" class="h-[60px] w-auto" loading="lazy" decoding="async">
+                </a>
+            @else
+                <a href="{{ url('/') }}" class="inline-flex items-center gap-3">
+                    <span class="flex size-14 items-center justify-center rounded-2xl bg-white p-1.5">
+                        <img src="{{ $branding->iconUrl(96) }}" alt="" aria-hidden="true" width="48" height="48" class="size-full object-contain" loading="lazy" decoding="async">
+                    </span>
+                    <span class="font-display text-[1.35rem] leading-tight font-semibold text-white">{{ $site->name() }}</span>
+                </a>
+            @endif
             <p class="mt-5 text-[15px] leading-relaxed">{{ setting_t('branding.short_description') }}</p>
             <x-site.social-links class="mt-7" />
         </div>

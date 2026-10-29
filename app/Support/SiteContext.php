@@ -28,9 +28,12 @@ class SiteContext
         private readonly Locales $locales,
     ) {}
 
+    /**
+     * The website name for this page (Antarik Hajj Kafela on Hajj & Umrah pages).
+     */
     public function name(): string
     {
-        return (string) setting_t('branding.site_name');
+        return app(Branding::class)->siteName();
     }
 
     /**

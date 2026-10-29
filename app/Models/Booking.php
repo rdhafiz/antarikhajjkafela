@@ -52,6 +52,17 @@ class Booking extends Model
         return $this->belongsTo(Package::class);
     }
 
+    /**
+     * Whether the booked package is a Hajj or Umrah one (shown as Antarik Hajj Kafela),
+     * also after the package or its service went to the trash.
+     */
+    public function isPilgrimage(): bool
+    {
+        $package = $this->package()->withTrashed()->first();
+
+        return (bool) $package?->service()->withTrashed()->first()?->isPilgrimage();
+    }
+
     public function price(): BelongsTo
     {
         return $this->belongsTo(PackagePrice::class, 'package_price_id');

@@ -203,7 +203,10 @@
 
         <div class="mm-panel" x-trap.noscroll="mobileOpen">
             <div class="mm-pattern pattern-star" aria-hidden="true"></div>
-            <img src="{{ $branding->iconUrl(512) }}" alt="" class="mm-emblem" width="512" height="512" loading="lazy" aria-hidden="true">
+            {{-- The agency emblem; Hajj & Umrah pages carry the Hajj Kafela logo instead. --}}
+            @unless ($branding->isPilgrimage())
+                <img src="{{ $branding->iconUrl(512) }}" alt="" class="mm-emblem" width="512" height="512" loading="lazy" aria-hidden="true">
+            @endunless
             <div class="mm-glow" aria-hidden="true"></div>
 
             <div class="relative flex h-full flex-col">

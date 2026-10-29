@@ -19,6 +19,11 @@ class StructuredData
     {
         $graph = [$this->organization(), $this->website()];
 
+        // Hajj & Umrah pages are about the agency's division, Antarik Hajj Kafela.
+        if ($this->branding->isPilgrimage()) {
+            $graph[] = $this->division();
+        }
+
         $hasBreadcrumbs = count($seo->breadcrumbs) > 1;
         $graph[] = $this->webPage($seo, $hasBreadcrumbs);
 
@@ -48,18 +53,19 @@ class StructuredData
      */
     private function organization(): array
     {
-        $logo = $this->branding->logoUrl();
+        $logo = $this->branding->agencyLogoUrl();
         $phones = array_values(array_filter([settings('contact.primary_phone'), settings('contact.secondary_phone')]));
 
         return array_filter([
             '@type' => 'TravelAgency',
             '@id' => url('/#organization'),
-            'name' => setting_t('branding.site_name'),
+            'name' => $this->branding->agencyName(),
             'alternateName' => array_values(array_unique(array_filter((array) settings('branding.site_name')))),
             'description' => setting_t('branding.short_description'),
             'url' => url('/'),
             'logo' => $logo,
             'image' => $logo,
+            'department' => $this->branding->isPilgrimage() ? ['@id' => url('/#hajj-umrah')] : null,
             'telephone' => $phones[0] ?? null,
             'email' => settings('contact.primary_email'),
             'foundingDate' => '2016',
@@ -82,6 +88,27 @@ class StructuredData
     }
 
     /**
+     * The Hajj & Umrah division, part of the agency.
+     *
+     * @return array<string, mixed>
+     */
+    private function division(): array
+    {
+        $names = array_values(array_unique(array_filter((array) settings('branding.hajj_name'))));
+
+        return array_filter([
+            '@type' => 'TravelAgency',
+            '@id' => url('/#hajj-umrah'),
+            'name' => $this->branding->divisionName(),
+            'alternateName' => count($names) > 1 ? $names : null,
+            'logo' => $this->branding->logoUrl(),
+            'telephone' => settings('contact.primary_phone'),
+            'email' => settings('contact.primary_email'),
+            'parentOrganization' => ['@id' => url('/#organization')],
+        ]);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function website(): array
@@ -90,7 +117,7 @@ class StructuredData
             '@type' => 'WebSite',
             '@id' => url('/#website'),
             'url' => url('/'),
-            'name' => setting_t('branding.site_name'),
+            'name' => $this->branding->agencyName(),
             'inLanguage' => str_replace('_', '-', app()->getLocale()),
             'publisher' => ['@id' => url('/#organization')],
         ];
@@ -114,7 +141,7 @@ class StructuredData
             'description' => $seo->resolvedDescription(),
             'inLanguage' => str_replace('_', '-', app()->getLocale()),
             'isPartOf' => ['@id' => url('/#website')],
-            'about' => ['@id' => url('/#organization')],
+            'about' => ['@id' => url($this->branding->isPilgrimage() ? '/#hajj-umrah' : '/#organization')],
             'primaryImageOfPage' => $image ? ['@type' => 'ImageObject', 'url' => $image] : null,
             'breadcrumb' => $hasBreadcrumbs ? ['@id' => $url.'#breadcrumb'] : null,
         ]);

@@ -19,7 +19,7 @@
 @endif
 
 <meta property="og:type" content="{{ $seo->type }}">
-<meta property="og:site_name" content="{{ setting_t('branding.site_name') }}">
+<meta property="og:site_name" content="{{ app(App\Support\Branding::class)->siteName() }}">
 <meta property="og:title" content="{{ $title }}">
 @if ($description)
     <meta property="og:description" content="{{ $description }}">

@@ -116,7 +116,7 @@ class Seo
 
     public function resolvedTitle(): string
     {
-        $site = setting_t('branding.site_name');
+        $site = app(Branding::class)->siteName();
 
         if (blank($this->title)) {
             return setting_t('seo.meta_title') ?: $site;
