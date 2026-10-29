@@ -179,26 +179,29 @@
     </header>
 
     {{--
-        Mobile menu: an arch "portal" that opens from the menu button. Three
-        layers (gold, blue, navy) sweep open one after another for depth, the
-        pattern and emblem drift in more slowly, and the links rise in one by
-        one. Closing plays it in reverse. Styles: .mm-* in resources/css/app.css.
+        Mobile menu: a "portal" that opens from the menu button. Three discs
+        (gold, blue, navy) grow from the button one after another for depth,
+        then the pattern and emblem drift in and the links rise one by one.
+        Closing plays it in reverse. Only transform and opacity animate, so the
+        phone's GPU runs it even while the page is busy. Styles: .mm-* in
+        resources/css/app.css.
     --}}
     <div
         id="mobile-menu"
         class="mm lg:hidden"
         :class="[mobileOpen && 'is-open', fit === 2 && 'lg:!block']"
-        :style="`--mm-origin: ${origin}`"
+        :style="origin"
         role="dialog"
         aria-modal="true"
         aria-label="{{ __('Menu') }}"
         inert
         :inert="!mobileOpen"
     >
-        <div class="mm-layer mm-layer-gold" aria-hidden="true"></div>
-        <div class="mm-layer mm-layer-blue" aria-hidden="true"></div>
+        <div class="mm-disc mm-disc-gold" aria-hidden="true"></div>
+        <div class="mm-disc mm-disc-blue" aria-hidden="true"></div>
+        <div class="mm-disc mm-disc-main" aria-hidden="true"></div>
 
-        <div class="mm-layer mm-layer-main" x-trap.noscroll="mobileOpen">
+        <div class="mm-panel" x-trap.noscroll="mobileOpen">
             <div class="mm-pattern pattern-star" aria-hidden="true"></div>
             <img src="{{ $branding->iconUrl(512) }}" alt="" class="mm-emblem" width="512" height="512" loading="lazy" aria-hidden="true">
             <div class="mm-glow" aria-hidden="true"></div>
@@ -259,7 +262,7 @@
                 </nav>
 
                 {{-- Dock --}}
-                <div class="mm-fade shrink-0 border-t border-white/10 bg-brand-950/60 backdrop-blur-md" style="--d: 560ms">
+                <div class="mm-fade shrink-0 border-t border-white/10 bg-brand-950/85" style="--d: 560ms">
                     <div class="container-site py-5" style="padding-bottom: max(1.25rem, env(safe-area-inset-bottom))">
                         <div class="grid grid-cols-2 gap-3">
                             @if ($phones)

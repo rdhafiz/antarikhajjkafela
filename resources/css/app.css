@@ -811,9 +811,18 @@
         scale: 1 1;
     }
 
+    /* Autoplay: the active rail fills over --duration, paused while held; its end moves to the next step. */
     .journey-tab.is-active .journey-rail > span {
-        scale: var(--t, 1) 1;
+        scale: 1 1;
         transition: none;
+    }
+
+    .journey.is-auto .journey-tab.is-active .journey-rail > span {
+        animation: rail-fill-x var(--duration, 6.5s) linear both;
+    }
+
+    .journey.is-held .journey-tab.is-active .journey-rail > span {
+        animation-play-state: paused;
     }
 
     .journey-num {
@@ -896,7 +905,11 @@
         }
 
         .journey-tab.is-active .journey-rail > span {
-            scale: 1 var(--t, 1);
+            scale: 1 1;
+        }
+
+        .journey.is-auto .journey-tab.is-active .journey-rail > span {
+            animation-name: rail-fill-y;
         }
     }
 
@@ -972,7 +985,19 @@
         border-radius: 999px;
         border: 1.5px dashed rgb(250 204 21 / 0.55);
         border-color: color-mix(in srgb, var(--color-gold) 55%, transparent);
+    }
+
+    /*
+     * The browser keeps a spinning ring ticking on the main thread every frame (it
+     * can't hand it to the GPU), so only the shown step's ring spins, only while the
+     * section is on screen, and not at all on motion-lite devices.
+     */
+    .journey.is-onscreen .journey-panel.is-active .journey-ring {
         animation: journey-spin 18s linear infinite;
+    }
+
+    .motion-lite .journey.is-onscreen .journey-panel.is-active .journey-ring {
+        animation: none;
     }
 
     @keyframes journey-spin {
@@ -2871,8 +2896,17 @@
         transform-origin: left;
     }
 
+    /* Autoplay: the current dot fills over --duration, paused while held; its end shows the next slide. */
     .hs-dot.is-current .hs-dot-fill {
-        transform: scaleX(var(--t, 0));
+        transform: scaleX(1);
+    }
+
+    .hs.is-auto .hs-dot.is-current .hs-dot-fill {
+        animation: rail-fill-x var(--duration, 7s) linear both;
+    }
+
+    .hs.is-held .hs-dot.is-current .hs-dot-fill {
+        animation-play-state: paused;
     }
 
     .hs-btn {
@@ -2894,18 +2928,23 @@
     }
 
     /*
-     * Mobile menu "portal". Three layers open as circles growing from the menu
-     * button (--mm-origin), each a beat after the other, so the gold and blue
-     * edges sweep past before the navy panel settles. Inside, the pattern and
-     * emblem move more slowly than the links: the parallax depth.
+     * Mobile menu "portal". Three discs grow from the menu button (--mm-x,
+     * --mm-y; --mm-r reaches the farthest corner, set by siteHeader.openMenu()),
+     * each a beat after the other, so the gold and blue edges sweep past before
+     * the navy settles. The links sit on a separate panel above the discs that
+     * fades in once the navy covers the screen and out before it shrinks.
+     * Inside, the pattern and emblem move more slowly than the links: the
+     * parallax depth. Only transform and opacity animate (a growing clip-path
+     * repainted every layer on the main thread each frame, which stuttered on phones).
      */
     .mm {
         --mm-ease: cubic-bezier(0.76, 0, 0.24, 1);
         position: fixed;
         inset: 0;
         z-index: 50;
+        overflow: hidden;
         visibility: hidden;
-        transition: visibility 0s linear 1050ms;
+        transition: visibility 0s linear 1100ms;
     }
 
     .mm.is-open {
@@ -2913,38 +2952,57 @@
         transition-delay: 0s;
     }
 
-    .mm-layer {
+    .mm-disc {
+        --r: var(--mm-r, 150vmax);
+        position: absolute;
+        top: calc(var(--mm-y, 2.5rem) - var(--r));
+        left: calc(var(--mm-x, calc(100% - 2.5rem)) - var(--r));
+        width: calc(var(--r) * 2);
+        height: calc(var(--r) * 2);
+        border-radius: 50%;
+        transform: scale(0);
+        transition: transform 700ms var(--mm-ease);
+        will-change: transform;
+    }
+
+    .mm.is-open .mm-disc {
+        transform: scale(1);
+        transition-duration: 850ms;
+    }
+
+    /* Open: gold first, navy last. Close: the links fade, then navy, blue, gold. */
+    .mm-disc-gold {
+        background: var(--color-gold);
+        transition-delay: 320ms;
+    }
+
+    .mm-disc-blue {
+        background: var(--color-brand);
+        transition-delay: 230ms;
+    }
+
+    .mm-disc-main {
+        background: var(--color-brand-950);
+        transition-delay: 140ms;
+    }
+
+    .mm.is-open .mm-disc-gold { transition-delay: 0ms; }
+    .mm.is-open .mm-disc-blue { transition-delay: 90ms; }
+    .mm.is-open .mm-disc-main { transition-delay: 180ms; }
+
+    .mm-panel {
         position: absolute;
         inset: 0;
-        clip-path: circle(0px at var(--mm-origin, 100% 0%));
-        transition: clip-path 850ms var(--mm-ease);
-    }
-
-    .mm.is-open .mm-layer {
-        clip-path: circle(150vmax at var(--mm-origin, 100% 0%));
-    }
-
-    /* Open: gold first, navy last. Close: navy first, gold last. */
-    .mm-layer-gold {
-        background: var(--color-gold);
-        transition-delay: 220ms;
-    }
-
-    .mm-layer-blue {
-        background: var(--color-brand);
-        transition-delay: 110ms;
-    }
-
-    .mm-layer-main {
-        background: var(--color-brand-950);
         color: white;
         overflow: hidden;
-        transition-delay: 0ms;
+        opacity: 0;
+        transition: opacity 180ms ease-in;
     }
 
-    .mm.is-open .mm-layer-gold { transition-delay: 0ms; }
-    .mm.is-open .mm-layer-blue { transition-delay: 90ms; }
-    .mm.is-open .mm-layer-main { transition-delay: 180ms; }
+    .mm.is-open .mm-panel {
+        opacity: 1;
+        transition: opacity 360ms var(--ease-out-soft) 520ms;
+    }
 
     .mm-pattern {
         position: absolute;
@@ -3126,13 +3184,15 @@
             transition: opacity 200ms;
         }
 
-        .mm-layer {
-            clip-path: none !important;
+        .mm-disc,
+        .mm-panel {
+            transform: none !important;
+            opacity: 1 !important;
             transition: none !important;
         }
 
-        .mm-layer-gold,
-        .mm-layer-blue {
+        .mm-disc-gold,
+        .mm-disc-blue {
             display: none;
         }
 
@@ -3191,6 +3251,27 @@
 
     to {
         transform: scale(1.04);
+    }
+}
+
+/* Progress bars (stepper rails, slider dots): composited, so a waiting autoplay costs the page nothing. */
+@keyframes rail-fill-x {
+    from {
+        scale: 0 1;
+    }
+
+    to {
+        scale: 1 1;
+    }
+}
+
+@keyframes rail-fill-y {
+    from {
+        scale: 1 0;
+    }
+
+    to {
+        scale: 1 1;
     }
 }
 
