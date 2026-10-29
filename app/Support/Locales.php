@@ -17,14 +17,14 @@ class Locales
     private ?array $available = null;
 
     /**
-     * The application's base language from config, captured before any
-     * request changes the active locale (setLocale() rewrites app.locale).
+     * The application's base language (config app.base_locale). Not app.locale:
+     * setLocale() rewrites that, and a cached config keeps the rewritten value.
      */
     private readonly string $base;
 
     public function __construct(private readonly Settings $settings)
     {
-        $this->base = config('app.locale');
+        $this->base = config('app.base_locale', 'en');
     }
 
     public function base(): string

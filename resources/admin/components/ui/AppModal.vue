@@ -49,7 +49,7 @@ function stayOpen(event: CustomEvent<{ originalEvent: Event }>): void {
                 @escape-key-down="persistent && $event.preventDefault()"
             >
                 <header class="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
-                    <div>
+                    <div class="min-w-0 [overflow-wrap:anywhere]">
                         <DialogTitle class="text-base font-bold text-ink">{{ title }}</DialogTitle>
                         <DialogDescription v-if="description" class="mt-0.5 text-[13px] text-ink-muted">{{ description }}</DialogDescription>
                     </div>

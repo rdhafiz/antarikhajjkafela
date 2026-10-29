@@ -48,7 +48,7 @@ function keepOpenForPopups(event: CustomEvent<{ originalEvent: Event }>): void {
                     <span v-if="icon" class="dw-tile flex size-11 shrink-0 items-center justify-center rounded-xl" aria-hidden="true">
                         <component :is="icon" class="size-5" />
                     </span>
-                    <div class="min-w-0 flex-1 pt-0.5">
+                    <div class="min-w-0 flex-1 pt-0.5 [overflow-wrap:anywhere]">
                         <DialogTitle class="text-[16px] leading-snug font-bold text-ink">{{ title }}</DialogTitle>
                         <DialogDescription v-if="description" class="mt-0.5 text-[13px] text-ink-muted">{{ description }}</DialogDescription>
                         <slot name="meta" />

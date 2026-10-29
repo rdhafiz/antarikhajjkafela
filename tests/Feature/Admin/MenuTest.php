@@ -158,6 +158,36 @@ class MenuTest extends AdminTestCase
         $this->assertSame(['Home', 'Refunds', 'Eid', 'More'], array_column(app(MenuRepository::class)->tree('primary'), 'label'));
     }
 
+    /**
+     * #105: built-in pages (About, Contact…) are linked as website pages, not by id; a draft one
+     * stays out of the menus and the footer instead of linking to a 404.
+     */
+    public function test_built_in_pages_that_are_drafts_stay_out_of_the_menus(): void
+    {
+        $admin = $this->superAdmin();
+        $about = Page::create(['type' => Page::TYPE_DEFAULT, 'system_key' => 'about', 'title' => ['en' => 'About'], 'slug' => 'about', 'status' => Page::STATUS_DRAFT]);
+
+        $routes = collect($this->asAdmin($admin)->getJson('/api/admin/menus/primary')->json('link_types'))->firstWhere('type', 'route')['targets'];
+        $this->assertSame('Draft', collect($routes)->firstWhere('value', 'about')['offline']);
+        $this->assertArrayNotHasKey('offline', collect($routes)->firstWhere('value', 'packages'));
+
+        foreach (['primary', 'footer'] as $location) {
+            $this->asAdmin($admin)->putJson("/api/admin/menus/{$location}", ['items' => [
+                $this->item('Home'),
+                $this->item('About', ['link_target' => 'about']),
+            ]])->assertOk();
+        }
+
+        $this->assertSame(['Home'], array_column(app(MenuRepository::class)->tree('primary'), 'label'));
+        $this->assertSame(['Home'], array_column(app(MenuRepository::class)->tree('footer'), 'label'));
+        $this->get('/contact')->assertDontSee('href="'.url('/about').'"', false);
+
+        // Published: back in both menus (saving a page refreshes them).
+        $about->update(['status' => Page::STATUS_PUBLISHED]);
+        $this->assertSame(['Home', 'About'], array_column(app(MenuRepository::class)->tree('primary'), 'label'));
+        $this->assertSame(['Home', 'About'], array_column(app(MenuRepository::class)->tree('footer'), 'label'));
+    }
+
     public function test_cached_links_follow_the_current_domain(): void
     {
         $this->seed(MenuSeeder::class);

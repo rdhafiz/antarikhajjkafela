@@ -87,6 +87,14 @@ return [
     'locale' => env('APP_LOCALE', 'en'),
 
     /*
+    | The base language, which has every interface string (validation, sign-in
+    | messages) and in which the admin portal answers. Kept apart from "locale",
+    | which each request switches to the site's default language: a config cache
+    | (php artisan optimize) would otherwise store that language as the base.
+    */
+    'base_locale' => env('APP_LOCALE', 'en'),
+
+    /*
     | Whether search engines may index the site. Set SEO_INDEXING=false on test
     | and staging servers: robots.txt then blocks everything and every page is
     | sent with noindex (meta tag and X-Robots-Tag header).

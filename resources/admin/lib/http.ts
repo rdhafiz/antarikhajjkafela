@@ -91,6 +91,10 @@ export function errorMessage(error: unknown, fallback = 'Something went wrong. P
             return 'The file is too large to upload.';
         }
 
+        if (error.response.status === 429) {
+            return 'Too many attempts. Please wait a minute and try again.';
+        }
+
         if (data?.message) {
             return data.message;
         }
