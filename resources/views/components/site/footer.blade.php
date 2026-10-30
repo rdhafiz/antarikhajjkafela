@@ -39,8 +39,9 @@
         <div class="col-span-2 max-w-sm lg:col-span-1" data-reveal>
             @if ($branding->isPilgrimage())
                 {{-- Hajj & Umrah pages: the Antarik Hajj Kafela logo carries the name. --}}
-                <a href="{{ url('/') }}" class="inline-flex rounded-2xl bg-white px-3 py-2" aria-label="{{ $site->name() }} – {{ __('Home') }}">
-                    <img src="{{ $branding->logoUrl() }}" srcset="{{ $branding->logoSrcset() }}" sizes="220px" alt="{{ $site->name() }}" width="220" height="75" class="h-[60px] w-auto" loading="lazy" decoding="async">
+                @php($footerLogo = $branding->lightLogo())
+                <a href="{{ url('/') }}" class="inline-flex" aria-label="{{ $site->name() }} – {{ __('Home') }}">
+                    <img src="{{ $footerLogo['src'] }}" srcset="{{ $footerLogo['srcset'] }}" sizes="220px" alt="{{ $site->name() }}" width="220" height="75" class="h-[60px] w-auto" loading="lazy" decoding="async">
                 </a>
             @else
                 <a href="{{ url('/') }}" class="inline-flex items-center gap-3">

@@ -65,7 +65,8 @@ return [
                     'hint' => 'Used instead of the website name on the Hajj and Umrah pages, their packages, bookings and booking emails.',
                     'default' => ['en' => 'Antarik Hajj Kafela', 'bn' => 'আন্তরিক হজ্জ কাফেলা'],
                 ],
-                'hajj_logo' => ['type' => 'media', 'usage' => 'logo', 'label' => 'Hajj & Umrah logo', 'section' => 'Hajj & Umrah division', 'hint' => 'Shown in the header of those pages, over the photo and on white alike, so a logo on a transparent background works best. Without one the bundled Antarik Hajj Kafela logo is used.', 'default' => null],
+                'hajj_logo' => ['type' => 'media', 'usage' => 'logo', 'label' => 'Hajj & Umrah logo', 'section' => 'Hajj & Umrah division', 'hint' => 'Shown in the header of those pages on white. Without one the bundled Antarik Hajj Kafela logo is used.', 'default' => null],
+                'hajj_logo_light' => ['type' => 'media', 'usage' => 'logo', 'label' => 'Hajj & Umrah logo for dark backgrounds', 'section' => 'Hajj & Umrah division', 'hint' => 'A light version (light lettering, transparent background), shown over the page-top photo, in the mobile menu, the footer and emails. Without one the bundled light version is used while the bundled logo is; an uploaded Hajj logo without a light version is shown as it is.', 'default' => null],
             ],
         ],
 

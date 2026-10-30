@@ -115,23 +115,29 @@ class Branding
 
     public function logoSrcset(): string
     {
-        $file = $this->bundledLogo();
-
-        return $this->logo()?->srcset()
-            ?: $this->bundled("{$file}-360.webp").' 360w, '.$this->bundled("{$file}-440.webp").' 440w, '.$this->bundled("{$file}-880.webp").' 880w';
+        return $this->logo()?->srcset() ?: $this->bundledSrcset($this->bundledLogo());
     }
 
     /**
      * The logo for dark backgrounds (transparent header over a photo, mobile
      * menu): the uploaded light logo, or the bundled one while the bundled
      * logo is in use. Null when a custom logo has no light version.
-     * The Hajj & Umrah logo is the same on dark and light backgrounds.
+     * Hajj & Umrah pages work the same way with the division's logos, except
+     * that an uploaded Hajj logo without a light version is shown as it is.
      *
      * @return array{src: string, srcset: string}|null
      */
     public function lightLogo(): ?array
     {
         if ($this->pilgrimage) {
+            if ($light = $this->media('branding.hajj_logo_light')) {
+                return ['src' => $light->url('md'), 'srcset' => $light->srcset()];
+            }
+
+            if ($this->logo() === null) {
+                return ['src' => $this->bundled('hajj-logo-light-880.webp'), 'srcset' => $this->bundledSrcset('hajj-logo-light')];
+            }
+
             return ['src' => $this->logoUrl(), 'srcset' => $this->logoSrcset()];
         }
 
@@ -140,10 +146,7 @@ class Branding
         }
 
         if ($this->logo() === null) {
-            return [
-                'src' => $this->bundled('logo-light-880.webp'),
-                'srcset' => $this->bundled('logo-light-360.webp').' 360w, '.$this->bundled('logo-light-440.webp').' 440w, '.$this->bundled('logo-light-880.webp').' 880w',
-            ];
+            return ['src' => $this->bundled('logo-light-880.webp'), 'srcset' => $this->bundledSrcset('logo-light')];
         }
 
         return null;
@@ -182,6 +185,11 @@ class Branding
      * A bundled brand file, versioned by its content: the files keep their
      * names, so browsers would otherwise show a cached old logo or favicon.
      */
+    private function bundledSrcset(string $file): string
+    {
+        return $this->bundled("{$file}-360.webp").' 360w, '.$this->bundled("{$file}-440.webp").' 440w, '.$this->bundled("{$file}-880.webp").' 880w';
+    }
+
     private function bundledLogo(): string
     {
         return $this->pilgrimage ? 'hajj-logo' : 'logo';
