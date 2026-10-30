@@ -30,6 +30,7 @@ class DivisionBrandingTest extends AdminTestCase
             $this->get($url)
                 ->assertOk()
                 ->assertSee('images/brand/hajj-logo-880.webp', false)
+                ->assertSee('images/brand/hajj-logo-light-880.webp', false)
                 ->assertSee('<meta property="og:site_name" content="Antarik Hajj Kafela">', false)
                 ->assertSee('alt="Antarik Hajj Kafela"', false);
             $this->app->forgetScopedInstances();
@@ -82,6 +83,6 @@ class DivisionBrandingTest extends AdminTestCase
 
         $email = (new BookingReceived(Booking::firstOrFail()))->render();
         $this->assertStringContainsString('alt="Antarik Hajj Kafela"', $email);
-        $this->assertStringContainsString('hajj-logo-880.webp', $email);
+        $this->assertStringContainsString('hajj-logo-light-880.webp', $email);
     }
 }
