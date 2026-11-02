@@ -64,6 +64,27 @@ function heroParallax() {
 
 heroParallax();
 
+/** Which contact channel a link opens. Share links (wa.me/?text=…) aren't contacts. */
+function contactChannel(href) {
+    if (/^tel:/i.test(href)) return 'phone';
+    if (/^mailto:/i.test(href)) return 'email';
+    if (/^https?:\/\/(www\.)?wa\.me\/\d/i.test(href)) return 'whatsapp';
+    if (/^https?:\/\/(www\.)?(m\.me|messenger\.com)\//i.test(href)) return 'messenger';
+
+    return null;
+}
+
+document.addEventListener('click', (event) => {
+    const link = event.target.closest?.('a[href]');
+    const channel = link && contactChannel(link.href);
+    if (channel) window.fbq?.('track', 'Contact', { content_category: channel });
+});
+
+document.addEventListener('submit', (event) => {
+    const name = event.target.dataset?.metaSubmit;
+    if (name) window.fbq?.('trackCustom', name);
+});
+
 /**
  * Album lightbox: photos and YouTube videos with keyboard, button and swipe
  * navigation. Neighbouring photos are preloaded for instant paging.
@@ -458,6 +479,11 @@ Alpine.data('bookingForm', (config) => ({
             const { status, data } = await this.send(form);
 
             if (status >= 200 && status < 300 && data.redirect) {
+                if (data.lead && window.fbq) {
+                    window.fbq('track', 'Lead', data.lead);
+                    // The next page has no pixel: give this event a moment to leave.
+                    await new Promise((resolve) => setTimeout(resolve, 200));
+                }
                 window.location.assign(data.redirect);
                 return; // Leaving the page: keep the button busy.
             }
@@ -566,7 +592,7 @@ Alpine.data('siteForm', (recaptchaKey = null) => ({
                 this.$dispatch('form-sent');
                 form.closest('[id^="form-"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 window.dataLayer?.push({ event: 'form_submit', form_id: form.action });
-                window.fbq?.('track', 'Lead');
+                if (data.lead) window.fbq?.('track', 'Lead', data.lead);
             } else if (response.status === 422) {
                 this.errors = data.errors ?? {};
                 this.message = data.errors ? '' : data.message;

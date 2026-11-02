@@ -2,6 +2,7 @@
     :header="$darkTop ? 'overlay' : 'solid'"
     :focused="$page->isCampaign() && $page->focused_layout"
     :tracking="$page->isCampaign() ? ($page->tracking ?? []) : []"
+    :view-content="$preview ? null : App\Domain\Tracking\MetaContent::pageView($page)"
     :footer-cta="$footerCta"
 >
     @if ($preview)

@@ -75,7 +75,7 @@ class FormController extends Controller
 
         $this->notify($inquiry);
 
-        return $this->success($request, $section);
+        return $this->success($request, $section, $inquiry);
     }
 
     /**
@@ -262,10 +262,11 @@ class FormController extends Controller
         }
     }
 
-    private function success(Request $request, PageSection $section): JsonResponse|RedirectResponse
+    private function success(Request $request, PageSection $section, ?Inquiry $inquiry = null): JsonResponse|RedirectResponse
     {
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'ok']);
+            // Only a stored enquiry counts as a Meta Lead (not a bot told it succeeded).
+            return response()->json(['message' => 'ok', 'lead' => $inquiry ? ['content_category' => $inquiry->source] : null]);
         }
 
         return redirect()->to(url()->previous().'#form-'.$section->id)->with('form_success', $section->id);

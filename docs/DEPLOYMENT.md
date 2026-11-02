@@ -152,6 +152,7 @@ php artisan up
 - **Admin.** Sign in at `https://<domain>/ahk/admin/login` (the `ahk` part comes from `ADMIN_PREFIX` in `.env`), then in Settings:
   - check the branding, contact details, social links and SEO
   - add the Google Tag Manager, Analytics and Pixel IDs, and the reCAPTCHA v3 keys
+  - add the Conversions API access token from Meta Events Manager next to the Pixel ID (checkout and payment events are sent from the server), and keep the Meta Pixel out of Google Tag Manager: the website fires every Meta event itself, so a tag there counts events twice
   - add the payment gateway credentials (sandbox first, then live)
 - **SSLCommerz.** In the merchant panel, set the IPN URL to `https://<domain>/payments/sslcommerz/ipn`.
 - **Advance payments.** Customers can pay the advance online only when both of these are done:

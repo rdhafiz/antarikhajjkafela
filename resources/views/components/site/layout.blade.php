@@ -5,6 +5,8 @@
     'focused' => false,
     /** Extra tracking IDs for this page (campaigns): gtm_id, facebook_pixel_id. */
     'tracking' => [],
+    /** Details of the Meta ViewContent event, on package and service pages. */
+    'viewContent' => null,
     /** Load analytics and ad tags. Off on private pages such as a customer's booking. */
     'analytics' => true,
     /** Show the footer's call-to-action band (hidden when the page already ends with one). */
@@ -28,7 +30,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @if ($analytics)
-        <x-site.tracking position="head" :extra="$tracking" />
+        <x-site.tracking position="head" :extra="$tracking" :view-content="$viewContent" />
     @endif
     {{ $head ?? '' }}
 </head>

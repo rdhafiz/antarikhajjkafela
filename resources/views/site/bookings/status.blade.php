@@ -9,7 +9,7 @@
                 <p class="mt-3 text-[15.5px] leading-relaxed text-ink-2">{{ __('Enter your booking reference and the phone number or email you booked with to see its status, payments and updates.') }}</p>
             </div>
 
-            <form method="POST" action="{{ route('bookings.lookup') }}" class="card-site space-y-5 p-6 sm:p-9" novalidate data-reveal style="--reveal-delay: 100ms">
+            <form method="POST" action="{{ route('bookings.lookup') }}" data-meta-submit="BookingStatusCheck" class="card-site space-y-5 p-6 sm:p-9" novalidate data-reveal style="--reveal-delay: 100ms">
                 @csrf
                 @error('reference')
                     <p id="lookup-error" class="rounded-xl bg-red-50 px-4 py-3 text-[14px] font-medium text-red-800" role="alert">{{ $message }}</p>

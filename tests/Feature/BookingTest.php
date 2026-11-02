@@ -416,6 +416,90 @@ class BookingTest extends AdminTestCase
         Mail::assertSent(PaymentReceived::class, 1);
     }
 
+    public function test_online_checkout_and_purchase_reach_meta_once_without_private_details(): void
+    {
+        $this->enableSslCommerz();
+        settings()->set('tracking', ['facebook_pixel_id' => '1234567890', 'facebook_capi_token' => 'capi-secret']);
+        $this->package()->update(['advance_type' => 'fixed', 'advance_value' => 20000]);
+        $this->withoutDefer();
+
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['events_received' => 1]),
+            'sandbox.sslcommerz.com/gwprocess/*' => Http::response(['status' => 'SUCCESS', 'GatewayPageURL' => 'https://sandbox.sslcommerz.com/pay/abc']),
+        ]);
+
+        $this->withUnencryptedCookie('_fbp', 'fb.1.123.456')
+            ->withHeader('User-Agent', 'Customer browser')
+            ->post('/packages/umrah-package/book', $this->form(['payment' => 'now']))
+            ->assertRedirect('https://sandbox.sslcommerz.com/pay/abc');
+
+        $booking = Booking::firstOrFail();
+        $payment = $booking->payments()->firstOrFail();
+
+        // A second Http::fake() forgets the requests recorded so far.
+        $metaEvents = fn () => Http::recorded(fn ($request) => str_contains($request->url(), 'graph.facebook.com'))
+            ->map(fn ($pair) => $pair[0])->values();
+        $this->assertSame('InitiateCheckout', $metaEvents()->sole()['data'][0]['event_name']);
+        $this->assertSame('checkout-'.$payment->id, $metaEvents()->sole()['data'][0]['event_id']);
+
+        Http::fake([
+            'sandbox.sslcommerz.com/validator/*' => Http::response([
+                'status' => 'VALID', 'tran_id' => $payment->transaction_id, 'val_id' => 'V1',
+                'amount' => '40000.00', 'currency_type' => 'BDT', 'currency_amount' => '40000.00', 'bank_tran_id' => 'BANK1', 'risk_level' => '0',
+            ]),
+        ]);
+
+        $callback = ['tran_id' => $payment->transaction_id, 'val_id' => 'V1', 'status' => 'VALID'];
+        $this->post('/payments/sslcommerz/success', $callback);
+        $this->post('/payments/sslcommerz/ipn', $callback);
+
+        // The success callback and the IPN both confirm it: one event.
+        $purchase = $metaEvents()->sole();
+        $this->assertSame('Purchase', $purchase['data'][0]['event_name']);
+        $event = $purchase['data'][0];
+        $this->assertStringContainsString('/1234567890/events', $purchase->url());
+        $this->assertSame('capi-secret', $purchase['access_token']);
+        $this->assertSame('purchase-'.$payment->id, $event['event_id']);
+        $this->assertSame(40000, (int) $event['custom_data']['value']);
+        $this->assertSame('BDT', $event['custom_data']['currency']);
+        $this->assertSame($this->package()->url(), $event['event_source_url']);
+        $this->assertSame([hash('sha256', mb_strtolower($booking->customer_email))], $event['user_data']['em']);
+        $this->assertSame('fb.1.123.456', $event['user_data']['fbp']);
+        $this->assertSame('Customer browser', $event['user_data']['client_user_agent']);
+
+        // Never the customer's plain details or the booking page's signed link.
+        $body = json_encode($purchase->data());
+        $this->assertStringNotContainsString($booking->customer_email, $body);
+        $this->assertStringNotContainsString('signature', $body);
+    }
+
+    public function test_a_saved_booking_reports_a_lead_for_the_pixel(): void
+    {
+        $this->postJson('/packages/umrah-package/book', $this->form())
+            ->assertOk()
+            ->assertJsonPath('lead.content_category', 'package_booking')
+            ->assertJsonPath('lead.content_ids', [(string) $this->package()->id]);
+    }
+
+    public function test_office_payments_and_a_site_without_a_token_send_nothing_to_meta(): void
+    {
+        $this->withoutDefer();
+        Http::fake();
+
+        $this->post('/packages/umrah-package/book', $this->form());
+        $booking = Booking::firstOrFail();
+
+        settings()->set('tracking', ['facebook_pixel_id' => '1234567890']);
+        $online = $booking->payments()->create(['method' => 'sslcommerz', 'is_online' => true, 'status' => 'initiated', 'amount' => 1000, 'currency' => 'BDT']);
+        app(BookingService::class)->markPaid($online);
+        Http::assertNothingSent();
+
+        settings()->set('tracking', ['facebook_capi_token' => 'capi-secret']);
+        $office = $booking->payments()->create(['method' => 'cash', 'is_online' => false, 'status' => 'initiated', 'amount' => 1000, 'currency' => 'BDT']);
+        app(BookingService::class)->markPaid($office);
+        Http::assertNothingSent();
+    }
+
     public function test_unconfirmed_or_mismatched_sslcommerz_callbacks_are_not_paid(): void
     {
         $this->enableSslCommerz();
