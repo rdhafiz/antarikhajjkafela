@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'booking_id', 'method', 'is_online', 'status', 'amount', 'currency', 'transaction_id', 'gateway_reference',
-    'reference', 'note', 'log', 'recorded_by', 'paid_at',
+    'reference', 'note', 'log', 'visitor', 'recorded_by', 'paid_at',
 ])]
 class Payment extends Model
 {
@@ -25,6 +25,7 @@ class Payment extends Model
             'amount' => 'decimal:2',
             'is_online' => 'boolean',
             'log' => 'array',
+            'visitor' => 'array',
             'paid_at' => 'datetime',
         ];
     }

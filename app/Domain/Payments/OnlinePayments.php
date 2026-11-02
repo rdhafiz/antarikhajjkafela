@@ -4,6 +4,7 @@ namespace App\Domain\Payments;
 
 use App\Domain\Booking\BookingLog;
 use App\Domain\Booking\BookingService;
+use App\Domain\Tracking\MetaConversions;
 use App\Models\Booking;
 use App\Models\Payment;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class OnlinePayments
         private readonly GatewayManager $gateways,
         private readonly BookingService $bookings,
         private readonly BookingLog $log,
+        private readonly MetaConversions $meta,
     ) {}
 
     /**
@@ -86,12 +88,16 @@ class OnlinePayments
             'amount' => $amount,
             'currency' => $booking->currency,
             'transaction_id' => $booking->reference.'-'.Str::upper(Str::random(6)),
+            'visitor' => MetaConversions::visitor(request()),
         ]);
 
         $this->log->record($booking, 'payment_started', ['amount' => (float) $payment->amount, 'gateway' => $payment->methodLabel(), 'transaction' => $payment->transaction_id]);
 
         try {
-            return $gateway->initiate($payment, $booking);
+            $url = $gateway->initiate($payment, $booking);
+            $this->meta->initiateCheckout($payment);
+
+            return $url;
         } catch (GatewayException $e) {
             $this->bookings->markFailed($payment);
             report($e);

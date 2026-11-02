@@ -20,7 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // The admin SPA authenticates with Sanctum's session cookies.
         $middleware->statefulApi();
 
-        $middleware->encryptCookies(except: [SetLocale::COOKIE]);
+        // Meta's pixel sets _fbp and _fbc itself, in plain text.
+        $middleware->encryptCookies(except: [SetLocale::COOKIE, '_fbp', '_fbc']);
 
         // Payment gateways post the customer back from their own domain.
         $middleware->validateCsrfTokens(except: ['payments/sslcommerz/*', 'payments/dgepay/*']);

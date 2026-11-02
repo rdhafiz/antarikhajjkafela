@@ -9,6 +9,7 @@ use App\Domain\Forms\Recaptcha;
 use App\Domain\Payments\GatewayException;
 use App\Domain\Payments\GatewayManager;
 use App\Domain\Payments\OnlinePayments;
+use App\Domain\Tracking\MetaContent;
 use App\Domain\Travel\PackagePresenter;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
@@ -183,7 +184,7 @@ class BookingController extends Controller
         }
 
         return $request->expectsJson()
-            ? response()->json(['redirect' => $target])
+            ? response()->json(['redirect' => $target, 'lead' => ['content_category' => 'package_booking'] + MetaContent::package($package)])
             : redirect()->to($target);
     }
 

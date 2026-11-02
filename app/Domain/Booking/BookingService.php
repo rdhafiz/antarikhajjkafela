@@ -2,6 +2,7 @@
 
 namespace App\Domain\Booking;
 
+use App\Domain\Tracking\MetaConversions;
 use App\Mail\BookingPlaced;
 use App\Mail\BookingReceived;
 use App\Mail\BookingUpdated;
@@ -34,6 +35,7 @@ class BookingService
     public function __construct(
         private readonly BookingCalculator $calculator,
         private readonly BookingLog $log,
+        private readonly MetaConversions $meta,
     ) {}
 
     /**
@@ -297,6 +299,10 @@ class BookingService
         if ($changed) {
             $payment->refresh();
             $this->recordPayment($payment);
+
+            if ($payment->is_online) {
+                $this->meta->purchase($payment);
+            }
         }
 
         return $changed;

@@ -1,4 +1,4 @@
-@props(['position' => 'head', 'extra' => []])
+@props(['position' => 'head', 'extra' => [], 'viewContent' => null])
 {{--
     Analytics and advertising tags from the tracking settings, plus any extra
     IDs set on a campaign page. Only output in production so development and
@@ -20,7 +20,7 @@
             <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config',@json($ga));</script>
         @endif
         @if ($pixelIds)
-            <script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');@foreach ($pixelIds as $pixel)fbq('init',@json($pixel));@endforeach fbq('track','PageView');</script>
+            <script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');@foreach ($pixelIds as $pixel)fbq('init',@json($pixel));@endforeach fbq('track','PageView');@if ($viewContent)fbq('track','ViewContent',@json($viewContent));@endif</script>
         @endif
     @else
         @foreach ($gtmIds as $gtm)

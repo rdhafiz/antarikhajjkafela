@@ -13,7 +13,7 @@
     $pilgrimage = $service->isPilgrimage();
     $guided = $guide->sections($service);
 @endphp
-<x-site.layout header="overlay">
+<x-site.layout header="overlay" :view-content="App\Domain\Tracking\MetaContent::serviceView($service)">
     <x-site.hero
         :eyebrow="$name.' · '.__('Packages from Bangladesh')"
         :title="$headline"

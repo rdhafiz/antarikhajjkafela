@@ -10,7 +10,7 @@
     $airlines = collect($p['flights'])->pluck('airline')->filter()->unique()->implode(', ');
     $enquire = fn (?string $option = null) => $site->whatsappUrl(trim(__('Assalamu alaikum, I am interested in the ":package" package', ['package' => $p['name']]).($option ? ' – '.$option : '').'.'));
 @endphp
-<x-site.layout header="overlay">
+<x-site.layout header="overlay" :view-content="App\Domain\Tracking\MetaContent::packageView($package)">
     {{-- Hero, with the key facts in the strip at the bottom --}}
     <x-site.hero
         :eyebrow="$p['service']->getTranslation('name', $locale)"
