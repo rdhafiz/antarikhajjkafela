@@ -47,7 +47,9 @@ class PageRenderer
 
         foreach ($sections as $index => $section) {
             $component = $this->components->get($section->component);
-            $content = $this->resolveTargets($this->content->localize($component->fieldsFor($page->type), $section->content, $locale, $media), $targets);
+            // A section's buttons jump to the other sections, never to itself.
+            $others = array_diff_key($targets, [(string) ($section->style['ref'] ?? '') => true]);
+            $content = $this->resolveTargets($this->content->localize($component->fieldsFor($page->type), $section->content, $locale, $media), $others);
             $style = SectionStyle::resolve($section->style ?? [], $component->defaultStyle(), $media);
 
             if ($campaign) {

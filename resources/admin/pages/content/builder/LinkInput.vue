@@ -11,25 +11,38 @@ interface LinkValue {
     section?: string | null;
 }
 
+type LinkType = 'page' | 'url' | 'section';
+
 const model = defineModel<LinkValue | null>({ default: null });
 const props = defineProps<{ label: string; hint?: string; errors: Record<string, string[]>; path: string }>();
 
 const id = useId();
 const value = computed<LinkValue>(() => model.value ?? { label: {}, url: null });
-const urlError = computed(() => props.errors[`${props.path}.url`]?.[0]);
+const serverError = computed(() => props.errors[`${props.path}.url`]?.[0] ?? props.errors[`${props.path}.section`]?.[0]);
 
+// Other sections of the page a button can jump to (campaign pages only).
 const targets = inject<ComputedRef<LinkTarget[] | null> | null>(LINK_TARGETS, null);
 const sections = computed(() => targets?.value ?? null);
-const mode = ref<'url' | 'section'>(value.value.section ? 'section' : 'url');
+
+const EXTERNAL = /^(https?:\/\/|mailto:|tel:)/i;
+const type = ref<LinkType>(value.value.section ? 'section' : EXTERNAL.test(value.value.url ?? '') ? 'url' : 'page');
 const missing = computed(() => !!value.value.section && !sections.value?.some((s) => s.ref === value.value.section));
+
+const typeError = computed(() => {
+    const url = value.value.url?.trim();
+    if (!url) return null;
+    if (type.value === 'page' && !/^[/#]/.test(url)) return 'An internal page starts with /, e.g. /contact.';
+    if (type.value === 'url' && !EXTERNAL.test(url)) return 'An external URL starts with https://, or use tel: or mailto:.';
+    return null;
+});
 
 function update(patch: Partial<LinkValue>): void {
     model.value = { ...value.value, ...patch };
 }
 
-function setMode(next: 'url' | 'section'): void {
-    mode.value = next;
-    update(next === 'url' ? { section: null } : { url: null });
+function setType(next: LinkType): void {
+    type.value = next;
+    update({ url: null, section: null });
 }
 </script>
 
@@ -46,47 +59,39 @@ function setMode(next: 'url' | 'section'): void {
                 @update:model-value="update({ label: $event })"
             />
             <div>
-                <div class="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                    <label :for="id" class="label mb-0">{{ mode === 'section' ? 'Jump to section' : 'Link' }}</label>
-                    <div v-if="sections" class="inline-flex rounded-lg bg-canvas p-0.5 text-[12px] font-semibold" role="group" aria-label="Link to">
-                        <button
-                            type="button"
-                            class="rounded-md px-2.5 py-1"
-                            :class="mode === 'url' ? 'bg-white text-ink shadow-sm' : 'text-ink-muted hover:text-ink'"
-                            :aria-pressed="mode === 'url'"
-                            @click="setMode('url')"
-                        >
-                            Web address
-                        </button>
-                        <button
-                            type="button"
-                            class="rounded-md px-2.5 py-1"
-                            :class="mode === 'section' ? 'bg-white text-ink shadow-sm' : 'text-ink-muted hover:text-ink'"
-                            :aria-pressed="mode === 'section'"
-                            @click="setMode('section')"
-                        >
-                            Section on this page
-                        </button>
-                    </div>
-                </div>
-                <template v-if="sections && mode === 'section'">
-                    <select :id="id" :value="value.section ?? ''" class="control" @change="update({ section: ($event.target as HTMLSelectElement).value || null, url: null })">
-                        <option value="">Choose a section…</option>
+                <label :for="`${id}-type`" class="label">Link type</label>
+                <select :id="`${id}-type`" :value="type" class="control" @change="setType(($event.target as HTMLSelectElement).value as LinkType)">
+                    <option value="page">Internal page</option>
+                    <option value="url">External URL</option>
+                    <option v-if="sections" value="section">Target component</option>
+                </select>
+            </div>
+            <div class="sm:col-span-2">
+                <template v-if="type === 'section'">
+                    <label :for="id" class="label">Target component</label>
+                    <select :id="id" :value="value.section ?? ''" class="control" :class="{ 'control-invalid': serverError }" @change="update({ section: ($event.target as HTMLSelectElement).value || null, url: null })">
+                        <option value="">Choose a section of this page…</option>
                         <option v-if="missing" :value="value.section ?? ''">A removed section</option>
-                        <option v-for="s in sections" :key="s.ref" :value="s.ref">{{ s.label }}</option>
+                        <option v-for="s in sections ?? []" :key="s.ref" :value="s.ref">{{ s.label }}</option>
                     </select>
                     <p v-if="missing" class="mt-1.5 text-[13px] font-medium text-amber-700">That section was removed, so the button is hidden. Choose another one.</p>
+                    <p v-else-if="!(sections ?? []).length" class="mt-1.5 text-[13px] text-ink-muted">Add another section to the page first.</p>
                 </template>
-                <input
-                    v-else
-                    :id="id"
-                    :value="value.url ?? ''"
-                    class="control"
-                    :class="{ 'control-invalid': urlError }"
-                    placeholder="/contact or https://…"
-                    @input="update({ url: ($event.target as HTMLInputElement).value || null })"
-                />
-                <p v-if="urlError" class="mt-1.5 text-[13px] font-medium text-red-600">Use a link starting with /, https://, tel:, mailto: or #.</p>
+                <template v-else>
+                    <label :for="id" class="label">{{ type === 'page' ? 'Page address' : 'URL' }}</label>
+                    <input
+                        :id="id"
+                        :value="value.url ?? ''"
+                        class="control"
+                        :class="{ 'control-invalid': typeError || serverError }"
+                        :inputmode="type === 'url' ? 'url' : undefined"
+                        :placeholder="type === 'page' ? '/contact' : 'https://…'"
+                        @input="update({ url: ($event.target as HTMLInputElement).value || null, section: null })"
+                    />
+                    <p v-if="typeError || serverError" class="mt-1.5 text-[13px] font-medium text-red-600">
+                        {{ typeError ?? 'Use a link starting with /, https://, tel:, mailto: or #.' }}
+                    </p>
+                </template>
             </div>
         </div>
     </fieldset>

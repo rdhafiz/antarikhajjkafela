@@ -56,15 +56,19 @@ const currentDef = computed(() => (current.value ? components.value[current.valu
 const dirty = computed(() => saved.value !== '' && snapshot() !== saved.value);
 const listPath = computed(() => (page.value?.type === 'campaign' ? '/admin/campaigns' : '/admin/pages'));
 
-// Campaign buttons can jump to another section of the page.
+// Campaign buttons can jump to another section of the page (never the one being edited).
 provide(
     LINK_TARGETS,
     computed<LinkTarget[] | null>(() =>
         page.value?.type === 'campaign'
-            ? sections.value.map((s, i) => ({
-                  ref: s.style.ref as string,
-                  label: [`${i + 1}`, components.value[s.component]?.name, sectionTitle(s)].filter(Boolean).join(' · ') + (s.is_visible ? '' : ' (hidden)'),
-              }))
+            ? sections.value
+                  .map((s, i) => ({
+                      uid: s.uid,
+                      ref: s.style.ref as string,
+                      label: [`${i + 1}`, components.value[s.component]?.name, sectionTitle(s)].filter(Boolean).join(' · ') + (s.is_visible ? '' : ' (hidden)'),
+                  }))
+                  .filter((s) => s.uid !== selected.value)
+                  .map(({ ref, label }) => ({ ref, label }))
             : null,
     ),
 );

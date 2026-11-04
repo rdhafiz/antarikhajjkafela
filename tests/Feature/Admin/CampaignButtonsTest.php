@@ -132,6 +132,18 @@ class CampaignButtonsTest extends AdminTestCase
         $this->assertStringNotContainsString('Book your seat', $this->get('/umrah-offer')->assertOk()->getContent());
     }
 
+    public function test_a_button_never_jumps_to_its_own_section(): void
+    {
+        $page = $this->campaign();
+        $payload = $this->payload($page);
+        $faq = $this->section($payload, 'faq');
+        $payload['sections'][$faq]['content']['cta'] = ['label' => ['en' => 'Loop back'], 'url' => null, 'section' => $payload['sections'][$faq]['style']['ref']];
+
+        $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $payload)->assertOk();
+
+        $this->assertStringNotContainsString('Loop back', $this->get('/umrah-offer')->assertOk()->getContent());
+    }
+
     public function test_link_targets_must_be_references(): void
     {
         $page = $this->campaign();
