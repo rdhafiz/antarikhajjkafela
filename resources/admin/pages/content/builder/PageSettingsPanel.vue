@@ -26,7 +26,8 @@ const props = defineProps<{ type: 'default' | 'custom' | 'campaign'; isHome: boo
 
 const id = useId();
 const app = useAppStore();
-const siteHost = computed(() => app.siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, ''));
+// Campaign pages live under /marketing (Page::CAMPAIGN_PREFIX).
+const siteHost = computed(() => app.siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '') + (props.type === 'campaign' ? '/marketing' : ''));
 
 const previewTitle = computed(() => form.value.seo.title || form.value.title[app.defaultLocale] || 'Page title');
 const previewDescription = computed(() => form.value.seo.description || 'Add a description to control what Google shows under the title.');
@@ -110,7 +111,7 @@ function local(value: string | null): string | null {
         <section class="space-y-4">
             <h3 class="text-[12px] font-bold tracking-[0.08em] text-ink-muted uppercase">Search & sharing</h3>
             <div class="rounded-xl border border-line bg-white p-4" aria-label="Google search preview">
-                <p class="truncate text-[12px] text-[#4d5156]">{{ siteHost }}{{ isHome ? '' : ` › ${form.slug}` }}</p>
+                <p class="truncate text-[12px] text-[#4d5156]">{{ siteHost.replace('/marketing', ' › marketing') }}{{ isHome ? '' : ` › ${form.slug}` }}</p>
                 <p class="mt-0.5 truncate text-[18px] leading-snug text-[#1a0dab]">{{ previewTitle }}</p>
                 <p class="mt-1 line-clamp-2 text-[13px] text-[#4d5156]">{{ previewDescription }}</p>
             </div>

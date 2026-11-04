@@ -12,6 +12,7 @@ use App\Http\Controllers\Site\PageController;
 use App\Http\Controllers\Site\PaymentCallbackController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Http\Requests\Admin\PageSaveRequest;
+use App\Models\Page;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/language/{locale}', LocaleController::class)->name('locale.switch');
@@ -69,6 +70,9 @@ foreach (config('redirects') as $from => $to) {
 
 // Pages built in the admin. Keep these last: the slug route catches everything else.
 Route::get('/', [PageController::class, 'home'])->name('home');
+Route::get('/'.Page::CAMPAIGN_PREFIX.'/{slug}', [PageController::class, 'campaign'])
+    ->where('slug', trim(PageSaveRequest::SLUG_PATTERN, '/^$'))
+    ->name('campaign');
 Route::get('/{slug}', [PageController::class, 'slug'])
     ->where('slug', trim(PageSaveRequest::SLUG_PATTERN, '/^$'))
     ->name('page');
