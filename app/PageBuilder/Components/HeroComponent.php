@@ -32,6 +32,12 @@ class HeroComponent extends Component
         return 'panel-top';
     }
 
+    /** Its own buttons; no extra one at the bottom. */
+    public function bottomButton(): ?string
+    {
+        return null;
+    }
+
     public function fields(): array
     {
         $split = ['split'];

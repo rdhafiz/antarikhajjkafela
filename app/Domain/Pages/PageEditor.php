@@ -47,8 +47,8 @@ class PageEditor
                 $page->sections()->create([
                     'component' => $key,
                     'sort' => $sort,
-                    'content' => $this->content->sanitize($component->fields(), $component->defaults()),
-                    'style' => SectionStyle::sanitize([]),
+                    'content' => $this->content->sanitize($component->fieldsFor($data['type']), $component->defaults()),
+                    'style' => SectionStyle::sanitize(['ref' => SectionStyle::newRef()]),
                 ]);
             }
 
@@ -123,6 +123,7 @@ class PageEditor
     private function syncSections(Page $page, array $sections): void
     {
         $kept = [];
+        $refs = [];
 
         foreach (array_values($sections) as $sort => $input) {
             $component = $this->components->get($input['component']);
@@ -131,8 +132,8 @@ class PageEditor
                 'component' => $component->key(),
                 'sort' => $sort,
                 'is_visible' => (bool) ($input['is_visible'] ?? true),
-                'content' => $this->content->sanitize($component->fields(), $input['content'] ?? []),
-                'style' => SectionStyle::sanitize($input['style'] ?? []),
+                'content' => $this->content->sanitize($component->fieldsFor($page->type), $input['content'] ?? []),
+                'style' => $this->withRef(SectionStyle::sanitize($input['style'] ?? []), $refs),
             ];
 
             $section = isset($input['id']) ? $page->sections()->whereKey($input['id'])->first() : null;
@@ -181,5 +182,24 @@ class PageEditor
     private function flushCaches(): void
     {
         Cache::forget('sitemap.xml');
+    }
+
+    /**
+     * Every section keeps a reference of its own, which links on the page point to.
+     * A copied section (or one saved without) gets a new one.
+     *
+     * @param  array<string, mixed>  $style
+     * @param  list<string>  $refs  references already used on the page
+     * @return array<string, mixed>
+     */
+    private function withRef(array $style, array &$refs): array
+    {
+        if ($style['ref'] === null || in_array($style['ref'], $refs, true)) {
+            $style['ref'] = SectionStyle::newRef();
+        }
+
+        $refs[] = $style['ref'];
+
+        return $style;
     }
 }

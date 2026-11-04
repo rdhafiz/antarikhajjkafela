@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { VueDraggable } from 'vue-draggable-plus';
 import {
@@ -17,7 +17,7 @@ import ComponentPicker from './builder/ComponentPicker.vue';
 import FieldList from './builder/FieldList.vue';
 import PageSettingsPanel, { type PageForm } from './builder/PageSettingsPanel.vue';
 import { componentIcon } from './builder/componentIcons';
-import { deepClone, pickText, uid, type BuilderMeta, type ComponentDef, type PageDetail, type SectionData } from './builder/types';
+import { deepClone, LINK_TARGETS, pickText, sectionRef, uid, type BuilderMeta, type ComponentDef, type LinkTarget, type PageDetail, type SectionData } from './builder/types';
 import { useConfirm } from '@admin/composables/useConfirm';
 import { useErrorClearing } from '@admin/composables/useErrorClearing';
 import { errorMessage, http, validationErrors, type ValidationErrors } from '@admin/lib/http';
@@ -56,6 +56,23 @@ const currentDef = computed(() => (current.value ? components.value[current.valu
 const dirty = computed(() => saved.value !== '' && snapshot() !== saved.value);
 const listPath = computed(() => (page.value?.type === 'campaign' ? '/admin/campaigns' : '/admin/pages'));
 
+// Campaign buttons can jump to another section of the page (never the one being edited).
+provide(
+    LINK_TARGETS,
+    computed<LinkTarget[] | null>(() =>
+        page.value?.type === 'campaign'
+            ? sections.value
+                  .map((s, i) => ({
+                      uid: s.uid,
+                      ref: s.style.ref as string,
+                      label: [`${i + 1}`, components.value[s.component]?.name, sectionTitle(s)].filter(Boolean).join(' · ') + (s.is_visible ? '' : ' (hidden)'),
+                  }))
+                  .filter((s) => s.uid !== selected.value)
+                  .map(({ ref, label }) => ({ ref, label }))
+            : null,
+    ),
+);
+
 function snapshot(): string {
     return JSON.stringify({ form: form.value, sections: sections.value.map(({ uid: _u, ...s }) => s) });
 }
@@ -73,11 +90,12 @@ function fromDetail(detail: PageDetail): void {
         tracking: { gtm_id: detail.tracking.gtm_id ?? null, facebook_pixel_id: detail.tracking.facebook_pixel_id ?? null },
     };
     const previous = sections.value;
-    sections.value = detail.sections.map((s, i) => ({
-        ...deepClone(s),
+    sections.value = detail.sections.map((s, i) => {
+        const section = { ...deepClone(s), style: { ...s.style } };
+        section.style.ref ??= sectionRef();
         // Keep the editor focused on the same section after saving.
-        uid: previous[i]?.id === s.id ? previous[i]!.uid : uid(),
-    }));
+        return { ...section, uid: previous[i]?.id === s.id ? previous[i]!.uid : uid() };
+    });
     saved.value = snapshot();
 }
 
@@ -109,7 +127,7 @@ function addSection(component: ComponentDef): void {
         component: component.key,
         is_visible: true,
         content: deepClone(component.defaults),
-        style: {},
+        style: { ref: sectionRef() },
     };
     const insertAt = currentIndex.value >= 0 ? currentIndex.value + 1 : sections.value.length;
     sections.value.splice(insertAt, 0, section);
@@ -122,6 +140,7 @@ function duplicate(section: SectionData): void {
     if (def && !def.repeatable) return toast.info('Only one of these sections is allowed per page.');
 
     const copy: SectionData = { ...deepClone(section), id: undefined, uid: uid() };
+    copy.style = { ...copy.style, ref: sectionRef() };
     sections.value.splice(sections.value.indexOf(section) + 1, 0, copy);
     selected.value = copy.uid;
 }

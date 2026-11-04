@@ -77,7 +77,7 @@ class PageSaveRequest extends FormRequest
             $key = is_array($section) ? ($section['component'] ?? null) : null;
 
             if (is_string($key) && $registry->has($key)) {
-                $rules = [...$rules, ...$processor->rules($registry->get($key)->fields(), "sections.{$index}.content", $publishing)];
+                $rules = [...$rules, ...$processor->rules($registry->get($key)->fieldsFor($page->type), "sections.{$index}.content", $publishing)];
             }
 
             // Every style key needs a rule, or validated() leaves it out.
@@ -92,6 +92,7 @@ class PageSaveRequest extends FormRequest
             $rules["sections.{$index}.style.decor"] = ['nullable', Rule::in(array_keys(SectionStyle::DECORS))];
             $rules["sections.{$index}.style.spacing"] = ['nullable', Rule::in(array_keys(SectionStyle::SPACINGS))];
             $rules["sections.{$index}.style.anchor"] = ['nullable', 'string', 'max:40'];
+            $rules["sections.{$index}.style.ref"] = ['nullable', 'string', 'regex:'.SectionStyle::REF_PATTERN];
         }
 
         return $rules;
@@ -164,7 +165,7 @@ class PageSaveRequest extends FormRequest
                 $component = $registry->get($key);
                 $names["sections.{$index}"] = $component->name();
                 $names["sections.{$index}.content"] = $component->name();
-                $names = [...$names, ...$processor->attributes($component->fields(), "sections.{$index}.content", $component->name())];
+                $names = [...$names, ...$processor->attributes($component->fieldsFor($this->route('page')?->type), "sections.{$index}.content", $component->name())];
                 $names = [...$names, ...$processor->attributes(SectionStyle::fields(), "sections.{$index}.style", $component->name())];
             }
         }
