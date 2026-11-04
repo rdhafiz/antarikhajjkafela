@@ -15,7 +15,7 @@ import PageListItem from './PageListItem.vue';
 import pagesPhoto from '@admin/assets/pages-header.webp';
 import campaignsPhoto from '@admin/assets/campaigns-header.webp';
 import type { Paginated } from '@admin/lib/http';
-import { pickText, type PageSummary } from './builder/types';
+import { pagePath, pickText, type PageSummary } from './builder/types';
 import { useConfirm } from '@admin/composables/useConfirm';
 import { useListQuery } from '@admin/composables/useListQuery';
 import { errorMessage, http } from '@admin/lib/http';
@@ -129,7 +129,7 @@ const stateLabel = { draft: 'Draft', published: 'Published', live: 'Live', sched
 const noun = computed(() => (isCampaigns.value ? 'campaign' : 'page'));
 
 const title = (page: PageSummary) => pickText(page.title, app.defaultLocale);
-const address = (page: PageSummary) => (page.system_key === 'home' ? '/' : `/${page.slug}`);
+const address = (page: PageSummary) => pagePath(page);
 const isOnline = (page: PageSummary) => page.state === 'published' || page.state === 'live';
 
 function open(page: PageSummary): void {

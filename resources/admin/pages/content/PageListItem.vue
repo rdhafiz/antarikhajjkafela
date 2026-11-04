@@ -24,7 +24,7 @@ import {
     Trash2,
 } from 'lucide-vue-next';
 import { formatDate } from '@admin/lib/format';
-import type { PageSummary } from './builder/types';
+import { pagePath, type PageSummary } from './builder/types';
 
 /**
  * One page or campaign: a wide row when the list has room (container queries), a card otherwise.
@@ -40,7 +40,7 @@ const emit = defineEmits<{ open: []; preview: []; duplicate: []; remove: [] }>()
 
 const router = useRouter();
 
-const address = computed(() => (props.page.system_key === 'home' ? '/' : `/${props.page.slug}`));
+const address = computed(() => pagePath(props.page));
 const isOnline = computed(() => props.page.state === 'published' || props.page.state === 'live');
 const builtIn = computed(() => props.page.type === 'default');
 const kind = computed(() => (props.page.type === 'campaign' ? 'campaign' : 'page'));
