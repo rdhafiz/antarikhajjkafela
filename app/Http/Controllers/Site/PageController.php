@@ -33,6 +33,13 @@ class PageController extends Controller
 
         $page = Page::where('slug', $slug)->first();
 
+        // Campaigns moved to /marketing/{slug}: links already shared (ads, posts) follow them there.
+        if ($page?->isCampaign()) {
+            abort_unless($page->isPublished(), 404);
+
+            return redirect()->to($page->url(), 301);
+        }
+
         // Service pages such as /hajj and /umrah share the same address space.
         // Staff may preview a service that has no packages yet; visitors only see listed ones.
         $services = auth()->check() ? Service::active() : Service::listed();
@@ -46,8 +53,21 @@ class PageController extends Controller
         }
 
         abort_if($page === null, 404);
+        abort_unless($page->isVisibleToPublic(), 404);
 
-        if ($page->isCampaign() && $page->isPublished() && $page->campaignState() === 'expired') {
+        return $this->show($page);
+    }
+
+    /**
+     * A campaign page, /marketing/{slug}.
+     */
+    public function campaign(string $slug): Response|RedirectResponse
+    {
+        $page = Page::where('type', Page::TYPE_CAMPAIGN)->where('slug', $slug)->first();
+
+        abort_if($page === null, 404);
+
+        if ($page->isPublished() && $page->campaignState() === 'expired') {
             return redirect()->to($this->expiredRedirect(), 302);
         }
 

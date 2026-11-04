@@ -100,7 +100,7 @@ class CampaignButtonsTest extends AdminTestCase
 
         $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $payload)->assertOk();
 
-        $html = $this->get('/umrah-offer')->assertOk()->getContent();
+        $html = $this->get('/marketing/umrah-offer')->assertOk()->getContent();
 
         $this->assertStringContainsString('id="s-'.$leadRef.'"', $html);
         $this->assertSame(2, substr_count($html, 'href="#s-'.$leadRef.'"'), 'Hero and FAQ buttons jump to the form.');
@@ -129,7 +129,7 @@ class CampaignButtonsTest extends AdminTestCase
 
         $refs = $page->sections()->get()->pluck('style.ref');
         $this->assertSame($refs->count(), $refs->unique()->count());
-        $this->assertStringNotContainsString('Book your seat', $this->get('/umrah-offer')->assertOk()->getContent());
+        $this->assertStringNotContainsString('Book your seat', $this->get('/marketing/umrah-offer')->assertOk()->getContent());
     }
 
     public function test_a_button_never_jumps_to_its_own_section(): void
@@ -141,7 +141,7 @@ class CampaignButtonsTest extends AdminTestCase
 
         $this->asAdmin($this->superAdmin())->putJson("/api/admin/pages/{$page->id}", $payload)->assertOk();
 
-        $this->assertStringNotContainsString('Loop back', $this->get('/umrah-offer')->assertOk()->getContent());
+        $this->assertStringNotContainsString('Loop back', $this->get('/marketing/umrah-offer')->assertOk()->getContent());
     }
 
     public function test_link_targets_must_be_references(): void

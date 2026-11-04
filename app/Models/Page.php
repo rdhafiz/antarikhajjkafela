@@ -28,6 +28,9 @@ class Page extends Model
 
     public const TYPE_CAMPAIGN = 'campaign';
 
+    /** Campaign pages live under /marketing/{slug}. */
+    public const CAMPAIGN_PREFIX = 'marketing';
+
     public const STATUS_DRAFT = 'draft';
 
     public const STATUS_PUBLISHED = 'published';
@@ -91,7 +94,11 @@ class Page extends Model
 
     public function url(): string
     {
-        return $this->isHome() ? url('/') : url($this->slug);
+        return match (true) {
+            $this->isHome() => url('/'),
+            $this->isCampaign() => url(self::CAMPAIGN_PREFIX.'/'.$this->slug),
+            default => url($this->slug),
+        };
     }
 
     public function scopePublished(Builder $query): Builder

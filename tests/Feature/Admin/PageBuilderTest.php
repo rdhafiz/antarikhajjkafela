@@ -282,7 +282,7 @@ class PageBuilderTest extends AdminTestCase
     {
         $campaign = Page::where('slug', 'hajj-pre-registration')->firstOrFail();
 
-        $this->get('/hajj-pre-registration')->assertNotFound();
+        $this->get('/marketing/hajj-pre-registration')->assertNotFound();
         $this->get(route('pages.preview', $campaign))->assertForbidden();
         $this->get(URL::temporarySignedRoute('pages.preview', now()->addHour(), ['page' => $campaign->id]))
             ->assertOk()
@@ -429,14 +429,34 @@ class PageBuilderTest extends AdminTestCase
         $this->asAdmin($admin)->putJson("/api/admin/pages/{$campaign->id}", $this->payload($campaign, [
             'status' => 'published', 'starts_at' => now()->addDay()->toIso8601String(), 'expires_at' => now()->addWeek()->toIso8601String(),
         ]))->assertOk()->assertJsonPath('data.state', 'scheduled');
-        $this->get('/hajj-pre-registration')->assertNotFound();
+        $this->get('/marketing/hajj-pre-registration')->assertNotFound();
 
         $campaign->update(['starts_at' => now()->subDay()]);
-        $this->get('/hajj-pre-registration')->assertOk()->assertSee('data-section="lead_form"', false);
+        $this->get('/marketing/hajj-pre-registration')->assertOk()->assertSee('data-section="lead_form"', false);
 
         $campaign->update(['expires_at' => now()->subMinute()]);
         settings()->set('campaigns', ['expired_redirect_page' => $this->page('contact')->id]);
-        $this->get('/hajj-pre-registration')->assertRedirect(url('/contact'));
+        $this->get('/marketing/hajj-pre-registration')->assertRedirect(url('/contact'));
+    }
+
+    public function test_campaign_pages_live_under_marketing_and_old_addresses_follow(): void
+    {
+        $campaign = Page::where('slug', 'hajj-pre-registration')->firstOrFail();
+        $campaign->update(['status' => 'published', 'starts_at' => null, 'expires_at' => null]);
+
+        $this->assertSame(url('/marketing/hajj-pre-registration'), $campaign->url());
+        $this->get('/marketing/hajj-pre-registration')->assertOk()->assertSee('<link rel="canonical" href="'.url('/marketing/hajj-pre-registration').'">', false);
+        $this->get('/hajj-pre-registration')->assertStatus(301)->assertRedirect(url('/marketing/hajj-pre-registration'));
+        $this->assertStringContainsString(url('/marketing/hajj-pre-registration'), $this->get('/sitemap.xml')->getContent());
+
+        // Only campaigns are under /marketing, and no page can take the word.
+        $this->get('/marketing/about')->assertNotFound();
+        $this->asAdmin($this->superAdmin())->postJson('/api/admin/pages', ['type' => 'custom', 'title' => ['en' => 'Marketing'], 'slug' => 'marketing'])
+            ->assertJsonValidationErrors('slug');
+
+        // A draft is not revealed by the old address either.
+        $campaign->update(['status' => 'draft']);
+        $this->get('/hajj-pre-registration')->assertNotFound();
     }
 
     public function test_campaign_and_page_permissions_are_separate(): void

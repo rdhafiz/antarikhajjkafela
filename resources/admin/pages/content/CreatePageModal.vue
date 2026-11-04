@@ -18,7 +18,8 @@ const app = useAppStore();
 const form = useForm({ title: {} as Record<string, string | null>, slug: '' });
 let slugTouched = false;
 
-const host = computed(() => app.siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, ''));
+// Campaign pages live under /marketing (Page::CAMPAIGN_PREFIX).
+const host = computed(() => app.siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '') + (props.type === 'campaign' ? '/marketing' : ''));
 
 function slugify(value: string): string {
     return value
