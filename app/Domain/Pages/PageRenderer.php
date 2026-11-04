@@ -34,6 +34,12 @@ class PageRenderer
 
         $media = $this->loadMedia($sections);
         $locale = app()->getLocale();
+        $campaign = $page->isCampaign();
+
+        // Where each section can be reached: its own anchor, or (campaign pages) one made from its reference.
+        $targets = $sections->mapWithKeys(fn (PageSection $section) => filled($ref = $section->style['ref'] ?? null)
+            ? [$ref => SectionStyle::resolve($section->style ?? [], [], $media)['id'] ?? ($campaign ? "s-{$ref}" : null)]
+            : [])->filter()->all();
 
         $html = '';
         $schema = [];
@@ -41,8 +47,18 @@ class PageRenderer
 
         foreach ($sections as $index => $section) {
             $component = $this->components->get($section->component);
-            $content = $this->content->localize($component->fields(), $section->content, $locale, $media);
+            $content = $this->resolveTargets($this->content->localize($component->fieldsFor($page->type), $section->content, $locale, $media), $targets);
             $style = SectionStyle::resolve($section->style ?? [], $component->defaultStyle(), $media);
+
+            if ($campaign) {
+                $style['id'] ??= filled($style['ref']) ? "s-{$style['ref']}" : null;
+
+                // The section's button, drawn by <x-site.block> at the bottom with its alignment.
+                if ($key = $component->bottomButton()) {
+                    $style['button'] = ['link' => $content[$key] ?? null, 'align' => $content["{$key}_align"] ?? 'center'];
+                    $content[$key] = null;
+                }
+            }
 
             if ($index === 0) {
                 $darkTop = $style['tone'] === 'dark' || $section->component === 'page_banner';
@@ -80,6 +96,31 @@ class PageRenderer
      * @param  Collection<int, PageSection>  $sections
      * @return Collection<int, Media>
      */
+    /**
+     * Links that jump to a section on the page get its anchor; a link to a
+     * section that is gone (or hidden) is dropped, so its button disappears.
+     *
+     * @param  array<string, mixed>  $content
+     * @param  array<string, string>  $targets
+     * @return array<string, mixed>
+     */
+    private function resolveTargets(array $content, array $targets): array
+    {
+        foreach ($content as $key => $value) {
+            if (! is_array($value)) {
+                continue;
+            }
+
+            if (array_key_exists('section', $value) && array_key_exists('external', $value)) {
+                $content[$key] = isset($targets[$value['section']]) ? ['url' => '#'.$targets[$value['section']]] + $value : null;
+            } elseif (array_is_list($value) || ! array_key_exists('url', $value)) {
+                $content[$key] = $this->resolveTargets($value, $targets);
+            }
+        }
+
+        return $content;
+    }
+
     private function loadMedia(Collection $sections): Collection
     {
         $ids = [];

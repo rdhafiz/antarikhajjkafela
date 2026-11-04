@@ -106,6 +106,20 @@ export function uid(): string {
 }
 
 /** Translated text for display in the admin (default language first). */
+/** A section's own reference, which buttons jumping to the section point to (SectionStyle::newRef()). */
+export function sectionRef(): string {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    return Array.from(crypto.getRandomValues(new Uint8Array(10)), (n) => chars[n % chars.length]).join('');
+}
+
+/** Sections a link can jump to (campaign pages), provided by the page editor. */
+export interface LinkTarget {
+    ref: string;
+    label: string;
+}
+
+export const LINK_TARGETS = Symbol('link-targets');
+
 export function pickText(value: unknown, locale = 'en'): string {
     if (typeof value === 'string') return value;
     if (value && typeof value === 'object') {

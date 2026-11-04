@@ -4,6 +4,7 @@ namespace App\PageBuilder;
 
 use App\Models\Media;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Per-section appearance: background (preset or custom color), optional
@@ -13,6 +14,8 @@ use Illuminate\Support\Collection;
  */
 class SectionStyle
 {
+    public const REF_PATTERN = '/^[a-z0-9]{6,16}$/';
+
     public const BACKGROUNDS = [
         'default' => 'Component default',
         'sand' => 'Sand',
@@ -128,6 +131,7 @@ class SectionStyle
             'overlay' => $overlay,
             'decor' => ($style['decor'] ?? 'none') === 'shapes' ? 'shapes' : 'none',
             'id' => filled($style['anchor'] ?? null) ? str($style['anchor'])->slug()->toString() : null,
+            'ref' => $style['ref'] ?? null,
         ];
     }
 
@@ -149,7 +153,17 @@ class SectionStyle
             'decor' => array_key_exists($style['decor'] ?? '', self::DECORS) ? $style['decor'] : 'none',
             'spacing' => array_key_exists($style['spacing'] ?? '', self::SPACINGS) ? $style['spacing'] : null,
             'anchor' => filled($style['anchor'] ?? null) ? str($style['anchor'])->slug()->limit(40, '')->toString() : null,
+            'ref' => is_string($style['ref'] ?? null) && preg_match(self::REF_PATTERN, $style['ref']) ? $style['ref'] : null,
         ];
+    }
+
+    /**
+     * A section's own reference (never shown, never edited): buttons that jump
+     * to the section point to it, so renaming or moving the section keeps them working.
+     */
+    public static function newRef(): string
+    {
+        return strtolower(Str::random(10));
     }
 
     private static function hex(mixed $value): ?string

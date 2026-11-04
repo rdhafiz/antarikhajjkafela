@@ -72,7 +72,8 @@ class ContentProcessor
 
                 case Field::LINK:
                     $rules[$path] = ['nullable', 'array'];
-                    $rules["{$path}.url"] = [$required ? 'required' : 'nullable', 'string', 'max:500', 'regex:'.self::LINK_PATTERN];
+                    $rules["{$path}.url"] = [$required ? "required_without:{$path}.section" : 'nullable', 'string', 'max:500', 'regex:'.self::LINK_PATTERN];
+                    $rules["{$path}.section"] = ['nullable', 'string', 'regex:'.SectionStyle::REF_PATTERN];
                     foreach ($this->locales->codes() as $locale) {
                         $rules["{$path}.label.{$locale}"] = ['nullable', 'string', 'max:80'];
                     }
@@ -195,6 +196,8 @@ class ContentProcessor
                 Field::LINK => [
                     'label' => $this->sanitizeTranslations(Field::text('label', 'Label'), $value['label'] ?? []),
                     'url' => filled($value['url'] ?? null) ? trim($value['url']) : null,
+                    // A section on the same page (campaign pages), instead of an address.
+                    'section' => is_string($value['section'] ?? null) && preg_match(SectionStyle::REF_PATTERN, $value['section']) ? $value['section'] : null,
                 ],
                 Field::REPEATER => collect(is_array($value) ? $value : [])
                     ->filter(fn ($item) => is_array($item))
@@ -261,11 +264,21 @@ class ContentProcessor
             $result[$field->key] = match ($field->type) {
                 Field::TEXT, Field::TEXTAREA, Field::RICHTEXT => $field->isTranslatable() ? $this->translate($value, $locale) : $value,
                 Field::IMAGE => $value ? $media->get((int) $value) : null,
-                Field::LINK => filled($value['url'] ?? null) ? [
-                    'label' => $this->translate($value['label'] ?? [], $locale),
-                    'url' => $this->absoluteUrl($value['url']),
-                    'external' => str_starts_with($value['url'], 'http') && ! str_starts_with($value['url'], url('/')),
-                ] : null,
+                Field::LINK => match (true) {
+                    // Resolved to the section's anchor by PageRenderer::resolveTargets().
+                    filled($value['section'] ?? null) => [
+                        'label' => $this->translate($value['label'] ?? [], $locale),
+                        'url' => null,
+                        'external' => false,
+                        'section' => $value['section'],
+                    ],
+                    filled($value['url'] ?? null) => [
+                        'label' => $this->translate($value['label'] ?? [], $locale),
+                        'url' => $this->absoluteUrl($value['url']),
+                        'external' => str_starts_with($value['url'], 'http') && ! str_starts_with($value['url'], url('/')),
+                    ],
+                    default => null,
+                },
                 Field::REPEATER => array_map(
                     fn ($item) => $this->localize($field->children(), $item, $locale, $media),
                     is_array($value) ? $value : [],

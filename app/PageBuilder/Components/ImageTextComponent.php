@@ -29,6 +29,12 @@ class ImageTextComponent extends Component
         return 'columns-2';
     }
 
+    /** Its own buttons; no extra one at the bottom. */
+    public function bottomButton(): ?string
+    {
+        return null;
+    }
+
     public function fields(): array
     {
         return [

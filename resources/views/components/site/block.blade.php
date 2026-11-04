@@ -29,9 +29,23 @@
         <x-site.decor />
     @endif
 
+    @php
+        // Campaign pages: the section's button, at the bottom with the alignment chosen in the admin.
+        $button = $style['button'] ?? null;
+        $showButton = filled($button['link']['url'] ?? null) && filled($button['link']['label'] ?? null);
+    @endphp
+
     @if ($container)
-        <div class="container-site">{{ $slot }}</div>
+        <div class="container-site">
+            {{ $slot }}
+            @if ($showButton)
+                <x-site.section-button :button="$button" :dark="$style['tone'] === 'dark'" />
+            @endif
+        </div>
     @else
         {{ $slot }}
+        @if ($showButton)
+            <div class="container-site"><x-site.section-button :button="$button" :dark="$style['tone'] === 'dark'" /></div>
+        @endif
     @endif
 </section>

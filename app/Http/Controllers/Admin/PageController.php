@@ -179,7 +179,7 @@ class PageController extends Controller
         $type = $request->string('type', Page::TYPE_CUSTOM)->value();
 
         return response()->json([
-            'components' => array_map(fn ($c) => $c->toArray(), array_values($registry->all())),
+            'components' => array_map(fn ($c) => $c->toArray($type), array_values($registry->all())),
             'pickable' => array_map(fn ($c) => $c->key(), $registry->pickable($type)),
             'style_fields' => array_map(fn ($f) => $f->toArray(), SectionStyle::fields()),
             'icons' => Icons::contentIcons(),

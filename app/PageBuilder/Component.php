@@ -73,6 +73,44 @@ abstract class Component
         return true;
     }
 
+    /**
+     * The button shown at the bottom of the section on campaign pages: the key
+     * of the component's own link field, or "cta" (added on campaign pages
+     * when the component has none). Null for components with buttons of their
+     * own (hero, call to action, image with text).
+     */
+    public function bottomButton(): ?string
+    {
+        return 'cta';
+    }
+
+    /**
+     * The fields for a section on a page of this type. Campaign pages add the
+     * bottom button (when the component has no button of its own) and its alignment.
+     *
+     * @return list<Field>
+     */
+    public function fieldsFor(?string $pageType): array
+    {
+        $fields = $this->fields();
+        $key = $this->bottomButton();
+
+        if ($pageType !== Page::TYPE_CAMPAIGN || $key === null) {
+            return $fields;
+        }
+
+        $align = Field::select("{$key}_align", 'Button alignment', ['left' => 'Left', 'center' => 'Center', 'right' => 'Right'])->default('center');
+        $at = collect($fields)->search(fn (Field $field) => $field->key === $key);
+
+        if ($at === false) {
+            return [...$fields, Field::link($key, 'Button')->hint('Shown at the bottom of the section. Leave the button text empty to hide it.'), $align];
+        }
+
+        array_splice($fields, $at + 1, 0, [$align->hint('The button is shown at the bottom of the section.')]);
+
+        return $fields;
+    }
+
     /** Whether more than one instance may exist on a page. */
     public function repeatable(): bool
     {
@@ -109,8 +147,11 @@ abstract class Component
     /**
      * @return array<string, mixed>
      */
-    public function toArray(): array
+    public function toArray(?string $pageType = null): array
     {
+        $fields = $this->fieldsFor($pageType);
+        $added = array_filter($fields, fn (Field $field) => ! array_key_exists($field->key, $this->defaults()));
+
         return [
             'key' => $this->key(),
             'name' => $this->name(),
@@ -118,8 +159,8 @@ abstract class Component
             'category' => $this->category(),
             'icon' => $this->icon(),
             'repeatable' => $this->repeatable(),
-            'fields' => array_map(fn (Field $field) => $field->toArray(), $this->fields()),
-            'defaults' => $this->defaults(),
+            'fields' => array_map(fn (Field $field) => $field->toArray(), $fields),
+            'defaults' => [...$this->defaults(), ...collect($added)->mapWithKeys(fn (Field $field) => [$field->key => $field->option('default')])->all()],
             'default_style' => $this->defaultStyle(),
         ];
     }

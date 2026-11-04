@@ -73,6 +73,8 @@
 @layer base {
     html {
         scroll-behavior: smooth;
+        /* Sections reached by #anchor links stop below the fixed header. */
+        scroll-padding-top: 5.5rem;
         -webkit-tap-highlight-color: transparent;
         text-size-adjust: 100%;
     }

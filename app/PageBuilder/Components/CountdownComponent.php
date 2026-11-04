@@ -35,6 +35,12 @@ class CountdownComponent extends Component
         return 'timer';
     }
 
+    /** Its button moves to the bottom of the section on campaign pages. */
+    public function bottomButton(): ?string
+    {
+        return 'link';
+    }
+
     public function fields(): array
     {
         return [
