@@ -120,6 +120,15 @@ export interface LinkTarget {
 
 export const LINK_TARGETS = Symbol('link-targets');
 
+/** The page's address on the site, e.g. /marketing/umrah-offer for a campaign (taken from the server's URL). */
+export function pagePath(page: { url: string }): string {
+    try {
+        return new URL(page.url).pathname;
+    } catch {
+        return page.url;
+    }
+}
+
 export function pickText(value: unknown, locale = 'en'): string {
     if (typeof value === 'string') return value;
     if (value && typeof value === 'object') {

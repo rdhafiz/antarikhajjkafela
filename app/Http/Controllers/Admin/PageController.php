@@ -50,7 +50,7 @@ class PageController extends Controller
             ->withCount('sections')
             ->with('sections:id,page_id,sort,content')
             ->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q
-                ->where('slug', 'like', $this->likeTerm($search))
+                ->where('slug', 'like', $this->likeTerm($this->slugTerm($search)))
                 ->orWhere('title', 'like', $this->likeTerm($search))))
             ->latest('updated_at')
             ->get();
@@ -185,6 +185,16 @@ class PageController extends Controller
             'icons' => Icons::contentIcons(),
             'reserved_slugs' => config('page-builder.reserved_slugs'),
         ]);
+    }
+
+    /**
+     * A pasted address (/marketing/umrah-offer or the full URL) still finds its page by slug.
+     */
+    private function slugTerm(string $search): string
+    {
+        $path = trim((string) (parse_url($search, PHP_URL_PATH) ?? $search), '/');
+
+        return preg_replace('#^'.Page::CAMPAIGN_PREFIX.'/#', '', $path) ?: $search;
     }
 
     private function authorizeType(string $type, string $action): void

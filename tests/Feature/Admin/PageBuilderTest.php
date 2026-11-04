@@ -454,6 +454,12 @@ class PageBuilderTest extends AdminTestCase
         $this->asAdmin($this->superAdmin())->postJson('/api/admin/pages', ['type' => 'custom', 'title' => ['en' => 'Marketing'], 'slug' => 'marketing'])
             ->assertJsonValidationErrors('slug');
 
+        // The admin list shows the new address, and a pasted one finds the campaign.
+        foreach (['/marketing/hajj-pre-registration', url('/marketing/hajj-pre-registration')] as $search) {
+            $this->getJson('/api/admin/pages?type=campaign&search='.urlencode($search))
+                ->assertOk()->assertJsonPath('data.0.url', url('/marketing/hajj-pre-registration'));
+        }
+
         // A draft is not revealed by the old address either.
         $campaign->update(['status' => 'draft']);
         $this->get('/hajj-pre-registration')->assertNotFound();
