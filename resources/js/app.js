@@ -74,15 +74,45 @@ function contactChannel(href) {
     return null;
 }
 
+/** Meta events and their dataLayer names (the Google Tag Manager triggers). */
+const META_EVENTS = { Contact: 'meta_contact', Lead: 'meta_lead', BookingStatusCheck: 'meta_booking_status_check' };
+const META_STANDARD = ['Contact', 'Lead'];
+
+/**
+ * Report a Meta event. It always goes to the dataLayer, where Google Tag Manager
+ * fires the Pixel; only when Settings say the website loads the Pixel itself is
+ * fbq called here. Resolves once the event has had a moment to leave (pages
+ * that navigate away wait for it).
+ */
+function metaEvent(name, data = {}) {
+    if (window.siteMetaPixel && window.fbq) {
+        window.fbq(META_STANDARD.includes(name) ? 'track' : 'trackCustom', name, data);
+    }
+
+    return new Promise((resolve) => {
+        const settle = () => setTimeout(resolve, 150);
+        if (!window.dataLayer) return settle();
+
+        // Clear the previous event's values first: the dataLayer merges objects.
+        window.dataLayer.push({ meta: null });
+        window.dataLayer.push({
+            event: META_EVENTS[name],
+            meta: data,
+            ...(window.google_tag_manager ? { eventCallback: settle, eventTimeout: 1000 } : {}),
+        });
+        if (!window.google_tag_manager) settle();
+    });
+}
+
 document.addEventListener('click', (event) => {
     const link = event.target.closest?.('a[href]');
     const channel = link && contactChannel(link.href);
-    if (channel) window.fbq?.('track', 'Contact', { content_category: channel });
+    if (channel) metaEvent('Contact', { content_category: channel });
 });
 
 document.addEventListener('submit', (event) => {
     const name = event.target.dataset?.metaSubmit;
-    if (name) window.fbq?.('trackCustom', name);
+    if (name) metaEvent(name);
 });
 
 /**
@@ -479,11 +509,8 @@ Alpine.data('bookingForm', (config) => ({
             const { status, data } = await this.send(form);
 
             if (status >= 200 && status < 300 && data.redirect) {
-                if (data.lead && window.fbq) {
-                    window.fbq('track', 'Lead', data.lead);
-                    // The next page has no pixel: give this event a moment to leave.
-                    await new Promise((resolve) => setTimeout(resolve, 200));
-                }
+                // The next page has no pixel: give this event a moment to leave.
+                if (data.lead) await metaEvent('Lead', data.lead);
                 window.location.assign(data.redirect);
                 return; // Leaving the page: keep the button busy.
             }
@@ -592,7 +619,7 @@ Alpine.data('siteForm', (recaptchaKey = null) => ({
                 this.$dispatch('form-sent');
                 form.closest('[id^="form-"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 window.dataLayer?.push({ event: 'form_submit', form_id: form.action });
-                if (data.lead) window.fbq?.('track', 'Lead', data.lead);
+                if (data.lead) metaEvent('Lead', data.lead);
             } else if (response.status === 422) {
                 this.errors = data.errors ?? {};
                 this.message = data.errors ? '' : data.message;
