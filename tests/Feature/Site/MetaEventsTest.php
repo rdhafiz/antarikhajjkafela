@@ -20,9 +20,9 @@ class MetaEventsTest extends AdminTestCase
         $this->withoutDefer();
     }
 
-    private function livePixel(): void
+    private function livePixel(string $mode = 'site'): void
     {
-        settings()->set('tracking', ['facebook_pixel_id' => '1234567890', 'facebook_capi_token' => 'capi-secret']);
+        settings()->set('tracking', ['facebook_pixel_mode' => $mode, 'gtm_id' => 'GTM-ABC123', 'facebook_pixel_id' => '1234567890', 'facebook_capi_token' => 'capi-secret']);
         $this->app['env'] = 'production';
     }
 
@@ -43,9 +43,23 @@ class MetaEventsTest extends AdminTestCase
 
     public function test_view_content_waits_for_the_pixel_id_in_settings(): void
     {
+        settings()->set('tracking', ['facebook_pixel_mode' => 'site']);
         $this->app['env'] = 'production';
 
         $this->get('/umrah')->assertOk()->assertDontSee('ViewContent', false);
+    }
+
+    public function test_with_tag_manager_the_site_only_sends_data_layer_events(): void
+    {
+        $this->livePixel('gtm');
+
+        $this->get('/packages/umrah-package')->assertOk()
+            ->assertSee("dataLayer.push({event:'meta_view_content',meta:{\"content_type\":\"product\"", false)
+            ->assertDontSee('fbevents.js', false)
+            ->assertDontSee('siteMetaPixel', false);
+        $this->app->forgetScopedInstances();
+
+        $this->get('/')->assertOk()->assertDontSee('meta_view_content', false);
     }
 
     public function test_a_stored_enquiry_reports_its_lead_type_but_a_bot_does_not(): void

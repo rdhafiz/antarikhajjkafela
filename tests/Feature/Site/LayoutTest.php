@@ -152,7 +152,7 @@ class LayoutTest extends TestCase
 
     public function test_tracking_tags_are_only_output_in_production(): void
     {
-        settings()->set('tracking', ['gtm_id' => 'GTM-ABC123', 'facebook_pixel_id' => '1234567890']);
+        settings()->set('tracking', ['gtm_id' => 'GTM-ABC123', 'facebook_pixel_id' => '1234567890', 'facebook_pixel_mode' => 'site']);
 
         $this->get('/')->assertDontSee('googletagmanager.com', false);
 
