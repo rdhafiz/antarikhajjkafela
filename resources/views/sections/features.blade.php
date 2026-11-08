@@ -186,7 +186,7 @@
                             'sec-card p-7 transition-[box-shadow,border-color,translate] duration-300' => $cards,
                             'overflow-hidden hover:-translate-y-1' => $cards && $item['image'],
                             'hover:shadow-[var(--shadow-lift)]' => $cards && $item['link'],
-                            'flex gap-5' => $layout === 'list',
+                            'feature-row flex gap-5' => $layout === 'list',
                         ])
                     >
                         @if ($cards && $item['image'])

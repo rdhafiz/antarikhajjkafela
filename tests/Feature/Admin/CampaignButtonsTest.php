@@ -187,4 +187,24 @@ class CampaignButtonsTest extends AdminTestCase
         $this->app->forgetScopedInstances();
         $this->get('/about')->assertOk()->assertDontSee('campaign-page', false);
     }
+
+    public function test_features_list_rows_carry_the_left_aligned_row_class(): void
+    {
+        $page = $this->campaign();
+        $page->update(['status' => Page::STATUS_PUBLISHED, 'starts_at' => null, 'expires_at' => null]);
+        $page->sections()->get()->each->delete();
+        foreach (['list', 'cards'] as $sort => $layout) {
+            $page->sections()->create([
+                'component' => 'features',
+                'sort' => $sort,
+                'is_visible' => true,
+                'content' => ['layout' => $layout, 'items' => [['title' => ['en' => ucfirst($layout).' item'], 'text' => ['en' => 'Text'], 'icon' => 'check']]],
+                'style' => ['ref' => 'features'.$sort],
+            ]);
+        }
+
+        $html = $this->get('/marketing/umrah-offer')->assertOk()->assertSee('List item')->assertSee('Cards item')->getContent();
+
+        $this->assertSame(1, substr_count($html, 'feature-row'));
+    }
 }
