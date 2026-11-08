@@ -3417,9 +3417,9 @@
 
 /*
  * Campaign pages on phones: every section's text, buttons, icons and images are
- * centred (client request). Form fields, FAQ questions/answers and checklists stay
- * left-aligned for reading; checklists sit as a centred block. Unlayered, so it
- * wins over the utilities.
+ * centred (client request). Form fields, FAQ questions/answers, checklists and the
+ * features "list" rows stay left-aligned for reading; checklists sit as a centred
+ * block. Unlayered, so it wins over the utilities.
  */
 @media (max-width: 767px) {
     .campaign-page [data-section] {
@@ -3482,6 +3482,15 @@
         & .faq-item,
         & .faq-item .text-start {
             text-align: start;
+        }
+
+        /* Features "list" layout: the icon sits beside the text, so the rows read left. */
+        & .feature-row {
+            text-align: start;
+        }
+
+        & .feature-row .sec-icon {
+            margin-inline: 0;
         }
     }
 }
