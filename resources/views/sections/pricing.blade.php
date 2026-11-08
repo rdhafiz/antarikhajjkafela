@@ -20,7 +20,7 @@
                     </p>
                 @endif
                 @if (filled($plan['features']))
-                    <ul class="mt-7 flex-1 space-y-3 text-[15px]">
+                    <ul class="checklist mt-7 flex-1 space-y-3 text-[15px]">
                         @foreach (preg_split('/\r?\n/', $plan['features']) as $line)
                             @if (trim($line) !== '')
                                 <li class="flex gap-3">
