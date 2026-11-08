@@ -159,4 +159,22 @@ class CampaignButtonsTest extends AdminTestCase
 
         $this->assertStringNotContainsString('id="s-', $html);
     }
+
+    public function test_the_page_banner_shows_its_button_inside_the_banner(): void
+    {
+        $page = $this->campaign();
+        $page->update(['status' => Page::STATUS_PUBLISHED, 'starts_at' => null, 'expires_at' => null]);
+        $page->sections()->get()->each->delete();
+        $page->sections()->create([
+            'component' => 'page_banner',
+            'sort' => 0,
+            'is_visible' => true,
+            'content' => ['title' => ['en' => 'Umrah offer'], 'cta' => ['label' => ['en' => 'Book a seat'], 'url' => '/contact', 'section' => null], 'cta_align' => 'right'],
+            'style' => ['ref' => 'bannerref1'],
+        ]);
+
+        $this->get('/marketing/umrah-offer')->assertOk()
+            ->assertSee('Book a seat')
+            ->assertSee('justify-end', false);
+    }
 }
