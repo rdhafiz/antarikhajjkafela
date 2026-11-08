@@ -11,7 +11,7 @@
                 <div class="prose-site mt-6">{!! $c['body'] !!}</div>
             @endif
             @if ($bullets)
-                <ul class="mt-7 grid gap-3 sm:grid-cols-2">
+                <ul class="checklist mt-7 grid gap-3 sm:grid-cols-2">
                     @foreach ($bullets as $bullet)
                         <li class="flex gap-3">
                             <span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald text-white"><x-site.icon name="check" class="size-3.5" /></span>

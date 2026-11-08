@@ -177,4 +177,14 @@ class CampaignButtonsTest extends AdminTestCase
             ->assertSee('Book a seat')
             ->assertSee('justify-end', false);
     }
+
+    public function test_campaign_pages_carry_the_phone_centring_wrapper_and_other_pages_do_not(): void
+    {
+        $page = $this->campaign();
+        $page->update(['status' => Page::STATUS_PUBLISHED, 'starts_at' => null, 'expires_at' => null]);
+
+        $this->get('/marketing/umrah-offer')->assertOk()->assertSee('<div class="campaign-page">', false);
+        $this->app->forgetScopedInstances();
+        $this->get('/about')->assertOk()->assertDontSee('campaign-page', false);
+    }
 }

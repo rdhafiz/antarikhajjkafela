@@ -16,5 +16,10 @@
         />
     @endif
 
-    {!! $html !!}
+    @if ($page->isCampaign())
+        {{-- Campaign pages centre their content on phones (.campaign-page in app.css). --}}
+        <div class="campaign-page">{!! $html !!}</div>
+    @else
+        {!! $html !!}
+    @endif
 </x-site.layout>

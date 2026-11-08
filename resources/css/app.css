@@ -3414,3 +3414,74 @@
         content: none !important;
     }
 }
+
+/*
+ * Campaign pages on phones: every section's text, buttons, icons and images are
+ * centred (client request). Form fields, FAQ questions/answers and checklists stay
+ * left-aligned for reading; checklists sit as a centred block. Unlayered, so it
+ * wins over the utilities.
+ */
+@media (max-width: 767px) {
+    .campaign-page [data-section] {
+        text-align: center;
+
+        & :is(.text-left, .text-start) {
+            text-align: center;
+        }
+
+        & .flex-col:is(.items-start, .items-end, .sm\:items-start) {
+            align-items: center;
+        }
+
+        & :is(.justify-start, .justify-end, .justify-between, .flex-wrap),
+        & :is(h2, h3, h4).flex {
+            justify-content: center;
+        }
+
+        & :is(.self-start, .self-end) {
+            align-self: center;
+        }
+
+        & :is(.mr-auto, .ml-0, .ml-auto) {
+            margin-inline: auto;
+        }
+
+        & .eyebrow {
+            justify-content: center;
+        }
+
+        & img:not(.absolute, .size-full, [class*="object-"]),
+        & figure > svg:first-child,
+        & :is(.sec-icon, .svc-tile-icon):not(.absolute) {
+            margin-inline: auto;
+        }
+
+        & .sec-icon.absolute {
+            inset-inline-start: 50%;
+            translate: -50% 0;
+        }
+
+        &[data-section="about"] .w-\[82\%\] {
+            margin-inline: auto;
+        }
+
+        &[data-section="process_steps"] .flex.items-center {
+            justify-content: center;
+        }
+
+        /* Checklists and rich-text lists: a centred block, read left to right. */
+        & :is(.checklist, .prose-site ul, .prose-site ol) {
+            width: fit-content;
+            max-width: 100%;
+            margin-inline: auto;
+            text-align: start;
+        }
+
+        & form,
+        & form .text-start,
+        & .faq-item,
+        & .faq-item .text-start {
+            text-align: start;
+        }
+    }
+}
