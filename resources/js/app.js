@@ -1069,7 +1069,8 @@ if (dateFields.length) {
  *                          while scrolling down and down from above while
  *                          scrolling up. Optional value: up (default), left,
  *                          right, scale or wipe. --reveal-delay staggers items.
- *                          On motion-lite devices it reveals once and stays.
+ *                          On motion-lite devices it reveals once and stays;
+ *                          on phones (under 768px) it is simply shown.
  * [data-parallax="0.1"]    Moves by speed × its distance from the screen centre
  *                          (negative values move against the scroll). Uses the
  *                          CSS translate property, so it combines with reveals.
@@ -1113,7 +1114,15 @@ function scrollMotion() {
         { threshold: [0, 0.02, 0.05, 0.12] },
     );
 
+    // Phones: nothing moves while scrolling (client request). Content is shown as it is, and
+    // effects that wait for a reveal (the package flight line) are marked revealed at once.
+    const phone = window.matchMedia('(max-width: 767px)').matches;
+
     reveals.forEach((el) => {
+        if (phone) {
+            el.classList.add('is-revealed');
+            return;
+        }
         el.classList.add('reveal');
         el.dataset.from = 'below';
         revealer.observe(el);
