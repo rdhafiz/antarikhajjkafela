@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TrashController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VisitController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -143,6 +144,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('bookings/{booking}/documents/{document}', [BookingController::class, 'document'])->middleware('can:bookings.view')->name('bookings.document');
         Route::post('bookings/{booking}/payments', [BookingController::class, 'storePayment'])->middleware('can:payments.create')->name('bookings.payments.store');
         Route::delete('bookings/{booking}/payments/{payment}', [BookingController::class, 'destroyPayment'])->middleware('can:payments.create')->name('bookings.payments.destroy');
+
+        // Page visits
+        Route::get('visits/sources', [VisitController::class, 'sources'])->middleware('can:visits.view')->name('visits.sources');
+        Route::get('visits/pages', [VisitController::class, 'pages'])->middleware('can:visits.view')->name('visits.pages');
+        Route::get('visits/filters', [VisitController::class, 'filters'])->middleware('can:visits.view')->name('visits.filters');
+        Route::get('visits/export', [VisitController::class, 'export'])->middleware('can:visits.view')->name('visits.export');
+        Route::get('visits', [VisitController::class, 'index'])->middleware('can:visits.view')->name('visits.index');
 
         // Inquiries
         Route::get('trash', [TrashController::class, 'index'])->middleware('can:trash.view')->name('trash.index');

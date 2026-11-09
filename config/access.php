@@ -37,6 +37,7 @@ return [
         'gallery' => ['label' => 'Gallery', 'actions' => ['view', 'create', 'update', 'delete']],
         'inquiries' => ['label' => 'Inquiries', 'actions' => ['view', 'update', 'delete']],
         'activity' => ['label' => 'Activity log', 'actions' => ['view']],
+        'visits' => ['label' => 'Page visits', 'actions' => ['view']],
         // Not granted to any default role: only super admins open the Trash.
         'trash' => ['label' => 'Trash', 'actions' => ['view', 'restore', 'delete']],
     ],
@@ -53,7 +54,7 @@ return [
             'dashboard' => '*', 'users' => ['view'], 'media' => '*', 'settings' => '*', 'menus' => '*',
             'pages' => '*', 'campaigns' => '*', 'services' => '*', 'packages' => '*', 'bookings' => '*',
             'payments' => '*', 'blog' => '*', 'reviews' => '*', 'gallery' => '*', 'inquiries' => '*',
-            'activity' => '*',
+            'activity' => '*', 'visits' => '*',
         ]],
 
         'content-editor' => ['label' => 'Content Editor', 'grants' => [
