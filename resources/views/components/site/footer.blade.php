@@ -64,6 +64,7 @@
                     @endforeach
                     {{-- Every package of every service, whatever the menu holds. --}}
                     <li><a href="{{ route('packages.index') }}" class="link-underline transition-colors hover:text-white">{{ __('All packages') }}</a></li>
+                    <li><a href="{{ route('campaigns.index') }}" class="link-underline transition-colors hover:text-white">{{ __('Special offers') }}</a></li>
                 </ul>
             </nav>
         @endif

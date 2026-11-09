@@ -56,4 +56,9 @@ class CampaignListTest extends TestCase
 
         $this->get('/marketing')->assertOk()->assertSee('href="'.url('/marketing/hajj-pre-registration').'"', false);
     }
+
+    public function test_the_footer_links_to_the_campaign_list(): void
+    {
+        $this->get('/')->assertOk()->assertSee('href="'.route('campaigns.index').'"', false)->assertSeeText('Special offers');
+    }
 }
