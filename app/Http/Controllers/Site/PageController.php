@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Site;
 
 use App\Domain\Pages\PageRenderer;
+use App\Domain\Visits\Visited;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use App\Models\Page;
@@ -21,6 +22,8 @@ class PageController extends Controller
         $page = Page::where('system_key', 'home')->first();
 
         abort_if(! $page || ! $page->isPublished(), 404);
+
+        Visited::home();
 
         return $this->show($page);
     }
@@ -55,6 +58,8 @@ class PageController extends Controller
         abort_if($page === null, 404);
         abort_unless($page->isVisibleToPublic(), 404);
 
+        Visited::page($page);
+
         return $this->show($page);
     }
 
@@ -63,6 +68,8 @@ class PageController extends Controller
      */
     public function campaigns(): Response
     {
+        Visited::listing('campaigns');
+
         $campaigns = Page::where('type', Page::TYPE_CAMPAIGN)->published()->get()
             ->filter->isVisibleToPublic()
             ->sortByDesc(fn (Page $page) => $page->starts_at ?? $page->created_at)
@@ -93,6 +100,8 @@ class PageController extends Controller
         }
 
         abort_unless($page->isVisibleToPublic(), 404);
+
+        Visited::page($page);
 
         return $this->show($page);
     }

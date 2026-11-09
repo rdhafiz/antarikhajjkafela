@@ -11,6 +11,7 @@ use App\Domain\Payments\GatewayManager;
 use App\Domain\Payments\OnlinePayments;
 use App\Domain\Tracking\MetaContent;
 use App\Domain\Travel\PackagePresenter;
+use App\Domain\Visits\Visited;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Package;
@@ -46,6 +47,8 @@ class BookingController extends Controller
     public function create(Request $request, string $slug): Response|RedirectResponse
     {
         $package = $this->bookablePackage($slug);
+        Visited::booking($package);
+
         $locale = app()->getLocale();
         $name = $package->getTranslation('name', $locale);
         app(Branding::class)->usePilgrimage((bool) $package->service?->isPilgrimage());

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Site;
 
 use App\Domain\Blog\PostPresenter;
+use App\Domain\Visits\Visited;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use App\Models\Page;
@@ -28,6 +29,8 @@ class BlogController extends Controller
 
             return redirect()->to($moved->url(), 301);
         }
+
+        Visited::post($post);
 
         return $this->render($post);
     }

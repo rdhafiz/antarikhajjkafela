@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Site;
 
 use App\Domain\Travel\PackagePresenter;
+use App\Domain\Visits\Visited;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use App\Models\Package;
@@ -24,6 +25,8 @@ class PackageController extends Controller
      */
     public function index(Request $request): Response
     {
+        Visited::listing('packages');
+
         $services = Service::listed()->orderBy('sort')->get();
         $current = $services->firstWhere('slug', $request->query('service'));
 
@@ -51,6 +54,8 @@ class PackageController extends Controller
      */
     public function service(Service $service): Response
     {
+        Visited::service($service);
+
         $locale = app()->getLocale();
         app(Branding::class)->usePilgrimage($service->isPilgrimage());
 
@@ -126,6 +131,8 @@ class PackageController extends Controller
 
             return redirect()->to($moved->url(), 301);
         }
+
+        Visited::package($package);
 
         $locale = app()->getLocale();
         $data = $this->presenter->detail($package);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Site;
 
 use App\Domain\Gallery\GalleryListing;
+use App\Domain\Visits\Visited;
 use App\Http\Controllers\Controller;
 use App\Models\GalleryAlbum;
 use App\Models\GalleryItem;
@@ -17,6 +18,8 @@ class GalleryController extends Controller
         $items = $album->items()->with('media')->get()->filter(fn (GalleryItem $i) => $i->type === 'video' ? $i->youtubeId() : $i->media)->values();
 
         abort_if($items->isEmpty(), 404);
+
+        Visited::album($album);
 
         $locale = app()->getLocale();
         $title = $album->getTranslation('title', $locale);
