@@ -38,7 +38,7 @@ watch(() => [props.filters.date_from, props.filters.date_to, props.filters.inclu
 
 <template>
     <div class="space-y-6">
-        <div v-if="loading" class="flex justify-center py-16"><AppSpinner /></div>
+        <div v-if="loading" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
         <EmptyState v-else-if="!channels.length" title="No visits in this period" description="Try a wider date range." />
         <template v-else>
             <section class="card overflow-hidden" aria-labelledby="vs-channels">

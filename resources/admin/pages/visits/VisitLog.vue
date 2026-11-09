@@ -44,6 +44,8 @@ watch(
 const options = ref<VisitFilterOptions | null>(null);
 onMounted(async () => {
     for (const k of SHARED) if (list.filters[k] !== props.filters[k]) list.filters[k] = props.filters[k];
+    // A page id without its type would match every page type; treat it as invalid.
+    if (list.filters.subject_type === '') list.filters.subject_id = '';
     list.load();
     try {
         options.value = (await http.get<{ data: VisitFilterOptions }>('/visits/filters')).data.data;
@@ -158,7 +160,7 @@ const details = computed<[string, string][]>(() => {
             </li>
         </ul>
 
-        <div v-if="list.loading.value && !list.rows.value.length" class="flex justify-center py-16"><AppSpinner /></div>
+        <div v-if="list.loading.value && !list.rows.value.length" class="flex justify-center py-16 text-brand"><AppSpinner class="size-6" /></div>
         <EmptyState v-else-if="failed" :icon="ScrollText" title="The visit log could not be loaded" />
         <EmptyState v-else-if="!list.rows.value.length" :icon="ScrollText" title="No visits match" :description="filterCount ? 'Try removing a filter or widening the dates.' : 'Nothing was recorded in this period.'">
             <AppButton v-if="filterCount" variant="secondary" @click="clearFilters">Clear filters</AppButton>
