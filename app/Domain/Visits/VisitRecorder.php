@@ -2,6 +2,7 @@
 
 namespace App\Domain\Visits;
 
+use App\Models\IpLocation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -78,9 +79,21 @@ class VisitRecorder
 
         if (config('visits.geo.driver') !== 'none'
             && ! $ua['is_bot']
-            && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            && IpLocation::isPublic($ip)) {
             $now = now();
-            $db->table('ip_locations')->insertOrIgnore(['ip' => $ip, 'created_at' => $now, 'updated_at' => $now]);
+            $isNew = $db->table('ip_locations')->insertOrIgnore(['ip' => $ip, 'created_at' => $now, 'updated_at' => $now]) === 1;
+
+            // No cron on the host: look up after the page is sent. The batch also retries older pending IPs.
+            if ($isNew) {
+                defer(function () {
+                    try {
+                        if (Cache::add('visits:geo:running', 1, 60)) {
+                            app(LocationResolver::class)->resolvePending((int) config('visits.geo.batch'));
+                        }
+                    } catch (Throwable) {
+                    }
+                });
+            }
         }
     }
 

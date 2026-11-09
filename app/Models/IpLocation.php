@@ -35,6 +35,12 @@ class IpLocation extends Model
         return $query->whereNull('resolved_at')->where('attempts', '<', self::MAX_ATTEMPTS)->orderBy('created_at');
     }
 
+    /** True for addresses worth looking up: a valid IP outside private and reserved ranges. */
+    public static function isPublic(mixed $ip): bool
+    {
+        return is_string($ip) && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+    }
+
     public function label(): string
     {
         return implode(', ', array_filter([$this->city, $this->country]));
