@@ -44,6 +44,23 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
+        'analytics' => [
+            'driver' => env('ANALYTICS_DB_DRIVER', env('DB_CONNECTION', 'mysql')),
+            'url' => env('ANALYTICS_DB_URL'),
+            'host' => env('ANALYTICS_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('ANALYTICS_DB_PORT', env('DB_PORT', '3306')),
+            'database' => env('ANALYTICS_DB_DATABASE', env('DB_DATABASE', 'laravel')),
+            'username' => env('ANALYTICS_DB_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('ANALYTICS_DB_PASSWORD', env('DB_PASSWORD', '')),
+            'unix_socket' => env('ANALYTICS_DB_SOCKET', env('DB_SOCKET', '')),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
