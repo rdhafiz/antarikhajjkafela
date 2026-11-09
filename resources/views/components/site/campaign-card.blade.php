@@ -1,4 +1,5 @@
 @props(['page', 'image' => null])
+{{-- A campaign as a wide card, styled like the package cards on a service page (x-site.package-feature). --}}
 @php
     use App\Domain\Blog\PostPresenter;
     use App\Support\Seo\SeoText;
@@ -7,41 +8,44 @@
     $title = $page->getTranslation('title', $locale);
     $excerpt = SeoText::single($page->seo['description'] ?? null, $locale);
 @endphp
-<div {{ $attributes->class('h-full') }}>
-<article class="group relative flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-line bg-white shadow-[var(--shadow-soft)] transition-[translate,box-shadow] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[var(--shadow-lift)]">
-    <div class="relative aspect-[16/10] overflow-hidden bg-brand">
+<article {{ $attributes->class(['pkg-feature relative overflow-hidden rounded-[2rem] border border-line bg-white shadow-[var(--shadow-soft)]']) }}>
+    <div class="relative isolate flex aspect-[16/10] flex-col justify-between overflow-hidden bg-brand p-5 text-white sm:aspect-[16/6] sm:p-7 lg:aspect-[16/5]">
         @if ($image)
-            <img
-                src="{{ $image->url('sm') }}"
-                srcset="{{ $image->srcset() }}"
-                sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"
-                alt="{{ $image->altText($title) }}"
-                loading="lazy"
-                decoding="async"
-                class="absolute inset-0 size-full object-cover transition-[scale] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
-            >
+            <div class="absolute inset-0 -z-20 overflow-hidden">
+                <img
+                    src="{{ $image->url('lg') }}"
+                    srcset="{{ $image->srcset() }}"
+                    sizes="(min-width: 1200px) 1150px, 100vw"
+                    alt="{{ $image->altText($title) }}" loading="lazy" decoding="async"
+                    class="pkg-feature-img size-full object-cover"
+                >
+            </div>
         @else
-            <div class="pattern-star absolute inset-0 opacity-[0.08]" aria-hidden="true"></div>
-            <x-site.icon name="calendar" class="absolute top-1/2 left-1/2 size-14 -translate-x-1/2 -translate-y-1/2 text-gold/70" />
+            <div class="pattern-star absolute inset-0 -z-20 opacity-[0.08]" aria-hidden="true"></div>
         @endif
+        <div class="absolute inset-0 -z-10 bg-gradient-to-t from-brand-950/90 via-brand-950/30 to-brand-950/10" aria-hidden="true"></div>
+
+        <div class="flex flex-wrap items-start gap-2" data-reveal>
+            <span class="rounded-full bg-gold px-3 py-1 text-[12px] font-bold text-brand-950">{{ __('Special offer') }}</span>
+            @if ($page->expires_at)
+                <span class="flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-[12px] font-semibold text-brand">
+                    <x-site.icon name="calendar" class="size-3.5 text-gold-deep" />
+                    <time datetime="{{ $page->expires_at->toDateString() }}">{{ __('Ends :date', ['date' => PostPresenter::date($page->expires_at)]) }}</time>
+                </span>
+            @endif
+        </div>
+
+        <h2 class="max-w-xl font-display text-[1.6rem] leading-tight font-semibold text-white sm:text-[2rem]" data-reveal style="--reveal-delay: 100ms">
+            <a href="{{ $page->url() }}" class="pkg-feature-title">{{ $title }}</a>
+        </h2>
     </div>
 
-    <div class="flex flex-1 flex-col p-6">
-        @if ($page->expires_at)
-            <p class="text-[13px] font-medium text-ink-3">
-                <time datetime="{{ $page->expires_at->toDateString() }}">{{ __('Ends :date', ['date' => PostPresenter::date($page->expires_at)]) }}</time>
-            </p>
-        @endif
-        <h2 class="mt-3 font-display text-display-sm text-brand">
-            <a href="{{ $page->url() }}" class="after:absolute after:inset-0 focus-visible:outline-none">{{ $title }}</a>
-        </h2>
+    <div class="flex flex-col gap-6 p-5 sm:p-7 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
         @if ($excerpt)
-            <p class="mt-3 line-clamp-3 text-[15px] leading-relaxed text-ink-2">{{ $excerpt }}</p>
+            <p class="max-w-2xl text-[15.5px] leading-relaxed text-ink-2" data-reveal>{{ $excerpt }}</p>
         @endif
-        <span class="mt-auto inline-flex items-center gap-1.5 pt-5 text-[14px] font-semibold text-brand">
-            {{ __('View offer') }}
-            <x-site.icon name="arrow-right" class="size-4 transition-transform group-hover:translate-x-1 rtl:rotate-180" />
-        </span>
+        <div class="shrink-0" data-reveal style="--reveal-delay: 150ms">
+            <x-site.button :href="$page->url()" variant="gold" icon-right="arrow-right">{{ __('View offer') }}</x-site.button>
+        </div>
     </div>
 </article>
-</div>
