@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ChartNoAxesColumn, Download } from 'lucide-vue-next';
 import AppButton from '@admin/components/ui/AppButton.vue';
@@ -30,7 +30,8 @@ const filters = reactive(
         ['date_from', fromUrl('date_from', day(-6))],
         ['date_to', fromUrl('date_to', day(0))],
         ['include_bots', fromUrl('include_bots', '')],
-        ...DRILL_KEYS.map((k) => [k, fromUrl(k, '')]),
+        // Drill-downs belong to the log tab; on the others they are ignored, even when typed into the address.
+        ...DRILL_KEYS.map((k) => [k, route.query.view === 'log' ? fromUrl(k, '') : '']),
     ]),
 ) as VisitFilters;
 
@@ -40,8 +41,9 @@ const views = [
     { value: 'log', label: 'Visit log' },
 ] as const;
 
-function query(): Record<string, string> {
-    return Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== ''));
+/** What the address bar, the export and the API see: drill-downs only for the log tab. */
+function query(view: VisitFilters['view'] = filters.view): Record<string, string> {
+    return Object.fromEntries(Object.entries({ ...filters, view }).filter(([k, v]) => v !== '' && (view === 'log' || !(DRILL_KEYS as readonly string[]).includes(k))));
 }
 
 /** The Log tab writes its own address (it adds paging), so only the other tabs do it here. */
@@ -52,10 +54,13 @@ function syncUrl(): void {
 const view = computed({
     get: () => filters.view,
     set: async (value: VisitFilters['view']) => {
-        // Drill-downs belong to the log: Sources and Pages show everything, and so must their export.
-        if (value !== 'log') for (const k of DRILL_KEYS) filters[k] = '';
-        await router.replace({ query: { ...query(), view: value } });
+        await router.replace({ query: query(value) });
         filters.view = value;
+        if (value !== 'log') {
+            // Only once the log has unmounted: clearing while it is mounted makes it reload and rewrite the address.
+            await nextTick();
+            for (const k of DRILL_KEYS) filters[k] = '';
+        }
     },
 });
 const dateFrom = computed({
@@ -85,6 +90,8 @@ function drill(only: Partial<Record<DrillKey, string>>): void {
     for (const k of DRILL_KEYS) filters[k] = only[k] ?? '';
     view.value = 'log';
 }
+
+syncUrl(); // drop stray drill-downs from a hand-edited address
 
 const totals = ref<VisitTotals | null>(null);
 const unavailable = ref<string | null>(null);
