@@ -11,6 +11,7 @@ use App\Domain\Payments\GatewayManager;
 use App\Domain\Payments\OnlinePayments;
 use App\Domain\Tracking\MetaContent;
 use App\Domain\Travel\PackagePresenter;
+use App\Domain\Visits\VisitCookies;
 use App\Domain\Visits\Visited;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
@@ -177,6 +178,7 @@ class BookingController extends Controller
         ];
 
         $booking = $this->bookings->create($package, PackagePrice::findOrFail($data['option']), $data, $documents, $request->ip());
+        $booking->forceFill(VisitCookies::ids($request))->saveQuietly();
 
         $target = $data['payment'] === 'now' && $this->payments->canPay($booking)
             ? $this->gatewayUrl($booking)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Site;
 
 use App\Domain\Forms\LeadFields;
 use App\Domain\Forms\Recaptcha;
+use App\Domain\Visits\VisitCookies;
 use App\Http\Controllers\Controller;
 use App\Mail\InquiryReceived;
 use App\Models\Inquiry;
@@ -71,6 +72,7 @@ class FormController extends Controller
             ) + ['page' => $content->translate($section->page->getTranslations('title'), 'en')],
             'locale' => app()->getLocale(),
             'ip' => $request->ip(),
+            ...VisitCookies::ids($request),
         ]);
 
         $this->notify($inquiry);

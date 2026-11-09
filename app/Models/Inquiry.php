@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-#[Fillable(['source', 'page_id', 'page_section_id', 'booking_id', 'name', 'phone', 'email', 'data', 'status', 'notes', 'locale', 'ip', 'read_at'])]
+#[Fillable(['source', 'page_id', 'page_section_id', 'booking_id', 'name', 'phone', 'email', 'data', 'status', 'notes', 'locale', 'ip', 'read_at', 'visitor_id', 'session_id'])]
 class Inquiry extends Model
 {
     use Trashable;
