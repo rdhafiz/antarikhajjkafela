@@ -52,6 +52,8 @@ function syncUrl(): void {
 const view = computed({
     get: () => filters.view,
     set: async (value: VisitFilters['view']) => {
+        // Drill-downs belong to the log: Sources and Pages show everything, and so must their export.
+        if (value !== 'log') for (const k of DRILL_KEYS) filters[k] = '';
         await router.replace({ query: { ...query(), view: value } });
         filters.view = value;
     },
