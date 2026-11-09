@@ -8,6 +8,7 @@ use Database\Seeders\MenuSeeder;
 use Database\Seeders\PageSeeder;
 use Database\Seeders\TravelSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -152,5 +153,31 @@ class ResolveLocationsTest extends TestCase
         $this->withServerVariables(['REMOTE_ADDR' => '8.8.8.8'])->get('/packages')->assertOk();
 
         Http::assertSentCount(1);
+    }
+
+    public function test_a_failing_lookup_does_not_break_the_page(): void
+    {
+        $this->withoutDefer();
+        app(AccessSynchronizer::class)->sync();
+        $this->seed([MenuSeeder::class, PageSeeder::class, TravelSeeder::class]);
+        Http::fake(['ipwho.is/*' => fn () => throw new ConnectionException('down')]);
+
+        $this->withServerVariables(['REMOTE_ADDR' => '8.8.8.8'])->get('/packages')->assertOk();
+
+        $this->assertNull(IpLocation::find('8.8.8.8')->resolved_at);
+    }
+
+    public function test_a_held_lock_blocks_the_lookup(): void
+    {
+        $this->withoutDefer();
+        app(AccessSynchronizer::class)->sync();
+        $this->seed([MenuSeeder::class, PageSeeder::class, TravelSeeder::class]);
+        Http::fake(['ipwho.is/*' => Http::response($this->found())]);
+        Cache::put('visits:geo:running', 1, 60);
+
+        $this->withServerVariables(['REMOTE_ADDR' => '8.8.8.8'])->get('/packages')->assertOk();
+
+        Http::assertNothingSent();
+        $this->assertNull(IpLocation::find('8.8.8.8')->resolved_at);
     }
 }
