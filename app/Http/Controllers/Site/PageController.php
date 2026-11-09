@@ -59,6 +59,27 @@ class PageController extends Controller
     }
 
     /**
+     * The list of live campaigns, /marketing.
+     */
+    public function campaigns(): Response
+    {
+        $campaigns = Page::where('type', Page::TYPE_CAMPAIGN)->published()->get()
+            ->filter->isVisibleToPublic()
+            ->sortByDesc(fn (Page $page) => $page->starts_at ?? $page->created_at)
+            ->values();
+        $images = Media::whereIn('id', $campaigns->pluck('seo.image')->filter())->get()->keyBy('id');
+
+        seo()->title(__('Special offers'))
+            ->description(__('Limited-time Hajj, Umrah and travel offers from Antarik.'))
+            ->canonical(route('campaigns.index'))
+            ->breadcrumb(__('Home'), url('/'))
+            ->breadcrumb(__('Special offers'), route('campaigns.index'))
+            ->pageType('CollectionPage');
+
+        return response()->view('site.campaigns.index', compact('campaigns', 'images'));
+    }
+
+    /**
      * A campaign page, /marketing/{slug}.
      */
     public function campaign(string $slug): Response|RedirectResponse

@@ -36,6 +36,7 @@ class SitemapController extends Controller
             }
 
             $urls[] = ['loc' => route('packages.index'), 'lastmod' => null];
+            $urls[] = ['loc' => route('campaigns.index'), 'lastmod' => null];
 
             foreach (Package::published()->get() as $package) {
                 if (! ($package->seo['noindex'] ?? false)) {

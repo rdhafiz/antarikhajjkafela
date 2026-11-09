@@ -488,5 +488,12 @@
     "Amount": "পরিমাণ",
     "Please use plain text here, without links or < >.": "এখানে লিংক বা < > ছাড়া সাধারণ লেখা লিখুন।",
     "Please start with a letter or number, not = + - or @.": "= + - বা @ নয়, অক্ষর বা সংখ্যা দিয়ে শুরু করুন।",
-    "See all packages": "সব প্যাকেজ দেখুন"
+    "See all packages": "সব প্যাকেজ দেখুন",
+    "Campaigns": "ক্যাম্পেইন",
+    "Special offers": "বিশেষ অফার",
+    "Limited-time Hajj, Umrah and travel offers from Antarik.": "অন্তরিকের সীমিত সময়ের হজ্জ, উমরাহ ও ভ্রমণ অফার।",
+    "Ends :date": "শেষ হবে :date",
+    "View offer": "অফার দেখুন",
+    "No offers running right now": "এই মুহূর্তে কোনো অফার চলছে না",
+    "Call or message us and we will share the latest offers with you.": "কল বা মেসেজ করুন, আমরা আপনাকে সর্বশেষ অফারগুলো জানাব।"
 }

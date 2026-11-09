@@ -70,6 +70,7 @@ foreach (config('redirects') as $from => $to) {
 
 // Pages built in the admin. Keep these last: the slug route catches everything else.
 Route::get('/', [PageController::class, 'home'])->name('home');
+Route::get('/'.Page::CAMPAIGN_PREFIX, [PageController::class, 'campaigns'])->name('campaigns.index');
 Route::get('/'.Page::CAMPAIGN_PREFIX.'/{slug}', [PageController::class, 'campaign'])
     ->where('slug', trim(PageSaveRequest::SLUG_PATTERN, '/^$'))
     ->name('campaign');
