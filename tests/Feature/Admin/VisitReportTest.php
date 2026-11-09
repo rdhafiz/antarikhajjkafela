@@ -132,6 +132,30 @@ class VisitReportTest extends AdminTestCase
         $this->assertSame(1, $channels['direct']['views']);
     }
 
+    public function test_totals_follow_the_log_drilldowns(): void
+    {
+        $s2 = '33333333-3333-4333-8333-333333333333';
+        $this->visit(['channel' => 'social', 'source' => 'facebook']);
+        $this->visit(['channel' => 'direct', 'session_id' => $s2]);
+        $this->booking(self::S1);
+        $this->booking($s2);
+
+        $this->viewer()->getJson('/api/admin/visits?channel=direct')->assertJsonPath('totals.bookings', 1);
+        $this->viewer()->getJson('/api/admin/visits')->assertJsonPath('totals.bookings', 2);
+    }
+
+    public function test_a_credited_channel_without_views_in_range_still_has_a_row(): void
+    {
+        $this->visit(['channel' => 'social', 'source' => 'facebook', 'created_at' => '2026-10-01 10:00:00']);
+        $this->visit(['channel' => 'direct', 'session_id' => '33333333-3333-4333-8333-333333333333', 'created_at' => '2026-11-05 10:00:00']);
+        $this->booking(self::S1);
+
+        $data = $this->viewer()->getJson('/api/admin/visits/sources?date_from=2026-11-01')->assertJsonPath('totals.bookings', 1)->json('data');
+        $social = collect($data['channels'])->firstWhere('channel', 'social');
+        $this->assertSame([0, 1], [$social['views'], $social['bookings']]);
+        $this->assertSame([0, 1], [$data['sources'][0]['views'], $data['sources'][0]['bookings']]);
+    }
+
     public function test_log_filters_and_paginates(): void
     {
         $this->visit();

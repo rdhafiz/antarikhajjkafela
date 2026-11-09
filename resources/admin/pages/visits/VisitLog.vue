@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import { useDebounceFn } from '@vueuse/core';
 import { ChevronRight, Globe, Languages, Monitor, Network, Route, ScrollText, Share2, Smartphone, User, X } from 'lucide-vue-next';
 import AppBadge from '@admin/components/ui/AppBadge.vue';
 import AppButton from '@admin/components/ui/AppButton.vue';
@@ -63,7 +64,10 @@ function chipText(key: DrillKey, value: string): string {
 }
 const filterCount = computed(() => chips.value.length);
 
-const ipSearch = computed({ get: () => list.filters.ip as string, set: (v: string) => (list.filters.ip = v.trim()) });
+const ipText = ref((list.filters.ip as string) ?? '');
+const applyIp = useDebounceFn((v: string) => (list.filters.ip = v.trim()), 400);
+watch(() => list.filters.ip, (v) => { if (v !== ipText.value.trim()) ipText.value = (v as string) ?? ''; });
+const ipSearch = computed({ get: () => ipText.value, set: (v: string) => { ipText.value = v; applyIp(v); } });
 
 const groups = computed<FilterGroup[]>(() => {
     const o = options.value;

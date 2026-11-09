@@ -15,7 +15,9 @@ use App\Models\Service;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /** Read-only queries behind the admin Page visits screens. */
 class VisitReport
@@ -65,6 +67,15 @@ class VisitReport
                 'enquiries' => $conv['channels'][$r->channel]['enquiries'] ?? 0,
             ])->all();
 
+        foreach (array_keys($conv['channels']) as $c) {
+            if (! in_array($c, array_column($channels, 'channel'), true)) {
+                $channels[] = [
+                    'channel' => $c, 'label' => $label($c), 'views' => 0, 'visitors' => 0, 'sessions' => 0,
+                    'bookings' => $conv['channels'][$c]['bookings'] ?? 0, 'enquiries' => $conv['channels'][$c]['enquiries'] ?? 0,
+                ];
+            }
+        }
+
         $sources = $this->filtered($filters)->whereNotNull('source')->selectRaw('channel, source, '.self::AGG)
             ->groupBy('channel', 'source')->orderByDesc('views')->limit(100)->get()
             ->map(fn ($r) => [
@@ -73,6 +84,16 @@ class VisitReport
                 'bookings' => $conv['sources'][$r->channel.'|'.$r->source]['bookings'] ?? 0,
                 'enquiries' => $conv['sources'][$r->channel.'|'.$r->source]['enquiries'] ?? 0,
             ])->all();
+
+        foreach (array_keys($conv['sources']) as $key) {
+            [$c, $src] = explode('|', $key, 2);
+            if (! collect($sources)->contains(fn ($r) => $r['channel'] === $c && $r['source'] === $src)) {
+                $sources[] = [
+                    'channel' => $c, 'label' => $label($c), 'source' => $src, 'views' => 0, 'visitors' => 0,
+                    'bookings' => $conv['sources'][$key]['bookings'] ?? 0, 'enquiries' => $conv['sources'][$key]['enquiries'] ?? 0,
+                ];
+            }
+        }
 
         $apps = $this->filtered($filters)->whereNotNull('in_app')->selectRaw('in_app as app, '.self::AGG)
             ->groupBy('in_app')->orderByDesc('views')->get()
@@ -143,15 +164,15 @@ class VisitReport
 
     public function filterOptions(): array
     {
-        $distinct = fn (string $col) => PageVisit::query()->whereNotNull($col)->distinct()->orderBy($col)->pluck($col)->values()->all();
         $special = ['packages' => 'Packages list', 'campaigns' => 'Campaigns list', 'booking' => 'Booking form'];
+        $distinct = Cache::remember('visits:filter-options', 600, function () {
+            $d = fn (string $col) => PageVisit::query()->whereNotNull($col)->distinct()->orderBy($col)->pluck($col)->values()->all();
 
-        return [
-            'devices' => $distinct('device_type'),
-            'platforms' => $distinct('platform'),
-            'browsers' => $distinct('browser'),
+            return ['devices' => $d('device_type'), 'platforms' => $d('platform'), 'browsers' => $d('browser'), 'apps' => $d('in_app')];
+        });
+
+        return $distinct + [
             'channels' => collect(PageVisit::CHANNEL_LABELS)->map(fn ($l, $v) => ['value' => $v, 'label' => $l])->values()->all(),
-            'apps' => $distinct('in_app'),
             'subjects' => collect(PageVisit::SUBJECTS)->map(fn ($s) => ['value' => $s, 'label' => $special[$s] ?? ucfirst($s)])->all(),
             'geo_enabled' => config('visits.geo.driver') !== 'none',
         ];
@@ -197,12 +218,15 @@ class VisitReport
         $landing = [];
         foreach ($sessions->chunk(500) as $chunk) {
             $ids = PageVisit::query()->whereIn('session_id', $chunk->all())->selectRaw('MIN(id) as id')->groupBy('session_id')->pluck('id');
-            foreach (PageVisit::query()->whereIn('id', $ids->all())->get(['session_id', 'channel', 'source']) as $v) {
+            // the landing row must pass the drill-downs (not the dates: a session may land before the range)
+            foreach ($this->filtered(Arr::except($filters, ['date_from', 'date_to']))->whereIn('id', $ids->all())->get(['session_id', 'channel', 'source']) as $v) {
                 $landing[$v->session_id] = $v;
             }
         }
 
-        $out = ['bookings' => $made['bookings']->count(), 'enquiries' => $made['enquiries']->count(), 'channels' => [], 'sources' => []];
+        $drilled = collect(self::EXACT_FILTERS)->contains(fn ($c) => isset($filters[$c]) && $filters[$c] !== '');
+        $count = fn ($ids) => $drilled ? $ids->filter(fn ($sid) => isset($landing[$sid]))->count() : $ids->count();
+        $out = ['bookings' => $count($made['bookings']), 'enquiries' => $count($made['enquiries']), 'channels' => [], 'sources' => []];
         foreach ($made as $kind => $ids) {
             foreach ($ids as $sid) {
                 if (! ($v = $landing[$sid] ?? null)) {

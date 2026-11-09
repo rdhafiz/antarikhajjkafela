@@ -171,6 +171,7 @@ php artisan up
   - Each deploy runs `php artisan analytics:migrate`. The deploy log must say "Visit logs are kept separately", not "share the application database".
   - No cron is needed. A visitor's location fills in a moment after their first page view.
   - If visits were recorded with `VISITS_GEO_DRIVER=none`, run `php artisan visits:locations --backfill` once.
+  - After the first production deploy, open the site from a known connection, then check that the newest `page_visits` row has that public IP: `php artisan tinker --execute="echo App\Models\PageVisit::latest('id')->value('ip');"`. If it shows a Cloudflare/CDN address instead, the app needs `trustProxies` for that proxy before locations and IP filters are meaningful (the same applies to booking IPs).
   - Grant "Page visits" to roles other than Admin in Roles & permissions. Super admins always see it.
 - **Cache check.** Cached HTML never reaches Laravel, so it is never counted. A package page response must not carry `x-litespeed-cache: hit` or `cf-cache-status: HIT`. If it does, exclude HTML from that cache.
 - **Health check.** `https://<domain>/up` returns 200 when the app is running.
