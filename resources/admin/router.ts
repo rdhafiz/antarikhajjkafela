@@ -41,6 +41,7 @@ const routes: RouteRecordRaw[] = [
             { path: 'bookings', name: 'bookings', component: () => import('@admin/pages/bookings/BookingsPage.vue'), meta: { title: 'Bookings', permission: 'bookings.view' } },
             { path: 'bookings/:id(\\d+)', name: 'booking', component: () => import('@admin/pages/bookings/BookingPage.vue'), meta: { title: 'Booking', permission: 'bookings.view' } },
             { path: 'inquiries', name: 'inquiries', component: () => import('@admin/pages/inquiries/InquiriesPage.vue'), meta: { title: 'Inquiries', permission: 'inquiries.view' } },
+            { path: 'visits', name: 'visits', component: () => import('@admin/pages/visits/VisitsPage.vue'), meta: { title: 'Page visits', permission: 'visits.view' } },
             { path: 'menus/:location?', name: 'menus', component: () => import('@admin/pages/menus/MenusPage.vue'), meta: { title: 'Menus', permission: 'menus.view' } },
             { path: 'settings/:group?', name: 'settings', component: () => import('@admin/pages/settings/SettingsPage.vue'), meta: { title: 'Settings', permission: 'settings.view' } },
             { path: 'users', name: 'users', component: () => import('@admin/pages/users/UsersPage.vue'), meta: { title: 'Users', permission: 'users.view' } },

@@ -1,5 +1,5 @@
 import type { Component } from 'vue';
-import { BriefcaseBusiness, CalendarCheck, FileText, GalleryHorizontalEnd, Images, Inbox, LayoutDashboard, ListTree, Megaphone, MessageSquareQuote, Newspaper, Package, Settings, ShieldCheck, Trash2, Users } from 'lucide-vue-next';
+import { BriefcaseBusiness, ChartNoAxesColumn, CalendarCheck, FileText, GalleryHorizontalEnd, Images, Inbox, LayoutDashboard, ListTree, Megaphone, MessageSquareQuote, Newspaper, Package, Settings, ShieldCheck, Trash2, Users } from 'lucide-vue-next';
 
 export interface NavItem {
     label: string;
@@ -27,6 +27,7 @@ export const navigation: NavSection[] = [
             { label: 'Dashboard', to: '/admin', icon: LayoutDashboard, tone: '#818cf8', permission: 'dashboard.view' },
             { label: 'Bookings', to: '/admin/bookings', icon: CalendarCheck, tone: '#34d399', permission: 'bookings.view', badge: 'bookingsUnread' },
             { label: 'Inquiries', to: '/admin/inquiries', icon: Inbox, tone: '#38bdf8', permission: 'inquiries.view', badge: 'inquiriesUnread' },
+            { label: 'Page visits', to: '/admin/visits', icon: ChartNoAxesColumn, tone: '#e879f9', permission: 'visits.view' },
         ],
     },
     {

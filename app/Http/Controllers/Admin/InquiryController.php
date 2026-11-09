@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Visits\VisitReport;
 use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
 use App\Models\Note;
@@ -47,7 +48,7 @@ class InquiryController extends Controller
             $inquiry->forceFill(['read_at' => now()])->save();
         }
 
-        return response()->json(['data' => $this->format($inquiry->load(['page:id,title,type,slug', 'notes.author:id,name']))]);
+        return response()->json(['data' => $this->format($inquiry->load(['page:id,title,type,slug', 'notes.author:id,name'])) + ['visit' => app(VisitReport::class)->landingFor($inquiry->session_id)]]);
     }
 
     public function update(Request $request, Inquiry $inquiry): JsonResponse

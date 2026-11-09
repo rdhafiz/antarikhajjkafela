@@ -14,6 +14,7 @@ use App\Models\Post;
 use App\Models\Service;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 
 /** Read-only queries behind the admin Page visits screens. */
@@ -265,6 +266,27 @@ class VisitReport
                 ],
             ];
         });
+    }
+
+    /** The first visit of a session, as the "Came from" line on a booking or enquiry. */
+    public function landingFor(?string $sessionId): ?array
+    {
+        try {
+            $v = $sessionId ? PageVisit::query()->where('session_id', $sessionId)->orderBy('id')->first() : null;
+        } catch (QueryException) {
+            return null; // an unavailable visit log must not break a booking page
+        }
+        if (! $v) {
+            return null;
+        }
+
+        return [
+            'channel' => $v->channel,
+            'channel_label' => PageVisit::CHANNEL_LABELS[$v->channel] ?? null,
+            'source' => $v->source,
+            'landing' => ['title' => $this->namesFor(collect([$v]))[$v->subject_type.':'.$v->subject_id]['title'], 'url' => $this->urlFor($v->path)],
+            'visited_at' => $v->created_at?->toIso8601String(),
+        ];
     }
 
     /** @param  array<string, mixed>  $filters */

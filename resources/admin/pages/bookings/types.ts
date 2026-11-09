@@ -1,4 +1,5 @@
 import type { StaffNote } from '@admin/components/ui/NotesPanel.vue';
+import type { VisitLanding } from '@admin/pages/visits/types';
 export type BookingStatus = 'pending' | 'confirmed' | 'partially_paid' | 'advance_paid' | 'fully_paid' | 'completed' | 'cancelled';
 
 export const statusLabels: Record<BookingStatus, string> = {
@@ -98,6 +99,8 @@ export interface BookingDetail extends BookingRow {
     /** Staff notes, newest first. */
     notes: StaffNote[];
     locale: string;
+    /** Where the customer came from (null when not recorded). */
+    visit: VisitLanding | null;
     documents: { id: number; kind: string; kind_label: string; name: string; size: number; is_image: boolean; url: string }[];
     payments: BookingPayment[];
     offline_methods: Record<string, string>;

@@ -1,4 +1,5 @@
 import type { StaffNote } from '@admin/components/ui/NotesPanel.vue';
+import type { VisitLanding } from '@admin/pages/visits/types';
 export type InquiryStatus = 'new' | 'in_progress' | 'closed';
 
 export interface InquiryRow {
@@ -15,6 +16,8 @@ export interface InquiryRow {
     /** The booking made from this inquiry. */
     booking?: { id: number; reference: string | null } | null;
     locale: string | null;
+    /** Where the enquirer came from (detail response only). */
+    visit?: VisitLanding | null;
     read: boolean;
     created_at: string;
 }

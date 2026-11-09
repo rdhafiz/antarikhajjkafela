@@ -17,6 +17,7 @@ import { formatBytes, formatDate } from '@admin/lib/format';
 import { useAppStore } from '@admin/stores/app';
 import { useAuthStore } from '@admin/stores/auth';
 import { useToastStore } from '@admin/stores/toast';
+import CameFrom from '@admin/pages/visits/CameFrom.vue';
 import { money, statusLabels, statusTone, type BookingActivity, type BookingDetail, type BookingStatus, type BookingUpdate } from './types';
 
 const route = useRoute();
@@ -279,6 +280,7 @@ onMounted(load);
                         <a v-if="whatsapp" :href="whatsapp" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg bg-canvas px-3 py-1.5 text-sm font-medium text-ink hover:text-brand"><MessageCircle class="size-4 shrink-0 text-emerald-600" />WhatsApp</a>
                         <a v-if="booking.customer_email" :href="`mailto:${booking.customer_email}`" class="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-lg bg-canvas px-3 py-1.5 text-sm font-medium text-ink hover:text-brand"><Mail class="size-4 shrink-0 text-pink-600" /><span class="min-w-0 [overflow-wrap:anywhere]">{{ booking.customer_email }}</span></a>
                     </div>
+                    <dl v-if="booking.visit" class="dl mt-3 rounded-2xl bg-canvas p-4"><CameFrom :visit="booking.visit" /></dl>
                     <p v-if="booking.customer_address" class="mt-3 text-sm [overflow-wrap:anywhere] text-ink-soft">{{ booking.customer_address }}</p>
                     <p v-if="booking.customer_note" class="mt-3 rounded-lg bg-canvas px-4 py-3 text-sm [overflow-wrap:anywhere] whitespace-pre-line text-ink">{{ booking.customer_note }}</p>
                 </section>

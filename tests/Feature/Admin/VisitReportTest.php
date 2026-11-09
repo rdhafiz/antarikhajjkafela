@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Inquiry;
 use App\Models\IpLocation;
 use App\Models\Package;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Service;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\Concerns\RefreshVisitLog;
@@ -41,13 +43,33 @@ class VisitReportTest extends AdminTestCase
         return Package::create(['service_id' => $service->id, 'name' => ['en' => 'Umrah Plus'], 'slug' => 'umrah-plus']);
     }
 
-    private function booking(?string $session): void
+    private function booking(?string $session): int
     {
-        DB::table('bookings')->insert([
+        return DB::table('bookings')->insertGetId([
             'reference' => 'B'.random_int(1000, 999999), 'snapshot' => '{}', 'unit_price' => 1, 'travelers' => 1, 'quantity' => 1,
             'total' => 1, 'customer_name' => 'A', 'customer_phone' => '017', 'session_id' => $session,
             'created_at' => now(), 'updated_at' => now(),
         ]);
+    }
+
+    public function test_booking_and_inquiry_detail_show_where_they_came_from(): void
+    {
+        $this->visit(['channel' => 'social', 'source' => 'facebook', 'path' => '/packages/umrah', 'created_at' => '2026-11-02 10:00:00']);
+        $admin = $this->asAdmin($this->adminWith(['bookings.view', 'inquiries.view']));
+        $expected = ['channel' => 'social', 'channel_label' => 'Social', 'source' => 'facebook'];
+
+        $b = $this->booking(self::S1);
+        $visit = $admin->getJson("/api/admin/bookings/$b")->assertOk()->json('data.visit');
+        $this->assertSame($expected, array_diff_key($visit, ['landing' => 1, 'visited_at' => 1]));
+        $this->assertTrue(Carbon::parse($visit['visited_at'])->eq('2026-11-02 10:00:00'));
+        $this->assertSame('/packages/umrah', parse_url($visit['landing']['url'], PHP_URL_PATH));
+        $this->assertArrayHasKey('title', $visit['landing']);
+        $admin->getJson('/api/admin/bookings/'.$this->booking(null))->assertJsonPath('data.visit', null);
+
+        $i = Inquiry::create(['source' => 'contact_form', 'name' => 'A', 'phone' => '017', 'data' => [], 'status' => 'new', 'session_id' => self::S1]);
+        $admin->getJson("/api/admin/inquiries/{$i->id}")->assertJsonPath('data.visit.source', 'facebook')->assertJsonPath('data.visit.landing.url', $visit['landing']['url']);
+        $j = Inquiry::create(['source' => 'contact_form', 'name' => 'B', 'phone' => '017', 'data' => [], 'status' => 'new']);
+        $admin->getJson("/api/admin/inquiries/{$j->id}")->assertJsonPath('data.visit', null);
     }
 
     public function test_requires_permission(): void

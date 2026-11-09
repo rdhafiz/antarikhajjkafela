@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Domain\Booking\BookingLog;
 use App\Domain\Booking\BookingService;
 use App\Domain\Booking\TravelDates;
+use App\Domain\Visits\VisitReport;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Site\BookingController as SiteBookingController;
 use App\Models\Booking;
@@ -148,7 +149,7 @@ class BookingController extends Controller
             $booking->forceFill(['read_at' => now()])->save();
         }
 
-        return response()->json(['data' => $this->detail($booking), 'was_unread' => $wasUnread]);
+        return response()->json(['data' => $this->detail($booking) + ['visit' => app(VisitReport::class)->landingFor($booking->session_id)], 'was_unread' => $wasUnread]);
     }
 
     /** Back to unread, e.g. to deal with it later; the menu badge counts it again. */

@@ -23,6 +23,7 @@ import { formatDate, formatDatesIn, titleCase } from '@admin/lib/format';
 import { useAppStore } from '@admin/stores/app';
 import { useAuthStore } from '@admin/stores/auth';
 import { useToastStore } from '@admin/stores/toast';
+import CameFrom from '@admin/pages/visits/CameFrom.vue';
 import { inquirySource, inquiryStatus, whatsappLink, type InquiryRow, type InquiryStatus } from './types';
 
 type InquiriesResponse = Paginated<InquiryRow> & {
@@ -385,6 +386,7 @@ onMounted(() => list.load());
                             <dd>{{ value }}</dd>
                         </template>
                     </template>
+                    <CameFrom v-if="current.visit" :visit="current.visit" />
                     <template v-for="(value, key) in current.data" :key="key">
                         <template v-if="!['message', 'page', 'name', 'phone', 'email'].includes(String(key))">
                             <dt>{{ titleCase(String(key)) }}</dt>
