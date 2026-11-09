@@ -16,7 +16,7 @@ Every push and pull request to `production` is tested in GitHub Actions. A push 
 These steps need a Hostinger plan with **SSH access** (Premium, Business or Cloud). Turn it on in hPanel → Advanced → SSH Access.
 
 1. **PHP version.** In hPanel → Advanced → PHP Configuration, choose **PHP 8.4** (8.3 also works). Make sure these extensions are enabled: `gd`, `intl`, `fileinfo`, `exif`, `bcmath`, `zip`, `pdo_mysql`.
-2. **Database.** In hPanel → Databases → MySQL, create a database and a user. Write down the name, user and password.
+2. **Database.** In hPanel → Databases → MySQL, create a database and a user. Then create a **second** database and user for the visit log. Write down both sets of name, user and password.
 3. **Email.** Create a mailbox such as `no-reply@<domain>` in hPanel → Emails. Booking and enquiry emails are sent from it.
 4. **SSH key for deploys.** On your computer, run:
    ```bash
@@ -67,6 +67,11 @@ DB_PORT=3306
 DB_DATABASE=<database>
 DB_USERNAME=<user>
 DB_PASSWORD=<password>
+
+# Visit log: its own database. Host and port fall back to DB_*.
+ANALYTICS_DB_DATABASE=<visit-log database>
+ANALYTICS_DB_USERNAME=<visit-log user>
+ANALYTICS_DB_PASSWORD=<visit-log password>
 
 SESSION_DRIVER=database
 SESSION_LIFETIME=120
@@ -162,4 +167,10 @@ php artisan up
 - **Google Search Console.** Submit `https://<domain>/sitemap.xml`.
 - **Old links.** If this replaces the old antarikhajjkafela.com site, its old addresses (for example `/about-us/` and `/services/hajj/`) redirect permanently to the new pages. The list is in `config/redirects.php`.
 - **Checks.** Test a booking without payment, the contact form, and a sandbox payment end to end.
+- **Page visits.** Page views are logged in the second database and shown in the admin under Page visits (`/ahk/admin/visits`).
+  - Each deploy runs `php artisan analytics:migrate`. The deploy log must say "Visit logs are kept separately", not "share the application database".
+  - No cron is needed. A visitor's location fills in a moment after their first page view.
+  - If visits were recorded with `VISITS_GEO_DRIVER=none`, run `php artisan visits:locations --backfill` once.
+  - Grant "Page visits" to roles other than Admin in Roles & permissions. Super admins always see it.
+- **Cache check.** Cached HTML never reaches Laravel, so it is never counted. A package page response must not carry `x-litespeed-cache: hit` or `cf-cache-status: HIT`. If it does, exclude HTML from that cache.
 - **Health check.** `https://<domain>/up` returns 200 when the app is running.

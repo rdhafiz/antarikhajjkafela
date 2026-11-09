@@ -5,6 +5,7 @@ Website and admin portal for **Antarik Hajj Kafela** (আন্তরিক হ�
 - **Public site:** server-rendered Blade + Tailwind CSS, bilingual (English / Bangla), SEO-first.
 - **Admin portal:** a Vue 3 SPA for content, packages, bookings and settings.
 - **Booking:** with or without an advance payment, through SSLCommerz or DGePay.
+- **Page visits:** a first-party visit log (sources, devices, locations) kept in its own database and shown in the admin.
 
 See [docs/PLAN.md](docs/PLAN.md) for the full scope and architecture.
 

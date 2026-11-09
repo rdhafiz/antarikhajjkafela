@@ -39,6 +39,7 @@ ln -sfn "$SHARED/storage/app/public" public/storage
 
 # Database changes, permissions for new modules, caches.
 "$PHP" artisan migrate --force
+"$PHP" artisan analytics:migrate --force
 "$PHP" artisan access:sync
 "$PHP" artisan optimize
 
