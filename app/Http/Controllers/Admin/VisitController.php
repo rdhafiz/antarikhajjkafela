@@ -64,8 +64,9 @@ class VisitController extends Controller
                 fwrite($out, "\xEF\xBB\xBF");
                 fputcsv($out, self::COLUMNS);
 
-                $this->report->filtered($filters)->chunkById(500, function ($chunk) use ($out) {
-                    foreach ($this->report->shape($chunk) as $r) {
+                // newest first, like the screen
+                foreach ($this->report->filtered($filters)->lazyByIdDesc(500)->chunk(500) as $chunk) {
+                    foreach ($this->report->shape(collect($chunk->all())) as $r) {
                         fputcsv($out, Csv::row([
                             $r['id'], $r['visited_at'], $r['subject_type'], $r['subject_id'], $r['title'], $r['deleted'] ? 1 : 0,
                             $r['path'], $r['url'], $r['referrer'], $r['visitor_id'], $r['session_id'], $r['ip'], $r['location']['label'] ?? null,
@@ -75,7 +76,7 @@ class VisitController extends Controller
                             $r['converted']['bookings'], $r['converted']['enquiries'],
                         ]));
                     }
-                });
+                }
 
                 fclose($out);
             }, 'page-visits-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);

@@ -135,7 +135,7 @@ const tab = computed(() => ({ sources: VisitSources, pages: VisitPages, log: Vis
             </div>
             <div class="min-w-0 flex-1 basis-36">
                 <label for="v-to" class="label">To</label>
-                <AppDatePicker id="v-to" v-model="dateTo" mode="date" :clearable="false" :min-date="filters.date_from" />
+                <AppDatePicker id="v-to" v-model="dateTo" mode="date" :clearable="false" :min-date="filters.date_from" :max-date="day(0)" />
             </div>
             <div class="pb-2.5"><AppCheckbox v-model="crawlers" label="Include crawlers" /></div>
         </div>
@@ -155,7 +155,7 @@ const tab = computed(() => ({ sources: VisitSources, pages: VisitPages, log: Vis
 
             <div class="mb-4"><TabSwitcher v-model="view" :options="[...views]" label="Show" /></div>
 
-            <component :is="tab" :key="`${filters.view}-${retry}`" :filters="filters" @totals="totals = $event" @unavailable="unavailable = $event" @drill="drill" />
+            <component :is="tab" class="overflow-x-clip" :key="`${filters.view}-${retry}`" :filters="filters" @totals="totals = $event" @unavailable="unavailable = $event" @drill="drill" />
         </template>
     </div>
 </template>

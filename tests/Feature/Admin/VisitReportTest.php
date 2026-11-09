@@ -43,12 +43,12 @@ class VisitReportTest extends AdminTestCase
         return Package::create(['service_id' => $service->id, 'name' => ['en' => 'Umrah Plus'], 'slug' => 'umrah-plus']);
     }
 
-    private function booking(?string $session): int
+    private function booking(?string $session, ?string $at = null): int
     {
         return DB::table('bookings')->insertGetId([
             'reference' => 'B'.random_int(1000, 999999), 'snapshot' => '{}', 'unit_price' => 1, 'travelers' => 1, 'quantity' => 1,
             'total' => 1, 'customer_name' => 'A', 'customer_phone' => '017', 'session_id' => $session,
-            'created_at' => now(), 'updated_at' => now(),
+            'created_at' => $at ?? now(), 'updated_at' => $at ?? now(),
         ]);
     }
 
@@ -165,6 +165,37 @@ class VisitReportTest extends AdminTestCase
         $this->viewer()->getJson('/api/admin/visits?channel=direct&per_page=1')
             ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('meta.total', 2)->assertJsonPath('meta.last_page', 2);
         $this->viewer()->getJson('/api/admin/visits?per_page=500')->assertUnprocessable();
+    }
+
+    public function test_totals_match_the_rows_when_filtered_by_page(): void
+    {
+        $this->visit(['channel' => 'paid_social', 'source' => 'facebook', 'created_at' => '2026-11-02 10:00:00']);
+        $this->visit(['channel' => 'direct', 'subject_type' => 'booking', 'subject_id' => 2, 'created_at' => '2026-11-02 10:05:00']);
+        $this->booking(self::S1, '2026-11-02 10:06:00');
+
+        $bookings = fn (string $q) => $this->viewer()->getJson("/api/admin/visits?$q")->json('totals.bookings');
+
+        $this->assertSame(1, $bookings('subject_type=booking&subject_id=2'));
+        $this->assertSame(0, $bookings('subject_type=booking&subject_id=3'));
+        $this->assertSame(1, $bookings('channel=paid_social&subject_type=booking'));
+        $this->assertSame(0, $bookings('channel=direct&subject_type=booking'));
+    }
+
+    public function test_a_conversion_is_credited_to_one_visit_of_the_session(): void
+    {
+        $this->visit(['created_at' => '2026-11-02 10:00:00']);
+        $this->visit(['subject_type' => 'booking', 'subject_id' => 2, 'created_at' => '2026-11-02 10:05:00']);
+        $this->visit(['subject_type' => 'packages', 'created_at' => '2026-11-02 10:10:00']);
+        $this->booking(self::S1, '2026-11-02 10:06:00');
+
+        $rows = collect($this->viewer()->getJson('/api/admin/visits?per_page=20')->json('data'))->keyBy('subject_type');
+
+        $this->assertSame(['bookings' => 1, 'enquiries' => 0], $rows['booking']['converted']);
+        $this->assertSame(['bookings' => 0, 'enquiries' => 0], $rows['home']['converted']);
+        $this->assertSame(['bookings' => 0, 'enquiries' => 0], $rows['packages']['converted']);
+        foreach ($rows as $row) {
+            $this->assertSame(['bookings' => 1, 'enquiries' => 0], $row['session_converted']);
+        }
     }
 
     public function test_row_carries_converted_counts(): void

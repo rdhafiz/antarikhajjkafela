@@ -47,7 +47,10 @@ export interface VisitRow {
     utm_source: string | null;
     utm_medium: string | null;
     utm_campaign: string | null;
+    /** Credited to this visit only. */
     converted: { bookings: number; enquiries: number };
+    /** Made anywhere in this visit's session. */
+    session_converted: { bookings: number; enquiries: number };
 }
 
 /** The "Came from" line on a booking or enquiry (null when the visit was not recorded). */
@@ -67,5 +70,7 @@ export interface VisitFilterOptions {
     apps: string[];
     subjects: { value: string; label: string }[];
 }
+
+export const deviceLabel = (type: string | null): string => (type ? ({ phone: 'Phone', tablet: 'Tablet', desktop: 'Desktop' })[type] ?? type : '');
 
 export const subjectLabel = (type: string): string => ({ packages: 'Packages list', campaigns: 'Campaigns list', booking: 'Booking form' })[type] ?? type.charAt(0).toUpperCase() + type.slice(1);

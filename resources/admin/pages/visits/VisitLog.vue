@@ -13,7 +13,7 @@ import ListToolbar from '@admin/components/ui/ListToolbar.vue';
 import { useListQuery } from '@admin/composables/useListQuery';
 import { formatDate } from '@admin/lib/format';
 import { http, type Paginated } from '@admin/lib/http';
-import { DRILL_KEYS, subjectLabel, type DrillKey, type VisitFilterOptions, type VisitFilters, type VisitRow, type VisitTotals } from './types';
+import { deviceLabel, DRILL_KEYS, subjectLabel, type DrillKey, type VisitFilterOptions, type VisitFilters, type VisitRow, type VisitTotals } from './types';
 
 const props = defineProps<{ filters: VisitFilters }>();
 const emit = defineEmits<{ totals: [VisitTotals]; unavailable: [string]; drill: [Partial<Record<DrillKey, string>>] }>();
@@ -25,7 +25,7 @@ const SHARED = ['date_from', 'date_to', 'include_bots', ...DRILL_KEYS] as const;
 const defaults: Record<string, string> = { view: 'log', date_from: props.filters.date_from, date_to: props.filters.date_to, include_bots: '' };
 for (const k of DRILL_KEYS) defaults[k] = '';
 
-const list = useListQuery<VisitRow, LogResponse>('/visits', defaults, { perPage: 25, onLoaded: (r) => emit('totals', r.totals) });
+const list = useListQuery<VisitRow, LogResponse>('/visits', defaults, { perPage: 20, onLoaded: (r) => emit('totals', r.totals) });
 
 // The page owns the dates and the crawler switch, the log owns the drill-downs; each mirrors the other.
 watch(
@@ -56,10 +56,26 @@ const filtersOpen = ref(false);
 const failed = computed(() => !list.loading.value && !list.response.value);
 watch(failed, (v) => v && emit('unavailable', 'The visit log could not be loaded. Try again in a moment.'));
 
-const chips = computed(() => DRILL_KEYS.filter((k) => list.filters[k] !== '').map((k) => ({ key: k, text: chipText(k, String(list.filters[k])) })));
+// A page (type + id) is one chip: removing half of it would leave an id matching any subject.
+const chips = computed(() => {
+    const f = list.filters;
+    const page = f.subject_type !== '' && f.subject_id !== '';
+    const out: { key: string; text: string; clear: DrillKey[] }[] = [];
+    if (page) {
+        const row = list.rows.value.find((r) => r.subject_type === f.subject_type && String(r.subject_id) === f.subject_id);
+        const type = subjectLabel(String(f.subject_type));
+        out.push({ key: 'page', text: `Page: ${row?.title ?? `Page #${f.subject_id}`} (${type})`, clear: ['subject_type', 'subject_id'] });
+    }
+    for (const k of DRILL_KEYS) {
+        if (f[k] === '' || (page && (k === 'subject_type' || k === 'subject_id'))) continue;
+        out.push({ key: k, text: chipText(k, String(f[k])), clear: [k] });
+    }
+    return out;
+});
 const labels: Record<DrillKey, string> = { channel: 'Channel', source: 'Source', in_app: 'App', subject_type: 'Page type', subject_id: 'Page', device_type: 'Device', browser: 'Browser', locale: 'Language', visitor_id: 'Visitor', session_id: 'Session', ip: 'IP' };
 function chipText(key: DrillKey, value: string): string {
     if (key === 'subject_type') return `${labels[key]}: ${subjectLabel(value)}`;
+    if (key === 'device_type') return `${labels[key]}: ${deviceLabel(value)}`;
     return `${labels[key]}: ${value.length > 12 ? `${value.slice(0, 8)}…` : value}`;
 }
 const filterCount = computed(() => chips.value.length);
@@ -72,9 +88,9 @@ const ipSearch = computed({ get: () => ipText.value, set: (v: string) => { ipTex
 const groups = computed<FilterGroup[]>(() => {
     const o = options.value;
     const any = { value: '', label: 'Any' };
-    const plain = (values: string[] = []) => values.map((v) => ({ value: v, label: v }));
+    const plain = (values: string[] = [], label: (v: string) => string = (v) => v) => values.map((v) => ({ value: v, label: label(v) }));
     return [
-        { key: 'device_type', label: 'Device', icon: Smartphone, tone: '#38bdf8', options: [any, ...plain(o?.devices)] },
+        { key: 'device_type', label: 'Device', icon: Smartphone, tone: '#38bdf8', options: [any, ...plain(o?.devices, deviceLabel)] },
         { key: 'browser', label: 'Browser', icon: Globe, tone: '#a78bfa', options: [any, ...plain(o?.browsers)] },
         { key: 'channel', label: 'Channel', icon: Share2, tone: '#e879f9', options: [any, ...(o?.channels ?? [])] },
         { key: 'subject_type', label: 'Page type', icon: ScrollText, tone: '#fbbf24', options: [any, ...(o?.subjects ?? [])] },
@@ -82,6 +98,9 @@ const groups = computed<FilterGroup[]>(() => {
     ];
 });
 
+function clearChip(keys: DrillKey[]): void {
+    for (const k of keys) list.filters[k] = '';
+}
 function clearFilters(): void {
     for (const k of DRILL_KEYS) list.filters[k] = '';
 }
@@ -95,6 +114,8 @@ function open(row: VisitRow): void {
 }
 function narrow(key: 'visitor_id' | 'session_id' | 'ip', value: string | null): void {
     if (!value) return;
+    // These replace every other drill-down; dates and the crawler switch stay.
+    for (const k of DRILL_KEYS) list.filters[k] = '';
     list.filters[key] = value;
     detailOpen.value = false;
 }
@@ -114,13 +135,12 @@ const details = computed<[string, string][]>(() => {
         ['Campaign', [v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(' / ')],
         ['Location', loc ? [loc.label, loc.isp].filter(Boolean).join(' · ') : null],
         ['IP address', v.ip],
-        ['Device', [v.device_type, v.platform, v.browser].filter(Boolean).join(' · ')],
+        ['Device', v.is_bot ? 'Crawler' : [deviceLabel(v.device_type), v.platform, v.browser].filter(Boolean).join(' · ')],
         ['Language', v.locale?.toUpperCase()],
-        ['Crawler', v.is_bot ? 'Yes' : null],
         ['Visitor', v.visitor_id],
         ['Session', v.session_id],
-        ['Booked', v.converted.bookings ? String(v.converted.bookings) : null],
-        ['Enquired', v.converted.enquiries ? String(v.converted.enquiries) : null],
+        ['Bookings in this session', v.session_converted.bookings ? String(v.session_converted.bookings) : null],
+        ['Enquiries in this session', v.session_converted.enquiries ? String(v.session_converted.enquiries) : null],
     ];
     return rows.filter((r): r is [string, string] => Boolean(r[1]));
 });
@@ -132,7 +152,7 @@ const details = computed<[string, string][]>(() => {
 
         <ul v-if="chips.length" class="mb-4 flex flex-wrap gap-2" aria-label="Active filters">
             <li v-for="c in chips" :key="c.key">
-                <button type="button" class="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-[13px] font-semibold text-brand" :aria-label="`Remove filter ${c.text}`" @click="list.filters[c.key] = ''">
+                <button type="button" class="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-[13px] font-semibold text-brand" :aria-label="`Remove filter ${c.text}`" @click="clearChip(c.clear)">
                     {{ c.text }}<X class="size-3.5" />
                 </button>
             </li>
@@ -156,7 +176,10 @@ const details = computed<[string, string][]>(() => {
                                 <span class="block text-[12px] text-ink-muted">{{ formatDate(r.visited_at, true) }}</span>
                             </td>
                             <td data-label="Location" class="dt-hide-sm">{{ r.location?.label ?? '–' }}</td>
-                            <td data-label="Device">{{ [r.device_type, r.browser].filter(Boolean).join(' · ') || '–' }}</td>
+                            <td data-label="Device">
+                                <AppBadge v-if="r.is_bot">Crawler</AppBadge>
+                                <template v-else>{{ [deviceLabel(r.device_type), r.browser].filter(Boolean).join(' · ') || '–' }}</template>
+                            </td>
                             <td data-label="Came from">
                                 {{ r.channel_label ?? r.channel }}<template v-if="r.source"> · {{ r.source }}</template>
                                 <AppBadge v-if="r.in_app" class="ml-1">{{ r.in_app }}</AppBadge>

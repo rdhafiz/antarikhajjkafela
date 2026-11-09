@@ -27,6 +27,9 @@ class VisitReport
         'platform', 'browser', 'locale', 'visitor_id', 'session_id', 'ip',
     ];
 
+    /** Attribution filters: matched against a session's landing visit, not any of its visits. */
+    private const SOURCE_FILTERS = ['channel', 'source', 'in_app'];
+
     private const AGG = 'COUNT(*) as views, COUNT(DISTINCT visitor_id) as visitors';
 
     /** @param  array<string, mixed>  $filters */
@@ -146,7 +149,7 @@ class VisitReport
         $order = ($filters['sort_order'] ?? null) === 'asc' ? 'asc' : 'desc';
 
         $page = $this->filtered($filters)->orderBy($sortBy, $order)->orderBy('id', $order)
-            ->paginate((int) ($filters['per_page'] ?? 25));
+            ->paginate((int) ($filters['per_page'] ?? 20));
 
         return [
             'data' => $this->shape(collect($page->items()))->all(),
@@ -215,21 +218,33 @@ class VisitReport
         $made = ['bookings' => $inRange(Booking::class), 'enquiries' => $inRange(Inquiry::class)];
         $sessions = $made['bookings']->merge($made['enquiries'])->unique()->values();
 
+        // Source filters are attribution: the landing row must match. Every other filter: some visit of
+        // the session must match. Dates are left out of both (a session may land before the range).
+        $isSet = fn (string $c) => isset($filters[$c]) && $filters[$c] !== '';
+        $hasSource = collect(self::SOURCE_FILTERS)->contains($isSet);
+        $others = Arr::except($filters, ['date_from', 'date_to', ...self::SOURCE_FILTERS]);
+        $hasOther = collect(array_diff(self::EXACT_FILTERS, self::SOURCE_FILTERS))->contains($isSet);
+
         $landing = [];
+        $matched = [];
         foreach ($sessions->chunk(500) as $chunk) {
             $ids = PageVisit::query()->whereIn('session_id', $chunk->all())->selectRaw('MIN(id) as id')->groupBy('session_id')->pluck('id');
-            // the landing row must pass the drill-downs (not the dates: a session may land before the range)
-            foreach ($this->filtered(Arr::except($filters, ['date_from', 'date_to']))->whereIn('id', $ids->all())->get(['session_id', 'channel', 'source']) as $v) {
+            foreach ($this->filtered(Arr::only($filters, [...self::SOURCE_FILTERS, 'include_bots']))->whereIn('id', $ids->all())->get(['session_id', 'channel', 'source']) as $v) {
                 $landing[$v->session_id] = $v;
+            }
+            if ($hasOther) {
+                foreach ($this->filtered($others)->whereIn('session_id', $chunk->all())->distinct()->pluck('session_id') as $sid) {
+                    $matched[$sid] = true;
+                }
             }
         }
 
-        $drilled = collect(self::EXACT_FILTERS)->contains(fn ($c) => isset($filters[$c]) && $filters[$c] !== '');
-        $count = fn ($ids) => $drilled ? $ids->filter(fn ($sid) => isset($landing[$sid]))->count() : $ids->count();
+        $ok = fn ($sid) => (! $hasSource || isset($landing[$sid])) && (! $hasOther || isset($matched[$sid]));
+        $count = fn ($ids) => $hasSource || $hasOther ? $ids->filter($ok)->count() : $ids->count();
         $out = ['bookings' => $count($made['bookings']), 'enquiries' => $count($made['enquiries']), 'channels' => [], 'sources' => []];
         foreach ($made as $kind => $ids) {
             foreach ($ids as $sid) {
-                if (! ($v = $landing[$sid] ?? null)) {
+                if (! ($v = $landing[$sid] ?? null) || ! $ok($sid)) {
                     continue;
                 }
                 $out['channels'][$v->channel][$kind] = ($out['channels'][$v->channel][$kind] ?? 0) + 1;
@@ -248,14 +263,26 @@ class VisitReport
     {
         $names = $this->namesFor($visits);
         $locations = $this->locationsFor($visits);
+        $credited = ['bookings' => [], 'enquiries' => []]; // visit id => conversions credited to it
+        $inSession = ['bookings' => [], 'enquiries' => []]; // session id => conversions made in it
         $sessions = $visits->pluck('session_id')->filter()->unique()->all();
-        $count = fn (string $model) => $sessions
-            ? $model::whereIn('session_id', $sessions)->selectRaw('session_id, COUNT(*) as n')->groupBy('session_id')->pluck('n', 'session_id')
-            : collect();
-        $bookings = $count(Booking::class);
-        $enquiries = $count(Inquiry::class);
 
-        return $visits->map(function ($v) use ($names, $locations, $bookings, $enquiries) {
+        if ($sessions) {
+            // A conversion belongs to the latest visit of its session at or before it (the first one if none is).
+            $timeline = PageVisit::query()->whereIn('session_id', $sessions)->orderBy('created_at')->orderBy('id')->get(['id', 'session_id', 'created_at'])->groupBy('session_id');
+            foreach (['bookings' => Booking::class, 'enquiries' => Inquiry::class] as $kind => $model) {
+                foreach ($model::whereIn('session_id', $sessions)->get(['session_id', 'created_at']) as $made) {
+                    $inSession[$kind][$made->session_id] = ($inSession[$kind][$made->session_id] ?? 0) + 1;
+                    $own = $timeline[$made->session_id] ?? collect();
+                    $visit = $own->last(fn ($t) => $t->created_at <= $made->created_at) ?? $own->first();
+                    if ($visit) {
+                        $credited[$kind][$visit->id] = ($credited[$kind][$visit->id] ?? 0) + 1;
+                    }
+                }
+            }
+        }
+
+        return $visits->map(function ($v) use ($names, $locations, $credited, $inSession) {
             $n = $names[$v->subject_type.':'.$v->subject_id];
 
             return [
@@ -285,8 +312,12 @@ class VisitReport
                 'utm_medium' => $v->utm_medium,
                 'utm_campaign' => $v->utm_campaign,
                 'converted' => [
-                    'bookings' => (int) ($bookings[$v->session_id] ?? 0),
-                    'enquiries' => (int) ($enquiries[$v->session_id] ?? 0),
+                    'bookings' => $credited['bookings'][$v->id] ?? 0,
+                    'enquiries' => $credited['enquiries'][$v->id] ?? 0,
+                ],
+                'session_converted' => [
+                    'bookings' => $inSession['bookings'][$v->session_id] ?? 0,
+                    'enquiries' => $inSession['enquiries'][$v->session_id] ?? 0,
                 ],
             ];
         });

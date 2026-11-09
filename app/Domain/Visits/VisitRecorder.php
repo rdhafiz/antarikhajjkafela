@@ -26,7 +26,10 @@ class VisitRecorder
 
         $ids = VisitCookies::ids($request);
         $visitorId = $ids['visitor_id'] ?? (string) Str::uuid();
-        $sessionId = $ids['session_id'] ?? (string) Str::uuid();
+        $sessionId = $ids['session_id'];
+        if ($sessionId === null || $this->startsNewSession($request)) {
+            $sessionId = (string) Str::uuid();
+        }
 
         try {
             $this->insert($request, $type, $id, $visitorId, $sessionId);
@@ -44,6 +47,18 @@ class VisitRecorder
             $this->cookie($request, VisitCookies::VISITOR, $visitorId, 730 * 24 * 60),
             $this->cookie($request, VisitCookies::SESSION, $sessionId, (int) config('visits.session_minutes')),
         ];
+    }
+
+    /** A campaign click or an arrival from another site starts a fresh session (the visitor stays). */
+    private function startsNewSession(Request $request): bool
+    {
+        try {
+            $has = fn (string $key) => is_string($request->query($key)) && $request->query($key) !== '';
+
+            return $has('utm_source') || $has('utm_medium') || $has('gclid') || TrafficSource::for($request)['referrer'] !== null;
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     private function insert(Request $request, string $type, ?int $id, string $visitorId, string $sessionId): void

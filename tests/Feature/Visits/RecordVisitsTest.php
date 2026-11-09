@@ -177,6 +177,36 @@ class RecordVisitsTest extends TestCase
         $this->assertTrue(Str::isUuid(PageVisit::latest('id')->first()->visitor_id));
     }
 
+    public function test_a_new_campaign_click_or_external_referrer_starts_a_new_session(): void
+    {
+        $vid = (string) Str::uuid();
+        $sid = (string) Str::uuid();
+        $withIds = fn () => $this->withCookie('pv_vid', $vid)->withCookie('pv_sid', $sid);
+
+        $response = $withIds()->get('/packages?utm_source=google&utm_medium=cpc')->assertOk();
+        $first = PageVisit::latest('id')->first();
+        $this->assertNotSame($sid, $first->session_id);
+        $this->assertSame($vid, $first->visitor_id);
+        $response->assertCookie('pv_sid', $first->session_id);
+
+        $withIds()->get('/packages?gclid=abc')->assertOk();
+        $this->assertNotSame($sid, PageVisit::latest('id')->first()->session_id);
+
+        $withIds()->withHeaders(['Referer' => 'https://www.facebook.com/'])->get('/packages')->assertOk();
+        $this->assertNotSame($sid, PageVisit::latest('id')->first()->session_id);
+    }
+
+    public function test_internal_navigation_and_in_app_browsers_keep_the_session(): void
+    {
+        $sid = (string) Str::uuid();
+        $withSid = fn () => $this->withCookie('pv_sid', $sid);
+
+        $withSid()->withHeaders(['Referer' => config('app.url').'/packages'])->get('/packages')->assertOk();
+        $withSid()->withHeaders(['User-Agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 [FBAN/FBIOS;FBAV/430.0]'])->get('/packages')->assertOk();
+
+        $this->assertSame([$sid, $sid], PageVisit::orderBy('id')->pluck('session_id')->all());
+    }
+
     public function test_public_ip_is_queued_and_private_is_not(): void
     {
         $this->withServerVariables(['REMOTE_ADDR' => '8.8.8.8'])->get('/packages')->assertOk();
